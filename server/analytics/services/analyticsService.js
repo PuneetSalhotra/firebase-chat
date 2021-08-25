@@ -2161,6 +2161,11 @@ function AnalyticsService(objectCollection)
                         request.filter_timescale || '',
                         request.filter_is_lead || 0,
                         request.filter_campaign_activity_id || 0,
+                        request.filter_field_entity_1 || '',
+                        request.filter_field_entity_2 || '',
+                        request.filter_field_entity_3 || '',
+                        request.filter_field_entity_4 || '',
+                        request.filter_field_entity_5 || '',
                         parseInt(request.page_start) || 0,
                         parseInt(request.page_limit) || 50
                     );
@@ -2172,7 +2177,7 @@ function AnalyticsService(objectCollection)
                    
                         for(let iteratorM = 0; iteratorM < counter; iteratorM++){
                              paramsArray.push(iteratorM)
-                            tempResult = await db.callDBProcedureR2(request, 'ds_v1_8_activity_search_list_select_widget_values', paramsArray, 1);
+                            tempResult = await db.callDBProcedureR2(request, 'ds_v1_9_activity_search_list_select_widget_values', paramsArray, 1);
                             paramsArray.pop();
                             responseArray.push(tempResult[0])
                         }
@@ -2192,7 +2197,7 @@ function AnalyticsService(objectCollection)
                     } else {
                         console.log(paramsArray);
                         paramsArray.push(0)
-                        tempResult = await db.callDBProcedureR2(request, 'ds_v1_8_activity_search_list_select_widget_values', paramsArray, 1);
+                        tempResult = await db.callDBProcedureR2(request, 'ds_v1_9_activity_search_list_select_widget_values', paramsArray, 1);
                         console.log(tempResult);
                      //   let widgetTypes = [23,24,48,49,63,66,37,38,65,61,67,53,54, 39, 40, 41, 42];
                      //   if(widgetTypes.includes(request.widget_type_id)){
@@ -2408,7 +2413,7 @@ function AnalyticsService(objectCollection)
                 responseJson.sequence_id = widgetFlags[iteratorM];
                 verticalResponseAdditonalMap.set(iteratorM, responseJson);
 
-                const queryString = util.getQueryString('ds_v1_8_activity_search_list_select_widget_values_oppty', paramsArray);
+                const queryString = util.getQueryString('ds_v1_9_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
                     await db.executeQueryPromise(1, queryString, request)
@@ -2536,7 +2541,7 @@ function AnalyticsService(objectCollection)
                 responseJson.sequence_id = widgetFlags[iteratorM];
                 verticalResponseAdditonalMap.set(iteratorM, responseJson);
 
-                const queryString = util.getQueryString('ds_v1_8_activity_search_list_select_widget_values_oppty', paramsArray);
+                const queryString = util.getQueryString('ds_v1_9_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
                     await db.executeQueryPromise(1, queryString, request)
@@ -2687,7 +2692,7 @@ function AnalyticsService(objectCollection)
 
                 verticalResponseAdditonalMap.set(iteratorM, responseJson);
 
-                const queryString = util.getQueryString('ds_v1_8_activity_search_list_select_widget_values_oppty', paramsArray);
+                const queryString = util.getQueryString('ds_v1_9_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
                     await db.executeQueryPromise(1, queryString, request)
@@ -2919,10 +2924,15 @@ function AnalyticsService(objectCollection)
                     request.filter_is_lead || 0,
                     request.filter_campaign_activity_id || 0,
                     parseInt(request.page_start) || 0,
-                    parseInt(request.page_limit) || 100
+                     parseInt(request.page_limit) || 100,
+                     request.filter_field_entity_1 || '',
+                     request.filter_field_entity_2 || '',
+                     request.filter_field_entity_3 || '',
+                     request.filter_field_entity_4 || '',
+                     request.filter_field_entity_5 || ''
                     );
             
-                var queryString = util.getQueryString('ds_v1_8_activity_search_list_select_widget_drilldown_search', paramsArray);
+            var queryString = util.getQueryString('ds_v1_9_activity_search_list_select_widget_drilldown_search', paramsArray);
                 if (queryString !== '') {
                     tempResult = await (db.executeQueryPromise(1, queryString, request));
                 }
@@ -3087,10 +3097,15 @@ function AnalyticsService(objectCollection)
                     parseInt(request.page_start) || 0,
                     parseInt(request.page_limit) || 100,
                      parseInt(request.sequence_id),
-                     parseInt(request.target_asset_id) || 0
+                     parseInt(request.target_asset_id) || 0,
+                     request.filter_field_entity_1 || '',
+                     request.filter_field_entity_2 || '',
+                     request.filter_field_entity_3 || '',
+                     request.filter_field_entity_4 || '',
+                     request.filter_field_entity_5 || ''
                     );
             
-                var queryString = util.getQueryString('ds_v1_8_activity_search_list_select_widget_drilldown_oppty', paramsArray);
+            var queryString = util.getQueryString('ds_v1_9_activity_search_list_select_widget_drilldown_oppty', paramsArray);
                 if (queryString !== '') {
                     tempResult = await (db.executeQueryPromise(1, queryString, request));
                 }
@@ -4918,6 +4933,11 @@ function AnalyticsService(objectCollection)
                             request.filter_timescale || '',
                             request.filter_is_lead || 0,
                             request.filter_campaign_activity_id || 0,
+                            request.filter_field_entity_1 || '',
+                            request.filter_field_entity_2 || '',
+                            request.filter_field_entity_3 || '',
+                            request.filter_field_entity_4 || '',
+                            request.filter_field_entity_5 || '',
                             parseInt(request.page_start) || 0,
                             parseInt(request.page_limit) || 50
                         );
@@ -5406,7 +5426,7 @@ function AnalyticsService(objectCollection)
         let responseData = [],
             error = true;
 
-        const queryString = util.getQueryString('ds_v1_8_activity_search_list_select_widget_values_oppty_vertical', paramsArr);
+        const queryString = util.getQueryString('ds_v1_9_activity_search_list_select_widget_values_oppty_vertical', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {

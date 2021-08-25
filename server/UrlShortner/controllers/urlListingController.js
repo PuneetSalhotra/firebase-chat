@@ -11,10 +11,10 @@ function UrlListingController(objCollection) {
     app.post('/' + global.config.version + '/url/parameters/lookup', async function (req, res) {
         const [err, urlData] = await urlListingService.urlParametersLookup(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, urlData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, urlData, 200, req.body));
         } else {
             console.log("/url/parameters/shorten | Error: ", err);
-            res.send(responseWrapper.getResponse(err, urlData, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, urlData, -9999, req.body));
         }
     });
 }

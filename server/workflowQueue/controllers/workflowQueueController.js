@@ -23,9 +23,9 @@ function WorkflowQueueController(objCollection) {
         async (req, res) => {
             try {
                 let result = await workflowQueueService.addWorkflowQueue(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             } catch (err) {
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             }
         }
     );
@@ -38,9 +38,9 @@ function WorkflowQueueController(objCollection) {
         async (req, res) => {
             try {
                 let result = await workflowQueueService.alterWorkflowQueue(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             } catch (err) {
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             }
         }
     );
@@ -52,9 +52,9 @@ function WorkflowQueueController(objCollection) {
                 let [err,result] = await workflowQueueService.updateWorkflowAccess(req.body);
                 
                 if(!err){
-                    res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                    res.json(responseWrapper.getResponse(false, result, 200, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             }
         }
     );
@@ -67,9 +67,9 @@ function WorkflowQueueController(objCollection) {
         async (req, res) => {
             try {
                 let result = await workflowQueueService.archiveWorkflowQueue(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             } catch (err) {
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             }
         }
     );
@@ -82,10 +82,10 @@ function WorkflowQueueController(objCollection) {
         async (req, res) => {
             try {
                 let result = await workflowQueueService.setMultipleAssetsQueueAccessV1(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             } catch (err) {
                 console.log("error ",err);
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             }
         }
     );
@@ -98,19 +98,19 @@ function WorkflowQueueController(objCollection) {
         async (req, res) => {
             try {
                 let result = await workflowQueueService.resetWorkflowQueueAccess(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             } catch (err) {
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             }
         }
     );
     app.post('/' + global.config.version + '/queue/user/mappings', async function (req, res) {
         const [err, data] = await workflowQueueService.getQueueMappingUsers(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
             console.log("Error: ", err)
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
 }

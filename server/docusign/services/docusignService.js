@@ -170,7 +170,7 @@ function commonDocusignService(objectCollection) {
             var response = {
               'document_id': results[0][0]['activity_docusign_id']
             }
-            return res.send(responseWrapper.getResponse(false, response, 200, request));
+            return res.json(responseWrapper.getResponse(false, response, 200, request));
           }
         })
       },req,res)
@@ -223,7 +223,7 @@ function commonDocusignService(objectCollection) {
           error = err;
         });
     }
-    return res.send(responseWrapper.getResponse(false, response, 200, request));
+    return res.json(responseWrapper.getResponse(false, response, 200, request));
   }
 
   this.updateStatus = async (request, res,req) => {
@@ -391,7 +391,7 @@ function commonDocusignService(objectCollection) {
       return pdfObj
     } catch (err) {
       console.log(err)
-      return res.send(responseWrapper.getResponse(err, {}, -9998, request));
+      return res.json(responseWrapper.getResponse(err, {}, -9998, request));
     }
   }
 
@@ -410,7 +410,7 @@ function commonDocusignService(objectCollection) {
       return s3UploadUrlObj.Location
     } catch (err) {
       console.log(err)
-      return res.send(responseWrapper.getResponse(err, {}, -9998, request));
+      return res.json(responseWrapper.getResponse(err, {}, -9998, request));
     }
   }
 
@@ -498,7 +498,7 @@ function commonDocusignService(objectCollection) {
     }else
     {
         console.log("No valid access token found. Saved refresh token not available either ");
-        res.send("<h1>You are not authenticated with Docusign.</h1>Click <a href='/r1/ds/login'>here</a> to autheticate");
+        res.json("<h1>You are not authenticated with Docusign.</h1>Click <a href='/r1/ds/login'>here</a> to autheticate");
     }
   };
 

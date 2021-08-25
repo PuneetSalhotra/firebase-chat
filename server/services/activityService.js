@@ -3148,7 +3148,7 @@ function ActivityService(objectCollection) {
                     // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                     global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
 
-                    //res.send(responseWrapper.getResponse(false, {}, -5999,req.body));
+                    //res.json(responseWrapper.getResponse(false, {}, -5999,req.body));
                     throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                 } else {}
 

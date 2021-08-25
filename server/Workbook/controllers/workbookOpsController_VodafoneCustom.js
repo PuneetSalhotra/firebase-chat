@@ -28,20 +28,20 @@ function WorkbookOpsController_VodafoneCustom(objCollection) {
     app.post('/' + global.config.version + '/excel/s3/upload', async (req, res) => {        
         const [err, responseData] = await workbookOpsService_VodafoneCustom.uploadReadableStreamToS3Method(req.body);        
         if (!err) {
-            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/excel/s3/upload | Error: ", err);
-            res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/excel/s3/download', async (req, res) => {
         const [err, responseData] = await workbookOpsService_VodafoneCustom.downloadExcelFromS3(req.body);        
         if (!err) {
-            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/excel/s3/download | Error: ", err);
-            res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
         }
     });
 
@@ -49,10 +49,10 @@ function WorkbookOpsController_VodafoneCustom(objCollection) {
     /*app.post('/' + global.config.version + '/account/nani/kalyan', async (req, res) => {
         const [err, responseData] = await workbookOpsService_VodafoneCustom_v1.workbookMappingBotOperationV1(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/excel/s3/download | Error: ", err);
-            res.send(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
         }
     });*/
 

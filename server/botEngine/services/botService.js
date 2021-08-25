@@ -6156,26 +6156,6 @@ async function removeAsOwner(request,data,addT=0)  {
             await sleep(4000);
             resp = await getFieldValue(newReq);
             newReq.email_id = resp[0].data_entity_text_1;
-        } else if (type[0] === 'participants') {
-            let isAllFlag = inlineData.is_all;
-            if (isAllFlag == 0) {
-                await kafkaProdcucerForChildOrderCreation(global.config.CHILD_ORDER_TOPIC_NAME, {
-                    request,
-                    requestType: "summary_mom_child_orders"
-                }).catch(global.logger.error);
-
-            } else {
-                let participantReq = Object.assign({}, request);
-                participantReq.is_all_flag = isAllFlag;
-                let htmlString = await generateMOMOrdersHtmlCode(request);
-                let [err, participantsList] = await getParticipantsAsync(participantReq);
-
-                for (const asset of participantsList) {
-                    let [error, assetDetails] = await getParticipantDetails({ assetID: asset.asset_id });
-                    await util.sendEmailV4ews(request, assetDetails[0].asset_email_id, "MOM Points", htmlString, 1);
-                }
-            }
-            return;
         }
 
         let attachmentsList = [], attachmentURL = '';
@@ -15511,7 +15491,7 @@ if(workflowActivityData.length==0){
         logger.info(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData));
         request.debug_info.push(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData))
             await addDeskAsParticipant(request, assetData);
-            await icsEventCreation(request,request.emails[i],assetData.first_name);
+            await icsEventCreation(request,request.emails[i].email,assetData.first_name);
         }
         catch{
             error = true
@@ -15522,10 +15502,12 @@ if(workflowActivityData.length==0){
 
     async function icsEventCreation(request,email,receiver_name){
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
-        wfActivityDetails = JSON.parse(wfActivityDetails[0].activity_inline_data).filter((_,i)=>_.field_data_type_id === 77)
-        var timeDifferenceInMinutes = Math.floor(wfActivityDetails[0].field_value.duration);
-        let createDate = new Date(wfActivityDetails[0].field_value.start_date_time);
+        let eventTimeDetails = JSON.parse(wfActivityDetails[0].activity_inline_data).filter((_,i)=>_.field_data_type_id === 77);
+        
+        var timeDifferenceInMinutes = Math.floor(eventTimeDetails[0].field_value.duration);
+        let createDate = new Date(moment(eventTimeDetails[0].field_value.start_date_time,'YYYY-MM-DD HH:mm:ss','IST'));
         let today = new Date();
+        
         ics.createEvent({
             title: "Telecall/Discussion",
             description: wfActivityDetails[0].activity_description,
@@ -15533,7 +15515,8 @@ if(workflowActivityData.length==0){
             start: [createDate.getFullYear(), createDate.getMonth()+1, createDate.getDate(), createDate.getHours(), createDate.getMinutes()],
             duration: { minutes: timeDifferenceInMinutes },
             organizer: { name: 'GreneOS', email: 'admin@grenerobotics.com' },
-            attendees: [{ name: receiver_name, email: email }]
+            attendees: [{ name: receiver_name, email: email }],
+            
           }, (error, value) => {
             if (error) {
               console.log(error)
@@ -15543,7 +15526,7 @@ if(workflowActivityData.length==0){
             request.email_sender_name = 'GreneOS';
             request.email_receiver_name = receiver_name;
             request.email_sender = "admin@grenerobotics.com"
-            util.sendEmailMailgunV2(request, email, wfActivityDetails[0].activity_title, fileName, "",  "html")
+            util.sendEmailMailgunV2(request, email, "Telecall/Discussion", fileName, "",  "html")
           });
     }
 
@@ -15727,201 +15710,6 @@ if(workflowActivityData.length==0){
 
             await activityTimelineService.addTimelineTransactionAsync(timelineReq);
         }
-
-    let getParticipantsAsync = async (request) => {
-        let responseData = [],
-            error = true;
-
-        const paramsArr = new Array(
-            request.activity_id,
-            request.organization_id,
-            request.is_all_flag,
-            0,
-            50
-        );
-
-        const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_participants_org', paramsArr);
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    //error = true;
-                    console.log("Error in function 'getParticipantsAsync' : ", err);
-                });
-        }
-        return [error, responseData];
-    };
-
-    let generateMOMOrdersHtmlCode = async (request) => {
-
-        const [errorZero, childMOM] = await activityListSelectChildOrders({
-            organization_id: request.organization_id,
-            parent_activity_id: request.activity_id,
-            flag: 3
-        });
-
-        if (errorZero || childMOM.length === 0) {
-            return "";
-        }
-        let MOMFIELDMAPPINGSFORSUMMARY = {
-            "form_id": 50821,
-            "fields": {
-                "Discussion_Point": 312417,
-                "Description": [
-                    312418,
-                    312419,
-                    312420,
-                    312421,
-                    312422,
-                    312423,
-                    312424,
-                    312425,
-                    312426,
-                    312427,
-                    312246
-                ],
-                "Responsible_Person_Email_ID": 312428,
-                "Responsibility_Holder": 312429,
-                "Category_ID": 312430,
-                "Assigned_To": 312431,
-                "Assigned_Date": 312432,
-                "Due_Date": 312767,
-                "Comments": 312433
-            },
-            "field_order": [
-                "SL_NO",
-                "Status",
-                "Meeting_ID",
-                "MOM_Point_ID",
-                "Discussion_Point",
-                "Description",
-                "Responsible_Person_Email_ID",
-                "Responsibility_Holder",
-                "Category_ID",
-                "Assigned_To",
-                "Assigned_Date",
-                "Due_Date",
-                "Comments"
-            ],
-            "date_fields": [
-                312767,
-                312432
-            ]
-        };
-
-        let finalSummaryData = [];
-        let formID = MOMFIELDMAPPINGSFORSUMMARY["form_id"];
-        let fields = Object.keys(MOMFIELDMAPPINGSFORSUMMARY["fields"]);
-        let dateFields = MOMFIELDMAPPINGSFORSUMMARY["date_fields"];
-
-        for (let i = 0; i < childMOM.length; i++) {
-            let child = childMOM[i];
-            let fieldIDValue = {};
-            let inlineJSON = [];
-            let activityID = child["activity_id"];
-            const formTimelineData = await activityCommonService.getActivityTimelineTransactionByFormId713({
-                organization_id: request.organization_id,
-                account_id: request.account_id
-            }, activityID, formID);
-
-            if (formTimelineData.length > 0) {
-                const dataActivityInline = JSON.parse(formTimelineData[0].data_entity_inline);
-                inlineJSON = (typeof dataActivityInline.form_submitted === 'string') ? JSON.parse(dataActivityInline.form_submitted) : dataActivityInline.form_submitted;
-                console.log("inlineJSON ", inlineJSON);
-            }
-
-            for (let fieldData of inlineJSON) {
-                fieldIDValue[String(fieldData.field_id)] = fieldData.field_value;
-            }
-
-
-            let data = {};
-            data["SL_NO"] = i + 1;
-            data["Meeting_ID"] = child["activity_cuid_3"];
-            data["MOM_Point_ID"] = child["activity_cuid_2"];
-            data["Status"] = child["activity_status_tag_name"];
-
-            logger.info('fields : %j', fields);
-
-            for (let field of fields) {
-                let value = "";
-                let fieldID = MOMFIELDMAPPINGSFORSUMMARY["fields"][field];
-                logger.info('fieldID : %j', fieldID);
-                if (isArray(fieldID)) {
-                    for (let subFieldID of fieldID) {
-                        if (fieldIDValue.hasOwnProperty(String(subFieldID))) {
-                            value = fieldIDValue[String(subFieldID)];
-                            break;
-                        }
-                    }
-                } else {
-                    if (fieldIDValue.hasOwnProperty(String(fieldID))) {
-                        value = fieldIDValue[String(fieldID)];
-                    }
-                }
-
-                if (dateFields.includes(fieldID)) {
-                    try {
-                        let date = moment(value)
-                        if (date.isValid()) {
-                            value = date.format("DD-MM-YYYY");
-                        }
-                    } catch (e) {
-                    }
-                }
-                data[field] = value;
-            }
-            finalSummaryData.push(data);
-        }
-        console.log(finalSummaryData);
-        let htmlString = '<table width="100%" border="1" cellspacing="0"><thead><tr>';
-
-        for (const key of MOMFIELDMAPPINGSFORSUMMARY["field_order"]) {
-            htmlString += '<th>' + key + '</th>';
-        }
-        htmlString += '</tr></thead><tbody>';
-
-        for (let child of finalSummaryData) {
-            htmlString += '<tr>';
-            for (const key of MOMFIELDMAPPINGSFORSUMMARY["field_order"]) {
-                htmlString += '<th>' + child[key] + '</th>';
-            }
-            htmlString += '</tr>';
-        }
-        htmlString += '</tbody></table>';
-        return htmlString;
-    }
-
-    async function getParticipantDetails(request) {
-        let responseData = [];
-        let error = true;
-
-        const paramsArr = [request.assetID];
-
-        const queryString = util.getQueryString('ds_p1_asset_list_select_asset', paramsArr);
-
-        if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then
-                (
-                    (data) => {
-                        responseData = data;
-                        error = false;
-                    }
-                )
-                .catch
-                (
-                    (err) => {
-                        error = err;
-                    }
-                )
-        }
-
-        return [error, responseData];
-    }
 }
 
 

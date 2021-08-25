@@ -1,0 +1,18 @@
+{
+    "caf_no": 0,
+    "feasibility_id": 313744,
+    "bandwidth_mbps": 0,
+    "one_time_charges": 313756,
+    "recurring_charges": 313969,
+    "existing_arc": 0,
+    "billing_frequency": 0,
+    "site_address": 0,
+    "city": 0,
+    "state": 0,
+    "contact_person": 0,
+    "contact_number": 0,
+    "gst_no": 0,
+    "cgst_no": 0,
+    "type_hub_spoke_mesh": 0,
+    "lm": 0
+}
