@@ -19,11 +19,11 @@ function ZohoController(objCollection) {
     app.post('/' + global.config.version + '/zoho/customer/set', function (req, res) {
         zohoService.createCustomer(req.body, function (err, data, statusCode) {
             if (err === false) {                
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper response');
                 global.logger.write('response', 'did not get proper response', err, {});
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -33,11 +33,11 @@ function ZohoController(objCollection) {
     app.post('/' + global.config.version + '/zoho/customer/retrieve', function (req, res) {
         zohoService.getCustomerDetails(req.body, function (err, data, statusCode) {
             if (err === false) {                
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper response');
                 global.logger.write('response', 'did not get proper response', err, {});
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -46,11 +46,11 @@ function ZohoController(objCollection) {
     app.post('/' + global.config.version + '/zoho/customer/update', function (req, res) {
         zohoService.updateCustomerDetails(req.body, function (err, data, statusCode) {
             if (err === false) {                
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper response');
                 global.logger.write('response', 'did not get proper response', err, {});
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -59,11 +59,11 @@ function ZohoController(objCollection) {
     app.post('/' + global.config.version + '/zoho/customer/reset', function (req, res) {
         zohoService.deleteCustomer(req.body, function (err, data, statusCode) {
             if (err === false) {                
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper response');
                 global.logger.write('response', 'did not get proper response', err, {});
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -72,11 +72,11 @@ function ZohoController(objCollection) {
     app.post('/' + global.config.version + '/zoho/customer/active', function (req, res) {
         zohoService.markCustomerActive(req.body, function (err, data, statusCode) {
             if (err === false) {                
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper response');
                 global.logger.write('response', 'did not get proper response', err, {});
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -85,11 +85,11 @@ function ZohoController(objCollection) {
     app.post('/' + global.config.version + '/zoho/customer/inactive', function (req, res) {
         zohoService.markCustomerInActive(req.body, function (err, data, statusCode) {
             if (err === false) {                
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper response');
                 global.logger.write('response', 'did not get proper response', err, {});
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -98,11 +98,11 @@ function ZohoController(objCollection) {
     app.post('/' + global.config.version + '/zoho/customer/subscription/set', function (req, res) {
         zohoService.createCustomerSubscription(req.body, function (err, data, statusCode) {
             if (err === false) {                
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper response');
                 global.logger.write('response', 'did not get proper response', err, {});
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -111,11 +111,11 @@ function ZohoController(objCollection) {
     app.post('/' + global.config.version + '/zoho/existing_customer/subscription/set', function (req, res) {
         zohoService.createExistingCustomerSubscription(req.body, function (err, data, statusCode) {
             if (err === false) {                
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper response');
                 global.logger.write('response', 'did not get proper response', err, {});
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -124,11 +124,11 @@ function ZohoController(objCollection) {
     app.post('/' + global.config.version + '/zoho/customer/subscription/update', function (req, res) {
         zohoService.updateCustomerSubscription(req.body, function (err, data, statusCode) {
             if (err === false) {                
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper response');
                 global.logger.write('response', 'did not get proper response', err, {});
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -137,11 +137,11 @@ function ZohoController(objCollection) {
     app.post('/' + global.config.version + '/zoho/customer/subscription/reset', function (req, res) {
         zohoService.deleteCustomerSubscription(req.body, function (err, data, statusCode) {
             if (err === false) {                
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper response');
                 global.logger.write('response', 'did not get proper response', err, {});
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -150,11 +150,11 @@ function ZohoController(objCollection) {
     app.post('/' + global.config.version + '/zoho/customer/card/retrieve', function (req, res) {
         zohoService.getCustomerCardDetails(req.body, function (err, data, statusCode) {
             if (err === false) {                
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper response');
                 global.logger.write('response', 'did not get proper response', err, {});
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -163,11 +163,11 @@ function ZohoController(objCollection) {
     app.post('/' + global.config.version + '/zoho/customer/card/update', function (req, res) {
         zohoService.updateCustomerCardDetails(req.body, function (err, data, statusCode) {
             if (err === false) {                
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper response');
                 global.logger.write('response', 'did not get proper response', err, {});
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -176,11 +176,11 @@ function ZohoController(objCollection) {
     app.post('/' + global.config.version + '/zoho/customer/card/reset', function (req, res) {
         zohoService.deleteCustomerCardDetails(req.body, function (err, data, statusCode) {
             if (err === false) {                
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper response');
                 global.logger.write('response', 'did not get proper response', err, {});
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -189,11 +189,11 @@ function ZohoController(objCollection) {
     app.post('/' + global.config.version + '/zoho/account/billing/update', function (req, res) {
         zohoService.updateAcctBillingDetails(req.body, function (err, data, statusCode) {
             if (err === false) {                
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper response');
                 global.logger.write('response', 'did not get proper response', err, {});
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -202,11 +202,11 @@ function ZohoController(objCollection) {
     app.post('/' + global.config.version + '/zoho/asset/account/billing/update', function (req, res) {
         zohoService.updateAssetBillingDetails(req.body, function (err, data, statusCode) {
             if (err === false) {                
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper response');
                 global.logger.write('response', 'did not get proper response', err, {});
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });

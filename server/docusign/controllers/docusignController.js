@@ -42,7 +42,7 @@ function docusignController(objCollection) {
       try {
          let result = await commonDocusignService.addFile(req.body, res,req);
       } catch (err) {
-        res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
       }
     })
 
@@ -53,7 +53,7 @@ function docusignController(objCollection) {
         try {
           let result = await commonDocusignService.query(req.body, res);
         } catch (err) {
-          res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+          res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
       })
 
@@ -62,9 +62,9 @@ function docusignController(objCollection) {
       async (req, res) => {
         try {
           let result = await commonDocusignService.updateStatus(req.body, res,req);
-          res.send(responseWrapper.getResponse(false, result, 200, req.body));
+          res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
-          res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+          res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
       })
 }

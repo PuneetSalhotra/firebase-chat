@@ -246,7 +246,66 @@ function AnalyticsOpsService(objectCollection)
                 })
         }
         return [error, responseData];
-    }        
+    }
+
+    //Get the dashboard fields filter list
+    this.getDashboardFiledsFilterList = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_id,
+            request.form_id,
+            request.field_id,
+            request.flag,
+            request.page_start || 0,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_select_filters', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    //Update the worforce form field mapping filters
+    this.UpdateWorforceFormFieldMappingFilters = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_id,
+            request.form_id,
+            request.field_id,
+            request.dashboard_filter_enabled,
+            request.filter_sequence_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_update_filter', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AnalyticsOpsService;

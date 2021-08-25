@@ -10,11 +10,11 @@ function statsController(objCollection) {
     app.post('/' + global.config.version + '/stats/signup/count', function statsSignUpCountReqHandler(req, res) {
         statsService.getSignUpCountStats(req.body, function statsSignUpCountCallback(err, data, statusCode) {
             if (!err) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log("err: ", err);
                 global.logger.write('debug', err, {}, req.body);
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
     });
@@ -22,12 +22,12 @@ function statsController(objCollection) {
     app.post('/' + global.config.version + '/stats/signup/list', function statsSignUpCountReqHandler(req, res) {
         statsService.getListOfSignUps(req.body, function statsListOfSignUpsCallback(err, data, statusCode) {
             if (!err) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log("err: ", err);
                 global.logger.write('debug', err, {}, req.body);
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
     });
@@ -35,11 +35,11 @@ function statsController(objCollection) {
     app.post('/' + global.config.version + '/stats/timeline/list', function statsSignUpCountReqHandler(req, res) {
         statsService.getTimelineList(req.body, function statsTimelineListCallback(err, data, statusCode) {
             if (!err) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log("err: ", err);
                 global.logger.write('debug', err, {}, req.body);
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
     });
@@ -142,10 +142,10 @@ function statsController(objCollection) {
                     });
                 }
 
-                res.send(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
                 global.logger.write('debug', err, {}, req.body);
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
     });
@@ -166,10 +166,10 @@ function statsController(objCollection) {
                 data[0].customer_approval = Number(data[0].customer_approval) + 16096000;
                 data[0].total_value = Number(data[0].total_value) + 124942000;
 
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 global.logger.write('debug', err, {}, req.body);
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
     });
@@ -489,10 +489,10 @@ function statsController(objCollection) {
                             break;
                     }
                 });
-                res.send(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
                 global.logger.write('debug', err, {}, req.body);
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
     });
@@ -815,10 +815,10 @@ function statsController(objCollection) {
                     }
                 });
 
-                res.send(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
                 global.logger.write('debug', err, {}, req.body);
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
     });
@@ -885,10 +885,10 @@ function statsController(objCollection) {
                     }
                 });
 
-                res.send(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
                 global.logger.write('debug', err, {}, req.body);
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
     });

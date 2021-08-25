@@ -795,7 +795,7 @@ function ActivityUpdateService(objectCollection) {
                             gmt_time: body.gmt_time,
                             response: body.response
                         };
-                        //res.send(resp);
+                        //res.json(resp);
                         // console.log(resp);
                         global.logger.write('debug', 'resp: ' + JSON.stringify(resp, null, 2), {}, request);
 
@@ -827,14 +827,14 @@ function ActivityUpdateService(objectCollection) {
                                     if (err) {
                                         console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                                         //global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
-                                        //res.send(responseWrapper.getResponse(false, {}, -5999,req.body));
+                                        //res.json(responseWrapper.getResponse(false, {}, -5999,req.body));
                                         throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                                     } else {
                                     }
                                 });
                             } catch (exception) {
                                 console.log('Exception : ' + exception);
-                                //res.send(responseWrapper.getResponse(false, {}, -3308,request.body));
+                                //res.json(responseWrapper.getResponse(false, {}, -3308,request.body));
                                 return;
                             }
                         } else {

@@ -12,10 +12,10 @@ function LedgerListingController(objCollection) {
     app.post('/' + global.config.version + '/accounts/list', async function (req, res) {
         const [err, statusTagData] = await ledgerListingService.workflowAccountCatList(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, statusTagData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, statusTagData, 200, req.body));
         } else {
             console.log("/accounts/list | Error: ", err);
-            res.send(responseWrapper.getResponse(err, statusTagData, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, statusTagData, -9999, req.body));
         }
     });
 
@@ -23,10 +23,10 @@ function LedgerListingController(objCollection) {
     app.post('/' + global.config.version + '/ledger/transaction/summary/monthly', async function (req, res) {
         const [err, summaryData] = await ledgerListingService.getLedgerTransactionSummaryMonthly(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, summaryData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, summaryData, 200, req.body));
         } else {
             console.log("/ledger/transaction/summary/monthly | Error: ", err);
-            res.send(responseWrapper.getResponse(err, summaryData, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, summaryData, -9999, req.body));
         }
     });
 
@@ -34,10 +34,10 @@ function LedgerListingController(objCollection) {
     app.post('/' + global.config.version + '/ledger/transaction/summary/quarterly', async function (req, res) {
         const [err, summaryData] = await ledgerListingService.getLedgerTransactionSummaryQuarterly(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, summaryData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, summaryData, 200, req.body));
         } else {
             console.log("/ledger/transaction/summary/quarterly | Error: ", err);
-            res.send(responseWrapper.getResponse(err, summaryData, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, summaryData, -9999, req.body));
         }
     });
 
@@ -45,10 +45,10 @@ function LedgerListingController(objCollection) {
     app.post('/' + global.config.version + '/ledger/transaction/summary/yearly', async function (req, res) {
         const [err, summaryData] = await ledgerListingService.getLedgerTransactionSummaryYearly(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, summaryData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, summaryData, 200, req.body));
         } else {
             console.log("/ledger/transaction/summary/yearly | Error: ", err);
-            res.send(responseWrapper.getResponse(err, summaryData, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, summaryData, -9999, req.body));
         }
     });
 

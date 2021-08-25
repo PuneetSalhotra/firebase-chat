@@ -16,10 +16,10 @@ function PerformanceStatsController(objCollection) {
     app.post('/' + global.config.version + '/asset/access/task/counts', function (req, res) {
         performanceStatsService.employeeProductivityReport(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -28,10 +28,10 @@ function PerformanceStatsController(objCollection) {
     app.post('/' + global.config.version + '/asset/tasks/response_time/list', function (req, res) {
         performanceStatsService.tasksRespTime(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -40,9 +40,9 @@ function PerformanceStatsController(objCollection) {
     app.post('/' + global.config.version + '/asset/task_creator/rating/alter', function (req, res) {
         performanceStatsService.updateCreatorRating(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -51,9 +51,9 @@ function PerformanceStatsController(objCollection) {
     app.post('/' + global.config.version + '/asset/task_lead/rating/alter', function (req, res) {
         performanceStatsService.updateLeadRating(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -62,9 +62,9 @@ function PerformanceStatsController(objCollection) {
     app.post('/' + global.config.version + '/asset/task_collaborator/rating/alter', function (req, res) {
         performanceStatsService.updateCollaboratorRating(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -73,9 +73,9 @@ function PerformanceStatsController(objCollection) {
     app.post('/' + global.config.version + '/asset/access/inmail/count', function (req, res) {
         performanceStatsService.retrieveInmailCnt(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });

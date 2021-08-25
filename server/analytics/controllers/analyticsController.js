@@ -24,10 +24,10 @@ function AnalyticsController(objCollection)
             async (req, res) => {
                 try {
                     let result = await analyticsService.getFilterLabels(req.body);
-                    res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                    res.json(responseWrapper.getResponse(false, result, 200, req.body));
                 }
                 catch (err) {
-                    res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                    res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
                 }
             }
         );
@@ -39,10 +39,10 @@ function AnalyticsController(objCollection)
             async (req, res) => {
                 try {
                     let result = await analyticsService.addFilterLabel(req.body);
-                    res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                    res.json(responseWrapper.getResponse(false, result, 200, req.body));
                 }
                 catch (err) {
-                    res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                    res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
                 }
             }
         );
@@ -54,10 +54,10 @@ function AnalyticsController(objCollection)
             async (req, res) => {
                 try {
                     let result = await analyticsService.updateFilterLabel(req.body);
-                    res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                    res.json(responseWrapper.getResponse(false, result, 200, req.body));
                 }
                 catch (err) {
-                    res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                    res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
                 }
             }
         );
@@ -69,10 +69,10 @@ function AnalyticsController(objCollection)
             async (req, res) => {
                 try {
                     let result = await analyticsService.deleteFilterLabel(req.body);
-                    res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                    res.json(responseWrapper.getResponse(false, result, 200, req.body));
                 }
                 catch (err) {
-                    res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                    res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
                 }
             }
         );
@@ -88,11 +88,11 @@ function AnalyticsController(objCollection)
             try 
             {
                 let result = await analyticsService.getFilterValues(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             } 
             catch(err) 
             {
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
         }
     );
@@ -108,11 +108,11 @@ function AnalyticsController(objCollection)
             try 
             {
                 let result = await analyticsService.getWidgetList(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             } 
             catch(err) 
             {
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
         }
     );
@@ -128,11 +128,11 @@ function AnalyticsController(objCollection)
             try 
             {
                 let result = await analyticsService.getWidgetValue(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             } 
             catch(err) 
             {
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
         }
     );
@@ -148,11 +148,11 @@ function AnalyticsController(objCollection)
             try 
             {
                 let result = await analyticsService.getWidgetDrilldown(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             } 
             catch(err) 
             {
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
         }
     );
@@ -163,25 +163,25 @@ function AnalyticsController(objCollection)
             //try {
             //    JSON.parse(req.body.widget_inline_data);
             //} catch (exeption) {
-            //    res.send(responseWrapper.getResponse(false, 'Invalid Inline JSON', -3308, req.body));
+            //    res.json(responseWrapper.getResponse(false, 'Invalid Inline JSON', -3308, req.body));
             //    return;
             //}
 
             let result = await analyticsService.analyticsWidgetAdd(req.body);
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {
             //global.logger('conLog', 'Error : ', err, {});
             console.log('Error : ', err);
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
     });
 
     app.post('/' + global.config.version + '/analytics/widget/alter', async (req, res) => {        
         try {
             let result = await analyticsService.analyticsWidgetAlter(req.body);
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
     });
 
@@ -191,9 +191,9 @@ function AnalyticsController(objCollection)
     app.post('/' + global.config.version + '/analytics/management/widget/value', async (req, res) => {
             try{
                 let result = await analyticsService.getManagementWidgetValue(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             }catch(err){
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
     });
 
@@ -203,10 +203,10 @@ function AnalyticsController(objCollection)
     app.post('/' + global.config.version + '/analytics/management/widget/drilldown', async (req, res) =>{             
             try{
                 let result = await analyticsService.getManagementWidgetDrilldown(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             }catch(err){
                 console.log('error :: ',err);
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
     });
 
@@ -216,9 +216,9 @@ function AnalyticsController(objCollection)
     app.post('/' + global.config.version + '/analytics/management/widget/value/v1', async (req, res) => {
             try{
                 let result = await analyticsService.getManagementWidgetValueV1(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             }catch(err){
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
     });
 
@@ -228,10 +228,10 @@ function AnalyticsController(objCollection)
     app.post('/' + global.config.version + '/analytics/management/widget/drilldown/v1', async (req, res) =>{             
             try{
                 let result = await analyticsService.getManagementWidgetDrilldownLimit(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             }catch(err){
                 console.log('error :: ',err);
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
     });  
 
@@ -241,10 +241,10 @@ function AnalyticsController(objCollection)
     app.post('/' + global.config.version + '/analytics/management/widget/configs', async (req, res) =>{             
             try{
                 let result = await analyticsService.getWidgetMappings(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             }catch(err){
                 console.log('error :: ',err);
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
     });  
 
@@ -254,10 +254,10 @@ function AnalyticsController(objCollection)
     app.post('/' + global.config.version + '/analytics/management/widget/list', async (req, res) => {        
             try{
                 let result = await analyticsService.getManagementWidgetList(req.body);
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             } 
             catch(err){
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
         });      
     
@@ -265,9 +265,9 @@ function AnalyticsController(objCollection)
             
                 let [err,result] = await analyticsService.insertWidgetType(req.body);
                 if(!err){
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
                 } 
         });
 
@@ -275,9 +275,9 @@ function AnalyticsController(objCollection)
             
             let [err,result] = await analyticsService.insertWidgetTypeV1(req.body);
             if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
     });
 
@@ -285,9 +285,9 @@ function AnalyticsController(objCollection)
             
         let [err,result] = await analyticsService.widgetTypeMasterUpdate(req.body);
         if(!err){
-        res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        res.json(responseWrapper.getResponse(false, result, 200, req.body));
     } else {
-        res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
         });
 
@@ -295,9 +295,9 @@ function AnalyticsController(objCollection)
             
                 let [err,result] = await analyticsService.selectWidgetType(req.body);
               if(!err){
-                res.send(responseWrapper.getResponse(false, result, 200, req.body));
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
                 } 
         });
 
@@ -305,9 +305,9 @@ function AnalyticsController(objCollection)
             
             let [err,result] = await analyticsService.deleteWidgetType(req.body);
           if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
     });
     
@@ -315,9 +315,9 @@ function AnalyticsController(objCollection)
             
             let [err,result] = await analyticsService.addReport(req.body);
           if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             } 
     });  
 
@@ -325,9 +325,9 @@ function AnalyticsController(objCollection)
             
         let [err,result] = await analyticsService.addReportV1(req.body);
       if(!err){
-        res.send(responseWrapper.getResponse(false, result, 200, req.body));
+        res.json(responseWrapper.getResponse(false, result, 200, req.body));
     } else {
-        res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+        res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
 }); 
 
@@ -335,9 +335,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.retrieveReportList(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });
 
@@ -345,9 +345,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.getOrganizationApplications(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });    
 
@@ -355,27 +355,27 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.getAssetTargetList(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });
 
     app.post('/' + global.config.version + '/analytics/drilldown/mapping/list', async (req, res) => {        
         let [err,result] = await analyticsService.getDrilldownMappingList(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });
 
     app.post('/' + global.config.version + '/analytics/widget/target/set', async (req, res) => {
         let [err,result] = await analyticsService.updateWidgetTargetValue(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });
 
@@ -383,9 +383,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.getAssetAccountTargetList(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });  
 
@@ -393,9 +393,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.getAssetAccountChannelTargetList(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });  
 
@@ -403,9 +403,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.getwidgetStaticValueDetails(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });  
 
@@ -413,9 +413,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.getReportTransactionList(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });    
 
@@ -423,9 +423,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.getTagTypeFilters(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });    
         
@@ -433,9 +433,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.getAssetReportMapping(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });  
     
@@ -443,9 +443,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.getAssetReportMappingV1(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     }); 
 
@@ -454,9 +454,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.getAssetReporteeTargetValues(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     }); 
 
@@ -465,9 +465,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.assetListUpdateLastHierarchy(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });  
 
@@ -475,9 +475,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.getAssetAccessLevelMapping(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });  
 
@@ -486,9 +486,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.reportFilterListInsert(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });  
 
@@ -497,9 +497,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.getReportFilterListSelect(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });  
 
@@ -508,9 +508,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.reportFilterListDelete(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });
 
@@ -519,9 +519,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.getTagListSelectDashobardFilters(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });  
 
@@ -530,9 +530,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.assetAccessLevelMapping(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });  
 
@@ -541,9 +541,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.assetReportMapping(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });  
 
@@ -552,9 +552,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.getAssetReportMappingSelectAsset(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });  
 
@@ -563,9 +563,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.assetAccessLevelMappingDelete(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });  
 
@@ -574,9 +574,9 @@ function AnalyticsController(objCollection)
 
         let [err,result] = await analyticsService.assetReportMappingDelete(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });    
 
@@ -584,9 +584,9 @@ function AnalyticsController(objCollection)
 
         let [err, result] = await analyticsService.insertAnalyticsReportTransaction(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
 
     });
@@ -594,10 +594,10 @@ function AnalyticsController(objCollection)
     app.post('/' + global.config.version + '/analytics/management/widget/drilldown/sa', async (req, res) =>{             
         try{
             let result = await analyticsService.getManagementWidgetDrilldownSA(req.body);
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         }catch(err){
             console.log('error :: ',err);
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });
 
@@ -605,9 +605,9 @@ function AnalyticsController(objCollection)
     app.post('/' + global.config.version + '/analytics/management/widget/value/resource', async (req, res) => {
         try {
             let result = await analyticsService.getManagementWidgetValueResource(req.body);
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
 

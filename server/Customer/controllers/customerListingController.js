@@ -12,10 +12,10 @@ function CustomerListingController(objCollection) {
     app.post('/' + global.config.version + '/customer/nearest_fe/list', async function (req, res) {
         const [err, feData] = await customerListingService.fetchNearestFieldExecutive(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, feData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, feData, 200, req.body));
         } else {
             console.log("/customer/nearest_fe/list | Error: ", err);
-            res.send(responseWrapper.getResponse(err, err, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, err, -9999, req.body));
         }
     });
 
@@ -23,10 +23,10 @@ function CustomerListingController(objCollection) {
     app.post('/' + global.config.version + '/customer/field_executive/booked_workflows/list', async function (req, res) {
         const [err, feData] = await customerListingService.getFieldExecutiveBookedTimeslotActivities(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, feData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, feData, 200, req.body));
         } else {
             console.log("/customer/field_executive/booked_workflows/list | Error: ", err);
-            res.send(responseWrapper.getResponse(err, err, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, err, -9999, req.body));
         }
     });
 

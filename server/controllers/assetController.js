@@ -16,11 +16,11 @@ function AssetController(objCollection) {
         assetService.getPhoneNumberAssets(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response   
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -30,11 +30,11 @@ function AssetController(objCollection) {
         assetService.getPhoneNumberAssetsV1(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // Positive response
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 // Error
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -44,11 +44,11 @@ function AssetController(objCollection) {
         assetService.getPhoneNumberAssetsV1(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // Positive response
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 // Error
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -60,11 +60,11 @@ function AssetController(objCollection) {
             if (err === false) {
                 // got positive response    
 
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -74,11 +74,11 @@ function AssetController(objCollection) {
             if (err === false) {
                 // got positive response    
 
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -88,11 +88,11 @@ function AssetController(objCollection) {
             if (err === false) {
                 // got positive response    
 
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -103,12 +103,12 @@ function AssetController(objCollection) {
             if (err === false) {
                 // got positive response   
 
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                 return;
             } else {
                 //console.log('did not get proper rseponse');
                 data = {}
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -118,12 +118,12 @@ function AssetController(objCollection) {
             if (err === false) {
                 // got positive response   
 
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                 return;
             } else {
                 //console.log('did not get proper rseponse');
                 data = {}
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -135,12 +135,12 @@ function AssetController(objCollection) {
 
             if (err === false) {
                 // got positive response  
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                 return;
             } else {
                 //console.log('did not get proper rseponse');
                 data = {}
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -152,12 +152,12 @@ function AssetController(objCollection) {
 
             if (err === false) {
                 // got positive response   
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                 return;
             } else {
                 //console.log('did not get proper rseponse');
                 data = {}
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -167,12 +167,12 @@ function AssetController(objCollection) {
 
             if (err === false) {
                 // got positive response   
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                 return;
             } else {
                 //console.log('did not get proper rseponse');
                 data = {}
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -185,12 +185,12 @@ function AssetController(objCollection) {
 
             if (err === false) {
                 // got positive response   
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                 return;
             } else {
                 //console.log('did not get proper rseponse');
                 data = {}
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -203,12 +203,12 @@ function AssetController(objCollection) {
 
             if (err === false) {
                 // got positive response   
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                 return;
             } else {
                 //console.log('did not get proper rseponse');
                 data = {}
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -216,11 +216,11 @@ function AssetController(objCollection) {
         assetService.getAssetDetails(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -228,21 +228,21 @@ function AssetController(objCollection) {
         assetService.alterAssetStatus(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
     app.post('/' + global.config.version + '/asset/cover/location/alter', function (req, res) {
         assetService.updateAssetCoverLocation(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -251,12 +251,12 @@ function AssetController(objCollection) {
      assetService.alterAssetAssignedStatus(req.body, function (err, data, statusCode) {
      if (err === false) {
      // got positive response    
-     res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+     res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
      
      } else {
      //console.log('did not get proper rseponse');
      data = {};
-     res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+     res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
      }
      });
      
@@ -267,12 +267,12 @@ function AssetController(objCollection) {
      assetService.alterAssetLampStatus(req.body, function (err, data, statusCode) {
      if (err === false) {
      // got positive response    
-     res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+     res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
      
      } else {
      //console.log('did not get proper rseponse');
      data = {};
-     res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+     res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
      }
      });
      
@@ -283,11 +283,11 @@ function AssetController(objCollection) {
         assetService.assetStatsOnDutyTotal(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -296,9 +296,9 @@ function AssetController(objCollection) {
 
         let [err,result] = await assetService.removeAsset(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }    
     });     
 
@@ -307,11 +307,11 @@ function AssetController(objCollection) {
         assetService.assetInlineAlter(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -320,11 +320,11 @@ function AssetController(objCollection) {
         assetService.getMeetingRoomAssets(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -332,10 +332,10 @@ function AssetController(objCollection) {
     app.post('/' + global.config.version + '/asset/access/counts', function (req, res) {
         assetService.assetRatingAccessCounts(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -345,12 +345,12 @@ function AssetController(objCollection) {
 
             if (err === false) {
                 // got positive response  
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                 return;
             } else {
                 //console.log('did not get proper rseponse');
                 data = {}
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -358,12 +358,12 @@ function AssetController(objCollection) {
 
         assetService.getAverageAssetOwnerRating(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, {
+                res.json(responseWrapper.getResponse(err, {
                     data: data
                 }, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -372,12 +372,12 @@ function AssetController(objCollection) {
 
         assetService.getAverageAssetLeadRating(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, {
+                res.json(responseWrapper.getResponse(err, {
                     data: data
                 }, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -386,10 +386,10 @@ function AssetController(objCollection) {
 
         assetService.updateInviteCount(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -398,10 +398,10 @@ function AssetController(objCollection) {
     app.post('/' + global.config.version + '/asset/access/phonenumber/reset', function (req, res) {
         assetService.phoneNumberDelete(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -410,9 +410,9 @@ function AssetController(objCollection) {
     app.post('/' + global.config.version + '/asset/access/phonenumber/unread_count', function (req, res) {
         assetService.unreadCntBasedOnMobileNumber(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -424,10 +424,10 @@ function AssetController(objCollection) {
         assetService.retrieveAssetMonthlySummaryParams(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // Positive response    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -438,10 +438,10 @@ function AssetController(objCollection) {
         // 0 => 15, 19, 27
         assetService.retrieveAssetWeeklySummaryParams(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -450,10 +450,10 @@ function AssetController(objCollection) {
     app.post('/' + global.config.version + '/asset/monthly/summary/response_rate', async function (req, res) {
         const [err, responseData] = await assetService.retrieveAssetMonthlySummaryResponseRate(req.body, 32);
         if (!err) {
-            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(responseData, responseData, 200, req.body));
         } else {
             console.log("/asset/monthly/summary/response_rate | Error: ", err);
-            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
     });
 
@@ -461,10 +461,10 @@ function AssetController(objCollection) {
     app.post('/' + global.config.version + '/asset/weekly/summary/response_rate', async function (req, res) {
         const [err, responseData] = await assetService.retrieveAssetWeeklySummaryResponseRate(req.body, 19);
         if (!err) {
-            res.send(responseWrapper.getResponse(responseData, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(responseData, responseData, 200, req.body));
         } else {
             console.log("/asset/weekly/summary/response_rate | Error: ", err);
-            res.send(responseWrapper.getResponse(err, responseData, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, responseData, -9999, req.body));
         }
     });
 
@@ -472,10 +472,10 @@ function AssetController(objCollection) {
     app.post('/' + global.config.version + '/asset/signal/app_launch', function (req, res) {
         assetService.assetAppLaunchTransactionInsert(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -484,10 +484,10 @@ function AssetController(objCollection) {
     app.post('/' + global.config.version + '/asset/weekly_monthly/summary/params', function (req, res) {
         assetService.retrieveAssetWeeklyAndMonthlySummaryParams(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -498,10 +498,10 @@ function AssetController(objCollection) {
     app.post('/' + global.config.version + '/asset/module/default/set', function (req, res) {
         assetService.setDefaultModuleForAsset(req.body, function (err, data, statusCode) {
             if (err === false) {
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -515,11 +515,11 @@ function AssetController(objCollection) {
         activityCommonService
             .listAllQueues(req.body)
             .then((data) => {
-                res.send(responseWrapper.getResponse(false, data, 200, req.body));
+                res.json(responseWrapper.getResponse(false, data, 200, req.body));
             })
             .catch((err) => {
                 let data = {};
-                res.send(responseWrapper.getResponse(err, data, -9998, req.body));
+                res.json(responseWrapper.getResponse(err, data, -9998, req.body));
             });
     });
     
@@ -528,11 +528,11 @@ function AssetController(objCollection) {
         assetService.getPamMemberPhoneNumberAsset(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // Positive response
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 // Error
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -543,11 +543,11 @@ function AssetController(objCollection) {
             if (err === false) {
                 // got positive response    
 
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
 		});
 
@@ -558,9 +558,9 @@ function AssetController(objCollection) {
         try {            
             global.logger.write('conLog', req.body, {}, {});
             let result = await assetService.getAssetTimelineData(req.body);
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
 
@@ -568,53 +568,53 @@ function AssetController(objCollection) {
     app.post('/' + global.config.version + '/asset/geofence/count', async function (req, res) {
         const [err, data] = await assetService.geAssetGeoFenceCounts(req.body);
         (!err) ?
-            res.send(responseWrapper.getResponse({}, data, 200, req.body)):                    
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            res.json(responseWrapper.getResponse({}, data, 200, req.body)):                    
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
     });
 
     app.post('/' + global.config.version + '/asset/access/queue/list', async (req, res) => {
         try {
             global.logger.write('conLog', req.body, {}, {});
             let result = await assetService.queueAccessListSelectAsset(req.body);
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/asset/access/levels/list', async function (req, res) {
         const [err, data] = await assetService.assetAccessMappingSelectUserFlag(req.body);
         if (err) {
-            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         } else {
-            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/workforce/workforce_type/asset/list', async function (req, res) {
         const [err, data] = await assetService.assetListSelectFlag(req.body);
         if (err) {
-            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         } else {
-            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/workforce/activity_type/mapping/list', async function (req, res) {
         const [err, data] = await assetService.workforceActivityTypeMappingSelectFlag(req.body);
         if (err) {
-            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         } else {
-            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/process/annexure', async function (req, res) {
         const [err, data] = await assetService.processExcel(req.body);
         if (err) {
-            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         } else {
-            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
         }
     });
 
@@ -622,9 +622,9 @@ function AssetController(objCollection) {
         try {            
             global.logger.write('conLog', req.body, {}, {});
             let result = await assetService.searchAssetRef(req.body);
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
     
@@ -632,10 +632,10 @@ function AssetController(objCollection) {
     app.post('/' + global.config.version + '/asset/workflow_exposure/matrix', async function (req, res) {
         const [err, data] = await assetService.assetWFExposureMatrix(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
             console.log("/asset/workflow_exposure/matrix | Error: ", err);
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
 
@@ -643,20 +643,20 @@ function AssetController(objCollection) {
     app.post('/' + global.config.version + '/asset/qr_barcode/feedback', async (req, res) => {
         const [err, data] = await assetService.getQrBarcodeFeeback(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
             console.log("/asset/qr_barcode/feedback | Error: ", err);
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/asset/available/set', async function (req, res) {
         const [err, data] = await assetService.assetAvailableUpdate(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
             console.log("/asset/available/set | Error: ", err);
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
  
@@ -664,120 +664,120 @@ function AssetController(objCollection) {
     app.post('/' + global.config.version + '/room/name', async (req, res) => {
         const [err, openTokData] = await assetService.openTokGetSessionData(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, openTokData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, openTokData, 200, req.body));
         } else {
             console.log("/room/name | Error: ", err);
-            res.send(responseWrapper.getResponse(err, openTokData, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, openTokData, -9999, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/email/passcode/generate', async (req, res) => {
         const [err, generatedData] = await assetService.generateEmailPasscode(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, generatedData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, generatedData, 200, req.body));
         } else {
             console.log("/room/name | Error: ", err);
-            res.send(responseWrapper.getResponse(err, generatedData, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, generatedData, -9999, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/email/passcode/verify', async (req, res) => {
         const [err, verifiedData] = await assetService.verifyEmailSignup(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, verifiedData, verifiedData.code, req.body));
+            res.json(responseWrapper.getResponse({}, verifiedData, verifiedData.code, req.body));
         } else {
             console.log("/email/passcode/verify | Error: ", err);
-            res.send(responseWrapper.getResponse(err, verifiedData, verifiedData.code, req.body));
+            res.json(responseWrapper.getResponse(err, verifiedData, verifiedData.code, req.body));
         }
     });
  
     app.post('/' + global.config.version + '/asset/send_push', async (req, res) => {
         const [err, responseData] = await activityCommonService.sendPushToAsset(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, responseData, 200, req.body));
         } else {
             console.log("/asset/send_push | Error: ", err);
-            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(err, responseData, 200, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/workforce/send_push', async (req, res) => {
         const [err, responseData] = await activityCommonService.sendPushToWorkforce(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, responseData, 200, req.body));
         } else {
             console.log("/workforce/send_push | Error: ", err);
-            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(err, responseData, 200, req.body));
         }
     });    
 
     app.post('/' + global.config.version + '/asset/swipe', async (req, res) => {
         const [err, responseData] = await assetService.callPushService(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, responseData, 200, req.body));
         } else {
             console.log("/asset/swipe | Error: ", err);
-            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(err, responseData, 200, req.body));
         }
     }); 
     
     app.post('/' + global.config.version + '/asset/swipe/in', async (req, res) => {
         const [err, responseData] = await assetService.assetSwipeIn(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, responseData, 200, req.body));
         } else {
             console.log("/asset/swipe | Error: ", err);
-            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(err, responseData, 200, req.body));
         }
     });  
 
     app.post('/' + global.config.version + '/asset/swipe/out', async (req, res) => {
         const [err, responseData] = await assetService.assetSwipeOut(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, responseData, 200, req.body));
         } else {
             console.log("/asset/swipe | Error: ", err);
-            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(err, responseData, 200, req.body));
         }
     });  
 
     app.post('/' + global.config.version + '/asset/swipe/update', async (req, res) => {
         const [err, responseData] = await assetService.updateAssetSwipeDetails(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, responseData, 200, req.body));
         } else {
             console.log("/asset/swipe | Error: ", err);
-            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(err, responseData, 200, req.body));
         }
     });  
 
     app.post('/' + global.config.version + '/phone_number/verify/invite', async (req, res) => {
         const [err, responseData] = await assetService.getAssetUsingPhoneNumber(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, responseData, 200, req.body));
         } else {
             console.log("/phone_number/verify/invite | Error: ", err);
-            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(err, responseData, 200, req.body));
         }
     }); 
 
     app.post('/' + global.config.version + '/organization/common/pool', async (req, res) => {
         const [err, responseData] = await assetService.assetListSelectCommonPool(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, responseData, 200, req.body));
         } else {
             console.log("/organization/common/pool | Error: ", err);
-            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(err, responseData, 200, req.body));
         }
     });       
 
     app.post('/' + global.config.version + '/asset/inline/collection/v1', async (req, res) => {
         const [err, responseData] = await assetService.getAssetDetailsExclusions(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/asset/inline/collection/v1 | Error: ", err);
-            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(err, responseData, 200, req.body));
         }
     });      
 
@@ -785,12 +785,12 @@ function AssetController(objCollection) {
         assetService.linkAsset(req.body, (err, data, statusCode) => {
             if (err === false) {
                 // got positive response   
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
                 return;
             } else {
                 //console.log('did not get proper rseponse');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -798,120 +798,120 @@ function AssetController(objCollection) {
     app.post('/' + global.config.version + '/asset/message-counter/list', async (req, res) => {
         const [err, responseData] = await assetService.getAssetMessageCounter(req.body);        
         if (!err) {
-            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/asset/message-counter/list | Error: ", err);
-            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(err, responseData, 200, req.body));
         }
     }); 
 
     app.post('/' + global.config.version + '/asset/access/levels/list/v1', async function (req, res) {
         const [err, data] = await assetService.assetAccessLevelMappingSelectFlag(req.body);
         if (err) {
-            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         } else {
-            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
         }
     }); 
 
     app.post('/' + global.config.version + '/asset/timesheet/add', async function (req, res) {
         const [err, data] = await assetService.insertResourceTimesheet(req.body);
         if (err) {
-            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         } else {
-            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
         }
     });   
 
     app.post('/' + global.config.version + '/asset/timesheet', async function (req, res) {
         const [err, data] = await assetService.getResourceTimesheet(req.body);
         if (err) {
-            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         } else {
-            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/asset/mananger/resources/list', async function (req, res) {
         const [err, data] = await assetService.getAssetsReportingToSameManager(req.body);
         if (err) {
-            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         } else {
-            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/asset/access/levels/list/v2', async function (req, res) {
         const [err, data] = await assetService.assetAccessLevelMappingSelectFlagV2(req.body);
         if (err) {
-            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         } else {
-            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/asset/access/levels/list/v3', async function (req, res) {
         const [err, data] = await assetService.assetReportAccessMapping(req.body);
         if (err) {
-            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         } else {
-            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/activity/asset-reference/list', async function (req, res) {
         const [err, data] = await assetService.getActivityAssetReferenceList(req.body);
         if (err) {
-            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         } else {
-            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
         }
     });    
     
     app.post('/' + global.config.version + '/activity/asset-role-reference/list', async function (req, res) {
         const [err, data] = await assetService.getActivityAssetRoleReferenceList(req.body);
         if (err) {
-            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         } else {
-            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/activity/asset-slot/add', async function (req, res) {
         const [err, data] = await assetService.insertAssetSlot(req.body);
         if (err) {
-            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         } else {
-            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/activity/asset-slot/list', async function (req, res) {
         const [err, data] = await assetService.getAssetSlots(req.body);
         if (err) {
-            return res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         } else {
-            return res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
         }
     });
     
     app.post('/' + global.config.version + '/asset/mentions-email/pwd/set', async(req, res) => {
         const [err, data] = await assetService.assetEmailPwdSet(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
             console.log("/asset/mentions-email/pwd/set | Error: ", err);
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/asset/process-management/flag/set', async(req, res) => {
         const [err, data] = await assetService.updateFlagProcess(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
             console.log("/asset/process-management/flag/set  | Error: ", err);
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
 
@@ -919,39 +919,39 @@ function AssetController(objCollection) {
     app.post('/' + global.config.version + '/asset/session/logout', async (req, res) => {
         const [err, data] = await assetService.assetSessionLogout(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });      
 
     app.post('/' + global.config.version + '/asset/inline/collection/v2', async (req, res) => {
         const [err, responseData] = await assetService.getAssetDetailsAsync(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/asset/inline/collection/v2 | Error: ", err);
-            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(err, responseData, 200, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/asset/leave/set', async (req, res) => {
         const [err, responseData] = await assetService.assetLeaveMappingInsert(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/asset/leave/set | Error: ", err);
-            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(err, responseData, 200, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/asset/leave/alter', async (req, res) => {
         const [err, responseData] = await assetService.assetLeaveMappingUpdate(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse(false, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/asset/leave/alter | Error: ", err);
-            res.send(responseWrapper.getResponse(err, responseData, 200, req.body));
+            res.json(responseWrapper.getResponse(err, responseData, 200, req.body));
         }
     });
 
@@ -960,9 +960,9 @@ function AssetController(objCollection) {
 
         let [err,result] = await assetService.getAssetLeaveMappingSelect(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });
 
@@ -971,9 +971,9 @@ function AssetController(objCollection) {
 
         let [err,result] = await assetService.assetLeaveMappingDelete(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });     
     //--------------------------------------
@@ -981,10 +981,10 @@ function AssetController(objCollection) {
     app.post('/' + global.config.version + '/asset/broadcast/counts', async function (req, res) {
         const [err, orgData] = await assetService.getReadUnReadBroadMessageCount(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, orgData, 200, req.body));
         } else {
             console.log("/asset/broadcast/counts | Error: ", err);
-            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });        
     
@@ -992,9 +992,9 @@ function AssetController(objCollection) {
 
         let [err,result] = await assetService.assetListUpdateFlagOrganizationMgmt(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });      
 
@@ -1002,9 +1002,9 @@ function AssetController(objCollection) {
 
         let [err,result] = await assetService.assetListByEmail(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     }); 
 
@@ -1012,18 +1012,18 @@ function AssetController(objCollection) {
 
         let [err,result] = await assetService.assetCertificateSet(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         } 
     });
     app.post('/' + global.config.version + '/asset/tag/update', async (req, res) => {        
 
         let [err,result] = await assetService.assetListUpdateTags(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }    
     }); 
 
@@ -1031,9 +1031,9 @@ function AssetController(objCollection) {
 
         let [err,result] = await assetService.reporteeListByRoleOfAManager(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }    
     }); 
 
@@ -1041,9 +1041,9 @@ function AssetController(objCollection) {
 
         let [err,result] = await assetService.getDeskAssetArchiveList(req.body);
         if(!err){
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }    
     });
 
@@ -1051,9 +1051,9 @@ function AssetController(objCollection) {
 
         let [err, result] = await assetService.getEmailResourceList(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse(false, result, 200, req.body));
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
 

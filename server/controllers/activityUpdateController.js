@@ -34,7 +34,7 @@ function ActivityUpdateController(objCollection) {
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                             //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
-                            res.send(responseWrapper.getResponse(false, {}, -5999,req.body));
+                            res.json(responseWrapper.getResponse(false, {}, -5999,req.body));
                             throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
@@ -51,10 +51,10 @@ function ActivityUpdateController(objCollection) {
                                     });
                                 }
                             }
-                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            res.json(responseWrapper.getResponse(false, {}, 200,req.body));
                         }
                 });
-            //res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+            //res.json(responseWrapper.getResponse(false, {}, 200,req.body));
             //return;
         };
         try {
@@ -63,19 +63,19 @@ function ActivityUpdateController(objCollection) {
             global.logger.write('conLog', "json is fine", {}, req.body);
 
         } catch (exeption) {
-            res.send(responseWrapper.getResponse(false, {}, -3308,req.body));
+            res.json(responseWrapper.getResponse(false, {}, -3308,req.body));
             return;
         }
         if (util.hasValidActivityId(req.body)) {
             if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
                 cacheWrapper.checkAssetParity(req.body.asset_id, Number(req.body.asset_message_counter), function (err, status) {
                     if (err) {
-                        res.send(responseWrapper.getResponse(false, {}, -7998,req.body));
+                        res.json(responseWrapper.getResponse(false, {}, -7998,req.body));
                     } else {
                         if (status) {     // proceed
                             proceedInlineUpdate();
                         } else {  // this is a duplicate hit,
-                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            res.json(responseWrapper.getResponse(false, {}, 200,req.body));
                         }
                     }
                 });
@@ -84,10 +84,10 @@ function ActivityUpdateController(objCollection) {
                 proceedInlineUpdate();
 
             } else {
-                res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
+                res.json(responseWrapper.getResponse(false, {}, -3304,req.body));
             }
         } else {
-            res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
+            res.json(responseWrapper.getResponse(false, {}, -3301,req.body));
         }
 
     });
@@ -109,7 +109,7 @@ function ActivityUpdateController(objCollection) {
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                             //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
-                            res.send(responseWrapper.getResponse(false, {}, -5999,req.body));
+                            res.json(responseWrapper.getResponse(false, {}, -5999,req.body));
                             throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
@@ -126,22 +126,22 @@ function ActivityUpdateController(objCollection) {
                                     });
                                 }
                             }
-                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            res.json(responseWrapper.getResponse(false, {}, 200,req.body));
                         }
                 });
-            //res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+            //res.json(responseWrapper.getResponse(false, {}, 200,req.body));
             //return;
         };
         if (util.hasValidActivityId(req.body)) {
             if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
                 cacheWrapper.checkAssetParity(req.body.asset_id, Number(req.body.asset_message_counter), function (err, status) {
                     if (err) {
-                        res.send(responseWrapper.getResponse(false, {}, -7998,req.body));
+                        res.json(responseWrapper.getResponse(false, {}, -7998,req.body));
                     } else {
                         if (status) {     // proceed                        
                             proceedCoverUpdate();
                         } else {  // this is a duplicate hit,
-                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            res.json(responseWrapper.getResponse(false, {}, 200,req.body));
                         }
                     }
                 });
@@ -150,11 +150,11 @@ function ActivityUpdateController(objCollection) {
                 proceedCoverUpdate();
 
             } else {
-                res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
+                res.json(responseWrapper.getResponse(false, {}, -3304,req.body));
             }
 
         } else {
-            res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
+            res.json(responseWrapper.getResponse(false, {}, -3301,req.body));
         }
     });
 
@@ -178,7 +178,7 @@ function ActivityUpdateController(objCollection) {
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                             //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
-                            res.send(responseWrapper.getResponse(true, {}, -5999,req.body));
+                            res.json(responseWrapper.getResponse(true, {}, -5999,req.body));
                             throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
@@ -195,10 +195,10 @@ function ActivityUpdateController(objCollection) {
                                     });
                                 }
                             }
-                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            res.json(responseWrapper.getResponse(false, {}, 200,req.body));
                         }
                 });
-            //res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+            //res.json(responseWrapper.getResponse(false, {}, 200,req.body));
             //return;
         };
         if (req.body.activity_type_id !== '' && req.body.activity_type_id !== 0 && req.body.activity_type_category_id !== '' && req.body.activity_type_category_id !== 0) {
@@ -206,26 +206,26 @@ function ActivityUpdateController(objCollection) {
                 if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
                     cacheWrapper.checkAssetParity(req.body.asset_id, (assetMessageCounter), function (err, status) {
                         if (err) {
-                            res.send(responseWrapper.getResponse(false, {}, -7998,req.body));
+                            res.json(responseWrapper.getResponse(false, {}, -7998,req.body));
                         } else {
                             if (status) {     // proceed
                                 proceedActivityParentAlter();
                             } else {  // this is a duplicate hit,
-                                res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                                res.json(responseWrapper.getResponse(false, {}, 200,req.body));
                             }
                         }
                     });
                 } else if (deviceOsId === 5) {
                     proceedActivityParentAlter();
                 } else {
-                    res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
+                    res.json(responseWrapper.getResponse(false, {}, -3304,req.body));
                 }
 
             } else {
-                res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
+                res.json(responseWrapper.getResponse(false, {}, -3301,req.body));
             }
         } else {
-            res.send(responseWrapper.getResponse(false, {}, -3303,req.body));
+            res.json(responseWrapper.getResponse(false, {}, -3303,req.body));
         }
 
     });
@@ -251,7 +251,7 @@ function ActivityUpdateController(objCollection) {
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                             //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
-                            res.send(responseWrapper.getResponse(true, {}, -5999,req.body));
+                            res.json(responseWrapper.getResponse(true, {}, -5999,req.body));
                             throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
@@ -270,7 +270,7 @@ function ActivityUpdateController(objCollection) {
                             }
                             cnt++;
                             if(cnt == activityArray.length) {
-                                 res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                                 res.json(responseWrapper.getResponse(false, {}, 200,req.body));
                             }                       
                         }
                 }) ;            
@@ -279,7 +279,7 @@ function ActivityUpdateController(objCollection) {
         if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
                 cacheWrapper.checkAssetParity(req.body.asset_id, Number(req.body.asset_message_counter), function (err, status) {
                     if (err) {
-                        res.send(responseWrapper.getResponse(false, {}, -7998,req.body));
+                        res.json(responseWrapper.getResponse(false, {}, -7998,req.body));
                     } else {
                         if (status) {     // proceed                            
                             forEachAsync(activityArray, function (next, rowData) {
@@ -290,7 +290,7 @@ function ActivityUpdateController(objCollection) {
                                 next();
                             });
                         } else {  // this is a duplicate hit,
-                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            res.json(responseWrapper.getResponse(false, {}, 200,req.body));
                         }
                     }
                 });
@@ -304,7 +304,7 @@ function ActivityUpdateController(objCollection) {
                                 next();
                             });
             } else {
-                res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
+                res.json(responseWrapper.getResponse(false, {}, -3304,req.body));
             }
             
         }); 
@@ -316,7 +316,7 @@ function ActivityUpdateController(objCollection) {
         try {
             var activityArray = JSON.parse(req.body.activity_id_array);
         } catch (exception) {
-            res.send(responseWrapper.getResponse(false, { data: "Invalid Json format" }, -3308, req.body));
+            res.json(responseWrapper.getResponse(false, { data: "Invalid Json format" }, -3308, req.body));
             return;
         }
 
@@ -339,7 +339,7 @@ function ActivityUpdateController(objCollection) {
                 if (err) {
                     //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                     //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
-                    res.send(responseWrapper.getResponse(true, {}, -5999, req.body));
+                    res.json(responseWrapper.getResponse(true, {}, -5999, req.body));
                     throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                 } else {
                     if (req.hasOwnProperty('device_os_id')) {
@@ -358,9 +358,9 @@ function ActivityUpdateController(objCollection) {
                     }
                     // cnt++;
                     // if (cnt == activityArray.length) {
-                    //     res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+                    //     res.json(responseWrapper.getResponse(false, {}, 200, req.body));
                     // }
-                    res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+                    res.json(responseWrapper.getResponse(false, {}, 200, req.body));
                 }
             });
         };
@@ -368,7 +368,7 @@ function ActivityUpdateController(objCollection) {
         if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
             cacheWrapper.checkAssetParity(req.body.asset_id, Number(req.body.asset_message_counter), function (err, status) {
                 if (err) {
-                    res.send(responseWrapper.getResponse(false, {}, -7998, req.body));
+                    res.json(responseWrapper.getResponse(false, {}, -7998, req.body));
                 } else {
                     if (status) {     // proceed                            
                         // forEachAsync(activityArray, function (next, rowData) {
@@ -380,7 +380,7 @@ function ActivityUpdateController(objCollection) {
                         // });
                         proceedUnreadUpdate();
                     } else {  // this is a duplicate hit,
-                        res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+                        res.json(responseWrapper.getResponse(false, {}, 200, req.body));
                     }
                 }
             });
@@ -395,7 +395,7 @@ function ActivityUpdateController(objCollection) {
             // });
             proceedUnreadUpdate();
         } else {
-            res.send(responseWrapper.getResponse(false, {}, -3304, req.body));
+            res.json(responseWrapper.getResponse(false, {}, -3304, req.body));
         }
 
     }); 
@@ -416,17 +416,17 @@ function ActivityUpdateController(objCollection) {
             };
 
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{});
-            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+            res.json(responseWrapper.getResponse(false, {}, 200,req.body));
             return;
         };
         if (util.hasValidActivityId(req.body)) {
             if (deviceOsId === 5) {
                 proceedCoverUpdate();
             } else {
-                res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
+                res.json(responseWrapper.getResponse(false, {}, -3304,req.body));
             }
         } else {
-            res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
+            res.json(responseWrapper.getResponse(false, {}, -3301,req.body));
         }
     });
     
@@ -445,17 +445,17 @@ function ActivityUpdateController(objCollection) {
             };
 
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{});
-            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+            res.json(responseWrapper.getResponse(false, {}, 200,req.body));
             return;
         };
         if (util.hasValidActivityId(req.body)) {
             if (deviceOsId === 5) {
                 proceedCoverUpdate();
             } else {
-                res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
+                res.json(responseWrapper.getResponse(false, {}, -3304,req.body));
             }
         } else {
-            res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
+            res.json(responseWrapper.getResponse(false, {}, -3301,req.body));
         }
     });
     
@@ -477,7 +477,7 @@ function ActivityUpdateController(objCollection) {
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                             //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
-                            res.send(responseWrapper.getResponse(true, {}, -5999,req.body));
+                            res.json(responseWrapper.getResponse(true, {}, -5999,req.body));
                             throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
@@ -494,22 +494,22 @@ function ActivityUpdateController(objCollection) {
                                     });
                                 }
                             }
-                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            res.json(responseWrapper.getResponse(false, {}, 200,req.body));
                         }
                 });
-            //res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+            //res.json(responseWrapper.getResponse(false, {}, 200,req.body));
             //return;
         };
         if (util.hasValidActivityId(req.body)) {
             if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
                 cacheWrapper.checkAssetParity(req.body.asset_id, Number(req.body.asset_message_counter), function (err, status) {
                     if (err) {
-                        res.send(responseWrapper.getResponse(false, {}, -7998,req.body));
+                        res.json(responseWrapper.getResponse(false, {}, -7998,req.body));
                     } else {
                         if (status) {     // proceed                        
                             proceedOwnerUpdate();
                         } else {  // this is a duplicate hit,
-                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            res.json(responseWrapper.getResponse(false, {}, 200,req.body));
                         }
                     }
                 });
@@ -518,11 +518,11 @@ function ActivityUpdateController(objCollection) {
                 proceedOwnerUpdate();
 
             } else {
-                res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
+                res.json(responseWrapper.getResponse(false, {}, -3304,req.body));
             }
 
         } else {
-            res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
+            res.json(responseWrapper.getResponse(false, {}, -3301,req.body));
         }
     });    
     
@@ -544,7 +544,7 @@ function ActivityUpdateController(objCollection) {
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                             //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
-                            res.send(responseWrapper.getResponse(true, {}, -5999,req.body));
+                            res.json(responseWrapper.getResponse(true, {}, -5999,req.body));
                             throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
@@ -561,22 +561,22 @@ function ActivityUpdateController(objCollection) {
                                     });
                                 }
                             }                            
-                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            res.json(responseWrapper.getResponse(false, {}, 200,req.body));
                         }
                 });
-            //res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+            //res.json(responseWrapper.getResponse(false, {}, 200,req.body));
             //return;
         };
         if (util.hasValidActivityId(req.body)) {
             if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
                 cacheWrapper.checkAssetParity(req.body.asset_id, Number(req.body.asset_message_counter), function (err, status) {
                     if (err) {
-                        res.send(responseWrapper.getResponse(false, {}, -7998,req.body));
+                        res.json(responseWrapper.getResponse(false, {}, -7998,req.body));
                     } else {
                         if (status) {     // proceed                        
                             proceedActivityFlagFileUpdate();
                         } else {  // this is a duplicate hit,
-                            res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                            res.json(responseWrapper.getResponse(false, {}, 200,req.body));
                         }
                     }
                 });
@@ -585,11 +585,11 @@ function ActivityUpdateController(objCollection) {
                 proceedActivityFlagFileUpdate();
 
             } else {
-                res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
+                res.json(responseWrapper.getResponse(false, {}, -3304,req.body));
             }
 
         } else {
-            res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
+            res.json(responseWrapper.getResponse(false, {}, -3301,req.body));
         }
     });
 
@@ -605,7 +605,7 @@ function ActivityUpdateController(objCollection) {
         if ((util.hasValidGenericId(req.body, 'asset_message_counter')) && deviceOsId !== 5 && deviceOsId !== 6) {
             cacheWrapper.checkAssetParity(req.body.asset_id, Number(req.body.asset_message_counter), function (err, status) {
                 if (err) {
-                    res.send(responseWrapper.getResponse(false, {
+                    res.json(responseWrapper.getResponse(false, {
                         activity_id: 0
                     }, -7998, req.body));
                 } else {
@@ -615,20 +615,20 @@ function ActivityUpdateController(objCollection) {
                         // Raise event
                         initiateServiceToDeleteUserFromWorkforce(req.body, function (err, data) {
                             if (!err) {
-                                res.send(responseWrapper.getResponse(false, data, 200, req.body));
+                                res.json(responseWrapper.getResponse(false, data, 200, req.body));
                             } else {
                                 // Message not produced to Kafka
-                                res.send(responseWrapper.getResponse(err, data, -5998, req.body));
+                                res.json(responseWrapper.getResponse(err, data, -5998, req.body));
                             }
                         });
                     } else { // get the activity id using message unique id and send as response
                         cacheWrapper.getMessageUniqueIdLookup(req.body.message_unique_id, function (err, activityId) {
                             if (err) {
-                                res.send(responseWrapper.getResponse(false, {
+                                res.json(responseWrapper.getResponse(false, {
                                     activity_id: 0
                                 }, -7998, req.body));
                             } else {
-                                res.send(responseWrapper.getResponse(false, {
+                                res.json(responseWrapper.getResponse(false, {
                                     activity_id: Number(activityId)
                                 }, 200, req.body));
                             }
@@ -640,14 +640,14 @@ function ActivityUpdateController(objCollection) {
             // Raise event
             initiateServiceToDeleteUserFromWorkforce(req.body, function (err, data) {
                 if (!err) {
-                    res.send(responseWrapper.getResponse(false, data, 200, req.body));
+                    res.json(responseWrapper.getResponse(false, data, 200, req.body));
                 } else {
                     // Message not produced to Kafka
-                    res.send(responseWrapper.getResponse(err, data, -5998, req.body));
+                    res.json(responseWrapper.getResponse(err, data, -5998, req.body));
                 }
             });
         } else {
-            res.send(responseWrapper.getResponse(false, {
+            res.json(responseWrapper.getResponse(false, {
                 activity_id: 0
             }, -3304, req.body));
         }
@@ -694,9 +694,9 @@ function ActivityUpdateController(objCollection) {
     app.post('/' + global.config.version + '/activity/bulk-summary/update', async function (req, res) {
         const [err, data] = await activityUpdateService.bulkSummaryActivityUpdate(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
     

@@ -33,7 +33,7 @@ function ActivityTimelineController(objCollection) {
             try {
                 JSON.parse(req.body.activity_timeline_collection);
             } catch (exception) {                
-                res.send(responseWrapper.getResponse(false, {}, -3308, req.body));
+                res.json(responseWrapper.getResponse(false, {}, -3308, req.body));
                 return;
             }
         }
@@ -51,7 +51,7 @@ function ActivityTimelineController(objCollection) {
                 if (err) {
                     //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                     //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);                            
-                    res.send(responseWrapper.getResponse(true, {}, -5999, req.body));
+                    res.json(responseWrapper.getResponse(true, {}, -5999, req.body));
                     throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                 } else {
                     if (req.hasOwnProperty('device_os_id')) {
@@ -68,18 +68,18 @@ function ActivityTimelineController(objCollection) {
                         }
                     }
                     if (formTransactionId > 0)
-                        res.send(responseWrapper.getResponse(false, {
+                        res.json(responseWrapper.getResponse(false, {
                             form_transaction_id: formTransactionId
                         }, 200, req.body));
                     else
-                        res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+                        res.json(responseWrapper.getResponse(false, {}, 200, req.body));
                     return;
                 }
             });
             /*if (formTransactionId > 0)
-                res.send(responseWrapper.getResponse(false, {form_transaction_id: formTransactionId}, 200,req.body));
+                res.json(responseWrapper.getResponse(false, {form_transaction_id: formTransactionId}, 200,req.body));
             else
-                res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                res.json(responseWrapper.getResponse(false, {}, 200,req.body));
             return;*/
         };
         if (req.body.hasOwnProperty('activity_stream_type_id') && req.body.activity_stream_type_id > 0) {
@@ -87,7 +87,7 @@ function ActivityTimelineController(objCollection) {
                 if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
                     cacheWrapper.checkAssetParity(req.body.asset_id, (assetMessageCounter), function (err, status) {
                         if (err) {
-                            res.send(responseWrapper.getResponse(false, {}, -7998, req.body));
+                            res.json(responseWrapper.getResponse(false, {}, -7998, req.body));
                         } else {
                             if (status) { // proceed
                                 if (streamTypeId === 705) { // submit form case   
@@ -116,7 +116,7 @@ function ActivityTimelineController(objCollection) {
                             } else { // this is a duplicate hit,
                                 console.log('this is a duplicate hit');
                                 util.logInfo(req.body,`this is a duplicate hit`);
-                                res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+                                res.json(responseWrapper.getResponse(false, {}, 200, req.body));
                             }
                         }
                     });
@@ -139,7 +139,7 @@ function ActivityTimelineController(objCollection) {
                          cacheWrapper.getFormTransactionId(function (err, formTransactionId) {
                          if (err) {
                          console.log(err);
-                         res.send(responseWrapper.getResponse(false, {form_transaction_id: 0}, -7998));
+                         res.json(responseWrapper.getResponse(false, {form_transaction_id: 0}, -7998));
                          return;
                          } else {
                          req.body['form_transaction_id'] = formTransactionId;
@@ -162,13 +162,13 @@ function ActivityTimelineController(objCollection) {
 
                     }
                 } else {
-                    res.send(responseWrapper.getResponse(false, {}, -3304, req.body));
+                    res.json(responseWrapper.getResponse(false, {}, -3304, req.body));
                 }
             } else {
-                res.send(responseWrapper.getResponse(false, {}, -3301, req.body));
+                res.json(responseWrapper.getResponse(false, {}, -3301, req.body));
             }
         } else {
-            res.send(responseWrapper.getResponse(false, {}, -3305, req.body));
+            res.json(responseWrapper.getResponse(false, {}, -3305, req.body));
         }
 
     });
@@ -196,7 +196,7 @@ function ActivityTimelineController(objCollection) {
                 if (err) {
                     //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                     //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);                            
-                    res.send(responseWrapper.getResponse(true, {}, -5999, req.body));
+                    res.json(responseWrapper.getResponse(true, {}, -5999, req.body));
                     throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                 } else {
                     if (req.hasOwnProperty('device_os_id')) {
@@ -214,11 +214,11 @@ function ActivityTimelineController(objCollection) {
                         }
                     }
                     if (formTransactionId > 0)
-                        res.send(responseWrapper.getResponse(false, {
+                        res.json(responseWrapper.getResponse(false, {
                             form_transaction_id: formTransactionId
                         }, 200, req.body));
                     else
-                        res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+                        res.json(responseWrapper.getResponse(false, {}, 200, req.body));
                     return;
                 }
             });
@@ -228,7 +228,7 @@ function ActivityTimelineController(objCollection) {
                 if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
                     cacheWrapper.checkAssetParity(req.body.asset_id, (assetMessageCounter), function (err, status) {
                         if (err) {
-                            res.send(responseWrapper.getResponse(false, {}, -7998, req.body));
+                            res.json(responseWrapper.getResponse(false, {}, -7998, req.body));
                         } else {
                             if (status) { // proceed
                                 if (streamTypeId === 705) { // submit form case   
@@ -253,7 +253,7 @@ function ActivityTimelineController(objCollection) {
                                 });
                             } else { // this is a duplicate hit,
                                 console.log('this is a duplicate hit');
-                                res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+                                res.json(responseWrapper.getResponse(false, {}, 200, req.body));
                             }
                         }
                     });
@@ -269,13 +269,13 @@ function ActivityTimelineController(objCollection) {
 
                     }
                 } else {
-                    res.send(responseWrapper.getResponse(false, {}, -3304, req.body));
+                    res.json(responseWrapper.getResponse(false, {}, -3304, req.body));
                 }
             } else {
-                res.send(responseWrapper.getResponse(false, {}, -3301, req.body));
+                res.json(responseWrapper.getResponse(false, {}, -3301, req.body));
             }
         } else {
-            res.send(responseWrapper.getResponse(false, {}, -3305, req.body));
+            res.json(responseWrapper.getResponse(false, {}, -3305, req.body));
         }
 
     });
@@ -309,7 +309,7 @@ function ActivityTimelineController(objCollection) {
                         if(err) {
                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                             //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);                            
-                            res.send(responseWrapper.getResponse(true, {}, -5999,req.body));
+                            res.json(responseWrapper.getResponse(true, {}, -5999,req.body));
                             throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                         } else {
                             if (req.hasOwnProperty('device_os_id')) {
@@ -327,9 +327,9 @@ function ActivityTimelineController(objCollection) {
                                 }
                             }
                             if (formTransactionId > 0)
-                                res.send(responseWrapper.getResponse(false, {form_transaction_id: formTransactionId}, 200,req.body));
+                                res.json(responseWrapper.getResponse(false, {form_transaction_id: formTransactionId}, 200,req.body));
                             else
-                                res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                                res.json(responseWrapper.getResponse(false, {}, 200,req.body));
                             return;
                         }
                 });            
@@ -340,7 +340,7 @@ function ActivityTimelineController(objCollection) {
                 if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
                     cacheWrapper.checkAssetParity(req.body.asset_id, (assetMessageCounter), function (err, status) {
                         if (err) {
-                            res.send(responseWrapper.getResponse(false, {}, -7998,req.body));
+                            res.json(responseWrapper.getResponse(false, {}, -7998,req.body));
                         } else {
                             if (status) {     // proceed
                                 if (streamTypeId === 705) { // submit form case   
@@ -365,7 +365,7 @@ function ActivityTimelineController(objCollection) {
                                 });
                             } else {  // this is a duplicate hit,
                                 console.log('this is a duplicate hit');
-                                res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+                                res.json(responseWrapper.getResponse(false, {}, 200,req.body));
                             }
                         }
                     });
@@ -381,13 +381,13 @@ function ActivityTimelineController(objCollection) {
 
                     }
                 } else {
-                    res.send(responseWrapper.getResponse(false, {}, -3304,req.body));
+                    res.json(responseWrapper.getResponse(false, {}, -3304,req.body));
                 }
             } else {
-                res.send(responseWrapper.getResponse(false, {}, -3301,req.body));
+                res.json(responseWrapper.getResponse(false, {}, -3301,req.body));
             }
         } else {
-            res.send(responseWrapper.getResponse(false, {}, -3305,req.body));
+            res.json(responseWrapper.getResponse(false, {}, -3305,req.body));
         }
 
     });*/
@@ -414,7 +414,7 @@ function ActivityTimelineController(objCollection) {
                 if (err) {
                     //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                     //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
-                    res.send(responseWrapper.getResponse(true, {}, -5998, req.body));
+                    res.json(responseWrapper.getResponse(true, {}, -5998, req.body));
                     throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                 } else {
                     if (req.hasOwnProperty('device_os_id')) {
@@ -431,18 +431,18 @@ function ActivityTimelineController(objCollection) {
                             });
                         }
                     }
-                    res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+                    res.json(responseWrapper.getResponse(false, {}, 200, req.body));
                     return;
                 }
             });
-            //res.send(responseWrapper.getResponse(false, {}, 200,req.body));
+            //res.json(responseWrapper.getResponse(false, {}, 200,req.body));
             //return;
         };
         if (util.hasValidActivityId(req.body)) {
             if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
                 cacheWrapper.checkAssetParity(req.body.asset_id, (assetMessageCounter), function (err, status) {
                     if (err) {
-                        res.send(responseWrapper.getResponse(false, {}, -7998, req.body));
+                        res.json(responseWrapper.getResponse(false, {}, -7998, req.body));
                     } else {
                         if (status) { // proceed
 
@@ -455,7 +455,7 @@ function ActivityTimelineController(objCollection) {
                                     console.log("asset parity is set successfully");
                             });
                         } else { // this is a duplicate hit,
-                            res.send(responseWrapper.getResponse(false, {}, 200, req.body));
+                            res.json(responseWrapper.getResponse(false, {}, 200, req.body));
                         }
                     }
                 });
@@ -463,10 +463,10 @@ function ActivityTimelineController(objCollection) {
             } else if (deviceOsId === 5) {
                 proceedActivityTimelineCommentAdd(); //passing formTransactionId as o
             } else {
-                res.send(responseWrapper.getResponse(false, {}, -3304, req.body));
+                res.json(responseWrapper.getResponse(false, {}, -3304, req.body));
             }
         } else {
-            res.send(responseWrapper.getResponse(false, {}, -3301, req.body));
+            res.json(responseWrapper.getResponse(false, {}, -3301, req.body));
         }
     });
 
@@ -475,11 +475,11 @@ function ActivityTimelineController(objCollection) {
         activityTimelineService.retrieveTimelineList(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 console.log('did not get proper response');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -489,11 +489,11 @@ function ActivityTimelineController(objCollection) {
         activityTimelineService.retrieveTimelineListV1(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 console.log('did not get proper response');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -502,11 +502,11 @@ function ActivityTimelineController(objCollection) {
         activityTimelineService.retrieveFormCollection(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 console.log('did not get proper rseponse');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -515,11 +515,11 @@ function ActivityTimelineController(objCollection) {
         activityTimelineService.retrieveFormFieldTimeline(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 console.log('did not get proper rseponse');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -529,11 +529,11 @@ function ActivityTimelineController(objCollection) {
         activityTimelineService.retrieveTimelineListBasedOnAsset(req.body, function (err, data, statusCode) {
             if (err === false) {
                 // got positive response    
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 console.log('did not get proper response');
                 data = {};
-                res.send(responseWrapper.getResponse(err, data, statusCode, req.body));
+                res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
     });
@@ -542,10 +542,10 @@ function ActivityTimelineController(objCollection) {
     app.post('/' + global.config.version + '/activity/timeline/attachments/list', async (req, res) => {
         const [err, orgData] = await activityTimelineService.retrieveSearchTimelineAttachments(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, orgData, 200, req.body));
         } else {
             console.log("/activity/timeline/attachments/list | Error: ", err);
-            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });
 
@@ -553,10 +553,10 @@ function ActivityTimelineController(objCollection) {
     app.post('/' + global.config.version + '/activity/timeline/mentions/send_email', async function (req, res) {
         const [err, orgData] = await activityTimelineService.mentionsSendEmail(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, orgData, 200, req.body));
         } else {
             console.log("/activity/timeline/mentions/send_email | Error: ", err);
-            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });
 
@@ -564,20 +564,20 @@ function ActivityTimelineController(objCollection) {
     app.post('/' + global.config.version + '/activity/timeline/status/list', async (req, res) => {
         const [err, orgData] = await activityTimelineService.activityTimelineTxnSelectActivityStatus(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, orgData, 200, req.body));
         } else {
             console.log("/activity/timeline/status/list | Error: ", err);
-            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });
 
     app.post('/' + global.config.version + '/activity/timeline/form-submissions/list', async (req, res) => {
         const [err, orgData] = await activityTimelineService.getNooftimeFormSubmitted(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, orgData, 200, req.body));
         } else {
             console.log("/activity/timeline/form-submissions/list | Error: ", err);
-            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });
 
@@ -586,10 +586,10 @@ function ActivityTimelineController(objCollection) {
         req.body.is_version_v1 = 1;
         const [err, orgData] = await activityTimelineService.mentionsSendEmail(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, orgData, 200, req.body));
+            res.json(responseWrapper.getResponse({}, orgData, 200, req.body));
         } else {
             console.log("/activity/timeline/mentions/send_email | Error: ", err);
-            res.send(responseWrapper.getResponse(err, orgData, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, orgData, -9999, req.body));
         }
     });
 
@@ -597,10 +597,10 @@ function ActivityTimelineController(objCollection) {
         
         const [err, data] = await activityTimelineService.timelineTxnFormList(req.body);
         if (!err) {
-            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
             console.log("/activity/timeline-transaction/form/list | Error: ", err);
-            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
 
