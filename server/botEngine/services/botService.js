@@ -15491,7 +15491,7 @@ if(workflowActivityData.length==0){
         logger.info(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData));
         request.debug_info.push(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData))
             await addDeskAsParticipant(request, assetData);
-            await icsEventCreation(request,request.emails[i],assetData.first_name);
+            await icsEventCreation(request,request.emails[i].email,assetData.first_name);
         }
         catch{
             error = true
@@ -15502,10 +15502,12 @@ if(workflowActivityData.length==0){
 
     async function icsEventCreation(request,email,receiver_name){
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
-        wfActivityDetails = JSON.parse(wfActivityDetails[0].activity_inline_data).filter((_,i)=>_.field_data_type_id === 77)
-        var timeDifferenceInMinutes = Math.floor(wfActivityDetails[0].field_value.duration);
-        let createDate = new Date(wfActivityDetails[0].field_value.start_date_time);
+        let eventTimeDetails = JSON.parse(wfActivityDetails[0].activity_inline_data).filter((_,i)=>_.field_data_type_id === 77);
+        
+        var timeDifferenceInMinutes = Math.floor(eventTimeDetails[0].field_value.duration);
+        let createDate = new Date(moment(eventTimeDetails[0].field_value.start_date_time,'YYYY-MM-DD HH:mm:ss','IST'));
         let today = new Date();
+        
         ics.createEvent({
             title: "Telecall/Discussion",
             description: wfActivityDetails[0].activity_description,
@@ -15513,7 +15515,8 @@ if(workflowActivityData.length==0){
             start: [createDate.getFullYear(), createDate.getMonth()+1, createDate.getDate(), createDate.getHours(), createDate.getMinutes()],
             duration: { minutes: timeDifferenceInMinutes },
             organizer: { name: 'GreneOS', email: 'admin@grenerobotics.com' },
-            attendees: [{ name: receiver_name, email: email }]
+            attendees: [{ name: receiver_name, email: email }],
+            
           }, (error, value) => {
             if (error) {
               console.log(error)
@@ -15523,7 +15526,7 @@ if(workflowActivityData.length==0){
             request.email_sender_name = 'GreneOS';
             request.email_receiver_name = receiver_name;
             request.email_sender = "admin@grenerobotics.com"
-            util.sendEmailMailgunV2(request, email, wfActivityDetails[0].activity_title, fileName, "",  "html")
+            util.sendEmailMailgunV2(request, email, "Telecall/Discussion", fileName, "",  "html")
           });
     }
 
