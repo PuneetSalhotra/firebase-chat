@@ -575,7 +575,6 @@ function PamController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/pam/get/upcoming/events', async (req, res) => {
-        // console.log(req.body);
         let [err, result] = await pamService.getEvents(req.body)
         if (!err) {
             res.json(responseWrapper.getResponse({}, result, 200, req.body));
