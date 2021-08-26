@@ -363,7 +363,7 @@ function AnalyticsService(objectCollection)
             request.widget_type_id,            
         );
 
-        var queryString = util.getQueryString('ds_p1_widget_type_master_select_id', paramsArr);
+        let queryString = util.getQueryString('ds_p1_widget_type_master_select_id', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -412,7 +412,7 @@ function AnalyticsService(objectCollection)
             request.widget_target_value
         );
 
-        var queryString = util.getQueryString('ds_p1_1_widget_list_insert', paramsArr);
+        let queryString = util.getQueryString('ds_p1_1_widget_list_insert', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
@@ -438,7 +438,7 @@ function AnalyticsService(objectCollection)
             request.datetime_log
         );
 
-        var queryString = util.getQueryString('ds_p1_activity_list_update_widget_details', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_list_update_widget_details', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
@@ -464,7 +464,7 @@ function AnalyticsService(objectCollection)
             request.datetime_log
         );
 
-        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_widget_details', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_widget_details', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
@@ -2378,13 +2378,16 @@ function AnalyticsService(objectCollection)
         try {
             console.log("prepareDataForWidgetType128 :: ");
             let results = new Array();
-            let total = new Array(0, 0, 0, 0);
-            let widgetFlags = new Array(1, 2, 3, 4);
+            let widgetFlags = new Array();
+            let countTotal = new Array();
+            let quantityTotal = new Array();
+            let valueTotal = new Array();
+            for (let i = 0; i < 2; i++) {
+                widgetFlags[i] = i + 1;
+                countTotal[i] = 0; quantityTotal[i] = 0; valueTotal[i] = 0;
+            }
             let verticalResponseMap = new Map();
             let isError = false;
-            request.verticalData = global.analyticsConfig.vertical;
-            //console.log("prepareDataForWidgetType128 request.verticalData ",request.verticalData)
-            //console.log("prepareDataForWidgetType128 est.verticalData[request.widget_type_id] ",request.verticalData[request.widget_type_id])
             results.push(request.verticalData[request.widget_type_id]);
             let verticalResponseAdditonalMap = new Map();
 
@@ -2398,7 +2401,7 @@ function AnalyticsService(objectCollection)
                 paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 paramsArray[15] = 0;
                 paramsArray[1] = 1;
-                if (widgetFlags[iteratorM] == 4) {
+                if (widgetFlags[iteratorM] == 2) {
                     paramsArray[1] = 2;
                     paramsArray[15] = 1;
                 }
@@ -2422,7 +2425,11 @@ function AnalyticsService(objectCollection)
                             paramsArray.pop();
                             let responseMap = new Map();
                             for (index = 0; index < data.length; index++) {
-                                responseMap.set(data[index].vertical_tag_id, data[index].value);
+                                let resData = {};
+                                resData.count = data[index].count;
+                                resData.quantity = data[index].quantity;
+                                resData.value = data[index].value;
+                                responseMap.set(data[index].vertical_tag_id, resData);
                             }
                             verticalResponseMap.set(iteratorM, responseMap);
 
@@ -2438,18 +2445,18 @@ function AnalyticsService(objectCollection)
             if (isError) {
                 return Promise.resolve(request.verticalData.error_response);
             }
-            let verticalValueFlgArray = new Array({}, {}, {}, {});
+            let verticalValueFlgArray = new Array();
 
             for (let entry of verticalMap.entries()) {
 
                 let vertical_tag_id = 0,
-                    vertical_name = null,
-                    value = 0;
+                    vertical_name = null;
                 vertical_tag_id = entry[0];
                 vertical_name = entry[1];
-                let verticalValueArray = new Array(0, 0, 0, 0);
+                let verticalValueArray = new Array();
 
                 for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                    verticalValueArray[iteratorM] = 0; verticalValueFlgArray[iteratorM] = {};
                     let responseJson = Object.assign({}, verticalResponseAdditonalMap.get(iteratorM));
                     responseJson.vertical_tag_id = vertical_tag_id;
                     responseJson.vertical_name = vertical_name;
@@ -2462,46 +2469,51 @@ function AnalyticsService(objectCollection)
                         }
 
                     }
-                    total[iteratorM] = total[iteratorM] + verticalValueArray[iteratorM];
+
+                    countTotal[iteratorM] = countTotal[iteratorM] + (verticalValueArray[iteratorM].count | 0);
+                    quantityTotal[iteratorM] = quantityTotal[iteratorM] + (verticalValueArray[iteratorM].quantity | 0);
+                    valueTotal[iteratorM] = valueTotal[iteratorM] + (verticalValueArray[iteratorM].value | 0);
                     verticalValueFlgArray[iteratorM] = responseJson;
                 }
 
-                results.push({
-                    "vertical_name": vertical_name,
-                    "flag_1": verticalValueArray[0],
-                    "flag_2": verticalValueArray[1],
-                    "flag_3": verticalValueArray[2],
-                    "flag_4": verticalValueArray[3],
-                    "flag_11": verticalValueFlgArray[0],
-                    "flag_21": verticalValueFlgArray[1],
-                    "flag_31": verticalValueFlgArray[2],
-                    "flag_41": verticalValueFlgArray[3]
-                });
+                let resultData = {};
+                resultData.vertical_name = vertical_name;
+                let cnt = 1;
+                for (let j = 0; j < widgetFlags.length; j++) {
+                    resultData["flag_" + cnt] = verticalValueArray[j].count | 0;
+                    resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
+                    resultData["flag_" + cnt] = verticalValueArray[j].quantity | 0;
+                    resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
+                    resultData["flag_" + cnt] = verticalValueArray[j].value | 0;
+                    resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
+                }
+                results.push(resultData);
 
             }
 
-            let verticalValueFlgArrayTotal = new Array({}, {}, {}, {});
-            for (let i = 0; i < 4; i++) {
+            let verticalValueFlgArrayTotal = new Array();
+            for (let i = 0; i < widgetFlags.length; i++) {
+                verticalValueFlgArrayTotal[i] = {};
                 verticalValueFlgArrayTotal[i] = Object.assign({}, verticalValueFlgArray[i]);
                 verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
                 delete verticalValueFlgArrayTotal[i]['vertical_name'];
             }
 
             verticalResponseAdditonalMap.clear();
-            results.push({
-                "vertical_name": "Total",
-                "flag_1": total[0],
-                "flag_2": total[1],
-                "flag_3": total[2],
-                "flag_4": total[3],
-                "flag_11": verticalValueFlgArrayTotal[0],
-                "flag_21": verticalValueFlgArrayTotal[1],
-                "flag_31": verticalValueFlgArrayTotal[2],
-                "flag_41": verticalValueFlgArrayTotal[3]
-            });
-           // console.log("results :: ",results)
-            return Promise.resolve(results); 
-            
+
+            let resultData = {};
+            resultData.vertical_name = "Total";
+            let cnt = 1;
+            for (let j = 0; j < widgetFlags.length; j++) {
+                resultData["flag_" + cnt] = countTotal[j] | 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = quantityTotal[j] | 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = valueTotal[j] | 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+            }
+            results.push(resultData);
+            return Promise.resolve(results);
         } catch (error) {
             console.log("error :; ", error);
             return Promise.resolve(request.verticalData.error_response);
@@ -2513,14 +2525,21 @@ function AnalyticsService(objectCollection)
         try {
 
             let results = new Array();
-            let total = new Array(0, 0, 0, 0);
-            let widgetFlags = new Array(1, 2, 3, 4);
+            let countTotal = new Array();
+            let quantityTotal = new Array();
+            let valueTotal = new Array();
+            let widgetFlags = new Array();
+            for (let i = 0; i < 8; i++) {
+                widgetFlags[i] = i + 1;
+                countTotal[i] = 0;
+                quantityTotal[i] = 0;
+                valueTotal[i] = 0;
+            }
             let verticalResponseMap = new Map();
             let verticalResponseAdditonalMap = new Map();
             let isError = false;
 
             results.push(request.verticalData[request.widget_type_id]);
-
             for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
                 let responseJson = {};
 
@@ -2528,11 +2547,9 @@ function AnalyticsService(objectCollection)
                     break;
                 }
 
-                let widgetJsonObject = request.verticalData[request.widget_type_id];
                 let status_tags = request.verticalData["status_tags"];
-                let key = "flag_" + widgetFlags[iteratorM];
-                let value = widgetJsonObject[key];
-                paramsArray[16] = status_tags[value];
+                let key = request.verticalData["status_tags_array"][iteratorM];
+                paramsArray[16] = status_tags[key];
                 paramsArray.push(widgetFlags[iteratorM]);
                 paramsArray[10] = request.asset_id;
 
@@ -2550,7 +2567,11 @@ function AnalyticsService(objectCollection)
                             paramsArray.pop();
                             let responseMap = new Map();
                             for (index = 0; index < data.length; index++) {
-                                responseMap.set(data[index].vertical_tag_id, data[index].value);
+                                let resData = {};
+                                resData.count = data[index].count;
+                                resData.quantity = data[index].quantity;
+                                resData.value = data[index].value;
+                                responseMap.set(data[index].vertical_tag_id, resData);
                             }
                             verticalResponseMap.set(iteratorM, responseMap);
 
@@ -2567,7 +2588,7 @@ function AnalyticsService(objectCollection)
                 return Promise.resolve(request.verticalData.error_response);
             }
 
-            let verticalValueFlgArray = new Array({}, {}, {}, {});
+            let verticalValueFlgArray = new Array();
             for (let entry of verticalMap.entries()) {
 
                 let vertical_tag_id = 0,
@@ -2575,9 +2596,9 @@ function AnalyticsService(objectCollection)
                     value = 0;
                 vertical_tag_id = entry[0];
                 vertical_name = entry[1];
-                let verticalValueArray = new Array(0, 0, 0, 0);
-
+                let verticalValueArray = new Array();
                 for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                    verticalValueArray[iteratorM] = 0; verticalValueFlgArray[iteratorM] = {};
                     let responseJson = Object.assign({}, verticalResponseAdditonalMap.get(iteratorM));
                     responseJson.vertical_tag_id = vertical_tag_id;
                     responseJson.vertical_name = vertical_name;
@@ -2590,43 +2611,48 @@ function AnalyticsService(objectCollection)
                         }
 
                     }
-                    total[iteratorM] = total[iteratorM] + verticalValueArray[iteratorM];
+                    countTotal[iteratorM] = countTotal[iteratorM] + (verticalValueArray[iteratorM].count | 0);
+                    quantityTotal[iteratorM] = quantityTotal[iteratorM] + (verticalValueArray[iteratorM].quantity | 0);
+                    valueTotal[iteratorM] = valueTotal[iteratorM] + (verticalValueArray[iteratorM].value | 0);
                     verticalValueFlgArray[iteratorM] = responseJson;
                 }
 
-                results.push({
-                    "vertical_name": vertical_name,
-                    "flag_1": verticalValueArray[0],
-                    "flag_2": verticalValueArray[1],
-                    "flag_3": verticalValueArray[2],
-                    "flag_4": verticalValueArray[3],
-                    "flag_11": verticalValueFlgArray[0],
-                    "flag_21": verticalValueFlgArray[1],
-                    "flag_31": verticalValueFlgArray[2],
-                    "flag_41": verticalValueFlgArray[3]
-                });
+                let resultData = {};
+                resultData.vertical_name = vertical_name;
+                let cnt = 1;
+                for (let j = 0; j < widgetFlags.length; j++) {
+                    resultData["flag_" + cnt] = verticalValueArray[j].count | 0;
+                    resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
+                    resultData["flag_" + cnt] = verticalValueArray[j].quantity | 0;
+                    resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
+                    resultData["flag_" + cnt] = verticalValueArray[j].value | 0;
+                    resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
+                }
+                results.push(resultData);
 
             }
-
-            let verticalValueFlgArrayTotal = new Array({}, {}, {}, {});
-            for (let i = 0; i < 4; i++) {
+            let verticalValueFlgArrayTotal = new Array();
+            for (let i = 0; i < widgetFlags.length; i++) {
+                verticalValueFlgArrayTotal[i] = {};
                 verticalValueFlgArrayTotal[i] = Object.assign({}, verticalValueFlgArray[i]);
                 verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
                 delete verticalValueFlgArrayTotal[i]['vertical_name'];
             }
 
             verticalResponseAdditonalMap.clear();
-            results.push({
-                "vertical_name": "Total",
-                "flag_1": total[0],
-                "flag_2": total[1],
-                "flag_3": total[2],
-                "flag_4": total[3],
-                "flag_11": verticalValueFlgArrayTotal[0],
-                "flag_21": verticalValueFlgArrayTotal[1],
-                "flag_31": verticalValueFlgArrayTotal[2],
-                "flag_41": verticalValueFlgArrayTotal[3]
-            });
+
+            let resultData = {};
+            resultData.vertical_name = "Total";
+            let cnt = 1;
+            for (let j = 0; j < widgetFlags.length; j++) {
+                resultData["flag_" + cnt] = countTotal[j] | 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = quantityTotal[j] | 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = valueTotal[j] | 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+            }
+            results.push(resultData);
 
             return Promise.resolve(results);
 
@@ -2641,14 +2667,22 @@ function AnalyticsService(objectCollection)
         try {
             console.log("prepareDataForWidgetType130 :: ");
             let results = new Array();
-            let total = new Array(0, 0, 0, 0);
-            let widgetFlags = new Array(1, 2, 3, 4);
+            let total = new Array();
+            let countTotal = new Array();
+            let quantityTotal = new Array();
+            let valueTotal = new Array();
+            let widgetFlags = new Array();
+            for (let i = 0; i < 7; i++) {
+                widgetFlags[i] = i + 1;
+                countTotal[i] = 0; quantityTotal[i] = 0; valueTotal[i] = 0;
+            }
             let verticalFlags = new Array();
             let verticalResponseMap = new Map();
             let verticalResponseAdditonalMap = new Map();
             let isError = false;
 
             results.push(request.verticalData[request.widget_type_id]);
+            let status_tags = request.verticalData["status_tags"];
 
             for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
                 let responseJson = {};
@@ -2659,24 +2693,43 @@ function AnalyticsService(objectCollection)
                 if (widgetFlags[iteratorM] == 1) {
                     paramsArray[1] = 1;
                     paramsArray[15] = 2;
+                    paramsArray[16] = 0;
                     paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
                     paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 }
-                if (widgetFlags[iteratorM] == 2) {
+                if (widgetFlags[iteratorM] >= 2 && widgetFlags[iteratorM] <= 5) {
                     paramsArray[1] = 2;
                     paramsArray[15] = 1;
                     paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
                     paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
+                    if (widgetFlags[iteratorM] == 2) {
+                        let key = request.verticalData["status_tags_array"][4];
+                        paramsArray[16] = status_tags[key];
+                    }
+                    if (widgetFlags[iteratorM] == 3) {
+                        let key = request.verticalData["status_tags_array"][5];
+                        paramsArray[16] = status_tags[key];
+                    }
+                    if (widgetFlags[iteratorM] == 4) {
+                        let key = request.verticalData["status_tags_array"][6];
+                        paramsArray[16] = status_tags[key];
+                    }
+                    if (widgetFlags[iteratorM] == 5) {
+                        let key = request.verticalData["status_tags_array"][7];
+                        paramsArray[16] = status_tags[key];
+                    }
                 }
-                if (widgetFlags[iteratorM] == 3) {
+                if (widgetFlags[iteratorM] == 6) {
                     paramsArray[1] = 3;
                     paramsArray[15] = 0;
+                    paramsArray[16] = 0;
                     paramsArray[18] = util.getFirstDayOfNextMonthToIST();
                     paramsArray[19] = util.getLastDayOfNextMonthToIST();
                 }
-                if (widgetFlags[iteratorM] == 4) {
+                if (widgetFlags[iteratorM] == 7) {
                     paramsArray[1] = 3;
                     paramsArray[15] = 0;
+                    paramsArray[16] = 0;
                     paramsArray[18] = util.getFirstDayOfCurrentQuarterToIST();
                     paramsArray[19] = util.getLastDayOfCurrentQuarterToIST();
                 }
@@ -2701,7 +2754,11 @@ function AnalyticsService(objectCollection)
                             paramsArray.pop();
                             let responseMap = new Map();
                             for (index = 0; index < data.length; index++) {
-                                responseMap.set(data[index].vertical_tag_id, data[index].value);
+                                let resData = {};
+                                resData.count = data[index].count;
+                                resData.quantity = data[index].quantity;
+                                resData.value = data[index].value;
+                                responseMap.set(data[index].vertical_tag_id, resData);
                             }
                             verticalResponseMap.set(iteratorM, responseMap);
 
@@ -2717,7 +2774,7 @@ function AnalyticsService(objectCollection)
             if (isError) {
                 return Promise.resolve(request.verticalData.error_response);
             }
-            let verticalValueFlgArray = new Array({}, {}, {}, {});
+            let verticalValueFlgArray = new Array();
             for (let entry of verticalMap.entries()) {
 
                 let vertical_tag_id = 0,
@@ -2725,10 +2782,11 @@ function AnalyticsService(objectCollection)
                     value = 0;
                 vertical_tag_id = entry[0];
                 vertical_name = entry[1];
-                let verticalValueArray = new Array(0, 0, 0, 0);
+                let verticalValueArray = new Array();
 
 
                 for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                    verticalValueArray[iteratorM] = 0; verticalValueFlgArray[iteratorM] = {};
                     let responseJson = Object.assign({}, verticalResponseAdditonalMap.get(iteratorM));
                     responseJson.vertical_tag_id = vertical_tag_id;
                     responseJson.vertical_name = vertical_name;
@@ -2741,44 +2799,48 @@ function AnalyticsService(objectCollection)
                         }
 
                     }
-                    total[iteratorM] = total[iteratorM] + verticalValueArray[iteratorM];
+                    countTotal[iteratorM] = countTotal[iteratorM] + (verticalValueArray[iteratorM].count | 0);
+                    quantityTotal[iteratorM] = quantityTotal[iteratorM] + (verticalValueArray[iteratorM].quantity | 0);
+                    valueTotal[iteratorM] = valueTotal[iteratorM] + (verticalValueArray[iteratorM].value | 0);
                     verticalValueFlgArray[iteratorM] = responseJson;
                 }
 
-                results.push({
-                    "vertical_name": vertical_name,
-                    "flag_1": verticalValueArray[0],
-                    "flag_2": verticalValueArray[1],
-                    "flag_3": verticalValueArray[2],
-                    "flag_4": verticalValueArray[3],
-                    "flag_11": verticalValueFlgArray[0],
-                    "flag_21": verticalValueFlgArray[1],
-                    "flag_31": verticalValueFlgArray[2],
-                    "flag_41": verticalValueFlgArray[3]
-                });
-
+                let resultData = {};
+                resultData.vertical_name = vertical_name;
+                let cnt = 1;
+                for (let j = 0; j < widgetFlags.length; j++) {
+                    resultData["flag_" + cnt] = verticalValueArray[j].count | 0;
+                    resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
+                    resultData["flag_" + cnt] = verticalValueArray[j].quantity | 0;
+                    resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
+                    resultData["flag_" + cnt] = verticalValueArray[j].value | 0;
+                    resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
+                }
+                results.push(resultData);
             }
 
-            let verticalValueFlgArrayTotal = new Array({}, {}, {}, {});
-            for (let i = 0; i < 4; i++) {
+            let verticalValueFlgArrayTotal = new Array();
+            for (let i = 0; i < widgetFlags.length; i++) {
+                verticalValueFlgArrayTotal[i] = {};
                 verticalValueFlgArrayTotal[i] = Object.assign({}, verticalValueFlgArray[i]);
                 verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
                 delete verticalValueFlgArrayTotal[i]['vertical_name'];
             }
 
             verticalResponseAdditonalMap.clear();
-            results.push({
-                "vertical_name": "Total",
-                "flag_1": total[0],
-                "flag_2": total[1],
-                "flag_3": total[2],
-                "flag_4": total[3],
-                "flag_11": verticalValueFlgArrayTotal[0],
-                "flag_21": verticalValueFlgArrayTotal[1],
-                "flag_31": verticalValueFlgArrayTotal[2],
-                "flag_41": verticalValueFlgArrayTotal[3]
-            });
 
+            let resultData = {};
+            resultData.vertical_name = "Total";
+            let cnt = 1;
+            for (let j = 0; j < widgetFlags.length; j++) {
+                resultData["flag_" + cnt] = countTotal[j] | 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = quantityTotal[j] | 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = valueTotal[j] | 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+            }
+            results.push(resultData);
             return Promise.resolve(results);
 
         } catch (error) {
@@ -2932,7 +2994,7 @@ function AnalyticsService(objectCollection)
                      request.filter_field_entity_5 || ''
                     );
             
-            var queryString = util.getQueryString('ds_v1_9_activity_search_list_select_widget_drilldown_search', paramsArray);
+            let queryString = util.getQueryString('ds_v1_9_activity_search_list_select_widget_drilldown_search', paramsArray);
                 if (queryString !== '') {
                     tempResult = await (db.executeQueryPromise(1, queryString, request));
                 }
@@ -3105,7 +3167,7 @@ function AnalyticsService(objectCollection)
                      request.filter_field_entity_5 || ''
                     );
             
-            var queryString = util.getQueryString('ds_v1_9_activity_search_list_select_widget_drilldown_oppty', paramsArray);
+            let queryString = util.getQueryString('ds_v1_9_activity_search_list_select_widget_drilldown_oppty', paramsArray);
                 if (queryString !== '') {
                     tempResult = await (db.executeQueryPromise(1, queryString, request));
                 }
@@ -3139,6 +3201,7 @@ function AnalyticsService(objectCollection)
         let responseData = [],
             error = true, dbCall;
 
+        let queryString = "";
         switch (parseInt(request.flag))
         {
             //Tag Type (Workflow Category)
@@ -3150,7 +3213,7 @@ function AnalyticsService(objectCollection)
                     request.organization_id
                 );
                 
-                var queryString = util.getQueryString('ds_v1_application_tag_type_mapping_select', paramsArray);
+                queryString = util.getQueryString('ds_v1_application_tag_type_mapping_select', paramsArray);
                 await db.executeQueryPromise(0, queryString, request)
                     .then((data) => {
                         responseData = data;
@@ -3171,7 +3234,7 @@ function AnalyticsService(objectCollection)
                     request.organization_id
                 );
                 
-                var queryString = util.getQueryString('ds_v1_segment_activity_type_mapping_select', paramsArray);
+                queryString = util.getQueryString('ds_v1_segment_activity_type_mapping_select', paramsArray);
                 await db.executeQueryPromise(0, queryString, request)
                     .then((data) => {
                         responseData = data;
@@ -5064,7 +5127,16 @@ function AnalyticsService(objectCollection)
         try {
             console.log("prepareDataForWidgetType128ForResource :: ");
             let results = new Array();
-            let widgetFlags = new Array(1, 2, 3, 4);
+            let widgetFlags = new Array();
+            let resourceValueFlgArray = new Array();
+            let countTotal = new Array();
+            let quantityTotal = new Array();
+            let valueTotal = new Array();
+            for (let i = 0; i < 2; i++) {
+                widgetFlags[i] = i + 1;
+                resourceValueFlgArray[i] = {};
+                countTotal[i] = 0; quantityTotal[i] = 0; valueTotal[i] = 0;
+            }
             let resourceResponseAdditonalMap = new Map();
             let isError = false;
 
@@ -5078,10 +5150,9 @@ function AnalyticsService(objectCollection)
 
             for (let idx = 0; idx < assetsData.length; idx++) {
                 let map = new Map();
-                map.set("flag_1", 0);
-                map.set("flag_2", 0);
-                map.set("flag_3", 0);
-                map.set("flag_4", 0);
+                for (let i = 0; i < widgetFlags.length; i++) {
+                    map.set("flag_" + (i + 1), 0);
+                }
                 assetMap.set(assetsData[idx].asset_id, map);
             }
 
@@ -5094,7 +5165,7 @@ function AnalyticsService(objectCollection)
                 paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 paramsArray[15] = 0;
                 paramsArray[1] = 1;
-                if (widgetFlags[iteratorM] == 4) {
+                if (widgetFlags[iteratorM] == 2) {
                     paramsArray[1] = 2;
                     paramsArray[15] = 1;
                 }
@@ -5105,7 +5176,7 @@ function AnalyticsService(objectCollection)
                 responseJson.datetime_end = paramsArray[19];
                 responseJson.filter_activity_status_type_id = paramsArray[15];
                 responseJson.filter_date_type_id = paramsArray[1];
-                responseJson.target_asset_id = paramsArray[10];
+                responseJson.filter_asset_id = paramsArray[10];
                 responseJson.sequence_id = widgetFlags[iteratorM];
                 resourceResponseAdditonalMap.set(iteratorM, responseJson);
 
@@ -5118,7 +5189,6 @@ function AnalyticsService(objectCollection)
             if (isError) {
                 return Promise.resolve(request.verticalData.error_response);
             }
-            let resourceValueFlgArray = new Array({}, {}, {}, {});
 
             let vertical_name = null;
 
@@ -5136,14 +5206,15 @@ function AnalyticsService(objectCollection)
                     let asset_id = opptydata[idx].activity_creator_asset_id;
                     if (assetMap.has(asset_id)) {
                         let map = assetMap.get(asset_id);
-                        map.set("flag_" + (iteratorM + 1), opptydata[idx].value);
+                        map.set("flag_" + (iteratorM + 1) + "_count", opptydata[idx].count);
+                        map.set("flag_" + (iteratorM + 1) + "_quantity", opptydata[idx].quantity);
+                        map.set("flag_" + (iteratorM + 1) + "_value", opptydata[idx].value);
                         assetMap.set(asset_id, map);
                     }
                 }
             }
 
             for (let idx = 0; idx < assetsData.length; idx++) {
-
                 for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
                     let responseJson = Object.assign({}, resourceResponseAdditonalMap.get(iteratorM));
                     responseJson.vertical_tag_id = vertical_tag_id;
@@ -5151,19 +5222,20 @@ function AnalyticsService(objectCollection)
                     delete responseJson["filter_asset_id"];
                     responseJson.target_asset_id = assetsData[idx].asset_id;
                     resourceValueFlgArray[iteratorM] = responseJson;
+                    console.log(JSON.stringify(responseJson))
                 }
 
-                let assetRspData = {
-                    "resource_name": assetsData[idx].operating_asset_first_name,
-                    "flag_1": assetMap.get(assetsData[idx].asset_id).get("flag_1"),
-                    "flag_2": assetMap.get(assetsData[idx].asset_id).get("flag_2"),
-                    "flag_3": assetMap.get(assetsData[idx].asset_id).get("flag_3"),
-                    "flag_4": assetMap.get(assetsData[idx].asset_id).get("flag_4"),
-                    "flag_11": resourceValueFlgArray[0],
-                    "flag_21": resourceValueFlgArray[1],
-                    "flag_31": resourceValueFlgArray[2],
-                    "flag_41": resourceValueFlgArray[3]
-                };
+                let assetRspData = {};
+                assetRspData.resource_name = assetsData[idx].operating_asset_first_name;
+                let cnt = 1;
+                for (let i = 0; i < widgetFlags.length; i++) {
+                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_count") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_quantity") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_value") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                }
                 results.push(assetRspData);
 
             }
@@ -5181,7 +5253,16 @@ function AnalyticsService(objectCollection)
         try {
             console.log("prepareDataForWidgetType129ForResource :: ");
             let results = new Array();
-            let widgetFlags = new Array(1, 2, 3, 4);
+            let widgetFlags = new Array();
+            let resourceValueFlgArray = new Array();
+            let countTotal = new Array();
+            let quantityTotal = new Array();
+            let valueTotal = new Array();
+            for (let i = 0; i < 8; i++) {
+                widgetFlags[i] = i + 1;
+                resourceValueFlgArray[i] = {};
+                countTotal[i] = 0; quantityTotal[i] = 0; valueTotal[i] = 0;
+            }
             let resourceResponseAdditonalMap = new Map();
             let isError = false;
 
@@ -5195,10 +5276,9 @@ function AnalyticsService(objectCollection)
 
             for (let idx = 0; idx < assetsData.length; idx++) {
                 let map = new Map();
-                map.set("flag_1", 0);
-                map.set("flag_2", 0);
-                map.set("flag_3", 0);
-                map.set("flag_4", 0);
+                for (let i = 0; i < widgetFlags.length; i++) {
+                    map.set("flag_" + (i + 1), 0);
+                }
                 assetMap.set(assetsData[idx].asset_id, map);
             }
 
@@ -5208,16 +5288,14 @@ function AnalyticsService(objectCollection)
                     break;
                 }
 
-                let widgetJsonObject = request.verticalData[request.widget_type_id];
                 let status_tags = request.verticalData["status_tags"];
-                let key = "flag_" + widgetFlags[iteratorM];
-                let value = widgetJsonObject[key];
-                paramsArray[16] = status_tags[value];
+                let key = request.verticalData["status_tags_array"][iteratorM];
+                paramsArray[16] = status_tags[key];
                 paramsArray.push(widgetFlags[iteratorM]);
                 paramsArray[10] = request.asset_id;
 
                 responseJson.filter_activity_status_tag_id = paramsArray[16];
-                responseJson.target_asset_id = paramsArray[10];
+                responseJson.filter_asset_id = paramsArray[10];
                 responseJson.sequence_id = widgetFlags[iteratorM];
                 resourceResponseAdditonalMap.set(iteratorM, responseJson);
 
@@ -5230,7 +5308,6 @@ function AnalyticsService(objectCollection)
             if (isError) {
                 return Promise.resolve(request.verticalData.error_response);
             }
-            let resourceValueFlgArray = new Array({}, {}, {}, {});
 
             let vertical_name = null;
 
@@ -5248,7 +5325,9 @@ function AnalyticsService(objectCollection)
                     let asset_id = opptydata[idx].activity_creator_asset_id;
                     if (assetMap.has(asset_id)) {
                         let map = assetMap.get(asset_id);
-                        map.set("flag_" + (iteratorM + 1), opptydata[idx].value);
+                        map.set("flag_" + (iteratorM + 1) + "_count", opptydata[idx].count);
+                        map.set("flag_" + (iteratorM + 1) + "_quantity", opptydata[idx].quantity);
+                        map.set("flag_" + (iteratorM + 1) + "_value", opptydata[idx].value);
                         assetMap.set(asset_id, map);
                     }
                 }
@@ -5265,17 +5344,18 @@ function AnalyticsService(objectCollection)
                     resourceValueFlgArray[iteratorM] = responseJson;
                 }
 
-                let assetRspData = {
-                    "resource_name": assetsData[idx].operating_asset_first_name,
-                    "flag_1": assetMap.get(assetsData[idx].asset_id).get("flag_1"),
-                    "flag_2": assetMap.get(assetsData[idx].asset_id).get("flag_2"),
-                    "flag_3": assetMap.get(assetsData[idx].asset_id).get("flag_3"),
-                    "flag_4": assetMap.get(assetsData[idx].asset_id).get("flag_4"),
-                    "flag_11": resourceValueFlgArray[0],
-                    "flag_21": resourceValueFlgArray[1],
-                    "flag_31": resourceValueFlgArray[2],
-                    "flag_41": resourceValueFlgArray[3]
-                };
+                let assetRspData = {};
+                assetRspData.resource_name = assetsData[idx].operating_asset_first_name;
+
+                let cnt = 1;
+                for (let i = 0; i < widgetFlags.length; i++) {
+                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_count") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_quantity") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_value") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                }
                 results.push(assetRspData);
 
             }
@@ -5293,7 +5373,17 @@ function AnalyticsService(objectCollection)
         try {
             console.log("prepareDataForWidgetType130 :: ");
             let results = new Array();
-            let widgetFlags = new Array(1, 2, 3, 4);
+            let widgetFlags = new Array();
+            let resourceValueFlgArray = new Array();
+            let countTotal = new Array();
+            let quantityTotal = new Array();
+            let valueTotal = new Array();
+            for (let i = 0; i < 7; i++) {
+                widgetFlags[i] = i + 1;
+                resourceValueFlgArray[i] = {};
+                countTotal[i] = 0; quantityTotal[i] = 0; valueTotal[i] = 0;
+            }
+
             let resourceResponseAdditonalMap = new Map();
             let isError = false;
 
@@ -5304,13 +5394,13 @@ function AnalyticsService(objectCollection)
 
             let vertical_tag_id = paramsArray[12];
             let assetMap = new Map();
+            let status_tags = request.verticalData["status_tags"];
 
             for (let idx = 0; idx < assetsData.length; idx++) {
                 let map = new Map();
-                map.set("flag_1", 0);
-                map.set("flag_2", 0);
-                map.set("flag_3", 0);
-                map.set("flag_4", 0);
+                for (let i = 0; i < widgetFlags.length; i++) {
+                    map.set("flag_" + (i + 1), 0);
+                }
                 assetMap.set(assetsData[idx].asset_id, map);
             }
 
@@ -5322,24 +5412,43 @@ function AnalyticsService(objectCollection)
                 if (widgetFlags[iteratorM] == 1) {
                     paramsArray[1] = 1;
                     paramsArray[15] = 2;
+                    paramsArray[16] = 0;
                     paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
                     paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 }
-                if (widgetFlags[iteratorM] == 2) {
+                if (widgetFlags[iteratorM] >= 2 && widgetFlags[iteratorM] <= 5) {
                     paramsArray[1] = 2;
                     paramsArray[15] = 1;
                     paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
                     paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
+                    if (widgetFlags[iteratorM] == 2) {
+                        let key = request.verticalData["status_tags_array"][4];
+                        paramsArray[16] = status_tags[key];
+                    }
+                    if (widgetFlags[iteratorM] == 3) {
+                        let key = request.verticalData["status_tags_array"][5];
+                        paramsArray[16] = status_tags[key];
+                    }
+                    if (widgetFlags[iteratorM] == 4) {
+                        let key = request.verticalData["status_tags_array"][6];
+                        paramsArray[16] = status_tags[key];
+                    }
+                    if (widgetFlags[iteratorM] == 5) {
+                        let key = request.verticalData["status_tags_array"][7];
+                        paramsArray[16] = status_tags[key];
+                    }
                 }
-                if (widgetFlags[iteratorM] == 3) {
+                if (widgetFlags[iteratorM] == 6) {
                     paramsArray[1] = 3;
                     paramsArray[15] = 0;
+                    paramsArray[16] = 0;
                     paramsArray[18] = util.getFirstDayOfNextMonthToIST();
                     paramsArray[19] = util.getLastDayOfNextMonthToIST();
                 }
-                if (widgetFlags[iteratorM] == 4) {
+                if (widgetFlags[iteratorM] == 7) {
                     paramsArray[1] = 3;
                     paramsArray[15] = 0;
+                    paramsArray[16] = 0;
                     paramsArray[18] = util.getFirstDayOfCurrentQuarterToIST();
                     paramsArray[19] = util.getLastDayOfCurrentQuarterToIST();
                 }
@@ -5350,7 +5459,7 @@ function AnalyticsService(objectCollection)
                 responseJson.filter_activity_status_type_id = paramsArray[15];
                 responseJson.datetime_start = paramsArray[18];
                 responseJson.datetime_end = paramsArray[19];
-                responseJson.target_asset_id = paramsArray[10];
+                responseJson.filter_asset_id = paramsArray[10];
                 responseJson.sequence_id = widgetFlags[iteratorM];
                 resourceResponseAdditonalMap.set(iteratorM, responseJson);
 
@@ -5363,7 +5472,6 @@ function AnalyticsService(objectCollection)
             if (isError) {
                 return Promise.resolve(request.verticalData.error_response);
             }
-            let resourceValueFlgArray = new Array({}, {}, {}, {});
 
             let vertical_name = null;
 
@@ -5381,7 +5489,9 @@ function AnalyticsService(objectCollection)
                     let asset_id = opptydata[idx].activity_creator_asset_id;
                     if (assetMap.has(asset_id)) {
                         let map = assetMap.get(asset_id);
-                        map.set("flag_" + (iteratorM + 1), opptydata[idx].value);
+                        map.set("flag_" + (iteratorM + 1) + "_count", opptydata[idx].count);
+                        map.set("flag_" + (iteratorM + 1) + "_quantity", opptydata[idx].quantity);
+                        map.set("flag_" + (iteratorM + 1) + "_value", opptydata[idx].value);
                         assetMap.set(asset_id, map);
                     }
                 }
@@ -5398,17 +5508,18 @@ function AnalyticsService(objectCollection)
                     resourceValueFlgArray[iteratorM] = responseJson;
                 }
 
-                let assetRspData = {
-                    "resource_name": assetsData[idx].operating_asset_first_name,
-                    "flag_1": assetMap.get(assetsData[idx].asset_id).get("flag_1"),
-                    "flag_2": assetMap.get(assetsData[idx].asset_id).get("flag_2"),
-                    "flag_3": assetMap.get(assetsData[idx].asset_id).get("flag_3"),
-                    "flag_4": assetMap.get(assetsData[idx].asset_id).get("flag_4"),
-                    "flag_11": resourceValueFlgArray[0],
-                    "flag_21": resourceValueFlgArray[1],
-                    "flag_31": resourceValueFlgArray[2],
-                    "flag_41": resourceValueFlgArray[3]
-                };
+                let assetRspData = {};
+                assetRspData.resource_name = assetsData[idx].operating_asset_first_name;
+
+                let cnt = 1;
+                for (let i = 0; i < widgetFlags.length; i++) {
+                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_count") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_quantity") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_value") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                }
                 results.push(assetRspData);
 
             }
@@ -5463,6 +5574,722 @@ function AnalyticsService(objectCollection)
     }
     //----------------------------------------------------------------------
 
+    //------------------------------------------------------------------------
+    //Mangesh S
+    //Get resource and vertical details for specified vertical_tag_id and filter_asset_id
+    this.getManagementWidgetValueResourceAndVertical = async (request) => {
+
+        try {
+            let results = new Array();
+            let paramsArray;
+            let tempResult;
+            let timezoneOffset = 0;
+
+            //Setting the activity_id in response
+            results[0] =
+            {
+                activity_id: request.activity_id,
+            };
+
+            //Get the timezone of the account
+            paramsArray =
+                new Array
+                    (
+                        request.account_id
+                    );
+
+            console.log(request, null, 2);
+
+            tempResult = await db.callDBProcedureR2(request, "ds_p1_account_list_select_timezone", paramsArray, 1);
+            console.log(tempResult);
+            timezoneID = tempResult[0].account_timezone_id;
+            timezoneOffset = tempResult[0].account_timezone_offset;
+
+            //Get the number of selections for status category
+            console.log(JSON.parse(request.filter_activity_status_type_id).length);
+            arrayStatusTypes = JSON.parse(request.filter_activity_status_type_id);
+
+            console.log("request.activity_status_id :: " + request.activity_status_id);
+            let arrayStatuses = new Array();
+            if (request.hasOwnProperty("activity_status_id")) {
+                //console.log(JSON.parse(request.activity_status_id).length);
+                if (request.activity_status_id != 0) {
+                    arrayStatuses = JSON.parse(request.activity_status_id);
+                } else {
+                    let json = { "activity_status_id": 0 };
+                    arrayStatuses.push(json);
+                    console.log("arrayStatuses2 :: " + JSON.stringify(arrayStatuses));
+                }
+            } else {
+
+                let json = { "activity_status_id": 0 };
+                arrayStatuses.push(json);
+                console.log("arrayStatuses2 :: " + JSON.stringify(arrayStatuses));
+            }
+
+            console.log("filter_hierarchy " + request.filter_hierarchy);
+
+            if (!request.hasOwnProperty("filter_hierarchy")) {
+                request.filter_hierarchy = 0;
+            }
+
+            if (request.tag_type_id == 130)
+                request.filter_asset_id = request.asset_id;
+
+            console.log('request.filter_is_datetime_considered :: ' + request.filter_is_datetime_considered);
+
+            try {
+
+                console.log('request.tag_type_id ' + request.tag_type_id);
+
+                paramsArray =
+                    new Array
+                        (
+                            parseInt(request.widget_type_id),
+                            parseInt(request.filter_date_type_id),
+                            parseInt(request.filter_timeline_id),
+                            timezoneID,
+                            timezoneOffset,
+                            global.analyticsConfig.parameter_flag_sort, //Sort flag
+                            parseInt(request.organization_id),
+                            parseInt(request.filter_circle_id),
+                            parseInt(request.filter_workforce_type_id),
+                            parseInt(request.filter_workforce_id),
+                            parseInt(request.filter_asset_id),
+                            parseInt(request.tag_type_id),
+                            parseInt(request.filter_tag_id),
+                            parseInt(request.filter_activity_type_id),
+                            global.analyticsConfig.activity_id_all, //Activity ID,
+                            parseInt(request.filter_activity_status_type_id),
+                            parseInt(request.filter_activity_status_tag_id),
+                            // parseInt(request.filter_activity_status_id),
+                            parseInt(arrayStatuses[0].activity_status_id),
+                            request.datetime_start,
+                            request.datetime_end,
+                            parseInt(request.filter_segment_id),
+                            parseInt(request.filter_reporting_manager_id),
+                            parseInt(request.filter_product_category_id),
+                            parseInt(request.filter_product_family_id),
+                            parseInt(request.filter_product_activity_id),
+                            parseInt(request.filter_account_activity_id),
+                            parseInt(request.filter_is_value_considered),
+                            parseInt(request.filter_cluster_tag_id) || 0,
+                            parseInt(request.filter_is_direct_report),
+                            parseInt(request.filter_is_datetime_considered),
+                            parseInt(request.filter_asset_type_id),
+                            parseInt(request.workforce_tag_id) || 0,
+                            parseInt(request.filter_form_id) || 0,
+                            parseInt(request.filter_field_id) || 0,
+                            request.filter_timescale || '',
+                            request.filter_is_lead || 0,
+                            request.filter_campaign_activity_id || 0,
+                            request.filter_field_entity_1 || '',
+                            request.filter_field_entity_2 || '',
+                            request.filter_field_entity_3 || '',
+                            request.filter_field_entity_4 || '',
+                            request.filter_field_entity_5 || '',
+                            parseInt(request.page_start) || 0,
+                            parseInt(request.page_limit) || 50
+                        );
+
+                if ([128, 129, 130].includes(parseInt(request.widget_type_id))) {
+                    request.verticalData = global.analyticsConfig.vertical;
+                    results = await this.prepareWidgetDataForResourceAndVertical(request, paramsArray);
+
+                }
+
+            } catch (e) {
+                console.log('error ::', e);
+            }
+            //console.log("results "+results)
+            return results;
+        }
+        catch (error) {
+            console.log("Error========");
+            console.log(error);
+            return Promise.reject(error);
+        }
+    };
+
+    this.prepareWidgetDataForResourceAndVertical = async (request, paramsArray) => {
+
+        return new Promise((resolve) => {
+
+            let requestObj = {
+                "organization_id": request.organization_id,
+                "account_id": request.account_id,
+                "workforce_id": request.workforce_id,
+                "segment_id": request.segment_id || 0,
+                "target_asset_id": request.asset_id,
+                "tag_type_id": request.tag_type_id || 0,
+                "tag_id": request.tag_id || 0,
+                "cluster_tag_id": request.cluster_tag_id || 0,
+                "vertical_tag_id": request.vertical_tag_id || 0,
+                "flag": 28,
+                "page_start": request.page_start || 0,
+                "page_limit": request.page_limit || 50
+            };
+
+            assetService.assetAccessLevelMappingSelectFlagV2(requestObj)
+                .then(async (data) => {
+                    console.log("1");
+                    let resourceMap = new Map();
+
+                    if (data !== undefined && data.length >= 2) {
+
+                        let verticalsArray = data[1];
+                        for (index = 0; index < verticalsArray.length; index++) {
+
+                            let vertical = verticalsArray[index];
+                            if (vertical !== undefined && vertical.hasOwnProperty('tag_id')) {
+
+                                let tag_id = vertical.tag_id;
+                                if (tag_id !== null && tag_id > 0) {
+
+                                    let tag_name = verticalsArray[index].tag_name;
+                                    if ("All" !== tag_name) {
+                                        resourceMap.set(tag_id, tag_name);
+                                    }
+                                    if (Number(request.filter_tag_id) == tag_id) {
+                                        break;
+                                    }
+                                }
+
+                            }
+
+                        }
+                    }
+                    console.log("2");
+                    if (resourceMap.size == 0) {
+                        console.log("3");
+                        console.log("Vertical details not available, so need to prepare data for widget_type_id = " + request.widget_type_id);
+                        let results = new Array();
+                        results.push(request.verticalData[request.widget_type_id]);
+                        resolve(results);
+
+                    } else {
+                        console.log("4");
+                        let [err, assetsData] = await this.getResourcesListForSelectedVerticalAndAsset(request, new Array(request.organization_id, request.filter_tag_id, request.filter_asset_id, 0, 100));
+                        if (err) {
+                            console.log("getResourcesListForSelectedVerticalAndAsset : Exception : ");
+                            console.log(err);
+                            resolve(err);
+                        } else {
+                            request.widget_type_id = Number(request.widget_type_id) | 0;
+                            switch (request.widget_type_id) {
+
+                                case 128: {
+                                    console.log("128request.widget_type_id " + request.widget_type_id);
+                                    resolve(await this.prepareDataForWidgetType128ForResourceAndVertical(request, paramsArray, resourceMap, assetsData));
+                                    break;
+                                }
+                                case 129: {
+                                    console.log("129request.widget_type_id " + request.widget_type_id);
+                                    resolve(await this.prepareDataForWidgetType129ForResourceAndVertical(request, paramsArray, resourceMap, assetsData));
+                                    break;
+                                }
+                                case 130: {
+                                    console.log("130request.widget_type_id " + request.widget_type_id);
+                                    resolve(await this.prepareDataForWidgetType130ForResourceAndVeritcal(request, paramsArray, resourceMap, assetsData));
+                                    break;
+                                }
+                                default: {
+                                    console.log("defaultrequest.widget_type_id " + request.widget_type_id);
+                                }
+                            }
+                        }
+                    }
+                })
+                .catch((error) => {
+                    console.log("prepareWidgetData : Exception : ");
+                    console.log(error);
+                    resolve(request.verticalData.error_response);
+                });
+        });
+
+    }
+
+    this.prepareDataForWidgetType128ForResourceAndVertical = async (request, paramsArray, resourceMap, assetsData) => {
+
+        try {
+            console.log("prepareDataForWidgetType128ForResourceAndVertical :: ");
+            let results = new Array();
+            let widgetFlags = new Array();
+            let resourceValueFlgArray = new Array();
+            let countTotal = new Array();
+            let quantityTotal = new Array();
+            let valueTotal = new Array();
+            for (let i = 0; i < 2; i++) {
+                widgetFlags[i] = i + 1;
+                resourceValueFlgArray[i] = {};
+                countTotal[i] = 0; quantityTotal[i] = 0; valueTotal[i] = 0;
+            }
+            let resourceResponseAdditonalMap = new Map();
+            let isError = false;
+
+            let opptyVerticalMap = new Map();
+            request.resourceData = global.analyticsConfig.resource;
+            let header = request.resourceData[request.widget_type_id];
+            results.push(header);
+
+            let vertical_tag_id = paramsArray[12];
+            let assetMap = new Map();
+
+            for (let idx = 0; idx < assetsData.length; idx++) {
+                let map = new Map();
+                for (let i = 0; i < widgetFlags.length; i++) {
+                    map.set("flag_" + (i + 1), 0);
+                }
+                assetMap.set(assetsData[idx].asset_id, map);
+            }
+
+            for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                let responseJson = {};
+                if (isError) {
+                    break;
+                }
+                paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
+                paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
+                paramsArray[15] = 0;
+                paramsArray[1] = 1;
+                if (widgetFlags[iteratorM] == 2) {
+                    paramsArray[1] = 2;
+                    paramsArray[15] = 1;
+                }
+                paramsArray.push(widgetFlags[iteratorM]);
+                paramsArray[10] = request.filter_asset_id;
+
+                responseJson.datetime_start = paramsArray[18];
+                responseJson.datetime_end = paramsArray[19];
+                responseJson.filter_activity_status_type_id = paramsArray[15];
+                responseJson.filter_date_type_id = paramsArray[1];
+                responseJson.filter_asset_id = paramsArray[10];
+                responseJson.sequence_id = widgetFlags[iteratorM];
+                resourceResponseAdditonalMap.set(iteratorM, responseJson);
+
+                let [errr, opptydata] = await this.widgetValuesOpptyVerticalAndAsset(request, paramsArray);
+                if (!errr) {
+                    opptyVerticalMap.set(iteratorM, opptydata);
+                } else {
+                    console.log(errr);
+                }
+            }
+
+            if (isError) {
+                return Promise.resolve(request.verticalData.error_response);
+            }
+
+            let vertical_name = null;
+
+            for (let entry of resourceMap.entries()) {
+                vertical_tag_id = entry[0];
+                vertical_name = entry[1];
+                if (paramsArray[12] == vertical_tag_id) {
+                    break;
+                }
+            }
+
+            for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                let opptydata = opptyVerticalMap.get(iteratorM);
+
+                for (let idx = 0; idx < opptydata.length; idx++) {
+                    let asset_id = opptydata[idx].activity_creator_asset_id;
+                    if (assetMap.has(asset_id)) {
+                        let map = assetMap.get(asset_id);
+                        map.set("flag_" + (iteratorM + 1) + "_count", opptydata[idx].count);
+                        map.set("flag_" + (iteratorM + 1) + "_quantity", opptydata[idx].quantity);
+                        map.set("flag_" + (iteratorM + 1) + "_value", opptydata[idx].value);
+                        assetMap.set(asset_id, map);
+                    }
+                }
+            }
+
+            for (let idx = 0; idx < assetsData.length; idx++) {
+                for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                    let responseJson = Object.assign({}, resourceResponseAdditonalMap.get(iteratorM));
+                    responseJson.vertical_tag_id = vertical_tag_id;
+                    responseJson.vertical_name = vertical_name;
+                    delete responseJson["filter_asset_id"];
+                    responseJson.target_asset_id = assetsData[idx].asset_id;
+                    resourceValueFlgArray[iteratorM] = responseJson;
+                    console.log(JSON.stringify(responseJson))
+                }
+
+                let assetRspData = {};
+                assetRspData.resource_name = assetsData[idx].operating_asset_first_name;
+                let cnt = 1;
+                for (let i = 0; i < widgetFlags.length; i++) {
+                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_count") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_quantity") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_value") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                }
+                results.push(assetRspData);
+
+            }
+
+            return Promise.resolve(results);
+
+        } catch (error) {
+            console.log("error :; ", error);
+            return Promise.resolve(request.verticalData.error_response);
+        }
+    }
+
+    this.prepareDataForWidgetType129ForResourceAndVertical = async (request, paramsArray, resourceMap, assetsData) => {
+
+        try {
+            console.log("prepareDataForWidgetType129ForResourceAndVertical :: ");
+            let results = new Array();
+            let widgetFlags = new Array();
+            let resourceValueFlgArray = new Array();
+            let countTotal = new Array();
+            let quantityTotal = new Array();
+            let valueTotal = new Array();
+            for (let i = 0; i < 8; i++) {
+                widgetFlags[i] = i + 1;
+                resourceValueFlgArray[i] = {};
+                countTotal[i] = 0; quantityTotal[i] = 0; valueTotal[i] = 0;
+            }
+            let resourceResponseAdditonalMap = new Map();
+            let isError = false;
+
+            let opptyVerticalMap = new Map();
+            request.resourceData = global.analyticsConfig.resource;
+            let header = request.resourceData[request.widget_type_id];
+            results.push(header);
+
+            let vertical_tag_id = paramsArray[12];
+            let assetMap = new Map();
+
+            for (let idx = 0; idx < assetsData.length; idx++) {
+                let map = new Map();
+                for (let i = 0; i < widgetFlags.length; i++) {
+                    map.set("flag_" + (i + 1), 0);
+                }
+                assetMap.set(assetsData[idx].asset_id, map);
+            }
+
+            for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                let responseJson = {};
+                if (isError) {
+                    break;
+                }
+
+                let status_tags = request.verticalData["status_tags"];
+                let key = request.verticalData["status_tags_array"][iteratorM];
+                paramsArray[16] = status_tags[key];
+                paramsArray.push(widgetFlags[iteratorM]);
+                paramsArray[10] = request.filter_asset_id;
+
+                responseJson.filter_activity_status_tag_id = paramsArray[16];
+                responseJson.filter_asset_id = paramsArray[10];
+                responseJson.sequence_id = widgetFlags[iteratorM];
+                resourceResponseAdditonalMap.set(iteratorM, responseJson);
+
+                let [errr, opptydata] = await this.widgetValuesOpptyVerticalAndAsset(request, paramsArray);
+                if (!errr) {
+                    opptyVerticalMap.set(iteratorM, opptydata);
+                }
+            }
+
+            if (isError) {
+                return Promise.resolve(request.verticalData.error_response);
+            }
+
+            let vertical_name = null;
+
+            for (let entry of resourceMap.entries()) {
+                vertical_tag_id = entry[0];
+                vertical_name = entry[1];
+                if (paramsArray[12] == vertical_tag_id) {
+                    break;
+                }
+            }
+
+            for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                let opptydata = opptyVerticalMap.get(iteratorM);
+                for (let idx = 0; idx < opptydata.length; idx++) {
+                    let asset_id = opptydata[idx].activity_creator_asset_id;
+                    if (assetMap.has(asset_id)) {
+                        let map = assetMap.get(asset_id);
+                        map.set("flag_" + (iteratorM + 1) + "_count", opptydata[idx].count);
+                        map.set("flag_" + (iteratorM + 1) + "_quantity", opptydata[idx].quantity);
+                        map.set("flag_" + (iteratorM + 1) + "_value", opptydata[idx].value);
+                        assetMap.set(asset_id, map);
+                    }
+                }
+            }
+
+            for (let idx = 0; idx < assetsData.length; idx++) {
+
+                for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                    let responseJson = Object.assign({}, resourceResponseAdditonalMap.get(iteratorM));
+                    responseJson.vertical_tag_id = vertical_tag_id;
+                    responseJson.vertical_name = vertical_name;
+                    delete responseJson["filter_asset_id"];
+                    responseJson.target_asset_id = assetsData[idx].asset_id;
+                    resourceValueFlgArray[iteratorM] = responseJson;
+                }
+
+                let assetRspData = {};
+                assetRspData.resource_name = assetsData[idx].operating_asset_first_name;
+
+                let cnt = 1;
+                for (let i = 0; i < widgetFlags.length; i++) {
+                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_count") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_quantity") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_value") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                }
+                results.push(assetRspData);
+
+            }
+
+            return Promise.resolve(results);
+
+        } catch (error) {
+            console.log("error :; ", error);
+            return Promise.resolve(request.verticalData.error_response);
+        }
+    }
+
+    this.prepareDataForWidgetType130ForResourceAndVeritcal = async (request, paramsArray, resourceMap, assetsData) => {
+
+        try {
+            console.log("prepareDataForWidgetType130ForResourceAndVeritcal :: ");
+            let results = new Array();
+            let widgetFlags = new Array();
+            let resourceValueFlgArray = new Array();
+            let countTotal = new Array();
+            let quantityTotal = new Array();
+            let valueTotal = new Array();
+            for (let i = 0; i < 7; i++) {
+                widgetFlags[i] = i + 1;
+                resourceValueFlgArray[i] = {};
+                countTotal[i] = 0; quantityTotal[i] = 0; valueTotal[i] = 0;
+            }
+
+            let resourceResponseAdditonalMap = new Map();
+            let isError = false;
+
+            let opptyVerticalMap = new Map();
+            request.resourceData = global.analyticsConfig.resource;
+            let header = request.resourceData[request.widget_type_id];
+            results.push(header);
+
+            let vertical_tag_id = paramsArray[12];
+            let assetMap = new Map();
+            let status_tags = request.verticalData["status_tags"];
+
+            for (let idx = 0; idx < assetsData.length; idx++) {
+                let map = new Map();
+                for (let i = 0; i < widgetFlags.length; i++) {
+                    map.set("flag_" + (i + 1), 0);
+                }
+                assetMap.set(assetsData[idx].asset_id, map);
+            }
+
+            for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                let responseJson = {};
+                if (isError) {
+                    break;
+                }
+                if (widgetFlags[iteratorM] == 1) {
+                    paramsArray[1] = 1;
+                    paramsArray[15] = 2;
+                    paramsArray[16] = 0;
+                    paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
+                    paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
+                }
+                if (widgetFlags[iteratorM] >= 2 && widgetFlags[iteratorM] <= 5) {
+                    paramsArray[1] = 2;
+                    paramsArray[15] = 1;
+                    paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
+                    paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
+                    if (widgetFlags[iteratorM] == 2) {
+                        let key = request.verticalData["status_tags_array"][4];
+                        paramsArray[16] = status_tags[key];
+                    }
+                    if (widgetFlags[iteratorM] == 3) {
+                        let key = request.verticalData["status_tags_array"][5];
+                        paramsArray[16] = status_tags[key];
+                    }
+                    if (widgetFlags[iteratorM] == 4) {
+                        let key = request.verticalData["status_tags_array"][6];
+                        paramsArray[16] = status_tags[key];
+                    }
+                    if (widgetFlags[iteratorM] == 5) {
+                        let key = request.verticalData["status_tags_array"][7];
+                        paramsArray[16] = status_tags[key];
+                    }
+                }
+                if (widgetFlags[iteratorM] == 6) {
+                    paramsArray[1] = 3;
+                    paramsArray[15] = 0;
+                    paramsArray[16] = 0;
+                    paramsArray[18] = util.getFirstDayOfNextMonthToIST();
+                    paramsArray[19] = util.getLastDayOfNextMonthToIST();
+                }
+                if (widgetFlags[iteratorM] == 7) {
+                    paramsArray[1] = 3;
+                    paramsArray[15] = 0;
+                    paramsArray[16] = 0;
+                    paramsArray[18] = util.getFirstDayOfCurrentQuarterToIST();
+                    paramsArray[19] = util.getLastDayOfCurrentQuarterToIST();
+                }
+                paramsArray.push(widgetFlags[iteratorM]);
+                paramsArray[10] = request.filter_asset_id;
+
+                responseJson.filter_date_type_id = paramsArray[1];
+                responseJson.filter_activity_status_type_id = paramsArray[15];
+                responseJson.datetime_start = paramsArray[18];
+                responseJson.datetime_end = paramsArray[19];
+                responseJson.filter_asset_id = paramsArray[10];
+                responseJson.sequence_id = widgetFlags[iteratorM];
+                resourceResponseAdditonalMap.set(iteratorM, responseJson);
+
+                let [errr, opptydata] = await this.widgetValuesOpptyVerticalAndAsset(request, paramsArray);
+                if (!errr) {
+                    opptyVerticalMap.set(iteratorM, opptydata);
+                }
+            }
+
+            if (isError) {
+                return Promise.resolve(request.verticalData.error_response);
+            }
+
+            let vertical_name = null;
+
+            for (let entry of resourceMap.entries()) {
+                vertical_tag_id = entry[0];
+                vertical_name = entry[1];
+                if (paramsArray[12] == vertical_tag_id) {
+                    break;
+                }
+            }
+
+            for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                let opptydata = opptyVerticalMap.get(iteratorM);
+                for (let idx = 0; idx < opptydata.length; idx++) {
+                    let asset_id = opptydata[idx].activity_creator_asset_id;
+                    if (assetMap.has(asset_id)) {
+                        let map = assetMap.get(asset_id);
+                        map.set("flag_" + (iteratorM + 1) + "_count", opptydata[idx].count);
+                        map.set("flag_" + (iteratorM + 1) + "_quantity", opptydata[idx].quantity);
+                        map.set("flag_" + (iteratorM + 1) + "_value", opptydata[idx].value);
+                        assetMap.set(asset_id, map);
+                    }
+                }
+            }
+
+            for (let idx = 0; idx < assetsData.length; idx++) {
+
+                for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                    let responseJson = Object.assign({}, resourceResponseAdditonalMap.get(iteratorM));
+                    responseJson.vertical_tag_id = vertical_tag_id;
+                    responseJson.vertical_name = vertical_name;
+                    delete responseJson["filter_asset_id"];
+                    responseJson.target_asset_id = assetsData[idx].asset_id;
+                    resourceValueFlgArray[iteratorM] = responseJson;
+                }
+
+                let assetRspData = {};
+                assetRspData.resource_name = assetsData[idx].operating_asset_first_name;
+
+                let cnt = 1;
+                for (let i = 0; i < widgetFlags.length; i++) {
+                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_count") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_quantity") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_value") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                }
+                results.push(assetRspData);
+
+            }
+
+            return Promise.resolve(results);
+
+        } catch (error) {
+            console.log("error :; ", error);
+            return Promise.resolve(request.verticalData.error_response);
+        }
+    }
+
+    this.widgetValuesOpptyVerticalAndAsset = async (request, paramsArr) => {
+
+        let responseData = [],
+            error = true;
+
+        const queryString = util.getQueryString('ds_v1_9_activity_search_list_select_widget_values_oppty_ver_res', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    paramsArr.pop();
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, responseData];
+    }
+
+    this.getResourcesListForSelectedVerticalAndAsset = async (request, paramsArr) => {
+
+        let responseData = [],
+            error = true;
+
+        const queryString = util.getQueryString('ds_v1_asset_list_select_manager_vertical_resources', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, responseData];
+    }
+    //------------------------------------------------------------------------
+    //Get SIP Widgets
+    this.getSipWidgets = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.activity_type_category_id,
+            request.target_asset_id,
+            request.page_start,
+            request.page_limit
+        ];
+
+        const queryString = util.getQueryString('ds_v1_activity_list_select_sip_widgets', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, responseData];
+    }
 }
 
 module.exports = AnalyticsService;
