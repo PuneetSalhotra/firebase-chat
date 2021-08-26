@@ -148,7 +148,14 @@ const digitalIPLCMappings = require("./digital_iplc_crf/mappings.json");
 const digitalIPLCLabels = require("./digital_iplc_crf/labels.json");
 const digitalIPLCRoms = require("./digital_iplc_crf/roms.json");
 const digitalIPLCRomsActions = require('./digital_iplc_crf/roms_actions.json');
-const digitalIPLCBulkOrderToOriginFormMappings = require("./digital_iplc_crf/bulk_order_to_origin_form_mappings.json")
+const digitalIPLCBulkOrderToOriginFormMappings = require("./digital_iplc_crf/bulk_order_to_origin_form_mappings.json");
+
+// Email and Web Security - 192064
+const digitalEmailMappings = require("./email_web_security_caf/mappings.json");
+const digitalEmailLabels = require("./email_web_security_caf/labels.json");
+const digitalEmailRoms = require("./email_web_security_caf/roms.json");
+const digitalEmailRomsActions = require("./email_web_security_caf/roms_actions.json");
+const digitalEmailBulkOrderMappings = require("./email_web_security_caf/bulk_order_to_origin_form_mappings.json");
 
 vodafoneConfig = {
     "860": {
@@ -570,5 +577,16 @@ vodafoneConfig = {
         "ROMS_ACTIONS": digitalIPLCRomsActions,
         "ORIGIN_FORM_ID": 4379,
         "BULK_ORDER_ORIGIN_FORM_MAPPING_DATA": digitalIPLCBulkOrderToOriginFormMappings
+    },
+    "192064": {
+        "REQUIRED_FORMS": [51030],
+        "TARGET_FORM_ID": 51044,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 192064,
+        "FORM_FIELD_MAPPING_DATA": digitalEmailMappings,
+        "LABELS": digitalEmailLabels,
+        "ROMS": digitalEmailRoms,
+        "ROMS_ACTIONS": digitalEmailRomsActions,
+        "ORIGIN_FORM_ID": 51030,
+        "BULK_ORDER_ORIGIN_FORM_MAPPING_DATA": digitalEmailBulkOrderMappings
     }
 };

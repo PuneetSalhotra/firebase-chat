@@ -1,0 +1,54 @@
+[
+    {
+        "ACTION": "set_date",
+        "BATCH": [
+            {
+                "TARGET_FIELD_ID": 313947,
+                "TZ_OFFSET": "+05:30"
+            }
+        ]
+    },
+    {
+        "ACTION": "set_participant_name",
+        "BATCH": [
+            {
+                "TARGET_FIELD_ID": 313949,
+                "ASSET_TYPE_ID": 127254
+            }
+        ]
+    },
+    {
+        "ACTION": "set_circle_office_name",
+        "BATCH": [
+            {
+                "TARGET_FIELD_ID": 313950
+            }
+        ]
+    },
+    {
+        "ACTION": "check_and_set_annexure_defaults",
+        "BATCH": [
+            {
+                "SOURCE_FORM_ID": 51038,
+                "SOURCE_FIELD_ID": 313857,
+                "TARGET_FIELD_IDS": [
+                    313926,
+                    313932,
+                    313955,
+                    313957,
+                    313959
+                ],
+                "VALUE": "As Per CAF Annexure"
+            }
+        ]
+    },
+    {
+        "ACTION": "set_workflow_as_bulk_order",
+        "BATCH": [
+            {
+                "SOURCE_FORM_ID": 51038,
+                "SOURCE_FIELD_ID": 313857
+            }
+        ]
+    }
+]

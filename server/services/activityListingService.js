@@ -4026,6 +4026,11 @@ function ActivityListingService(objCollection) {
 					this.generateSummary(request);
 					return;
 				} else {
+					let header = "Meeting ID-";
+					let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, 0);
+					if (wfActivityDetails.length > 0) {
+						header += wfActivityDetails[0].activity_cuid_3 + "-MOM Points";
+					}
 					let participantReq = Object.assign({}, request);
 					participantReq.is_all_flag = isAllFlag;
 					let htmlString = await generateMOMOrdersHtmlCode(request);
@@ -4037,7 +4042,7 @@ function ActivityListingService(objCollection) {
 						console.log("request ", request);
 						console.log("assetDetails[0].asset_email_id ", assetDetails[0].asset_email_id);
 						console.log("MOM Points");
-						await util.sendEmailV4ews(request, assetDetails[0].asset_email_id, "MOM Points", htmlString, "", 1);
+						await util.sendEmailV4ews(request, assetDetails[0].asset_email_id, header, htmlString, "", 1);
 					}
 				}
 
