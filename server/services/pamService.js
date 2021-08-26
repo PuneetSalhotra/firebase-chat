@@ -4714,6 +4714,53 @@ this.getChildOfAParent = async (request) => {
         return [error, responseData];
     }
 
+     //Get Events
+     this.getEvents = async (request) => {
+
+        let responseData = [],
+            error = true;
+        var paramsArr = new Array(
+            request.organization_id ,
+            request.group_size ,
+            request.date,
+            request.start_from,
+            request.limit_value 
+        )
+        const queryString = util.getQueryString('pm_v1_activity_list_select_upcoming_events', paramsArr);
+        
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async(data) => {
+                    if(data.length>0 ){ 
+                        for(var i=0 ;i<data.length;i++){
+                            var paramsArr1 = new Array(
+                                request.organization_id ,
+                                data[i].activity_id,
+                                request.group_size ,
+                               data[i].capacity,
+                            )
+                            const queryString1 = util.getQueryString('pm_v1_activity_list_select_open_reservation_covers', paramsArr1);
+                        
+                            if (queryString1 !== '') {
+                                await db.executeQueryPromise(1, queryString1, request)
+                                    .then((eventdata) => {
+                                        if(request.group_size+eventdata[0].current_covers<=data[i].capacity)
+                                        {
+                                            responseData.push(data[i]);
+                                        }
+
+                                    })
+                                }  
+                        }
+                    }
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 };
 
 module.exports = PamService;
