@@ -3,11 +3,11 @@
  */
 
 //mode = process.env.mode;
-mode = process.env.NODE_ENV;
-//mode = "local";
+// mode = process.env.NODE_ENV;
+mode = "local";
 //var Logger = require(`${__dirname}/logger.js`);
 //logger = new Logger();
-
+                                               
 
 config = {};
 

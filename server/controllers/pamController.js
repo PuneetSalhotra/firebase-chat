@@ -573,6 +573,16 @@ function PamController(objCollection) {
             res.send(responseWrapper.getResponse(err, result, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/pam/get/upcoming/events', async (req, res) => {
+        // console.log(req.body);
+        let [err, result] = await pamService.getEvents(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            res.json(responseWrapper.getResponse(err, result, -9999, req.body));
+        }
+    });
 }
 ;
 module.exports = PamController;
