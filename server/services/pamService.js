@@ -21,7 +21,7 @@ function PamService(objectCollection) {
     // const smsEngine = require('../utils/smsEngine');
 
     const self = this;
-    const supportContactNumber = "8801717292";
+    const supportContactNumber = "9154395728";
           
     this.ivrService = function(request, callback) {
         console.log('Request params received for ivr Service : ' , request);
@@ -4253,7 +4253,7 @@ this.addPamReservationViaPhoneNumber = async (request) => {
         request.owner_asset_id=request.asset_id;
 		request.activity_form_id=0;
 		request.activity_inline_data=JSON.stringify({table_asset_id:request.table_asset_id, member_asset_id:request.member_asset_id, phone_number:request.phone_number,country_code:request.country_code,item_count:request.item_count});
-		request.activity_sub_type_id=0
+		request.activity_sub_type_id=request.activity_sub_type_id || 0;
 		request.activity_sub_type_name=''
 		request.app_version=1
 		request.asset_message_counter=0
