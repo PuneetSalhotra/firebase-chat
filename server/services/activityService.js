@@ -1484,7 +1484,7 @@ function ActivityService(objectCollection) {
 
                     //PAM
                 case 37:
-                    activitySubTypeId = 0;
+                    //activitySubTypeId = 0;
                     paramsArr = new Array(
                         request.activity_id,
                         request.activity_title,
