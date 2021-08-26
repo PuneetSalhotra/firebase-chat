@@ -952,6 +952,12 @@ if(mode === 'staging') {
 
 if(mode === 'preprod') {
 
+    //AWS SQS Email Configuration
+    config.aws_sqs_email_accessKeyId = "AKIAWIPBVOFR5CAQ735U";
+    config.aws_sqs_email_secretAccessKey = "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";
+    config.aws_sqs_email_region = "ap-south-1";
+    config.emailSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/ews-engine-mail";
+
     //Cognito
     config.cognito_region = 'ap-south-1';
     config.user_pool_id = 'ap-south-1_Ccmp0pMyI';
