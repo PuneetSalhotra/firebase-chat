@@ -4715,7 +4715,7 @@ this.getChildOfAParent = async (request) => {
     }
 
      //Get Upcoming Events based On Reservation
-     this.getEvents = async (request) => {
+     this.getUpcomingEvents = async (request) => {
 
         let responseData = [],
             error = true;
