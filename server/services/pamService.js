@@ -21,7 +21,7 @@ function PamService(objectCollection) {
     // const smsEngine = require('../utils/smsEngine');
 
     const self = this;
-    const supportContactNumber = "8801717292";
+    const supportContactNumber = "9154395728";
           
     this.ivrService = function(request, callback) {
         console.log('Request params received for ivr Service : ' , request);
@@ -4253,7 +4253,7 @@ this.addPamReservationViaPhoneNumber = async (request) => {
         request.owner_asset_id=request.asset_id;
 		request.activity_form_id=0;
 		request.activity_inline_data=JSON.stringify({table_asset_id:request.table_asset_id, member_asset_id:request.member_asset_id, phone_number:request.phone_number,country_code:request.country_code,item_count:request.item_count});
-		request.activity_sub_type_id=0
+		request.activity_sub_type_id=request.activity_sub_type_id || 0;
 		request.activity_sub_type_name=''
 		request.app_version=1
 		request.asset_message_counter=0
@@ -4714,6 +4714,54 @@ this.getChildOfAParent = async (request) => {
         return [error, responseData];
     }
 
+     //Get Upcoming Events based On Reservation
+     this.getUpcomingEvents = async (request) => {
+
+        let responseData = [],
+            error = true;
+        var paramsArr = new Array(
+            request.organization_id ,
+            request.group_size ,
+            request.date,
+            request.page_start,
+            request.page_limit 
+        )
+        const queryString = util.getQueryString('pm_v1_activity_list_select_upcoming_events', paramsArr);
+        
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async(data) => {
+                    if(data.length>0 ){ 
+                        for(var i=0 ;i<data.length;i++){
+                            var paramsArr1 = new Array(
+                                request.organization_id ,
+                                data[i].activity_id,
+                                request.group_size ,
+                                data[i].capacity,
+                            )
+                            const queryString1 = util.getQueryString('pm_v1_activity_list_select_open_reservation_covers', paramsArr1);
+                        
+                            if (queryString1 !== '') {
+                                await db.executeQueryPromise(1, queryString1, request)
+                                    .then((eventdata) => {
+                                        console.log(eventdata[0].current_covers+request.group_size);
+                                        if(Number(request.group_size)+Number(eventdata[0].current_covers)<=data[i].capacity)
+                                        {
+                                            responseData.push(data[i]);
+                                        }
+
+                                    })
+                                }  
+                        }
+                    }
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 };
 
 module.exports = PamService;

@@ -92,6 +92,7 @@ const CryptoJS = require("crypto-js");
 const ews = new EWS(ewsConfig);*/
 
 function Util(objectCollection) {
+    
     let cacheWrapper = {};
     if (
         objectCollection &&
@@ -1538,6 +1539,17 @@ function Util(objectCollection) {
         console.log('email : ', email);
         console.log('subject : ', subject);
         console.log('text : ', text);
+
+        let [err1, assetDetails] = await this.getAssetDetails(request);
+
+        let organisationFlagOutlook = assetDetails.length ? assetDetails[0].organization_flag_email_integration_enabled : 0;
+        console.log("organisationFlagOutlook", organisationFlagOutlook);
+
+        if(organisationFlagOutlook) {
+        
+            let [err, res] = await this.sendEmailV4ews(request, email, subject, text, base64EncodedHtmlTemplate);
+            return callback(err, res);
+        }
 
         let emailProvider = 0;
         try {
