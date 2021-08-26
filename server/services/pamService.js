@@ -4714,7 +4714,7 @@ this.getChildOfAParent = async (request) => {
         return [error, responseData];
     }
 
-     //Get Events
+     //Get Upcoming Events based On Reservation
      this.getEvents = async (request) => {
 
         let responseData = [],
@@ -4723,8 +4723,8 @@ this.getChildOfAParent = async (request) => {
             request.organization_id ,
             request.group_size ,
             request.date,
-            request.start_from,
-            request.limit_value 
+            request.page_start,
+            request.page_limit 
         )
         const queryString = util.getQueryString('pm_v1_activity_list_select_upcoming_events', paramsArr);
         
@@ -4737,14 +4737,15 @@ this.getChildOfAParent = async (request) => {
                                 request.organization_id ,
                                 data[i].activity_id,
                                 request.group_size ,
-                               data[i].capacity,
+                                data[i].capacity,
                             )
                             const queryString1 = util.getQueryString('pm_v1_activity_list_select_open_reservation_covers', paramsArr1);
                         
                             if (queryString1 !== '') {
                                 await db.executeQueryPromise(1, queryString1, request)
                                     .then((eventdata) => {
-                                        if(request.group_size+eventdata[0].current_covers<=data[i].capacity)
+                                        console.log(eventdata[0].current_covers+request.group_size);
+                                        if(Number(request.group_size)+Number(eventdata[0].current_covers)<=data[i].capacity)
                                         {
                                             responseData.push(data[i]);
                                         }
