@@ -4039,10 +4039,12 @@ function ActivityListingService(objCollection) {
 
 					for (const asset of participantsList) {
 						let [error, assetDetails] = await getParticipantDetails({ assetID: asset.asset_id });
-						console.log("request ", request);
 						console.log("assetDetails[0].asset_email_id ", assetDetails[0].asset_email_id);
-						console.log("MOM Points");
-						await util.sendEmailV4ews(request, assetDetails[0].asset_email_id, header, htmlString, "", 1);
+						if (assetDetails[0].asset_email_id !== null && assetDetails[0].asset_email_id !== "") {
+							await util.sendEmailV4ews(request, assetDetails[0].asset_email_id, header, htmlString, "", 1);
+						} else {
+							console.log("No Email ID to send email");
+						}
 					}
 				}
 
@@ -4196,7 +4198,7 @@ function ActivityListingService(objCollection) {
 		}
 		console.log("finalSummaryData");
 		console.log(finalSummaryData);
-		let htmlString = '<table width="100%" border="1" cellspacing="0"><thead><tr>';
+		let htmlString = '<p>Hi,</p><p>Greetings from Vi&trade;</p><br><table width="100%" border="1" cellspacing="0"><thead><tr>';
 
 		for (const key of momFieldMappingsForSummary["field_order"]) {
 			htmlString += '<th>' + key + '</th>';
@@ -4210,7 +4212,7 @@ function ActivityListingService(objCollection) {
 			}
 			htmlString += '</tr>';
 		}
-		htmlString += '</tbody></table>';
+		htmlString += '</tbody></table><br><br><p>Thanks,</p><p>Vi&trade; Business</p>';
 		return htmlString;
 	}
 

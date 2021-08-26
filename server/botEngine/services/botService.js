@@ -15505,7 +15505,7 @@ if(workflowActivityData.length==0){
         let eventTimeDetails = JSON.parse(wfActivityDetails[0].activity_inline_data).filter((_,i)=>_.field_data_type_id === 77);
         
         var timeDifferenceInMinutes = Math.floor(eventTimeDetails[0].field_value.duration);
-        let createDate = new Date(moment(eventTimeDetails[0].field_value.start_date_time,'YYYY-MM-DD HH:mm:ss','IST'));
+        let createDate = new Date(moment(eventTimeDetails[0].field_value.start_date_time).utcOffset("-05:30").format("YYYY-MM-DD HH:mm:ss"));
         let today = new Date();
         
         ics.createEvent({
