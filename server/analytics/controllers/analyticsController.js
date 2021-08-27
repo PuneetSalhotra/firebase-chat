@@ -611,6 +611,25 @@ function AnalyticsController(objCollection)
         }
     });
 
+    app.post('/' + global.config.version + '/analytics/management/widget/value/resource/vertical', async (req, res) => {
+        try {
+            let result = await analyticsService.getManagementWidgetValueResourceAndVertical(req.body);
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch (err) {
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
+    //Get SIP Widgets
+    app.post('/' + global.config.version + '/get/sip/widgets', async (req, res) => {
+        try {
+            let result = await analyticsService.getSipWidgets(req.body);
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch (err) {
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
     }
 
 module.exports = AnalyticsController;
