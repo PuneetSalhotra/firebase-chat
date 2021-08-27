@@ -1415,8 +1415,8 @@ function TasiService(objectCollection) {
             request.period_type_id,
             request.period_start_datetime,
             request.period_end_datetime,
-            request.data_entity_bigint_1,
-            request.data_entity_bigint_2,
+            request.data_entity_1,
+            request.data_entity_2,
             request.asset_id,
             util.getCurrentUTCTime()
         );

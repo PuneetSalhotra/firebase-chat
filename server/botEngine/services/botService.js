@@ -15491,7 +15491,7 @@ if(workflowActivityData.length==0){
         logger.info(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData));
         request.debug_info.push(request.workflow_activity_id + " : addParticipant : going to be added assetData :"+ JSON.stringify(assetData))
             await addDeskAsParticipant(request, assetData);
-            if(request.send_email==1){
+            if(request.hasOwnProperty("send_email") && request.send_email==1){
             await icsEventCreation(request,request.emails[i].email,assetData.first_name);
             }
         }
