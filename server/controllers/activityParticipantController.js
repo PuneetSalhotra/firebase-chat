@@ -136,6 +136,109 @@ function ActivityParticipantController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/activity/participant/access/v1/set', function (req, res) {
+        var assetMessageCounter = 0;
+        var deviceOsId = 0;
+        req.body.apiVersion = 'v1';
+        if (req.body.hasOwnProperty('asset_message_counter'))
+            assetMessageCounter = Number(req.body.asset_message_counter);
+        if (req.body.hasOwnProperty('device_os_id'))
+            deviceOsId = Number(req.body.device_os_id);
+
+        var productId;
+        
+        if(!req.body.hasOwnProperty('product_id')) {
+            productId = 1;
+        } else {
+            productId = req.body.product_id;
+        }
+        
+        /*if(productId == 2) {
+            activityCommonService.getActivityDetails(req.body, 0, function(err, data){
+                var x = data[0].activity_type_category_id;                
+                // console.log('X : ', data[0].activity_type_category_id);
+                global.logger.write('conLog', 'X : ' + data[0].activity_type_category_id, {}, req.body);
+
+                req.body.activity_type_category_id = x;
+            });
+        } */
+        
+        var proceedParticipantAccessSet = function () {
+            var event = {
+                name: "assignParticipnt",
+                service: "activityParticipantService",
+                method: "assignCoworker",
+                payload: req.body
+            };
+
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp)=>{
+                        if(err) {
+                            //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                            //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);
+                            res.json(responseWrapper.getResponse(true, {}, -5998,req.body));
+                            throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                        } else {
+                            if (req.hasOwnProperty('device_os_id')) {
+                                if (Number(req.device_os_id) !== 5 || Number(req.device_os_id) !== 6) {
+                                    //incr the asset_message_counter                        
+                                    cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
+                                        if (err) {
+                                            //console.log("error in setting in asset parity");
+                                            global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
+
+                                        } else
+                                            //console.log("asset parity is set successfully")
+                                            global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
+
+                                    });
+                                }
+                            }
+                            res.json(responseWrapper.getResponse(false, {}, 200,req.body));
+                            return;
+                        }
+                });
+            //res.json(responseWrapper.getResponse(false, {}, 200,req.body));
+            //return;
+        };
+        if (util.hasValidActivityId(req.body)) {
+            if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5 && deviceOsId !== 6) {
+
+                cacheWrapper.checkAssetParity(req.body.asset_id, Number(assetMessageCounter), function (err, status) {
+                    if (err) {
+                        res.json(responseWrapper.getResponse(false, {}, -7998,req.body));
+                    } else {
+                        if (status) {     // proceed
+                            proceedParticipantAccessSet();
+
+                        } else {  // this is a duplicate hit,
+                            res.json(responseWrapper.getResponse(false, {}, 200,req.body));
+                        }
+                    }
+                });
+
+            } else if (deviceOsId === 5 || deviceOsId === 6) {
+                /*if(productId == 2) {
+                    activityCommonService.getActivityDetails(req.body, 0, function(err, data){
+                        var x = data[0].activity_type_category_id;                
+                        // console.log('X : ', data[0].activity_type_category_id);
+                        global.logger.write('debug', 'X : ' + data[0].activity_type_category_id, {}, req.body);
+
+                        req.body.activity_type_category_id = x;
+                        
+                        proceedParticipantAccessSet();
+                    });
+                } else {
+                    proceedParticipantAccessSet();
+                } */
+                proceedParticipantAccessSet();
+            } else {
+                res.json(responseWrapper.getResponse(false, {}, -3304,req.body));
+            }
+        } else {
+            res.json(responseWrapper.getResponse(false, {}, -3301,req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/activity/participant/access/reset', function (req, res) {
         var assetMessageCounter = 0;
         var deviceOsId = 0;

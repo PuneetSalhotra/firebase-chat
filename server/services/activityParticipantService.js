@@ -669,6 +669,72 @@ function ActivityParticipantService(objectCollection) {
         }
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         if (newRecordStatus) {
+            if(request.body.apiVersion == 'v1') {
+                activityAssetMappingInsertParticipantAssignV1(request, participantData, function (err, data) {
+                    if (err === false) {
+                        try {
+                            activityPushService.sendPush(request, objectCollection, participantData.asset_id, function () {});
+                        } catch(err) {
+                            console.log(err);
+                        }
+                        
+                        activityCommonService.assetTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
+    
+                        });
+    
+                        /*console.log('BEFORE ACTIVITY TIMELINE INSERT activityTypeCategoryId :: '+activityTypeCategoryId);
+    
+                        if (activityTypeCategoryId === 48 || activityTypeCategoryId === 9){
+                            activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
+    
+                            });
+                        }*/
+    
+                        if (activityTypeCategoryId !== 10 && activityTypeCategoryId !== 11) {
+                            if (activityTypeCategoryId !== 9) {
+                                activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
+                                    if (!err) {
+                                        if (activityTypeCategoryId === 48) {
+                                            activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {});
+                                            // ######################################################################################
+                                            let pubnubMsg = {};
+                                            pubnubMsg.type = 'activity_unread';
+                                            pubnubMsg.organization_id = request.organization_id;
+                                            pubnubMsg.desk_asset_id = participantData.asset_id;
+                                            pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
+                                            pubnubMsg.description = `Added you as a participant in ${request.activity_title}.`;
+                                            console.log('Participant Add | PubNub Message: ', pubnubMsg);
+                                            activityPushService.pubNubPush({
+                                                asset_id: participantData.asset_id,
+                                                organization_id: request.organization_id
+                                            }, pubnubMsg, function (err, data) {});
+                                            // ######################################################################################
+                                        }
+                                    }
+                                });
+                            } else if (activityTypeCategoryId === 9 && fieldId > 0) {
+                                activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
+    
+                                });
+                            }
+    
+                        }
+    
+                        //PAM
+                        if (activityTypeCategoryId == 39 || activityTypeCategoryId == 38) {
+                            assignUnassignParticipantPam(request, participantData, 1, function (err, resp) {}); //1 for assign
+                        }
+    
+                        activityCommonService.assetActivityListHistoryInsert(request, participantData.asset_id, 0, function (err, restult) {
+    
+                        });
+                        callback(false, true);
+                    } else {
+                        callback(err, false);
+                    }
+                });
+            }
+            
             activityAssetMappingInsertParticipantAssign(request, participantData, function (err, data) {
                 if (err === false) {
                     try {
@@ -732,7 +798,6 @@ function ActivityParticipantService(objectCollection) {
                     callback(err, false);
                 }
             });
-
         } else {
             //console.log('re-assigining to the archived row');
             global.logger.write('conLog', 're-assigining to the archived row', {}, {})
@@ -934,6 +999,76 @@ function ActivityParticipantService(objectCollection) {
             quantityUnitValue
         );
         var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_appr_ingre", paramsArr);
+        //var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_appr", paramsArr);
+
+        if (queryString !== '') {
+
+            db.executeQuery(0, queryString, request, function (err, data) {
+                if (err === false) {
+                    //PAM
+                    /*if(request.activity_type_category_id == 37 && participantData.asset_category_id == 30) {
+                        console.log('data[0].dateTimeEndEstimatedActivity : ' + data[0].dateTimeEndEstimatedActivity);
+                        var expDatetime = util.replaceDefaultDatetime(data[0].dateTimeEndEstimatedActivity);
+                        //expDatetime = util.addUnitsToDateTime(expDatetime,6.5,'hours');
+                        console.log('EXP DATE : ' + expDatetime);
+                        
+                        if(expDatetime == "Invalid date"){
+                            expDatetime = "1970-01-01 00:00:00";
+                        }                        
+                        var smsText = "Dear " + data[0].firstNameAsset + " , Your reservation for today is confirmed. Please use the following reservation code " + data[0].nameActivitySubType;
+                        smsText+= " . Note that this reservation code is only valid till "+ expDatetime + " .";
+                        console.log('SMS text : \n', smsText);
+                        util.pamSendSmsMvaayoo(smsText, data[0].countryCode, data[0].phoneNumber, function(err,res){});
+                    }*/
+
+                    //Inserting into activity asset table for account search
+                    util.logInfo(request,` Account Search :- Updating Activity Asset Table`);
+                    activityCommonService.actAssetSearchMappingInsert({
+                        activity_id: request.activity_id,
+                        //asset_id: request.asset_id,
+                        asset_id: participantData.asset_id,
+                        organization_id: request.organization_id
+                    });
+
+                    callback(false, true);
+                    return;
+                } else {
+                    callback(err, false);
+                    //console.log(err);
+                    global.logger.write('serverError', err, {}, {})
+                    return;
+                }
+            });
+        }
+    };
+
+    var activityAssetMappingInsertParticipantAssignV1 = function (request, participantData, callback) {
+        var fieldId = 0;
+        var quantityUnitType = (request.hasOwnProperty('quantity_unit_type')) ? request.quantity_unit_type : '';
+        var quantityUnitValue = (request.hasOwnProperty('quantity_unit_value')) ? request.quantity_unit_value : -1;
+
+        if (participantData.hasOwnProperty('field_id')) {
+            fieldId = participantData.field_id;
+        }
+            
+       let paramsArr = new Array(
+            request.activity_id,
+            participantData.asset_id,
+            participantData.workforce_id,
+            participantData.account_id,
+            participantData.organization_id,
+            participantData.access_role_id,
+            participantData.message_unique_id||util.getMessageUniqueId(31993),
+            request.flag_retry || 0,
+            request.flag_offline || 0,
+            request.asset_id,
+            request.datetime_log,
+            fieldId,
+            quantityUnitType,
+            quantityUnitValue
+        );
+        
+        const queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_insert_asset_assign_appr_ingre', paramsArr);
         //var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_appr", paramsArr);
 
         if (queryString !== '') {
