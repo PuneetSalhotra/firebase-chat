@@ -1003,6 +1003,14 @@ function TasiService(objectCollection) {
           request.report_end_time,
           request.report_next_start_datetime,
           request.report_next_end_datetime,
+          request.period_type_id,
+          request.period_start_datetime,
+          request.period_end_datetime,
+          request.data_entity_bigint_1,
+          request.data_entity_bigint_2,
+          request.data_entity_bigint_3,
+          request.data_entity_bigint_4,
+          request.data_entity_bigint_5,
           request.asset_id,
           util.getCurrentUTCTime()
         );
@@ -1340,7 +1348,33 @@ function TasiService(objectCollection) {
         return [error, responseData];
     }
 
+    this.reportListUpdateFlafFinal = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.report_id, 
+            request.flag_final, 
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_m1_report_list_update_flag_final', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 
 }
 
 module.exports = TasiService;
+
+
