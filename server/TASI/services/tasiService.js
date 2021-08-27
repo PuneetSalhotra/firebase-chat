@@ -1372,9 +1372,70 @@ function TasiService(objectCollection) {
         return [error, responseData];
     }
 
+    this.reportListSelect = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+          request.organization_id,
+          request.account_list,
+          request.workforce_id,
+          request.report_flag,
+          request.report_type_id,
+          request.start_form,
+          request.limit_value
+        );
+        const queryString = util.getQueryString('ds_v1_report_list_select_type', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.payoutReportInsert = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.target_asset_id,
+            request.report_type_id,
+            request.report_name,
+            request.report_inline_data || '{}',
+            request.report_start_time,
+            request.report_end_time,
+            request.period_type_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.data_entity_bigint_1,
+            request.data_entity_bigint_2,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('dm_v2_report_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 
 }
 
 module.exports = TasiService;
-
-
