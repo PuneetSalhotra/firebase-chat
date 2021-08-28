@@ -3525,7 +3525,7 @@ function AnalyticsService(objectCollection)
           request.organization_id,
           request.account_id,
           request.workforce_id,
-          request.asset_id,
+          request.target_asset_id,
           request.report_type_id,
           request.report_name,
           request.report_inline_data,
@@ -3538,7 +3538,15 @@ function AnalyticsService(objectCollection)
           request.report_end_time || '18:29:00',
           request.report_next_start_datetime,
           request.report_next_end_datetime,
-          request.log_asset_id,
+          request.period_type_id || 0,
+          request.period_start_datetime || "",
+          request.period_end_datetime || "",
+          request.data_entity_1 || "",
+          request.data_entity_2 || "",
+          request.data_entity_3 || "",
+          request.data_entity_4 || "",
+          request.data_entity_5 || "",
+          request.asset_id,
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('dm_v1_1_report_list_insert', paramsArr);

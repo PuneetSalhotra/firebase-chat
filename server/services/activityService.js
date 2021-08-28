@@ -552,7 +552,9 @@ function ActivityService(objectCollection) {
                                activityTypeCategroyId === 9  || 
                                activityTypeCategroyId === 53 ||
                                activityTypeCategroyId === 54 ||
-                               activityTypeCategroyId === 55) { 
+                               activityTypeCategroyId === 55 ||
+                               activityTypeCategroyId === 63 ||
+                               activityTypeCategroyId === 31) { 
                                 //Listener
                                 //Form Submission - When the form has data type reference type
                                 let formInlineData = JSON.parse(request.activity_inline_data);
