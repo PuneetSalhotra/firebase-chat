@@ -6213,9 +6213,9 @@ function VodafoneService(objectCollection) {
             pageStart = 0,
             query = "";
             let searchType = 0;
-        if(request.hasOwnProperty('search_string') && request.search_string.length<2){
-            return [false,[]]
-        }
+        // if(request.hasOwnProperty('search_string') && request.search_string.length<2){
+        //     return [false,[]]
+        // }
         let splitCout = request.search_string.split(' ');
         if(splitCout.length>1){
             searchType = 1;

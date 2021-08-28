@@ -4889,9 +4889,9 @@ this.getChildOfAParent = async (request) => {
             self.sendSms(countryCode,phoneNumber,encodeURIComponent(text));
 
 
-        return [error, responseData];
-    }    
+        return [error, responseData];       
     
+    }
 };
 
 module.exports = PamService;
