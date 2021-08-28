@@ -582,6 +582,34 @@ function PamController(objCollection) {
             res.json(responseWrapper.getResponse(err, result, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/pam/send/reservation/sms', async (req, res) => {
+        let [err, result] = await pamService.sendReservationSMS(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            res.json(responseWrapper.getResponse(err, result, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/pam/trending/orders', async (req, res) => {
+        let [err, result] = await pamService.getTrendingOrders(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            res.json(responseWrapper.getResponse(err, result, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/pam/send/test/sms', async (req, res) => {
+        let [err, result] = await pamService.sendTestSMS(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            res.json(responseWrapper.getResponse(err, result, -9999, req.body));
+        }
+    });
+
 }
 ;
 module.exports = PamController;

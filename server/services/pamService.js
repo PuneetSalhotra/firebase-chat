@@ -6,7 +6,9 @@ var uuid = require('uuid');
 var AwsSns = require('../utils/snsWrapper');
 var makingRequest = require('request');
 const nodeUtil = require('util');
-
+var makingRequest = require('request');
+let shortUrl = require('node-url-shortener');
+let TinyURL = require('tinyurl');
 
 function PamService(objectCollection) {
 
@@ -3828,11 +3830,34 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 let phoneNumber = util.replaceDefaultNumber(pamAssetDetails[0].asset_phone_number);
                 let countryCode = util.replaceDefaultNumber(pamAssetDetails[0].asset_phone_country_code);
                 let memberName = util.replaceDefaultString(pamAssetDetails[0].asset_first_name);
-                    
+                let link = "https://thepamapp.com/order-details/"+request.reservation_activity_id;
+                request.long_url = link;
+                request.member_name = memberName;
+                request.phone_number = phoneNumber;
+                request.country_code = countryCode;
+                //let res = await self.getShortFirebaseURL(request);
+                
+                TinyURL.shorten(request.long_url, function(res, err) {
+                    if (err){
+                        console.log("getShortFirebaseURL "+err)                       
+                    }else{
+                        console.log("getShortFirebaseURL "+res);                        
+                     let text = `Dear ${request.member_name}, there is an order placed on your reservation for the following items. Click on the link below to see your orders.`
+                        text = text +`\n${res} if this is not valid please speak to a staff member or call pudding and mink now. -GreneOS`
+                        console.log(text);
+                        self.sendSms(request.country_code,request.phone_number,text);                          
+                    }
+                });
+                /*
+                console.log("RES "+res)
+                let text = `Dear ${request.member_name}, there is an order placed on your reservation for the following items. Click on the link below to see your orders.`
+                text = text +`\n${res} if this is not valid please speak to a staff member or call pudding and mink now. -GreneOS`
+                 console.log(text);
+                 self.sendSms(request.country_code,request.phone_number,text);   
+                 */            
                 //let text = `Dear ${memberName},\nYou have just placed an order for ${request.item_order_count} items, if this is not valid please speak to our staff now -GreneOS`
-                let text = `Dear ${memberName}, You have just placed an order for ${request.item_order_count} items, if this is not valid please speak to our staff now. -GreneOS`;
-                console.log(text);
-                self.sendSms(countryCode,phoneNumber,text);
+               // let text = `Dear ${memberName}, You have just placed an order for ${request.item_order_count} items, if this is not valid please speak to our staff now. -GreneOS`;
+
                 err = false;
             }
         }catch(error){
@@ -4762,6 +4787,111 @@ this.getChildOfAParent = async (request) => {
         }
         return [error, responseData];
     }
+
+    this.sendReservationSMS = async (request) => {
+        let responseData = [],
+        error = false;
+        let text = "";
+        getReservationMemberDiscount(request, request.reservation_activity_id).then((data)=>{
+            text = `Dear ${data[0].nameMember} \nYour ${data[0].noOfGuests} people reservation on ${util.convertDateFormat(data[0].datetimeStart,"dddd, Do MMMM")} for Dinner (8PM-11PM) is confirmed. Your reservation code is ${data[0].nameActivitySubType}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${supportContactNumber} \n-Pudding &amp; Mink Reservation Desk. -GreneOS`;
+            console.log("SMS :: "+text);
+            console.log("ENCODED SMS :: "+encodeURIComponent(text));
+            self.sendSms(data[0].memberPhoneCountryCode,data[0].memberPhoneNumber,encodeURIComponent(text));
+        });
+        
+        //text = "Dear test Your test people reservation on test, test for Dinner (8PM-11PM) is confirmed. Your reservation code is test. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call test -Pudding &amp; Mink Reservation Desk. -GreneOS";
+       // text = `Dear ${memberName} \nYour test people reservation on ${memberName}, ${memberName} for Dinner (8PM-11PM) is confirmed. Your reservation code is ${memberName}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${memberName} \n-Pudding &amp; Mink Reservation Desk. -GreneOS`;
+       // self.sendSms(countryCode,phoneNumber,encodeURIComponent(text));
+
+        return [error, responseData];
+    }
+
+    //Get Trending Orders
+    this.getTrendingOrders = async (request) => {
+
+        let responseData = [],
+            error = true;
+
+        var paramsArr = new Array(
+            request.organization_id,
+            request.page_start,
+            request.page_limit
+        )
+        const queryString = util.getQueryString('pm_v1_activity_list_select_trending_orders', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }    
+
+    this.sendTestSMS = async (request) => {
+
+        let responseData = [],
+            error = false;
+            let memberName = "Sravan";
+            let reservationStartDatetimeIST = util.UTCtoIST("2021-08-27");
+            let noOfGuests = 10;
+            let supportContactNumber = "9010819966";
+            let reservationCode = "25874";
+            let countryCode = "91";
+            let phoneNumber = "7680000368";
+            let link = "thepam.page.link/6eZ4";
+
+/*
+            let memberName = "Sravan";
+            let link = "https://thepamapp.com/order-details/"+request.reservation_activity_id;
+
+            let text = `Dear ${memberName}, there is an order placed on your reservation for the following items. Click on the link below to see your orders.`
+            text = text +`\n${link} if this is not valid please speak to a staff member or call pudding and mink now. -GreneOS`
+*/
+
+/*
+            let text = `Dear ${memberName},your bill of ${memberName} for your reservation number ${memberName} has been generated and your reservation is closed.`
+            text = text+`Click on the link below to see your bill `
+            text = text+`${link} -GreneOS`;
+*/
+/*
+            TinyURL.shorten('https://thepamapp.com/order-details/10000010', function(res, err) {
+            if (err)
+                console.log(err)
+                console.log(res);
+            });
+*/
+
+            let text = `Dear ${memberName} `
+            text = text + `\nYou have been recommended for membership at Pudding & Mink by ${memberName}.`
+            text = text + `\nPudding & Mink is the world's first Ayurvedic Cocktail Room that prides itself on bringing together the ultimate in luxury and intimacy. True luxury is not just about expensive interiors, but also about the quality of ingredients that go into your drinks, the range of your conversations and connections, and the sense of always being welcomed and feeling safe. From Ayurvedic cocktails made from organic fresh fruit and vegetables, to jazz and comedy nights, and personalized service, we strive to always give you the best. Starting from 1st  September.`
+            text = text + `\nAs a member, you can make a reservation by clicking on the link below`
+            text = text + `\n${link}`
+            text = text + `\nWe look forward to having a drink with you.`
+            text = text + `\nThank you. Pudding & Mink -GreneOS`
+            console.log('SMS text : \n'+ text);
+
+   
+/*
+            let text = "";
+            /*`Dear ${memberName}`
+            text = text + `\nYour ${memberName} people reservation on ${memberName}, ${memberName} for Dinner (8PM-11PM) is confirmed. Your reservation code is ${memberName}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${memberName}`
+            text = text + `\n-Pudding & Mink Reservation Desk. -GreneOS`
+            */
+            //encodeURI(text);
+            //text = "Dear test Your test people reservation on test, test for Dinner (8PM-11PM) is confirmed. Your reservation code is test. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call test -Pudding &amp; Mink Reservation Desk. -GreneOS";
+            
+           // text = `Dear ${memberName} \nYour test people reservation on ${memberName}, ${memberName} for Dinner (8PM-11PM) is confirmed. Your reservation code is ${memberName}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${memberName} \n-Pudding & Mink Reservation Desk. -GreneOS`;
+            
+            self.sendSms(countryCode,phoneNumber,encodeURIComponent(text));
+
+
+        return [error, responseData];
+    }    
+    
 };
 
 module.exports = PamService;
