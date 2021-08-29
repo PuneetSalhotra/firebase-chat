@@ -8,7 +8,10 @@ function PamUpdateService(objectCollection) {
     var activityCommonService = objectCollection.activityCommonService;
     var util = objectCollection.util;
     var forEachAsync = objectCollection.forEachAsync;
-    
+
+    const PamService = require('../services/pamService');
+    const pamService = new PamService(objectCollection);    
+    let TinyURL = require('tinyurl');
     //PAM
     function assetActivityListUpdateSubtypeSingleParticipant(request) {
         return new Promise((resolve, reject) => {
@@ -311,6 +314,29 @@ function PamUpdateService(objectCollection) {
 		         if(request.activity_status_type_id == 99 || request.activity_status_type_id == 150 || request.activity_status_type_id == 151 || request.activity_status_type_id == 152) {                    	
 		            	activityCommonService.pamEventBillingUpdate(request, request.activity_id).then(()=>{});
 		          }
+
+                  if(request.activity_status_type_id == 99){
+                      request.is_report = 1;
+                    pamService.processReservationBilling(request, request.activity_id).then((reservationBill)=>{
+						//console.log('Bill:'+reservationBill);
+                        getReservationMemberDiscount(request, request.activity_id).then((data)=>{
+                            request.long_url = "https://thepamapp.com/get-bills/"+request.activity_id;
+                            TinyURL.shorten(request.long_url, function(shortlink, err) {
+                                if (err){
+                                    console.log("pamUpdateService "+err)                       
+                                }else{
+                                    console.log("pamUpdateService "+shortlink);                        
+                                    let text = `Dear ${data[0].nameMember},your bill of ${reservationBill} for your reservation number ${data[0].nameActivitySubType} has been generated and your reservation is closed.`
+                                    text = text+`Click on the link below to see your bill `
+                                    text = text+`${shortlink} -GreneOS`; 
+                                    pamService.sendSms(data[0].memberPhoneCountryCode, data[0].memberPhoneNumber,text);                          
+                                }
+                            });
+                           
+                        });
+
+					})
+                  }
 		       }
 	        // }
 		
@@ -825,6 +851,29 @@ function PamUpdateService(objectCollection) {
                     (err === false) ? resolve(data) : reject(err);
                 });
             }
+        });
+    };
+
+    function getReservationMemberDiscount(request, idReservation){
+		return new Promise((resolve, reject)=>{
+	        var paramsArr = new Array(
+	        		request.organization_id,
+	        		request.account_id,
+	        		30,
+	        		idReservation
+	                );
+	
+	        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_reservation_member', paramsArr);
+	        if (queryString != '') {
+	            db.executeQuery(1, queryString, request, function (err, data) {
+	            	//console.log("err "+err);
+	               if(err === false) {	               		
+	               		resolve(data);        				        			      			  
+                    } else {
+	                   reject(err);
+	               }
+	            });
+	   		}
         });
     };
 

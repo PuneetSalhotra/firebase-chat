@@ -3894,8 +3894,9 @@ function AssetService(objectCollection) {
 
                             });
                         });
-
-                        sendCallOrSms(verificationMethod, selectData[0].asset_phone_country_code, selectData[0].asset_phone_number, verificationCode, request);
+                        let text = `OTP ${verificationCode} is for your member code validation at Pudding & Mink. Valid only for 30mins. Do not share OTP for security reasons -GreneOS`;
+                        self.sendSms(selectData[0].asset_phone_country_code,selectData[0].asset_phone_number,encodeURIComponent(text));
+                        //sendCallOrSms(verificationMethod, selectData[0].asset_phone_country_code, selectData[0].asset_phone_number, verificationCode, request);
                         callback(err, true, 200);
                     } else {
                         callback(err, false, -9997);
@@ -7631,5 +7632,32 @@ this.getQrBarcodeFeeback = async(request) => {
 
         return [error, responseData];
     }
+
+
+    this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
+        console.log("sendSms :: "+countryCode+" : "+phoneNumber)
+        let domesticSmsMode = await cacheWrapper.getSmsMode('domestic_sms_mode');
+            switch (parseInt(domesticSmsMode)) {
+                case 1: // SinFini
+                        console.log("sendSms :: "+domesticSmsMode)
+                        util.pamSendSmsSinfini(smsMessage, countryCode, phoneNumber, function(err,res){
+                            if(err === false) {
+                                console.log('SinFini Message sent!',res);
+                            }else{
+                                console.log('SinFini Message Not sent!',res);
+                            }
+                        });
+                        break;
+                case 2: // mVayoo
+                        util.pamSendSmsMvaayoo(text, countryCode, phoneNumber, function(err,res){
+                            if(err === false) {
+                                console.log('mVayoo Message sent!',res);
+                            }
+                        });
+                        break;
+                default:
+                    console.log('sendSms :: In default');
+            }
+    };    
 }
 module.exports = AssetService;
