@@ -15150,7 +15150,7 @@ if(workflowActivityData.length==0){
             esmsIntegrationsTopicName = "";
         let thirdPartyOpexMapping = {};
         let excelRows = [];
-
+        let formWise = false;
         const triggerFormID = request.trigger_form_id,
             // Form and Field for getting the excel file's 
             primaryRequestFormId = botOperationInlineData.bulk_upload.primary_form_id || 0,
@@ -15230,7 +15230,7 @@ if(workflowActivityData.length==0){
         });
 
         if (businessCaseType.toLowerCase() === "single") { //To handle Single FR Case
-
+            formWise = true;
             // Fetch the 1st case current FR
             const firstCaseCurrentFRFieldData = await getFieldValue({
                 form_transaction_id: thirdPartyOpexFormTransactionID,
@@ -15474,7 +15474,7 @@ if(workflowActivityData.length==0){
             }
 
         } else if (businessCaseType.toLowerCase() === "bulk") { // To handle Bulk case from Excel File
-
+            formWise = false;
             // Fetch the excel URL
             const bulkUploadFieldData = await getFieldValue({
                 form_transaction_id: thirdPartyOpexFormTransactionID,
@@ -15637,7 +15637,9 @@ if(workflowActivityData.length==0){
 
         }
 
-        for (let i = 1; i < excelRows.length; i++) {
+        logger.info(`Third party opex rows ${workflowActivityID} %j`, excelRows);
+        let startingIndex = formWise ? 0 : 1;
+        for (let i = startingIndex; i < excelRows.length; i++) {
             await queueWrapper.raiseActivityEventToTopicPromise({
                 type: "VIL_ESMS_IBMMQ_INTEGRATION",
                 trigger_form_id: Number(triggerFormID),
