@@ -6,8 +6,6 @@ var uuid = require('uuid');
 var AwsSns = require('../utils/snsWrapper');
 var makingRequest = require('request');
 const nodeUtil = require('util');
-var makingRequest = require('request');
-let shortUrl = require('node-url-shortener');
 let TinyURL = require('tinyurl');
 
 function PamService(objectCollection) {
@@ -4864,7 +4862,7 @@ this.getChildOfAParent = async (request) => {
                 console.log(res);
             });
 */
-
+/*
             let text = `Dear ${memberName} `
             text = text + `\nYou have been recommended for membership at Pudding & Mink by ${memberName}.`
             text = text + `\nPudding & Mink is the world's first Ayurvedic Cocktail Room that prides itself on bringing together the ultimate in luxury and intimacy. True luxury is not just about expensive interiors, but also about the quality of ingredients that go into your drinks, the range of your conversations and connections, and the sense of always being welcomed and feeling safe. From Ayurvedic cocktails made from organic fresh fruit and vegetables, to jazz and comedy nights, and personalized service, we strive to always give you the best. Starting from 1st  September.`
@@ -4873,8 +4871,10 @@ this.getChildOfAParent = async (request) => {
             text = text + `\nWe look forward to having a drink with you.`
             text = text + `\nThank you. Pudding & Mink -GreneOS`
             console.log('SMS text : \n'+ text);
-
-   
+*/
+            var verificationCode;
+            verificationCode = util.getVerificationCode();
+            let text = `OTP ${verificationCode} is for your member code validation at Pudding & Mink. Valid only for 30mins. Do not share OTP for security reasons -GreneOS`;
 /*
             let text = "";
             /*`Dear ${memberName}`
