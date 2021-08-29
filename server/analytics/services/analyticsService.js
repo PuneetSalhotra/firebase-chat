@@ -5140,6 +5140,10 @@ function AnalyticsService(objectCollection)
             let countTotal = new Array();
             let quantityTotal = new Array();
             let valueTotal = new Array();
+            let resourceAssetMap = new Map();
+            let reporteesAssetMap = new Map();
+            let resourceReporteesMappingMap = new Map();
+            let finalResourceMap = new Map();
             for (let i = 0; i < 2; i++) {
                 widgetFlags[i] = i + 1;
                 resourceValueFlgArray[i] = {};
@@ -5157,11 +5161,32 @@ function AnalyticsService(objectCollection)
             let assetMap = new Map();
 
             for (let idx = 0; idx < assetsData.length; idx++) {
-                let map = new Map();
-                for (let i = 0; i < widgetFlags.length; i++) {
-                    map.set("flag_" + (i + 1), 0);
+                let json = assetsData[idx];
+                if (resourceAssetMap.has(json.manager_asset_id)) {
+                    reporteesAssetMap.set(json.asset_id, json.operating_asset_first_name);
+                    resourceReporteesMappingMap.set(json.asset_id, json.manager_asset_id);
+                } else {
+                    resourceAssetMap.set(json.manager_asset_id, json.manager_operating_asset_first_name);
+                    reporteesAssetMap.set(json.asset_id, json.operating_asset_first_name);
+                    resourceReporteesMappingMap.set(json.asset_id, json.manager_asset_id);
                 }
-                assetMap.set(assetsData[idx].asset_id, map);
+            }
+
+            for (let idx = 0; idx < assetsData.length; idx++) {
+                if (!assetMap.has(assetsData[idx].asset_id)) {
+                    let map = new Map();
+                    for (let i = 0; i < widgetFlags.length; i++) {
+                        map.set("flag_" + (i + 1), 0);
+                    }
+                    assetMap.set(assetsData[idx].asset_id, map);
+                }
+                if (!finalResourceMap.has(assetsData[idx].manager_asset_id)) {
+                    let map1 = new Map();
+                    for (let i = 0; i < widgetFlags.length; i++) {
+                        map1.set("flag_" + (i + 1), 0);
+                    }
+                    finalResourceMap.set(assetsData[idx].manager_asset_id, map1);
+                }
             }
 
             for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
@@ -5178,7 +5203,7 @@ function AnalyticsService(objectCollection)
                     paramsArray[15] = 1;
                 }
                 paramsArray.push(widgetFlags[iteratorM]);
-                paramsArray[10] = request.asset_id;
+                paramsArray[10] = 0; //request.asset_id;
 
                 responseJson.datetime_start = paramsArray[18];
                 responseJson.datetime_end = paramsArray[19];
@@ -5218,6 +5243,20 @@ function AnalyticsService(objectCollection)
                         map.set("flag_" + (iteratorM + 1) + "_quantity", opptydata[idx].quantity);
                         map.set("flag_" + (iteratorM + 1) + "_value", opptydata[idx].value);
                         assetMap.set(asset_id, map);
+                        if (resourceReporteesMappingMap.has(asset_id)) {
+                            let manager_asset_id = resourceReporteesMappingMap.get(asset_id);
+                            let newMap = finalResourceMap.get(manager_asset_id);
+                            let count = newMap.get("flag_" + (iteratorM + 1) + "_count") | 0;
+                            let quantity = newMap.get("flag_" + (iteratorM + 1) + "_quantity") | 0;
+                            let value = newMap.get("flag_" + (iteratorM + 1) + "_value") | 0;
+                            count = count + opptydata[idx].count;
+                            quantity = quantity + opptydata[idx].quantity;
+                            value = value + opptydata[idx].value;
+                            newMap.set("flag_" + (iteratorM + 1) + "_count", count);
+                            newMap.set("flag_" + (iteratorM + 1) + "_quantity", quantity);
+                            newMap.set("flag_" + (iteratorM + 1) + "_value", value);
+                            finalResourceMap.set(manager_asset_id, newMap);
+                        }
                     }
                 }
             }
@@ -5230,22 +5269,34 @@ function AnalyticsService(objectCollection)
                     delete responseJson["filter_asset_id"];
                     responseJson.target_asset_id = assetsData[idx].asset_id;
                     resourceValueFlgArray[iteratorM] = responseJson;
-                    console.log(JSON.stringify(responseJson))
                 }
+            }
 
+
+            let resourceValueFlgArrayTotal = new Array();
+            for (let i = 0; i < widgetFlags.length; i++) {
+                resourceValueFlgArrayTotal[i] = {};
+                resourceValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArray[i]);
+            }
+
+            for (let [key, value] of finalResourceMap) {
+                let newMap = value;
+                let manager_asset_id = key;
                 let assetRspData = {};
-                assetRspData.resource_name = assetsData[idx].operating_asset_first_name;
+                assetRspData.resource_name = resourceAssetMap.get(manager_asset_id);
                 let cnt = 1;
                 for (let i = 0; i < widgetFlags.length; i++) {
-                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_count") | 0;
-                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
-                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_quantity") | 0;
-                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
-                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_value") | 0;
-                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                    let responseData = Object.assign({}, resourceValueFlgArrayTotal[i]);
+                    responseData.target_asset_id = manager_asset_id;
+                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_count") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
+                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_quantity") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
+                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_value") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                 }
+                console.log("data ==>")
                 results.push(assetRspData);
-
             }
 
             return Promise.resolve(results);
@@ -5266,6 +5317,10 @@ function AnalyticsService(objectCollection)
             let countTotal = new Array();
             let quantityTotal = new Array();
             let valueTotal = new Array();
+            let resourceAssetMap = new Map();
+            let reporteesAssetMap = new Map();
+            let resourceReporteesMappingMap = new Map();
+            let finalResourceMap = new Map();
             for (let i = 0; i < 8; i++) {
                 widgetFlags[i] = i + 1;
                 resourceValueFlgArray[i] = {};
@@ -5283,11 +5338,32 @@ function AnalyticsService(objectCollection)
             let assetMap = new Map();
 
             for (let idx = 0; idx < assetsData.length; idx++) {
-                let map = new Map();
-                for (let i = 0; i < widgetFlags.length; i++) {
-                    map.set("flag_" + (i + 1), 0);
+                let json = assetsData[idx];
+                if (resourceAssetMap.has(json.manager_asset_id)) {
+                    reporteesAssetMap.set(json.asset_id, json.operating_asset_first_name);
+                    resourceReporteesMappingMap.set(json.asset_id, json.manager_asset_id);
+                } else {
+                    resourceAssetMap.set(json.manager_asset_id, json.manager_operating_asset_first_name);
+                    reporteesAssetMap.set(json.asset_id, json.operating_asset_first_name);
+                    resourceReporteesMappingMap.set(json.asset_id, json.manager_asset_id);
                 }
-                assetMap.set(assetsData[idx].asset_id, map);
+            }
+
+            for (let idx = 0; idx < assetsData.length; idx++) {
+                if (!assetMap.has(assetsData[idx].asset_id)) {
+                    let map = new Map();
+                    for (let i = 0; i < widgetFlags.length; i++) {
+                        map.set("flag_" + (i + 1), 0);
+                    }
+                    assetMap.set(assetsData[idx].asset_id, map);
+                }
+                if (!finalResourceMap.has(assetsData[idx].manager_asset_id)) {
+                    let map1 = new Map();
+                    for (let i = 0; i < widgetFlags.length; i++) {
+                        map1.set("flag_" + (i + 1), 0);
+                    }
+                    finalResourceMap.set(assetsData[idx].manager_asset_id, map1);
+                }
             }
 
             for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
@@ -5300,7 +5376,7 @@ function AnalyticsService(objectCollection)
                 let key = request.verticalData["status_tags_array"][iteratorM];
                 paramsArray[16] = status_tags[key];
                 paramsArray.push(widgetFlags[iteratorM]);
-                paramsArray[10] = request.asset_id;
+                paramsArray[10] = 0; //request.asset_id;
 
                 responseJson.filter_activity_status_tag_id = paramsArray[16];
                 responseJson.filter_asset_id = paramsArray[10];
@@ -5337,12 +5413,25 @@ function AnalyticsService(objectCollection)
                         map.set("flag_" + (iteratorM + 1) + "_quantity", opptydata[idx].quantity);
                         map.set("flag_" + (iteratorM + 1) + "_value", opptydata[idx].value);
                         assetMap.set(asset_id, map);
+                        if (resourceReporteesMappingMap.has(asset_id)) {
+                            let manager_asset_id = resourceReporteesMappingMap.get(asset_id);
+                            let newMap = finalResourceMap.get(manager_asset_id);
+                            let count = newMap.get("flag_" + (iteratorM + 1) + "_count") | 0;
+                            let quantity = newMap.get("flag_" + (iteratorM + 1) + "_quantity") | 0;
+                            let value = newMap.get("flag_" + (iteratorM + 1) + "_value") | 0;
+                            count = count + opptydata[idx].count;
+                            quantity = quantity + opptydata[idx].quantity;
+                            value = value + opptydata[idx].value;
+                            newMap.set("flag_" + (iteratorM + 1) + "_count", count);
+                            newMap.set("flag_" + (iteratorM + 1) + "_quantity", quantity);
+                            newMap.set("flag_" + (iteratorM + 1) + "_value", value);
+                            finalResourceMap.set(manager_asset_id, newMap);
+                        }
                     }
                 }
             }
 
             for (let idx = 0; idx < assetsData.length; idx++) {
-
                 for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
                     let responseJson = Object.assign({}, resourceResponseAdditonalMap.get(iteratorM));
                     responseJson.vertical_tag_id = vertical_tag_id;
@@ -5351,21 +5440,32 @@ function AnalyticsService(objectCollection)
                     responseJson.target_asset_id = assetsData[idx].asset_id;
                     resourceValueFlgArray[iteratorM] = responseJson;
                 }
+            }
 
+
+            let resourceValueFlgArrayTotal = new Array();
+            for (let i = 0; i < widgetFlags.length; i++) {
+                resourceValueFlgArrayTotal[i] = {};
+                resourceValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArray[i]);
+            }
+
+            for (let [key, value] of finalResourceMap) {
+                let newMap = value;
+                let manager_asset_id = key;
                 let assetRspData = {};
-                assetRspData.resource_name = assetsData[idx].operating_asset_first_name;
-
+                assetRspData.resource_name = resourceAssetMap.get(manager_asset_id);
                 let cnt = 1;
                 for (let i = 0; i < widgetFlags.length; i++) {
-                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_count") | 0;
-                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
-                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_quantity") | 0;
-                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
-                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_value") | 0;
-                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                    let responseData = Object.assign({}, resourceValueFlgArrayTotal[i]);
+                    responseData.target_asset_id = manager_asset_id;
+                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_count") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
+                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_quantity") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
+                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_value") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                 }
                 results.push(assetRspData);
-
             }
 
             return Promise.resolve(results);
@@ -5386,12 +5486,15 @@ function AnalyticsService(objectCollection)
             let countTotal = new Array();
             let quantityTotal = new Array();
             let valueTotal = new Array();
+            let resourceAssetMap = new Map();
+            let reporteesAssetMap = new Map();
+            let resourceReporteesMappingMap = new Map();
+            let finalResourceMap = new Map();
             for (let i = 0; i < 7; i++) {
                 widgetFlags[i] = i + 1;
                 resourceValueFlgArray[i] = {};
                 countTotal[i] = 0; quantityTotal[i] = 0; valueTotal[i] = 0;
             }
-
             let resourceResponseAdditonalMap = new Map();
             let isError = false;
 
@@ -5405,11 +5508,32 @@ function AnalyticsService(objectCollection)
             let status_tags = request.verticalData["status_tags"];
 
             for (let idx = 0; idx < assetsData.length; idx++) {
-                let map = new Map();
-                for (let i = 0; i < widgetFlags.length; i++) {
-                    map.set("flag_" + (i + 1), 0);
+                let json = assetsData[idx];
+                if (resourceAssetMap.has(json.manager_asset_id)) {
+                    reporteesAssetMap.set(json.asset_id, json.operating_asset_first_name);
+                    resourceReporteesMappingMap.set(json.asset_id, json.manager_asset_id);
+                } else {
+                    resourceAssetMap.set(json.manager_asset_id, json.manager_operating_asset_first_name);
+                    reporteesAssetMap.set(json.asset_id, json.operating_asset_first_name);
+                    resourceReporteesMappingMap.set(json.asset_id, json.manager_asset_id);
                 }
-                assetMap.set(assetsData[idx].asset_id, map);
+            }
+
+            for (let idx = 0; idx < assetsData.length; idx++) {
+                if (!assetMap.has(assetsData[idx].asset_id)) {
+                    let map = new Map();
+                    for (let i = 0; i < widgetFlags.length; i++) {
+                        map.set("flag_" + (i + 1), 0);
+                    }
+                    assetMap.set(assetsData[idx].asset_id, map);
+                }
+                if (!finalResourceMap.has(assetsData[idx].manager_asset_id)) {
+                    let map1 = new Map();
+                    for (let i = 0; i < widgetFlags.length; i++) {
+                        map1.set("flag_" + (i + 1), 0);
+                    }
+                    finalResourceMap.set(assetsData[idx].manager_asset_id, map1);
+                }
             }
 
             for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
@@ -5461,7 +5585,7 @@ function AnalyticsService(objectCollection)
                     paramsArray[19] = util.getLastDayOfCurrentQuarterToIST();
                 }
                 paramsArray.push(widgetFlags[iteratorM]);
-                paramsArray[10] = request.asset_id;
+                paramsArray[10] = 0; //request.asset_id;
 
                 responseJson.filter_date_type_id = paramsArray[1];
                 responseJson.filter_activity_status_type_id = paramsArray[15];
@@ -5501,12 +5625,25 @@ function AnalyticsService(objectCollection)
                         map.set("flag_" + (iteratorM + 1) + "_quantity", opptydata[idx].quantity);
                         map.set("flag_" + (iteratorM + 1) + "_value", opptydata[idx].value);
                         assetMap.set(asset_id, map);
+                        if (resourceReporteesMappingMap.has(asset_id)) {
+                            let manager_asset_id = resourceReporteesMappingMap.get(asset_id);
+                            let newMap = finalResourceMap.get(manager_asset_id);
+                            let count = newMap.get("flag_" + (iteratorM + 1) + "_count") | 0;
+                            let quantity = newMap.get("flag_" + (iteratorM + 1) + "_quantity") | 0;
+                            let value = newMap.get("flag_" + (iteratorM + 1) + "_value") | 0;
+                            count = count + opptydata[idx].count;
+                            quantity = quantity + opptydata[idx].quantity;
+                            value = value + opptydata[idx].value;
+                            newMap.set("flag_" + (iteratorM + 1) + "_count", count);
+                            newMap.set("flag_" + (iteratorM + 1) + "_quantity", quantity);
+                            newMap.set("flag_" + (iteratorM + 1) + "_value", value);
+                            finalResourceMap.set(manager_asset_id, newMap);
+                        }
                     }
                 }
             }
 
             for (let idx = 0; idx < assetsData.length; idx++) {
-
                 for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
                     let responseJson = Object.assign({}, resourceResponseAdditonalMap.get(iteratorM));
                     responseJson.vertical_tag_id = vertical_tag_id;
@@ -5515,21 +5652,31 @@ function AnalyticsService(objectCollection)
                     responseJson.target_asset_id = assetsData[idx].asset_id;
                     resourceValueFlgArray[iteratorM] = responseJson;
                 }
+            }
 
+
+            let resourceValueFlgArrayTotal = new Array();
+            for (let i = 0; i < widgetFlags.length; i++) {
+                resourceValueFlgArrayTotal[i] = {};
+                resourceValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArray[i]);
+            }
+            for (let [key, value] of finalResourceMap) {
+                let newMap = value;
+                let manager_asset_id = key;
                 let assetRspData = {};
-                assetRspData.resource_name = assetsData[idx].operating_asset_first_name;
-
+                assetRspData.resource_name = resourceAssetMap.get(manager_asset_id);
                 let cnt = 1;
                 for (let i = 0; i < widgetFlags.length; i++) {
-                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_count") | 0;
-                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
-                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_quantity") | 0;
-                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
-                    assetRspData["flag_" + cnt] = assetMap.get(assetsData[idx].asset_id).get("flag_" + (i + 1) + "_value") | 0;
-                    assetRspData["flag_" + cnt + "_1"] = resourceValueFlgArray[i]; cnt++;
+                    let responseData = Object.assign({}, resourceValueFlgArrayTotal[i]);
+                    responseData.target_asset_id = manager_asset_id;
+                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_count") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
+                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_quantity") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
+                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_value") | 0;
+                    assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                 }
                 results.push(assetRspData);
-
             }
 
             return Promise.resolve(results);
@@ -5566,7 +5713,8 @@ function AnalyticsService(objectCollection)
         let responseData = [],
             error = true;
 
-        const queryString = util.getQueryString('ds_v1_asset_list_select_vertical', paramsArr);
+        const queryString = util.getQueryString('ds_v1_asset_manager_mapping_select_reportees_high_level', paramsArr);
+        //const queryString = util.getQueryString('ds_v1_asset_list_select_vertical', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
@@ -5580,7 +5728,8 @@ function AnalyticsService(objectCollection)
 
         return [error, responseData];
     }
-    //----------------------------------------------------------------------
+    //------------------------------------------------------------------------
+
 
     //------------------------------------------------------------------------
     //Mangesh S
