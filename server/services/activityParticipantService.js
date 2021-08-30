@@ -733,71 +733,72 @@ function ActivityParticipantService(objectCollection) {
                         callback(err, false);
                     }
                 });
-            }
-            
-            activityAssetMappingInsertParticipantAssign(request, participantData, function (err, data) {
-                if (err === false) {
-                    try {
-                        activityPushService.sendPush(request, objectCollection, participantData.asset_id, function () {});
-                    } catch(err) {
-                        console.log(err);
-                    }
-                    
-                    activityCommonService.assetTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
-
-                    });
-
-                    /*console.log('BEFORE ACTIVITY TIMELINE INSERT activityTypeCategoryId :: '+activityTypeCategoryId);
-
-                    if (activityTypeCategoryId === 48 || activityTypeCategoryId === 9){
-                        activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
-
-                        });
-                    }*/
-
-                    if (activityTypeCategoryId !== 10 && activityTypeCategoryId !== 11) {
-                        if (activityTypeCategoryId !== 9) {
-                            activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
-                                if (!err) {
-                                    if (activityTypeCategoryId === 48) {
-                                        activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {});
-                                        // ######################################################################################
-                                        let pubnubMsg = {};
-                                        pubnubMsg.type = 'activity_unread';
-                                        pubnubMsg.organization_id = request.organization_id;
-                                        pubnubMsg.desk_asset_id = participantData.asset_id;
-                                        pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
-                                        pubnubMsg.description = `Added you as a participant in ${request.activity_title}.`;
-                                        console.log('Participant Add | PubNub Message: ', pubnubMsg);
-                                        activityPushService.pubNubPush({
-                                            asset_id: participantData.asset_id,
-                                            organization_id: request.organization_id
-                                        }, pubnubMsg, function (err, data) {});
-                                        // ######################################################################################
-                                    }
-                                }
-                            });
-                        } else if (activityTypeCategoryId === 9 && fieldId > 0) {
-                            activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
-
-                            });
+            } else {
+                activityAssetMappingInsertParticipantAssign(request, participantData, function (err, data) {
+                    if (err === false) {
+                        try {
+                            activityPushService.sendPush(request, objectCollection, participantData.asset_id, function () {});
+                        } catch(err) {
+                            console.log(err);
                         }
-
+                        
+                        activityCommonService.assetTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
+    
+                        });
+    
+                        /*console.log('BEFORE ACTIVITY TIMELINE INSERT activityTypeCategoryId :: '+activityTypeCategoryId);
+    
+                        if (activityTypeCategoryId === 48 || activityTypeCategoryId === 9){
+                            activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
+    
+                            });
+                        }*/
+    
+                        if (activityTypeCategoryId !== 10 && activityTypeCategoryId !== 11) {
+                            if (activityTypeCategoryId !== 9) {
+                                activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
+                                    if (!err) {
+                                        if (activityTypeCategoryId === 48) {
+                                            activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {});
+                                            // ######################################################################################
+                                            let pubnubMsg = {};
+                                            pubnubMsg.type = 'activity_unread';
+                                            pubnubMsg.organization_id = request.organization_id;
+                                            pubnubMsg.desk_asset_id = participantData.asset_id;
+                                            pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
+                                            pubnubMsg.description = `Added you as a participant in ${request.activity_title}.`;
+                                            console.log('Participant Add | PubNub Message: ', pubnubMsg);
+                                            activityPushService.pubNubPush({
+                                                asset_id: participantData.asset_id,
+                                                organization_id: request.organization_id
+                                            }, pubnubMsg, function (err, data) {});
+                                            // ######################################################################################
+                                        }
+                                    }
+                                });
+                            } else if (activityTypeCategoryId === 9 && fieldId > 0) {
+                                activityCommonService.activityTimelineTransactionInsert(request, participantData, request.activity_streamtype_id, function (err, data) {
+    
+                                });
+                            }
+    
+                        }
+    
+                        //PAM
+                        if (activityTypeCategoryId == 39 || activityTypeCategoryId == 38) {
+                            assignUnassignParticipantPam(request, participantData, 1, function (err, resp) {}); //1 for assign
+                        }
+    
+                        activityCommonService.assetActivityListHistoryInsert(request, participantData.asset_id, 0, function (err, restult) {
+    
+                        });
+                        callback(false, true);
+                    } else {
+                        callback(err, false);
                     }
-
-                    //PAM
-                    if (activityTypeCategoryId == 39 || activityTypeCategoryId == 38) {
-                        assignUnassignParticipantPam(request, participantData, 1, function (err, resp) {}); //1 for assign
-                    }
-
-                    activityCommonService.assetActivityListHistoryInsert(request, participantData.asset_id, 0, function (err, restult) {
-
-                    });
-                    callback(false, true);
-                } else {
-                    callback(err, false);
-                }
-            });
+                });
+            }
+        
         } else {
             //console.log('re-assigining to the archived row');
             global.logger.write('conLog', 're-assigining to the archived row', {}, {})
