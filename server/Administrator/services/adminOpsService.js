@@ -8927,7 +8927,6 @@ console.log('new ActivityId321',newActivity_id)
         return [error, responseData];
     }
 
-
     this.dependencyFormsCheck = async (request) => {
         let error = false, finalResponse = [];
 

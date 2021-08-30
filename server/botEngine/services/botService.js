@@ -15763,6 +15763,8 @@ if(workflowActivityData.length==0){
         return [error, responseData];
     };
 
+
+
     async function icsEventCreation(request,email,receiver_name){
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
         let eventTimeDetails = JSON.parse(wfActivityDetails[0].activity_inline_data).filter((_,i)=>_.field_data_type_id === 77);
