@@ -669,7 +669,7 @@ function ActivityParticipantService(objectCollection) {
         }
         var activityTypeCategoryId = Number(request.activity_type_category_id);
         if (newRecordStatus) {
-            if(request.body.apiVersion == 'v1') {
+            if(request.hasOwnProperty('apiVersion') && request.apiVersion == 'v1') {
                 activityAssetMappingInsertParticipantAssignV1(request, participantData, function (err, data) {
                     if (err === false) {
                         try {
