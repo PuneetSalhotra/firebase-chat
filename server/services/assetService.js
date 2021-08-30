@@ -7659,5 +7659,59 @@ this.getQrBarcodeFeeback = async(request) => {
                     console.log('sendSms :: In default');
             }
     };    
+    
+    this.getAssetTypeList = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.asset_type_category_id,
+            request.asset_type_id,
+            request.start_from || 0,
+            request.limit_value || 20                    
+        );
+        const queryString = util.getQueryString('ds_p1_1_asset_list_select_asset_type', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+    this.getAssetTimelineAssetFlag = async function (request) {
+        let responseData = [],
+            error = true;
+
+       let paramsArr = new Array(
+            request.organization_id,
+            request.asset_id,
+            request.flag || 1,
+            request.datetime_start,
+	        request.datetime_end,
+            request.start_from || 0,
+            request.limit_value || 20               
+        );
+        const queryString = util.getQueryString('Ds_p1_asset_timeline_transaction_select_asset_flag', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
 }
 module.exports = AssetService;
