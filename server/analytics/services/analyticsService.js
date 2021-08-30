@@ -6422,18 +6422,19 @@ function AnalyticsService(objectCollection)
     //------------------------------------------------------------------------
     //Get SIP Widgets
     this.getSipWidgets = async function (request) {
-        let responseData = [],
+        let responseData = [], responseDataPersonal = []
             error = true;
 
-        const paramsArr = [
+        let paramsArr = [
             request.organization_id,
             request.activity_type_category_id,
-            request.target_asset_id,
+            request.manager_asset_id,
             request.page_start,
-            request.page_limit
+            request.page_limit,
+            0
         ];
 
-        const queryString = util.getQueryString('ds_v1_activity_list_select_sip_widgets', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_list_select_sip_widgets', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
@@ -6445,8 +6446,24 @@ function AnalyticsService(objectCollection)
                 })
         }
 
-        return [error, responseData];
+        paramsArr.pop();
+        paramsArr.push(1);
+
+        queryString = util.getQueryString('ds_v1_activity_list_select_sip_widgets', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseDataPersonal = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }        
+        let resp = {"manager_kpi":responseDataPersonal, "reportee_kpi":responseData};
+        return [false, resp];
     }
+
 }
 
 module.exports = AnalyticsService;

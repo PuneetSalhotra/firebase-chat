@@ -2706,44 +2706,73 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         console.log('Request params : ', request);
-        let supportNumber = "916309386175";
-        let entry = "parking garage @ Radisson Blu";
-        let operationalHours = "Tuesday-Sunday, 7 p.m. to 4 a.m";
-        let companyName = "Pudding n Mink";
-        if(request.hasOwnProperty('member_passcode')) {  
-            /*        
-             var text = "It gives us great pleasure to welcome you as a member at "+companyName+". Your personal code is "+request.member_passcode+".";
-                        text += " This code is meant for your entry and billing only. Please keep your code private and do not share it with anybody else.";
-                        text += " Should you wish to bring guests please whatsapp or message or call on "+supportNumber+" to make a reservation.";
-                        text += " Remember the entry is only from the "+entry+".";
-                        text += " Our operational hours are Tuesday-Sunday, 7 p.m. to 4 a.m. Thank you. "+companyName+" -GreneOS";
+        //let supportNumber = "916309386175";
+        //let entry = "parking garage @ Radisson Blu";
+        //let operationalHours = "Tuesday-Sunday, 7 p.m. to 4 a.m";
+        //let companyName = "Pudding n Mink";
+        let link = "https://thepamapp.com/enter-mobile/"+request.organization_id;
+        let start = request.operation_start || "8 p.m";
+        let end = request.operation_end || "4 a.m";
+        //let memberName = "Sravan";
+        TinyURL.shorten(link, function(shortlink, err) {
+            if (err){
+                console.log("sendMemberPassCode "+err)                       
+            }else{
+                console.log("sendMemberPassCode "+shortlink); 
+                if(request.hasOwnProperty('member_passcode')) {  
+                    /*        
+                     var text = "It gives us great pleasure to welcome you as a member at "+companyName+". Your personal code is "+request.member_passcode+".";
+                                text += " This code is meant for your entry and billing only. Please keep your code private and do not share it with anybody else.";
+                                text += " Should you wish to bring guests please whatsapp or message or call on "+supportNumber+" to make a reservation.";
+                                text += " Remember the entry is only from the "+entry+".";
+                                text += " Our operational hours are Tuesday-Sunday, 7 p.m. to 4 a.m. Thank you. "+companyName+" -GreneOS";
+                                */
+                     //let text = "It gives us great pleasure to welcome you as a member at "+companyName+". Your personal code is "+request.member_passcode+". This code is meant for your entry and billing only. Please keep your code private and do not share it with anybody else. Should you wish to bring guests please whatsapp or message or call on "+supportNumber+" to make a reservation. Remember the entry is only from the "+entry+". Our operational hours are "+operationalHours+". Thank you "+companyName+" -GreneOS";
+                  
+                     let text = `Dear ${request.member_name}, `
+                     text = text + `You have been recommended for membership at Pudding & Mink by ${request.recommended_by}. ` 
+                     text = text + `Pudding & Mink is the world's first Ayurvedic Cocktail Room that prides itself on bringing together the ultimate in luxury and intimacy. True luxury is not just about expensive interiors, but also about the quality of ingredients that go into your drinks. Your personal member code is ${request.member_passcode}. Please keep your code private and do not share it with anybody else. You can make a reservation using the link ${shortlink} and by verifying your mobile number. Remember the entry is only from the parking garage @ Radisson Blu Banjara Hills. Our operational hours are ${start}, ${end}. -GreneOS`;           
+                        /*   
+                        let text = `Dear ${memberName}, `
+                        text = text + `You have been recommended for membership at Pudding & Mink by ${memberName}. ` 
+                        text = text + `Pudding & Mink is the world's first Ayurvedic Cocktail Room that prides itself on bringing together the ultimate in luxury and intimacy. True luxury is not just about expensive interiors, but also about the quality of ingredients that go into your drinks. Your personal member code is ${memberName}. Please keep your code private and do not share it with anybody else. You can make a reservation using the link ${memberName} and by verifying your mobile number. Remember the entry is only from the parking garage @ Radisson Blu Banjara Hills. Our operational hours are ${memberName}, ${memberName}. -GreneOS`;           
+        
+                                    let text = `Dear ${request.member_name}, `
+                                    text = text + `You have been recommended for membership at Pudding & Mink by ${request.member_name}. ` 
+                                    text = text + `Pudding & Mink is the world's first Ayurvedic Cocktail Room that prides itself on bringing together the ultimate in luxury and intimacy. True luxury is not just about expensive interiors, but also about the quality of ingredients that go into your drinks. Your personal member code is ${request.member_name}. Please keep your code private and do not share it with anybody else. You can make a reservation using the link ${request.member_name} and by verifying your mobile number. Remember the entry is only from the parking garage @ Radisson Blu Banjara Hills. Our operational hours are ${request.member_name}, ${request.member_name}. -GreneOS`;           
                         */
-             let text = "It gives us great pleasure to welcome you as a member at "+companyName+". Your personal code is "+request.member_passcode+". This code is meant for your entry and billing only. Please keep your code private and do not share it with anybody else. Should you wish to bring guests please whatsapp or message or call on "+supportNumber+" to make a reservation. Remember the entry is only from the "+entry+". Our operational hours are "+operationalHours+". Thank you "+companyName+" -GreneOS";
-             console.log('sms Text : ' + text);
-             self.sendSms(request.asset_phone_country_code,request.asset_phone_number,text);  
-             callback(false, {}, 200);
-        } else {
-            generateUniqueCode(request, function(err, data){
-                if (err === false) {
-                    updatePC(request, data).then(()=>{
-                        /*
-                         var text = "It gives us great pleasure to welcome you as a member at Pudding & Mink. Your personal code is "+data+".";
-                             text += " This code is meant for your entry and billing only. Please keep your code private and do not share it with anybody else.";
-                             text += " Should you wish to bring guests please whatsapp or message or call on 916309386175 to make a reservation.";
-                             text += " Remember the entry is only from the parking garage @ Radisson Blu Banjara Hills.";
-                             text += " Our operational hours are Tuesday-Sunday, 7 p.m. to 4 a.m. Thank you. Pudding & Mink";
-                             */
-                         let text = "It gives us great pleasure to welcome you as a member at "+companyName+". Your personal code is "+data+". This code is meant for your entry and billing only. Please keep your code private and do not share it with anybody else. Should you wish to bring guests please whatsapp or message or call on "+supportNumber+" to make a reservation. Remember the entry is only from the "+entry+". Our operational hours are "+operationalHours+". Thank you "+companyName+" -GreneOS";
-                         console.log('sms Text : ' + text);
-                         self.sendSms(request.asset_phone_country_code,request.asset_phone_number,text); 
-                         callback(false, {}, 200);
-                    });
+                     console.log('sms Text : ' + text);
+                     self.sendSms(request.asset_phone_country_code,request.asset_phone_number,encodeURIComponent(text));  
+                     callback(false, {}, 200);
                 } else {
-                    callback(true, err, -9999);
-                }
+                    generateUniqueCode(request, function(err, data){
+                        if (err === false) {
+                            updatePC(request, data).then(()=>{
+                                /*
+                                 var text = "It gives us great pleasure to welcome you as a member at Pudding & Mink. Your personal code is "+data+".";
+                                     text += " This code is meant for your entry and billing only. Please keep your code private and do not share it with anybody else.";
+                                     text += " Should you wish to bring guests please whatsapp or message or call on 916309386175 to make a reservation.";
+                                     text += " Remember the entry is only from the parking garage @ Radisson Blu Banjara Hills.";
+                                     text += " Our operational hours are Tuesday-Sunday, 7 p.m. to 4 a.m. Thank you. Pudding & Mink";
+                                     */
+                                // let text = "It gives us great pleasure to welcome you as a member at "+companyName+". Your personal code is "+data+". This code is meant for your entry and billing only. Please keep your code private and do not share it with anybody else. Should you wish to bring guests please whatsapp or message or call on "+supportNumber+" to make a reservation. Remember the entry is only from the "+entry+". Our operational hours are "+operationalHours+". Thank you "+companyName+" -GreneOS";
+                                 let text = `Dear ${request.member_name}, `
+                                 text = text + `You have been recommended for membership at Pudding & Mink by ${request.recommended_by}. ` 
+                                 text = text + `Pudding & Mink is the world's first Ayurvedic Cocktail Room that prides itself on bringing together the ultimate in luxury and intimacy. True luxury is not just about expensive interiors, but also about the quality of ingredients that go into your drinks. Your personal member code is ${data}. Please keep your code private and do not share it with anybody else. You can make a reservation using the link ${shortlink} and by verifying your mobile number. Remember the entry is only from the parking garage @ Radisson Blu Banjara Hills. Our operational hours are ${start}, ${end}. -GreneOS`;           
+                    
+                                 console.log('sms Text : ' + text);
+                                 self.sendSms(request.asset_phone_country_code,request.asset_phone_number,encodeURIComponent(text)); 
+                                 callback(false, {}, 200);
+                            });
+                        } else {
+                            callback(true, err, -9999);
+                        }
+        
+                     });
+                }                
+            }
+        })        
 
-             });
-        }
    };
    
    function updatePC(request, code) {
@@ -4874,7 +4903,7 @@ this.getChildOfAParent = async (request) => {
 */
             var verificationCode;
             verificationCode = util.getVerificationCode();
-            let text = `OTP ${verificationCode} is for your member code validation at Pudding & Mink. Valid only for 30mins. Do not share OTP for security reasons -GreneOS`;
+            let text = `OTP ${verificationCode} is for your member code validation at Pudding & Mink. Valid only for 30mins. Do not share OTP for security reasons -GreneOS`;           
 /*
             let text = "";
             /*`Dear ${memberName}`
@@ -4885,7 +4914,12 @@ this.getChildOfAParent = async (request) => {
             //text = "Dear test Your test people reservation on test, test for Dinner (8PM-11PM) is confirmed. Your reservation code is test. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call test -Pudding &amp; Mink Reservation Desk. -GreneOS";
             
            // text = `Dear ${memberName} \nYour test people reservation on ${memberName}, ${memberName} for Dinner (8PM-11PM) is confirmed. Your reservation code is ${memberName}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${memberName} \n-Pudding & Mink Reservation Desk. -GreneOS`;
-            
+/*            
+            let text = `Dear ${memberName}, `
+            text = text + `You have been recommended for membership at Pudding & Mink by ${memberName}. ` 
+            text = text + `Pudding & Mink is the world's first Ayurvedic Cocktail Room that prides itself on bringing together the ultimate in luxury and intimacy. True luxury is not just about expensive interiors, but also about the quality of ingredients that go into your drinks. Your personal member code is ${memberName}. Please keep your code private and do not share it with anybody else. You can make a reservation using the link ${memberName} and by verifying your mobile number. Remember the entry is only from the parking garage @ Radisson Blu Banjara Hills. Our operational hours are ${memberName}, ${memberName}. -GreneOS`;           
+            console.log(text);
+*/            
             self.sendSms(countryCode,phoneNumber,encodeURIComponent(text));
 
 
