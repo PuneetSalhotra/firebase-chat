@@ -930,7 +930,11 @@ function TasiService(objectCollection) {
             error = true;
         const paramsArr = new Array(
             request.organization_id, 
-            request.payout_type_id, 
+            request.payout_type_id,
+            request.flag,
+            request.period_type_id,
+            request.period_start_datetime,
+            request.period_end_datetime, 
             request.start_from, 
             request.limit_value
         );
