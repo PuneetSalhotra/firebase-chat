@@ -742,7 +742,8 @@ function ActivityPushService(objectCollection) {
                                                     pushString.body = senderName;
                                                     break;
     
-                                                case 325: // Add Collection to the file
+                                              case 114: // IIT JAMMU ID CARD
+                                              case 325: // Add Collection to the file
                                                     pushString.description = `${request.push_message || 'Added comment to workflow'} - ${senderName}`;
     
                                                     pushString.title = activityTitle;
