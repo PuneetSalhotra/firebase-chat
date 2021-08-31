@@ -88,8 +88,10 @@ function ActivityParticipantService(objectCollection) {
                 //"asset_image_path": util.replaceDefaultString(rowData['asset_image_path']),
                 "asset_flag_is_owner": util.replaceDefaultNumber(rowData['asset_flag_is_owner']),
                 "asset_participant_access_id":util.replaceDefaultNumber(rowData['asset_participant_access_id']),
-                "asset_participant_access_name":util.replaceDefaultString(rowData['asset_participant_access_name'])
+                "asset_participant_access_name":util.replaceDefaultString(rowData['asset_participant_access_name']),
+                "activity_master_data":JSON.parse(rowData['activity_master_data'] || '{}')
             };
+            
             responseData.push(rowDataArr);
         }, this);
         callback(false, responseData);
