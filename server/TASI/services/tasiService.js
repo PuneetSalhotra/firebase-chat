@@ -930,7 +930,11 @@ function TasiService(objectCollection) {
             error = true;
         const paramsArr = new Array(
             request.organization_id, 
-            request.payout_type_id, 
+            request.payout_type_id,
+            request.flag,
+            request.period_type_id,
+            request.period_start_datetime,
+            request.period_end_datetime, 
             request.start_from, 
             request.limit_value
         );
@@ -1421,6 +1425,30 @@ function TasiService(objectCollection) {
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('dm_v2_report_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.reportListdelete = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.report_id,
+            request.log_state,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('dm_v1_report_list_update_log_state', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
