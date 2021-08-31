@@ -7692,7 +7692,7 @@ this.getQrBarcodeFeeback = async(request) => {
 
        let paramsArr = new Array(
             request.organization_id,
-            request.asset_id,
+            request.target_asset_id,
             request.flag || 1,
             request.datetime_start,
 	        request.datetime_end,
