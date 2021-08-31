@@ -3378,7 +3378,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 						//console.log(data[0].memberDiscount); 
 					global.logger.write('debug','Discount '+data[0].memberDiscount, {},request);
 					
-					getReservationBilling(request, idReservation, data[0].nameReservation, data[0].idMember, data[0].nameMember, data[0].memberDiscount).then((resevationBillAmount)=>{
+					getReservationBilling(request, idReservation, data[0].nameReservation, data[0].idMember, data[0].nameMember, data[0].memberDiscount, data[0].serviceChargePercentage).then((resevationBillAmount)=>{
 						
 						global.logger.write('conLog', 'resevationBill ' + resevationBillAmount, {}, request);
 						
@@ -3444,7 +3444,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
         });
     };
     
-    function getReservationBilling(request, idReservation, nameReservation, idMember, nameMember, discount){
+    function getReservationBilling(request, idReservation, nameReservation, idMember, nameMember, discount, serviceChargePercentage){
     	return new Promise((resolve, reject)=>{    		
 			 var total_mrp = 0;
 			 var total_discount = 0;
@@ -3461,13 +3461,14 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 					forEachAsync(rowData, (next1, rowData1)=>{ 
 						//console.log(JSON.parse(rowData1.activity_inline_data).activity_type_id);
 						//
-						var cost = 0;
-					 	var tax_percent = 0;
-					 	var dis_amount = 0;
-						var tax_amount = 0;
-					 	var price_after_discount = 0;
-					 	var final_price = 0;
-					 	var activity_type_name = '';
+						let cost = 0;
+                        let tax_percent = 0;
+                        let dis_amount = 0;
+						let tax_amount = 0;
+                        let price_after_discount = 0;
+                        let final_price = 0;
+                        let service_charge = 0;
+                        let activity_type_name = '';
 					 	orderActivityId = rowData1.activity_id;
 					 	
 					 	if(JSON.parse(rowData1.activity_inline_data).activity_type_id == 52049){
@@ -3499,12 +3500,13 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 						
 						dis_amount =  (cost * item_discount)/100;
 						total_mrp = total_mrp + cost;
-						 
+						                        
 						price_after_discount = cost - dis_amount;
 						tax_percent= JSON.parse(rowData1.activity_inline_data).tax;
 						tax_amount = (price_after_discount * tax_percent)/100;
 						final_price = price_after_discount + tax_amount;
-						
+						service_charge = (final_price * serviceChargePercentage)/100;
+                        final_price = final_price + service_charge;
 						total_price = total_price + final_price;
 						//console.log('total price '+total_price);
 						total_tax = total_tax + tax_amount;
@@ -3531,6 +3533,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 								choices: JSON.parse(rowData1.activity_inline_data).item_choices,
 								choices_count:0,
 								order_price:cost,
+								service_charge_percent:serviceChargePercentage,
+								service_charge:service_charge,                                
 								discount_percent:item_discount,
 								discount:dis_amount,
 								price_after_discount:price_after_discount,
@@ -3551,12 +3555,12 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 							//for (key in arr)
 							forEachAsync(arr, (next2, choiceData)=>{ 
 								
-								var choice_cost = 0;
-								var dis_amount = 0;
-								var choice_tax_amount = 0;
-								
-							 	var choice_price_after_discount = 0;
-							 	var choice_final_price = 0;
+								let choice_cost = 0;
+								let dis_amount = 0;
+								let choice_tax_amount = 0;
+								let choice_service_charge = 0;
+							 	let choice_price_after_discount = 0;
+							 	let choice_final_price = 0;
 								
 								choice_cost = choiceData.quantity * choiceData.price;
 								total_mrp = total_mrp + choice_cost;
@@ -3573,15 +3577,17 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 								}
 								
 								dis_amount =  (choice_cost * item_discount)/100;
-								
 								choice_price_after_discount = choice_cost - dis_amount;
 								
 								
 								choice_tax= choiceData.tax;
 								
 								choice_tax_amount = (choice_price_after_discount * choice_tax)/100;
-								choice_final_price = choice_price_after_discount + choice_tax_amount;
-								
+								choice_final_price = choice_price_after_discount + choice_tax_amount + choice_service_charge;
+
+                                choice_service_charge = (choice_final_price * serviceChargePercentage)/100;
+                                choice_final_price = choice_final_price + choice_service_charge;
+        
 								total_price = total_price + choice_final_price;
 								//console.log('IN Choice total price '+total_price);
 								total_tax = total_tax + choice_tax_amount;
@@ -3599,6 +3605,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 								attributeArray.choices= '';
 								attributeArray.choices_count=0;
 								attributeArray.order_price=choice_cost;
+                                attributeArray.service_charge_percent=serviceChargePercentage;
+								attributeArray.service_charge=service_charge;                               
 								attributeArray.discount_percent=item_discount;
 								attributeArray.discount=dis_amount;
 								attributeArray.price_after_discount=choice_price_after_discount;
@@ -3715,13 +3723,15 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 attributeArray.price_after_discount,
                 attributeArray.tax_percent,
                 attributeArray.tax,
+                attributeArray.service_charge_percent,
+                attributeArray.service_charge,                 
                 attributeArray.final_price,                
                 request.datetime_log,
                 attributeArray.log_asset_id,
                 attributeArray.log_asset_first_name
                 );
             
-	            var queryString = util.getQueryString("pm_v1_1_pam_order_list_insert", paramsArr);
+	            let queryString = util.getQueryString("pm_v1_3_pam_order_list_insert", paramsArr);
 	            
 	            if (queryString != '') {
 	                db.executeQuery(0, queryString, request, function (err, data) {                  

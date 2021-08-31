@@ -326,7 +326,7 @@ function PamUpdateService(objectCollection) {
                                     console.log("pamUpdateService "+err)                       
                                 }else{
                                     console.log("pamUpdateService "+shortlink);                        
-                                    let text = `Dear ${data[0].nameMember},your bill of ${reservationBill} for your reservation number ${data[0].nameActivitySubType} has been generated and your reservation is closed.`
+                                    let text = `Dear ${data[0].nameMember},your bill of Rs.${reservationBill}/- for your reservation number ${data[0].nameActivitySubType} has been generated and your reservation is closed.`
                                     text = text+`Click on the link below to see your bill `
                                     text = text+`${shortlink} -GreneOS`; 
                                     pamService.sendSms(data[0].memberPhoneCountryCode, data[0].memberPhoneNumber,text);                          
