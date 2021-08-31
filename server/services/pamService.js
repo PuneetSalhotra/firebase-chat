@@ -4926,6 +4926,33 @@ this.getChildOfAParent = async (request) => {
         return [error, responseData];       
     
     }
+
+    //Get Member Reservation in an event
+    this.getMemberReservationDetails = async (request) => {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id || 351, //
+            request.account_id || 452, //,
+            request.event_activity_id,
+            request.member_asset_id
+            );
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_reservation', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }        
+        return [error, responseData];
+    }
+
 };
 
 module.exports = PamService;
