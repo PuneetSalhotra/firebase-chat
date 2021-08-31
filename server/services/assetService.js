@@ -7715,3 +7715,4 @@ this.getQrBarcodeFeeback = async(request) => {
     };
 }
 module.exports = AssetService;
+
