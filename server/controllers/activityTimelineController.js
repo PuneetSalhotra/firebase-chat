@@ -197,9 +197,9 @@ function ActivityTimelineController(objCollection) {
 
         var proceedActivityTimelineAdd = function (formTransactionId) {
 
-            let firstRequest = Object.clone({}, req.body);
+            let firstRequest = Object.assign({}, req.body);
             firstRequest.log_asset_id = req.body.asset_id;
-            let firstRequest2 = Object.clone({}, req.body);
+            let firstRequest2 = Object.assign({}, req.body);
             firstRequest2.log_asset_id = req.body.access_asset_id;
             proceedActivityTimelineAddV1(formTransactionId, firstRequest);
             proceedActivityTimelineAddV1(formTransactionId, firstRequest2);
