@@ -885,7 +885,7 @@ function ActivityTimelineService(objectCollection) {
 
             let [err, data] = await getPreviewEnabledFields(request);
 
-            let formInlineData = activityTimelineCollection.form_submitted;
+            let formInlineData = activityTimelineCollection.form_submitted || [];
             let formFieldPreviewEnabled = [];
             formInlineData = (typeof formInlineData === 'string') ?
             JSON.parse(formInlineData) : formInlineData;

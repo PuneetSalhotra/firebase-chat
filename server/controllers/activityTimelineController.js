@@ -16,7 +16,7 @@ function ActivityTimelineController(objCollection) {
     var util = objCollection.util;
 
     var activityTimelineService = new ActivityTimelineService(objCollection);
-
+    
     app.post('/' + global.config.version + '/activity/timeline/entry/add',async function (req, res) {
         util.logInfo(req.body,`::START:: activity_id-${req.body.activity_id || ""}`);
         util.logInfo(req.body,`Request Params %j`,JSON.stringify(req.body,null, 4));
@@ -46,6 +46,173 @@ function ActivityTimelineController(objCollection) {
                 //method: "addTimelineTransaction",
                 method: "addTimelineTransactionAsync",
                 payload: req.body
+            };
+            queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
+                if (err) {
+                    //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
+                    //global.logger.write('serverError',"Error in queueWrapper raiseActivityEvent",err,req);                            
+                    res.json(responseWrapper.getResponse(true, {}, -5999, req.body));
+                    throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                } else {
+                    if (req.hasOwnProperty('device_os_id')) {
+                        if (Number(req.device_os_id) !== 5) {
+                            //incr the asset_message_counter                        
+                            cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
+                                if (err) {
+                                    //console.log("error in setting in asset parity");
+                                    util.logError(req.body,`error in setting in asset parity`, { type: 'activity_timeline', error: serializeError(err) });
+                                } else
+                                    //console.log("asset parity is set successfully")
+                                    util.logInfo(req.body,`asset parity is set successfully`);
+                            });
+                        }
+                    }
+                    if (formTransactionId > 0)
+                        res.json(responseWrapper.getResponse(false, {
+                            form_transaction_id: formTransactionId
+                        }, 200, req.body));
+                    else
+                        res.json(responseWrapper.getResponse(false, {}, 200, req.body));
+                    return;
+                }
+            });
+            /*if (formTransactionId > 0)
+                res.json(responseWrapper.getResponse(false, {form_transaction_id: formTransactionId}, 200,req.body));
+            else
+                res.json(responseWrapper.getResponse(false, {}, 200,req.body));
+            return;*/
+        };
+        if (req.body.hasOwnProperty('activity_stream_type_id') && req.body.activity_stream_type_id > 0) {
+            if (util.hasValidActivityId(req.body)) {
+                if ((util.isValidAssetMessageCounter(req.body)) && deviceOsId !== 5) {
+                    cacheWrapper.checkAssetParity(req.body.asset_id, (assetMessageCounter), function (err, status) {
+                        if (err) {
+                            res.json(responseWrapper.getResponse(false, {}, -7998, req.body));
+                        } else {
+                            if (status) { // proceed
+                                if (streamTypeId === 705) { // submit form case   
+                                    proceedActivityTimelineAdd(Number(req.body.form_transaction_id));
+                                    cacheWrapper.setMessageUniqueIdLookup(req.body.message_unique_id, req.body.form_transaction_id, function (err, status) {
+                                        if (err) {
+                                            util.logError(req.body,`error in setting in message unique id look up`, { type: 'activity_timeline', error: serializeError(err) });
+                                        } else {
+                                            util.logInfo(req.body,` message unique id look up is set successfully`);
+                                        }
+                                    });
+
+                                } else {
+                                    req.body.flag_timeline_entry = 1;
+                                    proceedActivityTimelineAdd(0); //passing formTransactionId as 0
+                                }
+                                cacheWrapper.setAssetParity(req.body.asset_id, req.body.asset_message_counter, function (err, status) {
+                                    if (err) {
+                                        console.log("");
+                                        util.logError(req.body,`error in setting in asset parity`, { type: 'activity_timeline', error: serializeError(err) });
+                                    } else {
+                                        util.logInfo(req.body,`asset parity is set successfully`);
+                                    }
+
+                                });
+                            } else { // this is a duplicate hit,
+                                console.log('this is a duplicate hit');
+                                util.logInfo(req.body,`this is a duplicate hit`);
+                                res.json(responseWrapper.getResponse(false, {}, 200, req.body));
+                            }
+                        }
+                    });
+
+                } else if (deviceOsId === 5) {
+
+                    //proceedActivityTimelineAdd(0);//passing formTransactionId as o
+                    if (streamTypeId === 705) {
+                        /*
+                         if (req.body.hasOwnProperty('form_transaction_id') && Number(req.body.form_transaction_id) > 0) {
+                         req.body.flag_timeline_entry = 0;
+                         proceedActivityTimelineAdd(Number(req.body.form_transaction_id));
+                         cacheWrapper.setMessageUniqueIdLookup(req.body.message_unique_id, req.body.form_transaction_id, function (err, status) {
+                         if (err) {
+                         console.log("error in setting in message unique id look up");
+                         } else
+                         console.log("message unique id look up is set successfully");
+                         });
+                         } else {
+                         cacheWrapper.getFormTransactionId(function (err, formTransactionId) {
+                         if (err) {
+                         console.log(err);
+                         res.json(responseWrapper.getResponse(false, {form_transaction_id: 0}, -7998));
+                         return;
+                         } else {
+                         req.body['form_transaction_id'] = formTransactionId;
+                         proceedActivityTimelineAdd(formTransactionId);
+                         cacheWrapper.setMessageUniqueIdLookup(req.body.message_unique_id, formTransactionId, function (err, status) {
+                         if (err) {
+                         console.log("error in setting in message unique id look up");
+                         } else
+                         console.log("message unique id look up is set successfully");
+                         });
+                         }
+                         });
+                         }
+                         */
+
+                        proceedActivityTimelineAdd(Number(req.body.form_transaction_id));
+                    } else {
+                        req.body.flag_timeline_entry = 1;
+                        proceedActivityTimelineAdd(0); //passing formTransactionId as 0
+
+                    }
+                } else {
+                    res.json(responseWrapper.getResponse(false, {}, -3304, req.body));
+                }
+            } else {
+                res.json(responseWrapper.getResponse(false, {}, -3301, req.body));
+            }
+        } else {
+            res.json(responseWrapper.getResponse(false, {}, -3305, req.body));
+        }
+
+    });
+
+
+    app.post('/' + global.config.version + '/activity/timeline/entry/add/v2',async function (req, res) {
+        util.logInfo(req.body,`::START:: activity_id-${req.body.activity_id || ""}`);
+        util.logInfo(req.body,`Request Params %j`,JSON.stringify(req.body,null, 4));
+        
+        var assetMessageCounter = 0;
+        var deviceOsId = 0;
+        if (req.body.hasOwnProperty('asset_message_counter'))
+            assetMessageCounter = Number(req.body.asset_message_counter);
+        if (req.body.hasOwnProperty('device_os_id'))
+            deviceOsId = Number(req.body.device_os_id);
+        var streamTypeId = Number(req.body.activity_stream_type_id);
+
+        if(req.body.hasOwnProperty('activity_timeline_collection')) {
+            try {
+                JSON.parse(req.body.activity_timeline_collection);
+            } catch (exception) {                
+                res.json(responseWrapper.getResponse(false, {}, -3308, req.body));
+                return;
+            }
+        }
+
+        var proceedActivityTimelineAdd = function (formTransactionId) {
+
+            let firstRequest = Object.assign({}, req.body);
+            firstRequest.log_asset_id = req.body.asset_id;
+            let firstRequest2 = Object.assign({}, req.body);
+            firstRequest2.log_asset_id = req.body.access_asset_id;
+            proceedActivityTimelineAddV1(formTransactionId, firstRequest);
+            proceedActivityTimelineAddV1(formTransactionId, firstRequest2);
+        };
+
+        var proceedActivityTimelineAddV1 = function (formTransactionId, mainRequest) {
+
+            var event = {
+                name: "addTimelineTransaction",
+                service: "activityTimelineService",
+                //method: "addTimelineTransaction",
+                method: "addTimelineTransactionAsync",
+                payload: mainRequest
             };
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
                 if (err) {

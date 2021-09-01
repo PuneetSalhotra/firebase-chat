@@ -6,7 +6,7 @@ var uuid = require('uuid');
 var AwsSns = require('../utils/snsWrapper');
 var makingRequest = require('request');
 const nodeUtil = require('util');
-
+let TinyURL = require('tinyurl');
 
 function PamService(objectCollection) {
 
@@ -2706,44 +2706,73 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         console.log('Request params : ', request);
-        let supportNumber = "916309386175";
-        let entry = "parking garage @ Radisson Blu";
-        let operationalHours = "Tuesday-Sunday, 7 p.m. to 4 a.m";
-        let companyName = "Pudding n Mink";
-        if(request.hasOwnProperty('member_passcode')) {  
-            /*        
-             var text = "It gives us great pleasure to welcome you as a member at "+companyName+". Your personal code is "+request.member_passcode+".";
-                        text += " This code is meant for your entry and billing only. Please keep your code private and do not share it with anybody else.";
-                        text += " Should you wish to bring guests please whatsapp or message or call on "+supportNumber+" to make a reservation.";
-                        text += " Remember the entry is only from the "+entry+".";
-                        text += " Our operational hours are Tuesday-Sunday, 7 p.m. to 4 a.m. Thank you. "+companyName+" -GreneOS";
+        //let supportNumber = "916309386175";
+        //let entry = "parking garage @ Radisson Blu";
+        //let operationalHours = "Tuesday-Sunday, 7 p.m. to 4 a.m";
+        //let companyName = "Pudding n Mink";
+        let link = "https://thepamapp.com/enter-mobile/"+request.organization_id;
+        let start = request.operation_start || "8 p.m";
+        let end = request.operation_end || "4 a.m";
+        //let memberName = "Sravan";
+        TinyURL.shorten(link, function(shortlink, err) {
+            if (err){
+                console.log("sendMemberPassCode "+err)                       
+            }else{
+                console.log("sendMemberPassCode "+shortlink); 
+                if(request.hasOwnProperty('member_passcode')) {  
+                    /*        
+                     var text = "It gives us great pleasure to welcome you as a member at "+companyName+". Your personal code is "+request.member_passcode+".";
+                                text += " This code is meant for your entry and billing only. Please keep your code private and do not share it with anybody else.";
+                                text += " Should you wish to bring guests please whatsapp or message or call on "+supportNumber+" to make a reservation.";
+                                text += " Remember the entry is only from the "+entry+".";
+                                text += " Our operational hours are Tuesday-Sunday, 7 p.m. to 4 a.m. Thank you. "+companyName+" -GreneOS";
+                                */
+                     //let text = "It gives us great pleasure to welcome you as a member at "+companyName+". Your personal code is "+request.member_passcode+". This code is meant for your entry and billing only. Please keep your code private and do not share it with anybody else. Should you wish to bring guests please whatsapp or message or call on "+supportNumber+" to make a reservation. Remember the entry is only from the "+entry+". Our operational hours are "+operationalHours+". Thank you "+companyName+" -GreneOS";
+                  
+                     let text = `Dear ${request.member_name}, `
+                     text = text + `You have been recommended for membership at Pudding & Mink by ${request.recommended_by}. ` 
+                     text = text + `Pudding & Mink is the world's first Ayurvedic Cocktail Room that prides itself on bringing together the ultimate in luxury and intimacy. True luxury is not just about expensive interiors, but also about the quality of ingredients that go into your drinks. Your personal member code is ${request.member_passcode}. Please keep your code private and do not share it with anybody else. You can make a reservation using the link ${shortlink} and by verifying your mobile number. Remember the entry is only from the parking garage @ Radisson Blu Banjara Hills. Our operational hours are ${start}, ${end}. -GreneOS`;           
+                        /*   
+                        let text = `Dear ${memberName}, `
+                        text = text + `You have been recommended for membership at Pudding & Mink by ${memberName}. ` 
+                        text = text + `Pudding & Mink is the world's first Ayurvedic Cocktail Room that prides itself on bringing together the ultimate in luxury and intimacy. True luxury is not just about expensive interiors, but also about the quality of ingredients that go into your drinks. Your personal member code is ${memberName}. Please keep your code private and do not share it with anybody else. You can make a reservation using the link ${memberName} and by verifying your mobile number. Remember the entry is only from the parking garage @ Radisson Blu Banjara Hills. Our operational hours are ${memberName}, ${memberName}. -GreneOS`;           
+        
+                                    let text = `Dear ${request.member_name}, `
+                                    text = text + `You have been recommended for membership at Pudding & Mink by ${request.member_name}. ` 
+                                    text = text + `Pudding & Mink is the world's first Ayurvedic Cocktail Room that prides itself on bringing together the ultimate in luxury and intimacy. True luxury is not just about expensive interiors, but also about the quality of ingredients that go into your drinks. Your personal member code is ${request.member_name}. Please keep your code private and do not share it with anybody else. You can make a reservation using the link ${request.member_name} and by verifying your mobile number. Remember the entry is only from the parking garage @ Radisson Blu Banjara Hills. Our operational hours are ${request.member_name}, ${request.member_name}. -GreneOS`;           
                         */
-             let text = "It gives us great pleasure to welcome you as a member at "+companyName+". Your personal code is "+request.member_passcode+". This code is meant for your entry and billing only. Please keep your code private and do not share it with anybody else. Should you wish to bring guests please whatsapp or message or call on "+supportNumber+" to make a reservation. Remember the entry is only from the "+entry+". Our operational hours are "+operationalHours+". Thank you "+companyName+" -GreneOS";
-             console.log('sms Text : ' + text);
-             self.sendSms(request.asset_phone_country_code,request.asset_phone_number,text);  
-             callback(false, {}, 200);
-        } else {
-            generateUniqueCode(request, function(err, data){
-                if (err === false) {
-                    updatePC(request, data).then(()=>{
-                        /*
-                         var text = "It gives us great pleasure to welcome you as a member at Pudding & Mink. Your personal code is "+data+".";
-                             text += " This code is meant for your entry and billing only. Please keep your code private and do not share it with anybody else.";
-                             text += " Should you wish to bring guests please whatsapp or message or call on 916309386175 to make a reservation.";
-                             text += " Remember the entry is only from the parking garage @ Radisson Blu Banjara Hills.";
-                             text += " Our operational hours are Tuesday-Sunday, 7 p.m. to 4 a.m. Thank you. Pudding & Mink";
-                             */
-                         let text = "It gives us great pleasure to welcome you as a member at "+companyName+". Your personal code is "+data+". This code is meant for your entry and billing only. Please keep your code private and do not share it with anybody else. Should you wish to bring guests please whatsapp or message or call on "+supportNumber+" to make a reservation. Remember the entry is only from the "+entry+". Our operational hours are "+operationalHours+". Thank you "+companyName+" -GreneOS";
-                         console.log('sms Text : ' + text);
-                         self.sendSms(request.asset_phone_country_code,request.asset_phone_number,text); 
-                         callback(false, {}, 200);
-                    });
+                     console.log('sms Text : ' + text);
+                     self.sendSms(request.asset_phone_country_code,request.asset_phone_number,encodeURIComponent(text));  
+                     callback(false, {}, 200);
                 } else {
-                    callback(true, err, -9999);
-                }
+                    generateUniqueCode(request, function(err, data){
+                        if (err === false) {
+                            updatePC(request, data).then(()=>{
+                                /*
+                                 var text = "It gives us great pleasure to welcome you as a member at Pudding & Mink. Your personal code is "+data+".";
+                                     text += " This code is meant for your entry and billing only. Please keep your code private and do not share it with anybody else.";
+                                     text += " Should you wish to bring guests please whatsapp or message or call on 916309386175 to make a reservation.";
+                                     text += " Remember the entry is only from the parking garage @ Radisson Blu Banjara Hills.";
+                                     text += " Our operational hours are Tuesday-Sunday, 7 p.m. to 4 a.m. Thank you. Pudding & Mink";
+                                     */
+                                // let text = "It gives us great pleasure to welcome you as a member at "+companyName+". Your personal code is "+data+". This code is meant for your entry and billing only. Please keep your code private and do not share it with anybody else. Should you wish to bring guests please whatsapp or message or call on "+supportNumber+" to make a reservation. Remember the entry is only from the "+entry+". Our operational hours are "+operationalHours+". Thank you "+companyName+" -GreneOS";
+                                 let text = `Dear ${request.member_name}, `
+                                 text = text + `You have been recommended for membership at Pudding & Mink by ${request.recommended_by}. ` 
+                                 text = text + `Pudding & Mink is the world's first Ayurvedic Cocktail Room that prides itself on bringing together the ultimate in luxury and intimacy. True luxury is not just about expensive interiors, but also about the quality of ingredients that go into your drinks. Your personal member code is ${data}. Please keep your code private and do not share it with anybody else. You can make a reservation using the link ${shortlink} and by verifying your mobile number. Remember the entry is only from the parking garage @ Radisson Blu Banjara Hills. Our operational hours are ${start}, ${end}. -GreneOS`;           
+                    
+                                 console.log('sms Text : ' + text);
+                                 self.sendSms(request.asset_phone_country_code,request.asset_phone_number,encodeURIComponent(text)); 
+                                 callback(false, {}, 200);
+                            });
+                        } else {
+                            callback(true, err, -9999);
+                        }
+        
+                     });
+                }                
+            }
+        })        
 
-             });
-        }
    };
    
    function updatePC(request, code) {
@@ -3349,7 +3378,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 						//console.log(data[0].memberDiscount); 
 					global.logger.write('debug','Discount '+data[0].memberDiscount, {},request);
 					
-					getReservationBilling(request, idReservation, data[0].nameReservation, data[0].idMember, data[0].nameMember, data[0].memberDiscount).then((resevationBillAmount)=>{
+					getReservationBilling(request, idReservation, data[0].nameReservation, data[0].idMember, data[0].nameMember, data[0].memberDiscount, data[0].serviceChargePercentage).then((resevationBillAmount)=>{
 						
 						global.logger.write('conLog', 'resevationBill ' + resevationBillAmount, {}, request);
 						
@@ -3415,7 +3444,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
         });
     };
     
-    function getReservationBilling(request, idReservation, nameReservation, idMember, nameMember, discount){
+    function getReservationBilling(request, idReservation, nameReservation, idMember, nameMember, discount, serviceChargePercentage){
     	return new Promise((resolve, reject)=>{    		
 			 var total_mrp = 0;
 			 var total_discount = 0;
@@ -3432,13 +3461,14 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 					forEachAsync(rowData, (next1, rowData1)=>{ 
 						//console.log(JSON.parse(rowData1.activity_inline_data).activity_type_id);
 						//
-						var cost = 0;
-					 	var tax_percent = 0;
-					 	var dis_amount = 0;
-						var tax_amount = 0;
-					 	var price_after_discount = 0;
-					 	var final_price = 0;
-					 	var activity_type_name = '';
+						let cost = 0;
+                        let tax_percent = 0;
+                        let dis_amount = 0;
+						let tax_amount = 0;
+                        let price_after_discount = 0;
+                        let final_price = 0;
+                        let service_charge = 0;
+                        let activity_type_name = '';
 					 	orderActivityId = rowData1.activity_id;
 					 	
 					 	if(JSON.parse(rowData1.activity_inline_data).activity_type_id == 52049){
@@ -3470,12 +3500,13 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 						
 						dis_amount =  (cost * item_discount)/100;
 						total_mrp = total_mrp + cost;
-						 
+						                        
 						price_after_discount = cost - dis_amount;
 						tax_percent= JSON.parse(rowData1.activity_inline_data).tax;
 						tax_amount = (price_after_discount * tax_percent)/100;
 						final_price = price_after_discount + tax_amount;
-						
+						service_charge = (final_price * serviceChargePercentage)/100;
+                        final_price = final_price + service_charge;
 						total_price = total_price + final_price;
 						//console.log('total price '+total_price);
 						total_tax = total_tax + tax_amount;
@@ -3502,6 +3533,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 								choices: JSON.parse(rowData1.activity_inline_data).item_choices,
 								choices_count:0,
 								order_price:cost,
+								service_charge_percent:serviceChargePercentage,
+								service_charge:service_charge,                                
 								discount_percent:item_discount,
 								discount:dis_amount,
 								price_after_discount:price_after_discount,
@@ -3522,12 +3555,12 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 							//for (key in arr)
 							forEachAsync(arr, (next2, choiceData)=>{ 
 								
-								var choice_cost = 0;
-								var dis_amount = 0;
-								var choice_tax_amount = 0;
-								
-							 	var choice_price_after_discount = 0;
-							 	var choice_final_price = 0;
+								let choice_cost = 0;
+								let dis_amount = 0;
+								let choice_tax_amount = 0;
+								let choice_service_charge = 0;
+							 	let choice_price_after_discount = 0;
+							 	let choice_final_price = 0;
 								
 								choice_cost = choiceData.quantity * choiceData.price;
 								total_mrp = total_mrp + choice_cost;
@@ -3544,15 +3577,17 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 								}
 								
 								dis_amount =  (choice_cost * item_discount)/100;
-								
 								choice_price_after_discount = choice_cost - dis_amount;
 								
 								
 								choice_tax= choiceData.tax;
 								
 								choice_tax_amount = (choice_price_after_discount * choice_tax)/100;
-								choice_final_price = choice_price_after_discount + choice_tax_amount;
-								
+								choice_final_price = choice_price_after_discount + choice_tax_amount + choice_service_charge;
+
+                                choice_service_charge = (choice_final_price * serviceChargePercentage)/100;
+                                choice_final_price = choice_final_price + choice_service_charge;
+        
 								total_price = total_price + choice_final_price;
 								//console.log('IN Choice total price '+total_price);
 								total_tax = total_tax + choice_tax_amount;
@@ -3570,6 +3605,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 								attributeArray.choices= '';
 								attributeArray.choices_count=0;
 								attributeArray.order_price=choice_cost;
+                                attributeArray.service_charge_percent=serviceChargePercentage;
+								attributeArray.service_charge=service_charge;                               
 								attributeArray.discount_percent=item_discount;
 								attributeArray.discount=dis_amount;
 								attributeArray.price_after_discount=choice_price_after_discount;
@@ -3686,13 +3723,15 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 attributeArray.price_after_discount,
                 attributeArray.tax_percent,
                 attributeArray.tax,
+                attributeArray.service_charge_percent,
+                attributeArray.service_charge,                 
                 attributeArray.final_price,                
                 request.datetime_log,
                 attributeArray.log_asset_id,
                 attributeArray.log_asset_first_name
                 );
             
-	            var queryString = util.getQueryString("pm_v1_1_pam_order_list_insert", paramsArr);
+	            let queryString = util.getQueryString("pm_v1_3_pam_order_list_insert", paramsArr);
 	            
 	            if (queryString != '') {
 	                db.executeQuery(0, queryString, request, function (err, data) {                  
@@ -3828,11 +3867,34 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 let phoneNumber = util.replaceDefaultNumber(pamAssetDetails[0].asset_phone_number);
                 let countryCode = util.replaceDefaultNumber(pamAssetDetails[0].asset_phone_country_code);
                 let memberName = util.replaceDefaultString(pamAssetDetails[0].asset_first_name);
-                    
+                let link = "https://thepamapp.com/order-details/"+request.reservation_activity_id;
+                request.long_url = link;
+                request.member_name = memberName;
+                request.phone_number = phoneNumber;
+                request.country_code = countryCode;
+                //let res = await self.getShortFirebaseURL(request);
+                
+                TinyURL.shorten(request.long_url, function(res, err) {
+                    if (err){
+                        console.log("getShortFirebaseURL "+err)                       
+                    }else{
+                        console.log("getShortFirebaseURL "+res);                        
+                     let text = `Dear ${request.member_name}, there is an order placed on your reservation for the following items. Click on the link below to see your orders.`
+                        text = text +`\n${res} if this is not valid please speak to a staff member or call pudding and mink now. -GreneOS`
+                        console.log(text);
+                        self.sendSms(request.country_code,request.phone_number,text);                          
+                    }
+                });
+                /*
+                console.log("RES "+res)
+                let text = `Dear ${request.member_name}, there is an order placed on your reservation for the following items. Click on the link below to see your orders.`
+                text = text +`\n${res} if this is not valid please speak to a staff member or call pudding and mink now. -GreneOS`
+                 console.log(text);
+                 self.sendSms(request.country_code,request.phone_number,text);   
+                 */            
                 //let text = `Dear ${memberName},\nYou have just placed an order for ${request.item_order_count} items, if this is not valid please speak to our staff now -GreneOS`
-                let text = `Dear ${memberName}, You have just placed an order for ${request.item_order_count} items, if this is not valid please speak to our staff now. -GreneOS`;
-                console.log(text);
-                self.sendSms(countryCode,phoneNumber,text);
+               // let text = `Dear ${memberName}, You have just placed an order for ${request.item_order_count} items, if this is not valid please speak to our staff now. -GreneOS`;
+
                 err = false;
             }
         }catch(error){
@@ -4763,6 +4825,24 @@ this.getChildOfAParent = async (request) => {
         return [error, responseData];
     }
 
+    this.sendReservationSMS = async (request) => {
+        let responseData = [],
+        error = false;
+        let text = "";
+        getReservationMemberDiscount(request, request.reservation_activity_id).then((data)=>{
+            text = `Dear ${data[0].nameMember} \nYour ${data[0].noOfGuests} people reservation on ${util.convertDateFormat(data[0].datetimeStart,"dddd, Do MMMM")} for Dinner (8PM-11PM) is confirmed. Your reservation code is ${data[0].nameActivitySubType}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${supportContactNumber} \n-Pudding &amp; Mink Reservation Desk. -GreneOS`;
+            console.log("SMS :: "+text);
+            console.log("ENCODED SMS :: "+encodeURIComponent(text));
+            self.sendSms(data[0].memberPhoneCountryCode,data[0].memberPhoneNumber,encodeURIComponent(text));
+        });
+        
+        //text = "Dear test Your test people reservation on test, test for Dinner (8PM-11PM) is confirmed. Your reservation code is test. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call test -Pudding &amp; Mink Reservation Desk. -GreneOS";
+       // text = `Dear ${memberName} \nYour test people reservation on ${memberName}, ${memberName} for Dinner (8PM-11PM) is confirmed. Your reservation code is ${memberName}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${memberName} \n-Pudding &amp; Mink Reservation Desk. -GreneOS`;
+       // self.sendSms(countryCode,phoneNumber,encodeURIComponent(text));
+
+        return [error, responseData];
+    }
+
     //Get Trending Orders
     this.getTrendingOrders = async (request) => {
 
@@ -4786,7 +4866,103 @@ this.getChildOfAParent = async (request) => {
                 })
         }
         return [error, responseData];
+    }    
+
+    this.sendTestSMS = async (request) => {
+
+        let responseData = [],
+            error = false;
+            let memberName = "Sravan";
+            let reservationStartDatetimeIST = util.UTCtoIST("2021-08-27");
+            let noOfGuests = 10;
+            let supportContactNumber = "9010819966";
+            let reservationCode = "25874";
+            let countryCode = "91";
+            let phoneNumber = "7680000368";
+            let link = "thepam.page.link/6eZ4";
+
+/*
+            let memberName = "Sravan";
+            let link = "https://thepamapp.com/order-details/"+request.reservation_activity_id;
+
+            let text = `Dear ${memberName}, there is an order placed on your reservation for the following items. Click on the link below to see your orders.`
+            text = text +`\n${link} if this is not valid please speak to a staff member or call pudding and mink now. -GreneOS`
+*/
+
+/*
+            let text = `Dear ${memberName},your bill of ${memberName} for your reservation number ${memberName} has been generated and your reservation is closed.`
+            text = text+`Click on the link below to see your bill `
+            text = text+`${link} -GreneOS`;
+*/
+/*
+            TinyURL.shorten('https://thepamapp.com/order-details/10000010', function(res, err) {
+            if (err)
+                console.log(err)
+                console.log(res);
+            });
+*/
+/*
+            let text = `Dear ${memberName} `
+            text = text + `\nYou have been recommended for membership at Pudding & Mink by ${memberName}.`
+            text = text + `\nPudding & Mink is the world's first Ayurvedic Cocktail Room that prides itself on bringing together the ultimate in luxury and intimacy. True luxury is not just about expensive interiors, but also about the quality of ingredients that go into your drinks, the range of your conversations and connections, and the sense of always being welcomed and feeling safe. From Ayurvedic cocktails made from organic fresh fruit and vegetables, to jazz and comedy nights, and personalized service, we strive to always give you the best. Starting from 1st  September.`
+            text = text + `\nAs a member, you can make a reservation by clicking on the link below`
+            text = text + `\n${link}`
+            text = text + `\nWe look forward to having a drink with you.`
+            text = text + `\nThank you. Pudding & Mink -GreneOS`
+            console.log('SMS text : \n'+ text);
+*/
+            var verificationCode;
+            verificationCode = util.getVerificationCode();
+            let text = `OTP ${verificationCode} is for your member code validation at Pudding & Mink. Valid only for 30mins. Do not share OTP for security reasons -GreneOS`;           
+/*
+            let text = "";
+            /*`Dear ${memberName}`
+            text = text + `\nYour ${memberName} people reservation on ${memberName}, ${memberName} for Dinner (8PM-11PM) is confirmed. Your reservation code is ${memberName}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${memberName}`
+            text = text + `\n-Pudding & Mink Reservation Desk. -GreneOS`
+            */
+            //encodeURI(text);
+            //text = "Dear test Your test people reservation on test, test for Dinner (8PM-11PM) is confirmed. Your reservation code is test. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call test -Pudding &amp; Mink Reservation Desk. -GreneOS";
+            
+           // text = `Dear ${memberName} \nYour test people reservation on ${memberName}, ${memberName} for Dinner (8PM-11PM) is confirmed. Your reservation code is ${memberName}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${memberName} \n-Pudding & Mink Reservation Desk. -GreneOS`;
+/*            
+            let text = `Dear ${memberName}, `
+            text = text + `You have been recommended for membership at Pudding & Mink by ${memberName}. ` 
+            text = text + `Pudding & Mink is the world's first Ayurvedic Cocktail Room that prides itself on bringing together the ultimate in luxury and intimacy. True luxury is not just about expensive interiors, but also about the quality of ingredients that go into your drinks. Your personal member code is ${memberName}. Please keep your code private and do not share it with anybody else. You can make a reservation using the link ${memberName} and by verifying your mobile number. Remember the entry is only from the parking garage @ Radisson Blu Banjara Hills. Our operational hours are ${memberName}, ${memberName}. -GreneOS`;           
+            console.log(text);
+*/            
+            self.sendSms(countryCode,phoneNumber,encodeURIComponent(text));
+
+
+        return [error, responseData];       
+    
     }
+
+    //Get Member Reservation in an event
+    this.getMemberReservationDetails = async (request) => {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id || 351, //
+            request.account_id || 452, //,
+            request.event_activity_id,
+            request.member_asset_id
+            );
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_reservation', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }        
+        return [error, responseData];
+    }
+
 };
 
 module.exports = PamService;

@@ -626,6 +626,7 @@ function AnalyticsController(objCollection)
             let result = await analyticsService.getSipWidgets(req.body);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
+            console.log(err)
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });

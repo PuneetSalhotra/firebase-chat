@@ -463,6 +463,7 @@ this.getAllParticipantsAsync = async (request) => {
             case 325: // Add Participant Collection for taskList BETA
             case 723:
             case 724:
+            case 114: // IIT JAMMU ID CARD
             case 26004: // [Widget] Comment Added on Widget
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
@@ -713,6 +714,7 @@ this.getAllParticipantsAsync = async (request) => {
                 entityText2 = request.activity_timeline_text;
                 break;
             case 325: // [Files | Workflow] Add Comment/Attachment
+            case 114: // IIT JAMMU ID CARD
             case 26001: //Widget Created
             case 26004: // [Widget] Comment Added on Widget
             case 2505: // [Contact] Add Comment 
@@ -4558,6 +4560,7 @@ case 729: // Report form BC Edit
                 entityText2 = request.activity_timeline_text;
                 break;
             case 325: // [Files | Workflow] Add Comment/Attachment
+            case 114: // IIT JAMMU ID CARD
             case 26001: //Widget Created
             case 26004: // [Widget] Comment Added on Widget
             case 2505: // [Contact] Add Comment
@@ -4844,6 +4847,7 @@ case 729: // Report form BC Edit
                 entityText2 = request.activity_timeline_text;
                 break;
             case 325: // Add Participant Collection for taskList BETA
+            case 114: // IIT JAMMU ID CARD
             case 723:
             case 724:
             case 26004: // [Widget] Comment Added on Widget

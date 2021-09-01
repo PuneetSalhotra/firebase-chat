@@ -4026,7 +4026,7 @@ function ActivityListingService(objCollection) {
 					this.generateSummary(request);
 					return;
 				} else {
-					let header = "Meeting ID-";
+					let header = "Telecall/Discussion-Meeting ID-";
 					let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, 0);
 					if (wfActivityDetails.length > 0) {
 						header += wfActivityDetails[0].activity_cuid_3 + "-MOM Points";

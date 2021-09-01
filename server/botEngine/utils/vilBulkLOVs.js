@@ -132,12 +132,12 @@ const vilBulkLOVs = {
             "AddressEndB": 500,
             "CustomerNameEndB": 125,
             "SpecialInstructionsBySalesEndB": 1000,
-            "RackNoEndA" : 50,
-            "CageNoEndA" : 50,
-            "RackNoEndB" : 50,
-            "CageNoEndB" : 50
+            "RackNoEndA": 50,
+            "CageNoEndA": 50,
+            "RackNoEndB": 50,
+            "CageNoEndB": 50
         },
-        "email_validation" : [
+        "email_validation": [
             "ContactPersonEmailIdEndA",
             "ContactPersonEmailIdEndB"
         ]
@@ -270,6 +270,28 @@ const vilBulkLOVs = {
         "151730": {
             "form_id": 50855,
             "field_id": 312618
+        }
+    },
+    "third_party_opex": {
+        "149058": {
+            form_id: 50668,
+            business_case_type_field: 312682,
+            bulk_upload_field: 311412,
+            single_case: {
+                first_case: {
+                    current_fr_field: 312683,
+                    existing_fr_field: 312685,
+                    lastmile_field: 312684,
+                    service_provider_field: 312686
+                },
+                is_second_case_needed: 312687,
+                second_case: {
+                    current_fr_field: 312688,
+                    existing_fr_field: 312719,
+                    lastmile_field: 312720,
+                    service_provider_field: 312721
+                }
+            }
         }
     }
 };
