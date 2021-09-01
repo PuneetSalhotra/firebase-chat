@@ -10,6 +10,39 @@ function PayUPaymentGatewayService(objCollection) {
 
     const paymentUtil = new PaymentUtil(objCollection);
 
+    this.verifyResponseHash = function (request, context) {
+        logger.debug("verifyResponseHash=>")
+        let key = context.merchantParamData.param_1;
+        let salt = context.merchantParamData.param_2;
+        let isValidKey = false;
+        if (request.key === key) {
+            isValidKey = true;
+        }
+        let status = request.status;
+        let txnid = request.txnid;
+        let amount = request.amount;
+        let productinfo = request.productinfo;
+        let firstname = request.firstname;
+        let email = request.email;
+        let udf1 = request.udf1;
+        let udf2 = request.udf2;
+        let udf3 = request.udf3;
+        let udf4 = request.udf4;
+        let udf5 = request.udf5;
+        let requestHash = request.hash;
+        let hashtext = salt + "|" + status + "||||||" + udf5 + "|" + udf4 + "|" + udf3 + "|" + udf2 + "|" + udf1 + "|" + email + "|" + firstname + "|" + productinfo + "|" + amount + "|" + txnid + "|" + key;
+        logger.debug("hashtext = " + hashtext);
+        let hash = paymentUtil.sha512InHEX(hashtext);
+
+        logger.debug("requested hash = " + requestHash);
+        logger.debug("generated hash = " + hash);
+        if (requestHash === hash && isValidKey) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     this.createOrder = async function (request, context) {
         logger.info("PayUPaymentGatewayService : createOrder: merchant_id = " + request.merchant_id +
             " merchant_txn_ref_no = " + request.merchant_txn_ref_no);

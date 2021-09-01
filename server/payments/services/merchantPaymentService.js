@@ -374,92 +374,108 @@ function MerchantPaymentService(objectCollection) {
                                             errormsg: "payment gateway not attached to merchantId = " + request.udf1
                                         }];
                                     } else {
-                                        //Step 3: fetch the order details using orderId.
-                                        let [err, paymentresponse] = await gatewayInstance.fetchPaymentByUsingPaymentId(request, context);
-                                        if (!err) {
-                                            if (paymentresponse.paymentTransactionData.payment_status === "REQ") {
-                                                //Pending status
-                                                let finalResponse = {
-                                                    merchant_id: request.merchant_id,
-                                                    merchant_txn_ref_no: request.merchant_txn_ref_no,
-                                                    pg_ref_no: paymentresponse.paymentTransactionData.auth_no,
-                                                    transaction_id: paymentresponse.paymentTransactionData.transaction_id,
-                                                    response_code: "000",
-                                                    payment_response_code: "21",
-                                                    payment_response_desc: "PENDING",
-                                                    reservation_activity_id: paymentresponse.paymentTransactionData.reservation_activity_id,
-                                                    organization_id: paymentresponse.paymentTransactionData.organization_id,
-                                                    account_id: paymentresponse.paymentTransactionData.account_id,
-                                                    workforce_id: paymentresponse.paymentTransactionData.workforce_id
-                                                };
-                                                logger.info("handlePaymentResponse | finalResponse = ");
-                                                logger.info(JSON.stringify(finalResponse));
-                                                return [false, finalResponse];
+                                        let isValidResponse = false;
+                                        if ("PayU" === context.gatewayData.protocol_type) {
+                                            if (!gatewayInstance.verifyResponseHash(request, context)) {
+                                                logger.info("handlePaymentGatewayResponse | payment gateway not attached to merchantId = " + request.udf1);
+                                                return [true, {
+                                                    errormsg: "Invalid Hash : merchantId = " + request.udf1
+                                                }];
                                             } else {
-                                                try {
-                                                    //handle payment SUC or FAI response.
-                                                    let transaction_id = paymentresponse.paymentTransactionData.transaction_id;
-                                                    logger.debug("transaction_id = " + transaction_id);
-
-                                                    let [err, paymentTransaction] = await this.updatePaymentTransaction(request, request.merchant_id, request.merchant_txn_ref_no, paymentresponse.paymentTransactionData);
-                                                    if (!err) {
-                                                        let [err, paymentOrder] = await this.updatePaymentOrder(request, request.merchant_id, request.merchant_txn_ref_no, paymentresponse.paymentTransactionData, transaction_id);
-                                                        if (!err) {
-
-                                                            let payment_datetime = moment(paymentresponse.paymentTransactionData.acq_resp_date_time).utc().format("YYYY-MM-DD HH:mm:ss");
-
-                                                            let finalResponse = {
-                                                                merchant_id: paymentresponse.paymentTransactionData.merchant_id,
-                                                                merchant_txn_ref_no: paymentresponse.paymentTransactionData.merchant_txn_ref_no,
-                                                                amount: paymentresponse.paymentTransactionData.amount.toFixed(2),
-                                                                paymentDateTime: payment_datetime,
-                                                                authorization_code: paymentresponse.paymentTransactionData.str_fld_2,
-                                                                bank_ref_no: paymentresponse.paymentTransactionData.auth_id,
-                                                                pg_ref_no: paymentresponse.paymentTransactionData.auth_no,
-                                                                transaction_id: paymentresponse.paymentTransactionData.transaction_id,
-                                                                response_code: paymentresponse.paymentTransactionData.response_code,
-                                                                payment_response_code: paymentresponse.paymentTransactionData.response_code,
-                                                                payment_response_desc: paymentresponse.paymentTransactionData.response_desc,
-                                                                reservation_activity_id: paymentresponse.paymentTransactionData.reservation_activity_id,
-                                                                organization_id: paymentresponse.paymentTransactionData.organization_id,
-                                                                account_id: paymentresponse.paymentTransactionData.account_id,
-                                                                workforce_id: paymentresponse.paymentTransactionData.workforce_id
-                                                            };
-
-                                                            logger.info("handlePaymentGatewayResponse | payment response = ");
-                                                            logger.info(JSON.stringify(finalResponse));
-
-                                                            //-------------------------
-                                                            request.activity_id = paymentresponse.paymentTransactionData.reservation_activity_id;
-                                                            request.organization_id = paymentresponse.paymentTransactionData.organization_id;
-                                                            request.account_id = paymentresponse.paymentTransactionData.account_id;
-                                                            request.workforce_id = paymentresponse.paymentTransactionData.workforce_id;
-                                                            request.activity_type_category_id = 37;
-                                                            request.asset_id = 11031;
-                                                            if ("SUC" === paymentresponse.paymentTransactionData.payment_status) {
-                                                                request.activity_status_type_id = 99;  // paid                             
-                                                            } else {
-                                                                request.activity_status_type_id = 191; // payment failed
-                                                            }
-                                                            this.alterStatusMakeRequest(request);
-                                                            //-------------------------
-
-                                                            return [false, finalResponse];
-                                                        } else {
-                                                            logger.error("handlePaymentGatewayResponse| updatePaymentOrder | Error: ", err);
-                                                            return [true, err];
-                                                        }
-                                                    } else {
-                                                        logger.error("handlePaymentGatewayResponse| updatePaymentTransaction | Error: ", err);
-                                                        return [true, err];
-                                                    }
-                                                } catch (error) {
-                                                    logger.error(error);
-                                                }
+                                                isValidResponse = true;
                                             }
                                         } else {
-                                            logger.error("handlePaymentGatewayResponse| fetchPaymentByUsingPaymentId | Error: ", err);
-                                            return [true, paymentresponse];
+                                            isValidResponse = true;
+                                        }
+
+                                        if (isValidResponse) {
+                                            //Step 3: fetch the order details using orderId.
+                                            let [err, paymentresponse] = await gatewayInstance.fetchPaymentByUsingPaymentId(request, context);
+                                            if (!err) {
+                                                if (paymentresponse.paymentTransactionData.payment_status === "REQ") {
+                                                    //Pending status
+                                                    let finalResponse = {
+                                                        merchant_id: request.merchant_id,
+                                                        merchant_txn_ref_no: request.merchant_txn_ref_no,
+                                                        pg_ref_no: paymentresponse.paymentTransactionData.auth_no,
+                                                        transaction_id: paymentresponse.paymentTransactionData.transaction_id,
+                                                        response_code: "000",
+                                                        payment_response_code: "21",
+                                                        payment_response_desc: "PENDING",
+                                                        reservation_activity_id: paymentresponse.paymentTransactionData.reservation_activity_id,
+                                                        organization_id: paymentresponse.paymentTransactionData.organization_id,
+                                                        account_id: paymentresponse.paymentTransactionData.account_id,
+                                                        workforce_id: paymentresponse.paymentTransactionData.workforce_id
+                                                    };
+                                                    logger.info("handlePaymentResponse | finalResponse = ");
+                                                    logger.info(JSON.stringify(finalResponse));
+                                                    return [false, finalResponse];
+                                                } else {
+                                                    try {
+                                                        //handle payment SUC or FAI response.
+                                                        let transaction_id = paymentresponse.paymentTransactionData.transaction_id;
+                                                        logger.debug("transaction_id = " + transaction_id);
+
+                                                        let [err, paymentTransaction] = await this.updatePaymentTransaction(request, request.merchant_id, request.merchant_txn_ref_no, paymentresponse.paymentTransactionData);
+                                                        if (!err) {
+                                                            let [err, paymentOrder] = await this.updatePaymentOrder(request, request.merchant_id, request.merchant_txn_ref_no, paymentresponse.paymentTransactionData, transaction_id);
+                                                            if (!err) {
+
+                                                                let payment_datetime = moment(paymentresponse.paymentTransactionData.acq_resp_date_time).utc().format("YYYY-MM-DD HH:mm:ss");
+
+                                                                let finalResponse = {
+                                                                    merchant_id: paymentresponse.paymentTransactionData.merchant_id,
+                                                                    merchant_txn_ref_no: paymentresponse.paymentTransactionData.merchant_txn_ref_no,
+                                                                    amount: paymentresponse.paymentTransactionData.amount.toFixed(2),
+                                                                    paymentDateTime: payment_datetime,
+                                                                    authorization_code: paymentresponse.paymentTransactionData.str_fld_2,
+                                                                    bank_ref_no: paymentresponse.paymentTransactionData.auth_id,
+                                                                    pg_ref_no: paymentresponse.paymentTransactionData.auth_no,
+                                                                    transaction_id: paymentresponse.paymentTransactionData.transaction_id,
+                                                                    response_code: paymentresponse.paymentTransactionData.response_code,
+                                                                    payment_response_code: paymentresponse.paymentTransactionData.response_code,
+                                                                    payment_response_desc: paymentresponse.paymentTransactionData.response_desc,
+                                                                    reservation_activity_id: paymentresponse.paymentTransactionData.reservation_activity_id,
+                                                                    organization_id: paymentresponse.paymentTransactionData.organization_id,
+                                                                    account_id: paymentresponse.paymentTransactionData.account_id,
+                                                                    workforce_id: paymentresponse.paymentTransactionData.workforce_id
+                                                                };
+
+                                                                logger.info("handlePaymentGatewayResponse | payment response = ");
+                                                                logger.info(JSON.stringify(finalResponse));
+
+                                                                //-------------------------
+                                                                request.activity_id = paymentresponse.paymentTransactionData.reservation_activity_id;
+                                                                request.organization_id = paymentresponse.paymentTransactionData.organization_id;
+                                                                request.account_id = paymentresponse.paymentTransactionData.account_id;
+                                                                request.workforce_id = paymentresponse.paymentTransactionData.workforce_id;
+                                                                request.activity_type_category_id = 37;
+                                                                request.asset_id = 11031;
+                                                                if ("SUC" === paymentresponse.paymentTransactionData.payment_status) {
+                                                                    request.activity_status_type_id = 99;  // paid                             
+                                                                } else {
+                                                                    request.activity_status_type_id = 191; // payment failed
+                                                                }
+                                                                this.alterStatusMakeRequest(request);
+                                                                //-------------------------
+
+                                                                return [false, finalResponse];
+                                                            } else {
+                                                                logger.error("handlePaymentGatewayResponse| updatePaymentOrder | Error: ", err);
+                                                                return [true, err];
+                                                            }
+                                                        } else {
+                                                            logger.error("handlePaymentGatewayResponse| updatePaymentTransaction | Error: ", err);
+                                                            return [true, err];
+                                                        }
+                                                    } catch (error) {
+                                                        logger.error(error);
+                                                    }
+                                                }
+                                            } else {
+                                                logger.error("handlePaymentGatewayResponse| fetchPaymentByUsingPaymentId | Error: ", err);
+                                                return [true, paymentresponse];
+                                            }
                                         }
                                     }
                                 }
