@@ -806,6 +806,29 @@ function AdminListingService(objectCollection) {
         return [error, responseData];
     }
 
+    this.getAssetIdCardV1 = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.target_asset_id,
+            request.organization_id
+        );
+        const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_asset_id_card', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     // Get complete workforce list in the account
     this.workforceListSelectAccount = async function (request) {
         let responseData = [],
