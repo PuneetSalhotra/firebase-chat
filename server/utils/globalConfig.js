@@ -382,7 +382,7 @@ if(mode === 'local') {
 
 
     //Portal Service URL & Mobile Service URL
-    config.portalBaseUrl = "http://localhost:7001/";
+    config.portalBaseUrl = "http://localhost:7000/";
     config.mobileBaseUrl = "http://localhost:7000/";
 
     //making twilio, Nexmo Calls
@@ -440,6 +440,7 @@ if(mode === 'local') {
     config.CONSUMER_ENCODING = "utf8";
     config.CONSUMER_KEY_ENCODING = "utf8";
     ///////////////////////////////  
+    config.pamApplicationUrl = "http://localhost:3000/payment-response/";
 
     config.emailbaseUrlApprove = "https://stagingmydesk.desker.co";
     config.emailbaseUrlUpload = "https://stagingmydesk.desker.co";
@@ -842,6 +843,8 @@ if(mode === 'staging') {
     //Portal Service URL & Mobile Service URL
     config.portalBaseUrl = "https://stagingportal.worlddesk.cloud/";
     config.mobileBaseUrl = "https://stagingapi.worlddesk.cloud/";
+
+    config.pamApplicationUrl = "https://staging.thepamapp.com/payment-response/";
 
     //making twilio, Nexmo Calls
     config.efsPath = "/apistaging-data/";
