@@ -382,7 +382,7 @@ if(mode === 'local') {
 
 
     //Portal Service URL & Mobile Service URL
-    config.portalBaseUrl = "http://localhost:7000/";
+    config.portalBaseUrl = "http://localhost:7001/";
     config.mobileBaseUrl = "http://localhost:7000/";
 
     //making twilio, Nexmo Calls
