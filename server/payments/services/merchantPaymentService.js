@@ -1112,7 +1112,11 @@ function MerchantPaymentService(objectCollection) {
                                         pg_ref_no: paymentTransactionData.auth_no,
                                         transaction_id: paymentTransactionData.transaction_id,
                                         payment_response_code: paymentTransactionData.response_code,
-                                        payment_response_desc: paymentTransactionData.response_desc
+                                        payment_response_desc: paymentTransactionData.response_desc,
+                                        reservation_activity_id: paymentTransactionData.reservation_activity_id,
+                                        organization_id: paymentTransactionData.organization_id,
+                                        account_id: paymentTransactionData.account_id,
+                                        workforce_id: paymentTransactionData.workforce_id
                                     };
                                     logger.error('Duplicate response : Payment status = ' + payment_status);
                                     logger.info("sending back existing payment response = ");
@@ -1150,7 +1154,11 @@ function MerchantPaymentService(objectCollection) {
                                                             transaction_id: paymentresponse.paymentTransactionData.transaction_id,
                                                             response_code: "000",
                                                             payment_response_code: "21",
-                                                            payment_response_desc: "PENDING"
+                                                            payment_response_desc: "PENDING",
+                                                            reservation_activity_id: paymentresponse.paymentTransactionData.reservation_activity_id,
+                                                            organization_id: paymentresponse.paymentTransactionData.organization_id,
+                                                            account_id: paymentresponse.paymentTransactionData.account_id,
+                                                            workforce_id: paymentresponse.paymentTransactionData.workforce_id
                                                         };
                                                         logger.info("finalResponse = ");
                                                         logger.info(JSON.stringify(finalResponse));
@@ -1160,21 +1168,6 @@ function MerchantPaymentService(objectCollection) {
                                                             //handle payment SUC or FAI response.
                                                             let transaction_id = paymentresponse.paymentTransactionData.transaction_id;
                                                             logger.debug("transaction_id = " + transaction_id);
-
-                                                            //-------------------------
-                                                            request.activity_id = paymentresponse.paymentTransactionData.reservation_activity_id;
-                                                            request.organization_id = paymentresponse.paymentTransactionData.organization_id;
-                                                            request.account_id = paymentresponse.paymentTransactionData.account_id;
-                                                            request.workforce_id = paymentresponse.paymentTransactionData.workforce_id;
-                                                            request.activity_type_category_id = 37;
-                                                            request.asset_id = 11031;
-                                                            if ("SUC" === paymentresponse.paymentTransactionData.payment_status) {
-                                                                request.activity_status_type_id = 99;  // paid                             
-                                                            } else {
-                                                                request.activity_status_type_id = 191; // payment failed
-                                                            }
-                                                            this.alterStatusMakeRequest(request);
-                                                            //-------------------------
 
                                                             let [err, paymentTransaction] = await this.updatePaymentTransaction(request, request.merchant_id, request.merchant_txn_ref_no, paymentresponse.paymentTransactionData);
                                                             if (!err) {
@@ -1193,10 +1186,30 @@ function MerchantPaymentService(objectCollection) {
                                                                         transaction_id: paymentresponse.paymentTransactionData.transaction_id,
                                                                         response_code: "000",
                                                                         payment_response_code: paymentresponse.paymentTransactionData.response_code,
-                                                                        payment_response_desc: paymentresponse.paymentTransactionData.response_desc
+                                                                        payment_response_desc: paymentresponse.paymentTransactionData.response_desc,
+                                                                        reservation_activity_id: paymentresponse.paymentTransactionData.reservation_activity_id,
+                                                                        organization_id: paymentresponse.paymentTransactionData.organization_id,
+                                                                        account_id: paymentresponse.paymentTransactionData.account_id,
+                                                                        workforce_id: paymentresponse.paymentTransactionData.workforce_id
                                                                     };
                                                                     logger.info("finalResponse = ");
                                                                     logger.info(JSON.stringify(finalResponse));
+
+                                                                    //-------------------------
+                                                                    request.activity_id = paymentresponse.paymentTransactionData.reservation_activity_id;
+                                                                    request.organization_id = paymentresponse.paymentTransactionData.organization_id;
+                                                                    request.account_id = paymentresponse.paymentTransactionData.account_id;
+                                                                    request.workforce_id = paymentresponse.paymentTransactionData.workforce_id;
+                                                                    request.activity_type_category_id = 37;
+                                                                    request.asset_id = 11031;
+                                                                    if ("SUC" === paymentresponse.paymentTransactionData.payment_status) {
+                                                                        request.activity_status_type_id = 99;  // paid                             
+                                                                    } else {
+                                                                        request.activity_status_type_id = 191; // payment failed
+                                                                    }
+                                                                    this.alterStatusMakeRequest(request);
+                                                                    //-------------------------
+
                                                                     return [false, finalResponse];
                                                                 } else {
                                                                     logger.error("statusCheck| updatePaymentOrder | Error: ", err);
