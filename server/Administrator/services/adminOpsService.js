@@ -123,10 +123,10 @@ function AdminOpsService(objectCollection) {
             request.flag_enable_sip_module,
             request.flag_enable_elasticsearch,
             request.flag_enable_calendar,
-            request.log_asset_id,
+            request.asset_id,
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_2_organization_list_update_flags', paramsArr);
+        const queryString = util.getQueryString('ds_p1_3_organization_list_update_flags', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -958,7 +958,7 @@ function AdminOpsService(objectCollection) {
           request.org_exchange_server_domain || "",
           request.flag_enable_calendar || "",
           request.organization_type_id || 1,
-          request.log_asset_id || 1,
+          request.asset_id || 1,
           util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_5_organization_list_insert', paramsArr);
