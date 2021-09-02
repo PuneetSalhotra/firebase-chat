@@ -2329,7 +2329,7 @@ function AnalyticsService(objectCollection)
                         }
                     }
                     console.log("2");
-                    /*
+                    
                     if (verticalMap.size == 0) {
                         console.log("3");
                         console.log("Vertical details not available, so need to prepare data for widget_type_id = " + request.widget_type_id);
@@ -2337,7 +2337,7 @@ function AnalyticsService(objectCollection)
                         results.push(request.verticalData[request.widget_type_id]);
                         resolve(results);
 
-                    } else { */
+                    } else { 
                         console.log("4");
                         request.widget_type_id = Number(request.widget_type_id) | 0;
                         switch (request.widget_type_id) {
@@ -2363,7 +2363,7 @@ function AnalyticsService(objectCollection)
                             }
                         }
 
-                    //}
+                    }
                 })
                 .catch((error) => {
                     console.log("prepareWidgetData : Exception : ");
