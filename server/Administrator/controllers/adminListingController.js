@@ -126,6 +126,16 @@ function AdminListingController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/admin/asset/employee/id_card/cover/v1', async function (req, res) {
+        const [err, idCardData] = await adminListingService.getAssetIdCardV1(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, idCardData, 200, req.body));
+        } else {
+            console.log("/admin/asset/employee/id_card/cover | Error: ", err);
+            res.json(responseWrapper.getResponse(err, idCardData, -9999, req.body));
+        }
+    });
+
     // Portal: workforceListSelectAccount1
     // DB Call: ds_p1_1_workforce_list_select_account
      app.post('/' + global.config.version + '/admin/account/workforce/list', async function (req, res) {
