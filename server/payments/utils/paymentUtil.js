@@ -32,7 +32,13 @@ function PaymentUtil(objectCollection) {
         logger.info("isValid = " + isValid);
         return isValid;    
     }
-    
+
+    this.sha512InHEX = function (data) {
+        var hexData = crypto.createHash('sha512').update(data, 'utf8').digest('hex').toLowerCase();
+        logger.info("hashValue = " + hexData);
+        return hexData;
+    }
+
     this.isNumber = function (data) {
         return data !== undefined && data !== null && (!isNaN(Number(data)));
     }

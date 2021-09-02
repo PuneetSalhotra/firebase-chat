@@ -1368,6 +1368,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
+                    reportListHistoryInsert(request,3301)
                 })
                 .catch((err) => {
                     error = err;
@@ -1449,6 +1450,31 @@ function TasiService(objectCollection) {
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('dm_v1_report_list_update_log_state', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    reportListHistoryInsert(request,3302)
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+     async function reportListHistoryInsert(request,update_id) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.organization_id,
+            request.report_id,
+            update_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('dm_v1_report_list_history_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
