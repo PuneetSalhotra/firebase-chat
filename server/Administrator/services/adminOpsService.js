@@ -122,6 +122,7 @@ function AdminOpsService(objectCollection) {
             request.flag_form_tag,
             request.flag_enable_sip_module,
             request.flag_enable_elasticsearch,
+            request.flag_enable_calendar,
             request.log_asset_id,
             util.getCurrentUTCTime()
         );
@@ -953,11 +954,14 @@ function AdminOpsService(objectCollection) {
           request.flag_enable_form_tag || 0,
           request.flag_enable_sip_module || 0,
           request.flag_enable_elasticsearch || 0,
+          request.org_exchange_server_url || "",
+          request.org_exchange_server_domain || "",
+          request.flag_enable_calendar || "",
           request.organization_type_id || 1,
           request.log_asset_id || 1,
           util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_3_organization_list_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_5_organization_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -1504,7 +1508,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         const [errFour, coWorkerContactCardData] = await adminListingService.activityListSelectCategoryAsset({
             asset_id: deskAssetID,
             organization_id: organizationID,
-            activity_type_category_id: request.activity_type_category_id || 5
+            activity_type_category_id: 5
         });
         if (!errFour && Number(coWorkerContactCardData.length) > 0) {
             coWorkerContactCardActivityID = coWorkerContactCardData[0].activity_id;
