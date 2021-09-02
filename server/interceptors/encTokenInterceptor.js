@@ -186,6 +186,9 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                         case '/' + global.config.version + '/pam/payment/webhook/response':
                             next();
                             break;
+                        case '/' + global.config.version + '/pam/payment/response':
+                            next();
+                            break;
                         default:
                             if (req.body.hasOwnProperty("activity_id")) {
                                 req.body['module'] = 'activity';

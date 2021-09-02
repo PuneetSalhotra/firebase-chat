@@ -201,6 +201,7 @@ function ActivityTimelineController(objCollection) {
             firstRequest.log_asset_id = req.body.asset_id;
             let firstRequest2 = Object.assign({}, req.body);
             firstRequest2.log_asset_id = req.body.access_asset_id;
+            firstRequest2.asset_id = req.body.access_asset_id;
             proceedActivityTimelineAddV1(formTransactionId, firstRequest);
             proceedActivityTimelineAddV1(formTransactionId, firstRequest2);
         };
