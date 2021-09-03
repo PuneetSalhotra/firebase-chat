@@ -170,7 +170,6 @@ function PayUPaymentGatewayService(objCollection) {
                                                         if (response_date_time === null || response_date_time === "0000-00-00 00:00:00") {
                                                             response_date_time = new Date();
                                                         }
-                                                        context.paymentTransactionData.auth_no = statusresponse.mihpayid;
                                                         context.paymentTransactionData.auth_id = statusresponse.bank_ref_num;
                                                         context.paymentTransactionData.acq_resp_date_time = moment(response_date_time).utc().format("YYYY-MM-DD HH:mm:ss");
                                                         if (statusresponse.error_code !== undefined && statusresponse.error_code !== null) {
@@ -211,7 +210,6 @@ function PayUPaymentGatewayService(objCollection) {
                                                         if (response_date_time === null || response_date_time === "0000-00-00 00:00:00") {
                                                             response_date_time = new Date();
                                                         }
-                                                        context.paymentTransactionData.auth_no = statusresponse.mihpayid;
                                                         context.paymentTransactionData.auth_id = statusresponse.bank_ref_num;
                                                         context.paymentTransactionData.acq_resp_date_time = moment(response_date_time).utc().format("YYYY-MM-DD HH:mm:ss");
                                                         if (statusresponse.error_code !== undefined && statusresponse.error_code !== null) {
@@ -333,7 +331,6 @@ function PayUPaymentGatewayService(objCollection) {
                                                 if (response_date_time === null || response_date_time === "0000-00-00 00:00:00") {
                                                     response_date_time = new Date();
                                                 }
-                                                context.paymentTransactionData.auth_no = statusresponse.mihpayid;
                                                 context.paymentTransactionData.auth_id = statusresponse.bank_ref_num;
                                                 context.paymentTransactionData.acq_resp_date_time = moment(response_date_time).utc().format("YYYY-MM-DD HH:mm:ss");
                                                 if (request.error !== undefined && request.error !== null) {
@@ -374,7 +371,6 @@ function PayUPaymentGatewayService(objCollection) {
                                                 if (response_date_time === null || response_date_time === "0000-00-00 00:00:00") {
                                                     response_date_time = new Date();
                                                 }
-                                                context.paymentTransactionData.auth_no = statusresponse.mihpayid;
                                                 context.paymentTransactionData.auth_id = statusresponse.bank_ref_num;
                                                 context.paymentTransactionData.acq_resp_date_time = moment(response_date_time).utc().format("YYYY-MM-DD HH:mm:ss");
                                                 if (request.error !== undefined && request.error !== null) {
@@ -417,6 +413,77 @@ function PayUPaymentGatewayService(objCollection) {
                                     }
                                 } else {
                                     resolve([false, context]);//need to change
+                                }
+                            } catch (error) {
+                                logger.error("Exception--------");
+                                logger.error(error);
+                                logger.error("Exception--------");
+                            }
+                            resolve([false, context]);
+                        } else {
+                            resolve([true, { "errormsg": "Invalid Order" }]);
+                        }
+                    } else {
+                        resolve([true, { "errormsg": "Invalid Order" }]);
+                    }
+                });
+        });
+
+        return promise;
+
+    }
+
+    this.createRefund = async function (request, context) {
+
+        let payu_payment_id = context.paymentTransactionData.auth_no;
+
+        logger.info("PayUPaymentGatewayService : createRefund: payu_payment_id = " + payu_payment_id);
+
+        let promise = new Promise((resolve, reject) => {
+
+            let command = "cancel_refund_transaction";
+            let key = context.merchantParamData.param_1;
+            let salt = context.merchantParamData.param_2;
+
+            let payu_payment_id = context.paymentTransactionData.auth_no;
+            let amount = Number(request.amount).toFixed(2);
+            let tokenId = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
+
+            let hashtext = key + "|" + command + "|" + payu_payment_id + "|" + salt;
+            logger.debug("hashtext = " + hashtext);
+            let hash = paymentUtil.sha512InHEX(hashtext);
+            logger.debug("hash = " + hash);
+
+            let queryString = "key=" + key + "&command=" + command + "&var1=" + payu_payment_id + "&var2=" + tokenId + "&var3=" + amount + "&hash=" + hash;
+            logger.debug("queryString = " + queryString);
+
+            let postserviceurl = context.gatewayData.gateway_host_name + "/" + context.gatewayData.gateway_param_2;
+
+            //rejectUnauthorized : false,
+            requestServer.post({
+                url: postserviceurl,
+                body: queryString,
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            },
+                function (error, response, body) {
+                    logger.debug("body===========>");
+                    logger.debug(body);
+
+                    logger.error("error===========>");
+                    logger.error(error);
+
+                    if (!error && response.statusCode == 200) {
+                        if (body !== undefined) {
+                            logger.debug(body);
+                            try {
+                                let jsonbody = JSON.parse(body);
+                                if (jsonbody.status == 1 && jsonbody.error_code === 102) {
+                                    context.paymentTransactionData.payment_status = "REQ";
+                                    context.paymentTransactionData.auth_id = jsonbody.request_id;
+                                } else {
+                                    context.paymentTransactionData.payment_status = "FAI";
                                 }
                             } catch (error) {
                                 logger.error("Exception--------");
