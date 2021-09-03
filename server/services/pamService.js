@@ -3252,16 +3252,22 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                             //text = "Dear "+memberName+","+" Your code was used to make an order a few minutes ago.";
 			                /*text = "Dear "+memberName+","+" Your code was used to make an order at "+reservationCreatedDatetime+".";
                              text += " If you are not at Pudding \& Mink right now, please whatsapp / call us at 916309386175 immediately. Pudding & Mink";*/
-                         } else {
+                         }else if(request.hasOwnProperty('is_reservation_request')) {
+                            //memberName = "Sravan";
+                            //text = `Dear ${memberName},Your ${memberName} guest(s) reservation request has been received for ${memberName} at ${memberName}. The Pudding & Mink team will contact you shortly to confirm your reservation and a copy of this request has been sent to your registered mobile number. -GreneOS`;
+                            //text = `Dear Sravan, Your 10 guest(s) reservation request has been received for Friday, 27th August at 05:30 AM. The Pudding & Mink team will contact you shortly to confirm your reservation and a copy of this request has been sent to your registered mobile number.`
                             let reservationStartDatetimeIST = util.UTCtoIST(reservationStartDatetime);
-                            //text = `Dear ${memberName},\nYour reservation on ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")} for ${noOfGuests} is confirmed. Your reservation code is ${reservationCode}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${supportContactNumber}.`
-                            text = `Dear ${memberName},\nYour reservation on ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")} for ${noOfGuests} is confirmed. Your reservation code is ${reservationCode}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${supportContactNumber}. -GreneOS`;
+                            text = `Dear ${memberName},Your ${noOfGuests} guest(s) reservation request has been received for ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")}. The Pudding & Mink team will contact you shortly to confirm your reservation and a copy of this request has been sent to your registered mobile number. -GreneOS`
+                         }else {
+                            let reservationStartDatetimeIST = util.UTCtoIST(reservationStartDatetime);
+                            text = `Dear ${memberName},Your reservation on ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")} for ${noOfGuests} is confirmed. Your reservation code is ${reservationCode}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${supportContactNumber}.`
+                            //text = `Dear ${memberName},\nYour reservation on ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")} for ${noOfGuests} is confirmed. Your reservation code is ${reservationCode}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${supportContactNumber}. -GreneOS`;
                             //text = `Dear Sravan, You have just placed an order for 2 items, if this is not valid please speak to our staff now. -GreneOS`;
                             //text = `Dear ${memberName},\nYour first guest has arrived and the billing for this reservation is active. If the reservation code is being misused, please call us -GreneOS`;
                          }
                          console.log('SMS text............. : \n'+ text);
                          
-                            self.sendSms(countryCode,phoneNumber,text);
+                            self.sendSms(countryCode,phoneNumber,encodeURIComponent(text));
                             //self.sendSms(91,supportContactNumber,text);
 
                          return callback(false, 200);
@@ -4911,9 +4917,14 @@ this.getChildOfAParent = async (request) => {
             text = text + `\nThank you. Pudding & Mink -GreneOS`
             console.log('SMS text : \n'+ text);
 */
+/*
             var verificationCode;
             verificationCode = util.getVerificationCode();
             let text = `OTP ${verificationCode} is for your member code validation at Pudding & Mink. Valid only for 30mins. Do not share OTP for security reasons -GreneOS`;           
+*/
+            //let text = `Dear ${memberName},Your ${memberName} guest(s) reservation request has been received for ${memberName} at ${memberName}. The Pudding & Mink team will contact you shortly to confirm your reservation and a copy of this request has been sent to your registered mobile number. -GreneOS`;
+            let text = `Dear ${memberName},Your ${memberName} guest(s) reservation request has been received for ${memberName} at ${memberName}. The Pudding & Mink team will contact you shortly to confirm your reservation and a copy of this request has been sent to your registered mobile number. -GreneOS`
+
 /*
             let text = "";
             /*`Dear ${memberName}`
