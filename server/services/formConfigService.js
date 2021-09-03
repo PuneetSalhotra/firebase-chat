@@ -922,7 +922,8 @@ function FormConfigService(objCollection) {
         activityCommonService.getActivityByFormTransactionCallback(request, request.activity_id, (err, data) => {
             
             if (err === false) {
-                util.logInfo(request,`Data from activity_list: %j`, data.length);
+                util.logInfo(request,`Data from activity_list: %j`, data);
+                
                 var retrievedInlineData = [];
                 if (data.length > 0) {
                     request['activity_id'] = data[0].activity_id;
@@ -983,15 +984,15 @@ function FormConfigService(objCollection) {
                     // console.log('inline data',retrievedInlineData);
 
                     for(let i=0;i<activityInlineData.length;i++){
-                        var newData = activityInlineData[i];        
-                        request.new_field_value = newData.field_value;
-                        var dataTypeId = Number(newData.field_data_type_id);
+                        var newDataEach = activityInlineData[i];        
+                        request.new_field_value = newDataEach.field_value;
+                        var dataTypeId = Number(newDataEach.field_data_type_id);
                         //let dataTypeCategoryId = Number(newData.field_data_type_category_id);
                         
-                        switch(Number(newData.field_data_type_id)) {
-                            case 57: fireBotUpdateIntTables(request, newData);
+                        switch(Number(newDataEach.field_data_type_id)) {
+                            case 57: fireBotUpdateIntTables(request, newDataEach);
                                      break;
-                            case 33: fireBotUpdateIntTables(request, newData);
+                            case 33: fireBotUpdateIntTables(request, newDataEach);
                                      break;
                             //case 68: activityActivityMappingInsertV1(request, newData, 0);
                             //         break;
@@ -1044,8 +1045,8 @@ function FormConfigService(objCollection) {
                 
                                     // };
                                     // request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
-                                    request.form_id=newData.form_id;
-                                    request.field_id=newData.field_id;
+                                    request.form_id=newDataEach.form_id;
+                                    request.field_id=newDataEach.field_id;
                                     getLatestUpdateSeqId(request).then(async (data) => {
                 
                                         if (data.length > 0) {
@@ -1070,10 +1071,10 @@ function FormConfigService(objCollection) {
                 
                         });
                     }
-                    let content = `${newData.form_name}, has been updated`;
+                    let content = `Bulk fields have been updated`;
                     let activityTimelineCollection = {
                         form_submitted: retrievedInlineData,
-                        subject: `Field Updated for ${newData.form_name}`,
+                        subject: `Fields Updated for ${data[0].form_name}`,
                         content: content,
                         mail_body: `Form Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
                         attachments: [],
