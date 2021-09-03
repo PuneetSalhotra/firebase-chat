@@ -1212,8 +1212,18 @@ function FormConfigService(objCollection) {
 
             let workflowReference,documentReference,assetReference;
             let dataTypeComboId;
+            let dashboardEntityFieldData = [];
+
+            let [errorValueContributor, responseValueContributor] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowData[0].activity_type_id);
+            if (responseValueContributor.length > 0) {
+                dashboardEntityFieldData = activityCommonService.getDashboardEntityFieldData(responseValueContributor, responseValueContributor[0].dashboard_config_enabled);
+            } else {
+                util.logInfo(request, "No Response from activity_type :: " + responseValueContributor.length);
+            }
 
             forEachAsync(activityInlineData, (next, row) => {
+                let fieldData = row.field_value;
+                let fieldDataValue = "";
                 dataTypeComboId = (row.hasOwnProperty('data_type_combo_id')) ? row.data_type_combo_id: 0;
                 var params = new Array(
                     request.form_transaction_id, //0
@@ -1440,6 +1450,8 @@ function FormConfigService(objCollection) {
                         break;
                     case 33: //Single Selection List
                         params[18] = row.field_value;
+                        fieldData = row.field_value;
+                        fieldDataValue = "";
                         break;
                     case 34: //Multi Selection List
                         params[18] = row.field_value;
@@ -1467,6 +1479,8 @@ function FormConfigService(objCollection) {
                                 // p_entity_text_2 19
                                 params[19] = tempVar[4] || tempVar[2] || "";
                                 params[27] = JSON.stringify(tempObj);
+                                fieldData = tempVar[0];
+                                fieldDataValue = tempVar[1];
                             } catch (err) {
                                 util.logError(request,`ERROR in field edit - 57 : `, { type: 'put_latest_update_seq', error: serializeError(err) });
                             }
@@ -1505,6 +1519,9 @@ function FormConfigService(objCollection) {
                                 params[20] = tempVar[3] || "";
 
                                 params[27] = JSON.stringify(tempObj);
+
+                                fieldData = tempVar[0];
+                                fieldDataValue = tempVar[1];
                             } catch (err) {
                                 util.logError(request,`ERROR in field edit - 59 : `, { type: 'put_latest_update_seq', error: serializeError(err) });
                             }
@@ -1609,6 +1626,10 @@ function FormConfigService(objCollection) {
                     case 76: //Drop box data type
                              params[18] = (typeof row.field_value === 'object') ? JSON.stringify(row.field_value) : row.field_value;
                              break;
+                    default:
+                        fieldData = row.field_value;
+                        fieldDataValue = "";
+                        break;
                 }
 
                 params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
@@ -1648,6 +1669,11 @@ function FormConfigService(objCollection) {
                                 if(workflowData.length > 0) {
                                     util.logInfo(request,`addWorkFlow Values request.activity_id ${workflowData[0].activity_id}  workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
                                     await activityService.updateWorkflowValues({...request,workflow_activity_type_id:workflowData[0].activity_type_id},workflowData[0].activity_id)
+
+                                    if (dashboardEntityFieldData.includes(row.field_id) || dashboardEntityFieldData.includes(String(row.field_id)) || dashboardEntityFieldData.includes(Number(row.field_id))) {
+                                        activityCommonService.updateEntityFieldsForDashboardEntity(request, dashboardEntityFieldData, fieldData, fieldDataValue);
+                                    }
+
                                 }
                             });
 /*

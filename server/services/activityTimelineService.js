@@ -3280,6 +3280,9 @@ async function addFormEntriesAsync(request) {
     let errorValueContributor = true, responseValueContributor = [], data = [];
     let finalInlineData = {};
     let finalInlineDataKeys = [];
+    let dashboardEntityFieldData = [];
+    let fieldData = null;
+    let fieldDataValue = null;
     // Value Contributors
     if(request.hasOwnProperty("workflow_activity_id")){
 
@@ -3301,6 +3304,9 @@ async function addFormEntriesAsync(request) {
             }else{
                 util.logInfo(request, "No Response from activity_type :: "+responseValueContributor.length);
             }
+
+            dashboardEntityFieldData = activityCommonService.getDashboardEntityFieldData(responseValueContributor, responseValueContributor[0].dashboard_config_enabled);
+
         }else{
             util.logInfo(request, "No No Workflow");      
         }
@@ -3497,6 +3503,8 @@ async function addFormEntriesAsync(request) {
                 break;
             case 33: //Single Selection List
                 params[18] = row.field_value;
+                fieldData = row.field_value;
+                fieldDataValue = "";
                 break;
             case 34: //Multi Selection List
                 params[18] = row.field_value;
@@ -3578,6 +3586,8 @@ async function addFormEntriesAsync(request) {
                         params[27] = row.field_value;
                     }
                 }
+                fieldData = params[13];
+                fieldDataValue = workflowReference[1];
                 break;
             case 58://Document reference
                 // documentReference = row.field_value.split('|');
@@ -3604,6 +3614,8 @@ async function addFormEntriesAsync(request) {
                         params[27] = row.field_value;
                     }
                 }
+                fieldData = params[13];
+                fieldDataValue = params[18];
                 break;
             case 61: //Time Datatype
                 params[18] = row.field_value;
@@ -3678,6 +3690,10 @@ async function addFormEntriesAsync(request) {
                         console.log("Error while handling scheduling data type", row.value, e,e.stack);
                     }
                     break;
+            default:
+                fieldData = row.field_value;
+                fieldDataValue = "";
+                break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
@@ -3734,6 +3750,8 @@ async function addFormEntriesAsync(request) {
                     }else{
                         util.logInfo(request, "activityTimelineService:updateWorkflowValue Not Configured");
                     }
+
+                    activityCommonService.updateEntityFieldsForDashboardEntity(request, dashboardEntityFieldData, fieldData, fieldDataValue);
 
                 })
                 .catch((err) => {

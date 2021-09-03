@@ -6799,6 +6799,65 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         }
         return [error, responseData];
     }
+
+    this.updateEntityFields = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.workflow_activity_id,
+            request.field_data,
+            request.field_data_value,
+            request.sequence_id
+        );
+
+        const queryString = util.getQueryString('ds_v1_activity_search_list_update_entity_fields', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+    this.getDashboardEntityFieldData = async function (responseValueContributor, dashboard_config_enabled) {
+        let dashboardEntityFieldData = [];
+        if (dashboard_config_enabled != 1) {
+            return dashboardEntityFieldData;
+        }
+        let dashboardEntityFieldData = [];
+        if (responseValueContributor.length > 0) {
+            if (responseValueContributor[0].dashboard_config_fields != null && responseValueContributor[0].dashboard_config_fields !== []) {
+                dashboardEntityFieldData = JSON.parse(responseValueContributor[0].dashboard_config_fields);
+            }
+        }
+        return dashboardEntityFieldData;
+
+    }
+
+    this.updateEntityFieldsForDashboardEntity = async function (request, dashboardEntityFieldData, fieldData, fieldDataValue) {
+
+        let dashboardEntityFieldsDataKeys = Object.keys(dashboardEntityFieldData);
+        util.logInfo(request, "dashboardEntityFieldsDataKeys :: " + dashboardEntityFieldsDataKeys.includes(row.field_id));
+        if (dashboardEntityFieldsDataKeys.includes(row.field_id) || dashboardEntityFieldsDataKeys.includes(String(row.field_id))) {
+            util.logInfo(request, "activityTimelineService:updateWorkflowValue Configured :: " + row.field_id + " : " + dashboardEntityFieldData.workflow_fields[row.field_id].sequence_id);
+            request.sequence_id = dashboardEntityFieldData.workflow_fields[row.field_id].sequence_id
+            request.field_data = fieldData;
+            request.field_data_value = fieldDataValue;
+            activityCommonService.updateEntityFields(request);
+        } else {
+            util.logInfo(request, "activityTimelineService:updateEntityFields Not Configured");
+        }
+
+    }
 }
 
 
