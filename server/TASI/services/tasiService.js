@@ -1489,6 +1489,31 @@ function TasiService(objectCollection) {
         return [error, responseData];
     }
 
+    this.targetTypeMasterSelect = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.organization_id,
+            request.target_type_category_id,
+            request.start_form,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_target_type_master_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    reportListHistoryInsert(request,3302)
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 
 }
 
