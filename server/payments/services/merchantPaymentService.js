@@ -31,7 +31,7 @@ function MerchantPaymentService(objectCollection) {
                 let secretKey = responseData.merchant_secret_key;
                 secretKey = Buffer.from(secretKey, 'base64').toString();
 
-                let hashText = request.amount;
+                let hashText = "";
                 if (request.account_id !== undefined) {
                     hashText = request.account_id;
                 }
@@ -571,13 +571,13 @@ function MerchantPaymentService(objectCollection) {
             //request.activity_status_type_id = 99;
             //request.activity_type_category_id = 37;
             //await this.alterStatusMakeRequest(request)
-            return await this.handleWebhookRefundResponse(request);
+            return await this.handleRazorPayWebhookRefundResponse(request);
         } else {
-            return await this.handleWebhookPaymentResponse(request);
+            return await this.handleRazorPayWebhookPaymentResponse(request);
         }
     }
 
-    this.handleWebhookPaymentResponse = async function(request) {
+    this.handleRazorPayWebhookPaymentResponse = async function (request) {
         logger.info("MerchantPaymentService : handlePaymentResponseThroughWebhook : request : "  +  JSON.stringify(request));
         let razorpayMerchantId = global.config.razorpayMerchantId;
         
@@ -823,7 +823,7 @@ function MerchantPaymentService(objectCollection) {
         }
     }
 
-    this.handleWebhookRefundResponse = async function(request) {
+    this.handleRazorPayWebhookRefundResponse = async function (request) {
         let razorpayMerchantId = global.config.razorpayMerchantId;
         
         let razorpay_payment_id = null;
@@ -1266,10 +1266,8 @@ function MerchantPaymentService(objectCollection) {
 
     //API 6 :Raise new Refund.
     this.createRefund = async function(request) {
-        logger.info("MerchantPaymentService : createRefund : request : "  +  JSON.stringify(request));
-        let razorpayApiKey = global.config.razorpayApiKey;
-	    let razorpayMerchantId = global.config.razorpayMerchantId;
-
+        logger.info("MerchantPaymentService : createRefund : request : " + JSON.stringify(request));
+        let context = {};
         //Step 1: validate Each parameters
         let result = this.validateRefundRequest(request);
         if("Ok" !== result) {
@@ -1303,6 +1301,7 @@ function MerchantPaymentService(objectCollection) {
                         errormsg : "Invalid parameter `signature`"
                     }];
                 } else {
+
                     //Step 4: find order details using merchant_id and merchant_txn_ref_no
                     let [err, paymentOrderData] = await this.getPaymentOrder(request, request.merchant_id, request.original_merchant_txn_ref_no);
                     if (!err) {
@@ -1322,25 +1321,46 @@ function MerchantPaymentService(objectCollection) {
                                     if(payment_status === 'SUC') {
 
                                         if((paymentTransactionData.remaining_amount > 0) && (request.amount <= paymentTransactionData.remaining_amount)) {
-                                            //Step 6: initiate a new refund using razorpay_payment_id.
-                                            let [err, razorpay_payment] = await gatewayInstance.createRefund(paymentTransactionData.auth_id, { amount: Number(request.amount) * 100 });
+                                            context.paymentTransactionData = paymentTransactionData;
+                                            let [err, responseData] = await this.getPrePaymentDetailsForStatus(request, context);
                                             if (!err) {
-                                                //Pending status
-                                                let finalResponse = {
-                                                    merchant_id : request.merchant_id,
-                                                    merchant_txn_ref_no: request.merchant_txn_ref_no,
-                                                    original_merchant_txn_ref_no: request.original_merchant_txn_ref_no,
-                                                    pg_ref_no: paymentTransactionData.auth_no,
-                                                    transaction_id: paymentTransactionData.transaction_id,
-                                                    payment_response_code: "000",
-                                                    payment_response_desc: "Refund initiated successfully"
-                                                };
-                                                logger.info("finalResponse = ");
-                                                logger.info(JSON.stringify(finalResponse));
-                                                return [false, finalResponse];
-                                            } else {
-                                                logger.error(err);
-                                                return [true, err];
+                                                if (responseData === {}) {
+                                                    return [true, {
+                                                        errormsg: 'Internal Server Error'
+                                                    }];
+                                                } else {
+                                                    //Get Payment Gateway Instance
+                                                    let gatewayInstance = this.getPaymentGatewayInstance(context.gatewayData.protocol_type, objectCollection);
+                                                    if (gatewayInstance == null) {
+                                                        return [true, {
+                                                            errormsg: "payment gateway not attached to organization = " + request.organization_id
+                                                        }];
+                                                    } else {
+                                                        //Step 6: initiate a new refund using razorpay_payment_id.
+                                                        let [err, paymentContext] = await gatewayInstance.createRefund(request, context);
+                                                        if (!err) {
+                                                            if (paymentContext.paymentTransactionData.payment_status === "REQ") {
+                                                                //Pending status
+                                                                let finalResponse = {
+                                                                    merchant_id: request.merchant_id,
+                                                                    merchant_txn_ref_no: request.merchant_txn_ref_no,
+                                                                    original_merchant_txn_ref_no: request.original_merchant_txn_ref_no,
+                                                                    pg_ref_no: paymentContext.paymentTransactionData.auth_no,
+                                                                    refund_request_id: paymentContext.paymentTransactionData.auth_id,
+                                                                    transaction_id: paymentContext.paymentTransactionData.transaction_id,
+                                                                    payment_response_code: "000",
+                                                                    payment_response_desc: "Refund initiated successfully"
+                                                                };
+                                                                logger.info("finalResponse = ");
+                                                                logger.info(JSON.stringify(finalResponse));
+                                                                return [false, finalResponse];
+                                                            }
+                                                        } else {
+                                                            logger.error(err);
+                                                            return [true, err];
+                                                        }
+                                                    }
+                                                }
                                             }
                                         } else {
                                             logger.error('Refund not allowed');

@@ -2398,8 +2398,8 @@ function AnalyticsService(objectCollection)
                     break;
                 }
 
-                paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
-                paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
+                //paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
+                //paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 paramsArray[15] = 0;
                 paramsArray[1] = 1;
                 if (widgetFlags[iteratorM] == 2) {
@@ -5195,8 +5195,8 @@ function AnalyticsService(objectCollection)
                 if (isError) {
                     break;
                 }
-                paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
-                paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
+                //paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
+                //paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 paramsArray[15] = 0;
                 paramsArray[1] = 1;
                 if (widgetFlags[iteratorM] == 2) {
@@ -6007,8 +6007,8 @@ function AnalyticsService(objectCollection)
                 if (isError) {
                     break;
                 }
-                paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
-                paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
+                //paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
+                //paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 paramsArray[15] = 0;
                 paramsArray[1] = 1;
                 if (widgetFlags[iteratorM] == 2) {
