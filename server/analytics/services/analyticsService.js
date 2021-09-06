@@ -2204,7 +2204,7 @@ function AnalyticsService(objectCollection)
                         if(request.widget_type_id == 23 || request.widget_type_id == 24 || request.widget_type_id == 25 || request.widget_type_id == 37 || request.widget_type_id == 38
                          || request.widget_type_id == 48 || request.widget_type_id == 49 || request.widget_type_id == 65 || request.widget_type_id == 61
                          || request.widget_type_id == 63 || request.widget_type_id == 66 || request.widget_type_id == 67 || request.widget_type_id == 53 || request.widget_type_id == 54
-                         || request.widget_type_id == 39 || request.widget_type_id == 40 || request.widget_type_id == 41 || request.widget_type_id == 42
+                         || request.widget_type_id == 39 || request.widget_type_id == 40 || request.widget_type_id == 41 || request.widget_type_id == 42 || request.widget_type_id == 202 || request.widget_type_id == 203
                           ){
                             results[iterator] =
                             (
