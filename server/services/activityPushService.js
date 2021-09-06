@@ -743,6 +743,8 @@ function ActivityPushService(objectCollection) {
                                                     break;
     
                                               case 114: // IIT JAMMU ID CARD
+                                              case 115: // IIT JAMMU ID CARD
+                                              case 116: // IIT JAMMU ID CARD
                                               case 325: // Add Collection to the file
                                                     pushString.description = `${request.push_message || 'Added comment to workflow'} - ${senderName}`;
     

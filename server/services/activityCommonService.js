@@ -464,6 +464,8 @@ this.getAllParticipantsAsync = async (request) => {
             case 723:
             case 724:
             case 114: // IIT JAMMU ID CARD
+            case 115: // IIT JAMMU ID CARD
+            case 116: // IIT JAMMU ID CARD
             case 26004: // [Widget] Comment Added on Widget
                 activityTimelineCollection = request.activity_timeline_collection;
                 entityText1 = "";
@@ -715,6 +717,8 @@ this.getAllParticipantsAsync = async (request) => {
                 break;
             case 325: // [Files | Workflow] Add Comment/Attachment
             case 114: // IIT JAMMU ID CARD
+            case 115: // IIT JAMMU ID CARD
+            case 116: // IIT JAMMU ID CARD
             case 26001: //Widget Created
             case 26004: // [Widget] Comment Added on Widget
             case 2505: // [Contact] Add Comment 
@@ -4561,6 +4565,8 @@ case 729: // Report form BC Edit
                 break;
             case 325: // [Files | Workflow] Add Comment/Attachment
             case 114: // IIT JAMMU ID CARD
+            case 115: // IIT JAMMU ID CARD
+            case 116: // IIT JAMMU ID CARD
             case 26001: //Widget Created
             case 26004: // [Widget] Comment Added on Widget
             case 2505: // [Contact] Add Comment
@@ -4848,6 +4854,8 @@ case 729: // Report form BC Edit
                 break;
             case 325: // Add Participant Collection for taskList BETA
             case 114: // IIT JAMMU ID CARD
+            case 115: // IIT JAMMU ID CARD
+            case 116: // IIT JAMMU ID CARD
             case 723:
             case 724:
             case 26004: // [Widget] Comment Added on Widget
@@ -6184,7 +6192,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                       ];
     
     const queryString = util.getQueryString('ds_p1_activity_asset_search_mapping_select', paramsArr);
-    console.log(queryString)
+    // console.log(queryString)
     if (queryString !== '') {
         await db.executeQueryPromise(1, queryString, request)
             .then(async (data) => {
@@ -6220,6 +6228,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
              let previousData = resultData.hits.hits[0]._source;
              let dataToBeUpdated = {...previousData,...dataTobeSent};
             //  dataToBeUpdated.operating_asset_first_name = "esha"
+            util.logInfo(request,"insertActivityAssetMappingsinElastic : Updating existing value to : " + JSON.stringify(dataToBeUpdated))
              client.updateByQuery({
                 index: global.config.elasticActivityAssetTable,
                 "body": {
@@ -6250,6 +6259,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             });
             }
             else{
+                util.logInfo(request,"insertActivityAssetMappingsinElastic : Inserting new value to : " + JSON.stringify(dataTobeSent))
              client.index({
                  index:global.config.elasticActivityAssetTable,
                  body:{
@@ -6365,6 +6375,18 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 }
             });
             }
+            }
+            if(resultData.hits.hits.length==0){
+                util.logInfo(request,"insertManyAssetMappingsinElastic : Inserting new value to : " + JSON.stringify(dataTobeSent));
+                let insertedResponse = await new Promise((resolve)=>{ client.index({
+                    index:global.config.elasticActivityAssetTable,
+                    body:{
+                        ...dataTobeSent
+                    }
+                }).then(res=>{
+                    util.logInfo(request,"insertManyAssetMappingsinElastic : Inserted new value to : " + JSON.stringify(res));
+                    resolve()
+                }).catch(err=>resolve())})
             }
                 error = false;
             })
