@@ -2528,6 +2528,7 @@ function AnalyticsService(objectCollection)
             let results = new Array();
             let countTotal = new Array();
             let quantityTotal = new Array();
+            let activityStatusTypeIdArray = new Array(0, 0, 0, 0, 1, 1, 1, 1);
             let valueTotal = new Array();
             let widgetFlags = new Array();
             for (let i = 0; i < 8; i++) {
@@ -2548,6 +2549,7 @@ function AnalyticsService(objectCollection)
                     break;
                 }
 
+                paramsArray[15] = activityStatusTypeIdArray[iteratorM];
                 let status_tags = request.verticalData["status_tags"];
                 let key = request.verticalData["status_tags_array"][iteratorM];
                 paramsArray[16] = status_tags[key];
@@ -5312,6 +5314,7 @@ function AnalyticsService(objectCollection)
 
         try {
             console.log("prepareDataForWidgetType129ForResource :: ");
+            let activityStatusTypeIdArray = new Array(0, 0, 0, 0, 1, 1, 1, 1);;
             let results = new Array();
             let widgetFlags = new Array();
             let resourceValueFlgArray = new Array();
@@ -5372,7 +5375,7 @@ function AnalyticsService(objectCollection)
                 if (isError) {
                     break;
                 }
-
+                paramsArray[15] = activityStatusTypeIdArray[iteratorM];
                 let status_tags = request.verticalData["status_tags"];
                 let key = request.verticalData["status_tags_array"][iteratorM];
                 paramsArray[16] = status_tags[key];
@@ -6101,6 +6104,7 @@ function AnalyticsService(objectCollection)
 
         try {
             console.log("prepareDataForWidgetType129ForResourceAndVertical :: ");
+            let activityStatusTypeIdArray = new Array(0, 0, 0, 0, 1, 1, 1, 1);
             let results = new Array();
             let widgetFlags = new Array();
             let resourceValueFlgArray = new Array();
@@ -6137,6 +6141,7 @@ function AnalyticsService(objectCollection)
                     break;
                 }
 
+                paramsArray[15] = activityStatusTypeIdArray[iteratorM];
                 let status_tags = request.verticalData["status_tags"];
                 let key = request.verticalData["status_tags_array"][iteratorM];
                 paramsArray[16] = status_tags[key];
