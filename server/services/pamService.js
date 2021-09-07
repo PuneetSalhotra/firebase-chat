@@ -3210,6 +3210,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                                 expiryDatetime = util.replaceDefaultDatetime(resp[0].activity_datetime_end_estimated);
                                 reservationStartDatetime = util.replaceDefaultDatetime(resp[0].activity_datetime_start_expected);
                                 reservationCreatedDatetime = util.addUnitsToDateTime(util.replaceDefaultDatetime(resp[0].activity_datetime_created),5.5,'hours');
+                                noOfGuests = resp[0].form_id;
                                 console.log("reservationCreatedDatetime: "+reservationCreatedDatetime);
                                 
                                 request.work_station_asset_id = row.asset_id;
@@ -3237,7 +3238,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                         }                       
                         
                     }).then(() => {
-                         noOfGuests--;
+                         //noOfGuests--;
                          var text;
                          console.log('memberName : ', memberName);
                          console.log('countryCode: ', countryCode);
