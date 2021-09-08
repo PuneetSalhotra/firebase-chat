@@ -3590,7 +3590,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 								choice_tax= choiceData.tax;
 								
 								choice_tax_amount = (choice_price_after_discount * choice_tax)/100;
-								choice_final_price = choice_price_after_discount + choice_tax_amount + choice_service_charge;
+								choice_final_price = choice_price_after_discount + choice_tax_amount;
 
                                 choice_service_charge = (choice_final_price * serviceChargePercentage)/100;
                                 choice_final_price = choice_final_price + choice_service_charge;
@@ -3613,7 +3613,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 								attributeArray.choices_count=0;
 								attributeArray.order_price=choice_cost;
                                 attributeArray.service_charge_percent=serviceChargePercentage;
-								attributeArray.service_charge=service_charge;                               
+								attributeArray.service_charge=choice_service_charge;                               
 								attributeArray.discount_percent=item_discount;
 								attributeArray.discount=dis_amount;
 								attributeArray.price_after_discount=choice_price_after_discount;
