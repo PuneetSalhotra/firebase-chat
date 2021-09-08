@@ -133,7 +133,7 @@ function TasiService(objectCollection) {
         }
         return [error, responseData];
     }
-
+    
     this.assetTypeSipAdminRoleUpdate = async function (request) {
         let responseData = [],
             error = true;
@@ -166,6 +166,78 @@ function TasiService(objectCollection) {
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.updateFrontlineFlagForRole = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_type_id,
+            request.asset_type_name,
+            request.asset_type_flag_enable_approval,
+            request.asset_type_approval_max_levels,
+            request.asset_type_approval_wait_duration,
+            request.asset_type_approval_activity_type_id,
+            request.asset_type_approval_activity_type_name,
+            request.asset_type_approval_origin_form_id,
+            request.asset_type_approval_field_id,
+            request.asset_type_attendance_type_id,
+            request.asset_type_attendance_type_name,
+            request.asset_type_flag_enable_suspension,
+            request.asset_type_suspension_activity_type_id,
+            request.asset_type_suspension_activity_type_name,
+            request.asset_type_suspension_wait_duration,
+            request.asset_type_flag_hide_organization_details,
+            request.asset_type_flag_sip_enabled,
+            request.asset_type_flag_enable_send_sms,
+            request.asset_type_flag_sip_admin_access,
+            request.asset_type_flag_frontline,
+            request.organization_id,
+            request.flag,
+            util.getCurrentUTCTime(),
+            request.log_asset_id,
+        );
+        const queryString = util.getQueryString('ds_p4_workforce_asset_type_mapping_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.selectFrontlineRoles = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_type_category_id,
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_select_frontline', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;

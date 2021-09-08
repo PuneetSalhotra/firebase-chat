@@ -54,6 +54,27 @@ function TasiController(objCollection) {
             res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
         }
     });
+    
+    app.post('/' + global.config.version + '/tasi/admin/frontline/role/update', async function (req, res) {
+        const [err, resData] = await tasiService.updateFrontlineFlagForRole(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/asset_type/sip/admin/role/update | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/admin/frontline/role/select', async function (req, res) {
+        const [err, resData] = await tasiService.selectFrontlineRoles(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/asset_type/sip/admin/role/update | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/tasi/customer/account_type/insert', async function (req, res) {
         const [err, resData] = await tasiService.customerAccountTypeListInsert(req.body);
         if (!err) {
