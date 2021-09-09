@@ -3210,6 +3210,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                                 expiryDatetime = util.replaceDefaultDatetime(resp[0].activity_datetime_end_estimated);
                                 reservationStartDatetime = util.replaceDefaultDatetime(resp[0].activity_datetime_start_expected);
                                 reservationCreatedDatetime = util.addUnitsToDateTime(util.replaceDefaultDatetime(resp[0].activity_datetime_created),5.5,'hours');
+                                noOfGuests = resp[0].form_id;
                                 console.log("reservationCreatedDatetime: "+reservationCreatedDatetime);
                                 
                                 request.work_station_asset_id = row.asset_id;
@@ -3237,7 +3238,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                         }                       
                         
                     }).then(() => {
-                         noOfGuests--;
+                         //noOfGuests--;
                          var text;
                          console.log('memberName : ', memberName);
                          console.log('countryCode: ', countryCode);
@@ -3589,7 +3590,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 								choice_tax= choiceData.tax;
 								
 								choice_tax_amount = (choice_price_after_discount * choice_tax)/100;
-								choice_final_price = choice_price_after_discount + choice_tax_amount + choice_service_charge;
+								choice_final_price = choice_price_after_discount + choice_tax_amount;
 
                                 choice_service_charge = (choice_final_price * serviceChargePercentage)/100;
                                 choice_final_price = choice_final_price + choice_service_charge;
@@ -3612,7 +3613,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 								attributeArray.choices_count=0;
 								attributeArray.order_price=choice_cost;
                                 attributeArray.service_charge_percent=serviceChargePercentage;
-								attributeArray.service_charge=service_charge;                               
+								attributeArray.service_charge=choice_service_charge;                               
 								attributeArray.discount_percent=item_discount;
 								attributeArray.discount=dis_amount;
 								attributeArray.price_after_discount=choice_price_after_discount;
