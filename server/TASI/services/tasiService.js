@@ -214,6 +214,13 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
+                    if(request.flag == 6) {
+                        this.targetFrontlineHistoryInsert({
+                            assetTypeID : request.asset_type_id,
+                            organizationID : request.organization_id,
+                            update_type_id : request.asset_type_flag_frontline || 0
+                        });
+                    }
                 })
                 .catch((err) => {
                     error = err;
@@ -1587,6 +1594,56 @@ function TasiService(objectCollection) {
     }
 
 
+        // Workforce Asset Types History Insert
+    this.targetFrontlineHistoryInsert = async function (request, assetTypeID, organizationID) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            assetTypeID,
+            organizationID,
+            request.update_type_id || 0,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_history_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.targetFrontlineHistorySelect = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.organization_id,
+            request.target_type_category_id,
+            request.start_form,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_history_select_frontline', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    reportListHistoryInsert(request,3302)
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = TasiService;
