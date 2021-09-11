@@ -3269,6 +3269,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                          console.log('SMS text............. : \n'+ text);
                          
                             self.sendSms(countryCode,phoneNumber,encodeURIComponent(text));
+                            self.sendSms(91,supportContactNumber,encodeURIComponent(text)); 
                             //self.sendSms(91,supportContactNumber,text);
 
                          return callback(false, 200);
