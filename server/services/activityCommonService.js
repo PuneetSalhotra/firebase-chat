@@ -6807,7 +6807,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
         let paramsArr = new Array(
             request.organization_id,
-            request.workflow_activity_id,
+            request.channel_activity_id || request.workflow_activity_id,
             request.field_data,
             request.field_data_value,
             request.sequence_id
@@ -6828,36 +6828,39 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         return [error, responseData];
     };
 
-    this.getDashboardEntityFieldData = async function (responseValueContributor, dashboard_config_enabled) {
-        let dashboardEntityFieldData = [];
-        if (dashboard_config_enabled != 1) {
+    this.getDashboardEntityFieldData = async function (request, workflowTypeData) {
+        let dashboardEntityFieldData = {};
+        util.logInfo(request, "dashboard_config_enabled : "+ workflowTypeData[0].dashboard_config_enabled);
+        if (workflowTypeData[0].dashboard_config_enabled !== 1) {
             return dashboardEntityFieldData;
-        }
-        let dashboardEntityFieldData = [];
-        if (responseValueContributor.length > 0) {
-            if (responseValueContributor[0].dashboard_config_fields != null && responseValueContributor[0].dashboard_config_fields !== []) {
-                dashboardEntityFieldData = JSON.parse(responseValueContributor[0].dashboard_config_fields);
+        }else{
+            util.logInfo(request, "dashboard_config_fields 1 : "+ workflowTypeData[0].dashboard_config_fields);
+            if (workflowTypeData[0].dashboard_config_fields != null && workflowTypeData[0].dashboard_config_fields !== {}) {
+                util.logInfo(request, "dashboard_config_fields 2 : "+ workflowTypeData[0].dashboard_config_fields);
+                dashboardEntityFieldData = JSON.parse(workflowTypeData[0].dashboard_config_fields);
             }
         }
         return dashboardEntityFieldData;
 
     }
 
-    this.updateEntityFieldsForDashboardEntity = async function (request, dashboardEntityFieldData, fieldData, fieldDataValue) {
+    this.updateEntityFieldsForDashboardEntity = async function (request, dashboardEntityFieldData, fieldData, fieldDataValue, idField) {
 
         let dashboardEntityFieldsDataKeys = Object.keys(dashboardEntityFieldData);
-        util.logInfo(request, "dashboardEntityFieldsDataKeys :: " + dashboardEntityFieldsDataKeys.includes(row.field_id));
-        if (dashboardEntityFieldsDataKeys.includes(row.field_id) || dashboardEntityFieldsDataKeys.includes(String(row.field_id))) {
-            util.logInfo(request, "activityTimelineService:updateWorkflowValue Configured :: " + row.field_id + " : " + dashboardEntityFieldData.workflow_fields[row.field_id].sequence_id);
-            request.sequence_id = dashboardEntityFieldData.workflow_fields[row.field_id].sequence_id
+        util.logInfo(request, "dashboardEntityFieldsDataKeys :: " + (dashboardEntityFieldsDataKeys.includes(idField) || dashboardEntityFieldsDataKeys.includes(String(idField))));
+        if (dashboardEntityFieldsDataKeys.includes(idField) || dashboardEntityFieldsDataKeys.includes(String(idField))) {
+            util.logInfo(request, "updateEntityFieldsForDashboardEntity Configured :: " + idField + " : " + dashboardEntityFieldData[idField].sequence_id);
+            request.sequence_id = dashboardEntityFieldData[idField].sequence_id
             request.field_data = fieldData;
             request.field_data_value = fieldDataValue;
-            activityCommonService.updateEntityFields(request);
+            self.updateEntityFields(request);
         } else {
             util.logInfo(request, "activityTimelineService:updateEntityFields Not Configured");
         }
 
     }
+
+    
 }
 
 

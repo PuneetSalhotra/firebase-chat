@@ -1210,17 +1210,24 @@ function FormConfigService(objCollection) {
             util.logInfo(request,`[putLatestUpdateSeqId | widgets] arc_1: ${arc_1}`);
             util.logInfo(request,`[putLatestUpdateSeqId | widgets] arc_2: ${arc_2}`);
 
+            
+
             let workflowReference,documentReference,assetReference;
             let dataTypeComboId;
-            let dashboardEntityFieldData = [];
-
-            let [errorValueContributor, responseValueContributor] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workflowData[0].activity_type_id);
-            if (responseValueContributor.length > 0) {
-                dashboardEntityFieldData = activityCommonService.getDashboardEntityFieldData(responseValueContributor, responseValueContributor[0].dashboard_config_enabled);
+            let dashboardEntityFieldData = {};
+            let [err, workflowData] = await activityCommonService.getFormWorkflowDetailsAsync(request);
+            util.logInfo(request,`workflowData :: ` +JSON.stringify(workflowData)); 
+            let workfolow_activity_type_id =  workflowData[0].activity_type_id || 0;
+            let [errorWorkflowType, workflowTypeData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workfolow_activity_type_id);
+            util.logInfo(request,`workflowTypeData :: ` +workflowTypeData);  
+            if (workflowTypeData.length > 0) {
+                dashboardEntityFieldData = await activityCommonService.getDashboardEntityFieldData(request, workflowTypeData);
+               // dashboardEntityFieldData = JSON.parse(workflowTypeData[0].dashboard_config_fields);
             } else {
-                util.logInfo(request, "No Response from activity_type :: " + responseValueContributor.length);
+                util.logInfo(request, "No Response from activity_type :: " + workflowTypeData.length);
             }
 
+            util.logInfo(request, "dashboardEntityFieldData :: "+dashboardEntityFieldData)
             forEachAsync(activityInlineData, (next, row) => {
                 let fieldData = row.field_value;
                 let fieldDataValue = "";
@@ -1669,9 +1676,13 @@ function FormConfigService(objCollection) {
                                 if(workflowData.length > 0) {
                                     util.logInfo(request,`addWorkFlow Values request.activity_id ${workflowData[0].activity_id}  workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
                                     await activityService.updateWorkflowValues({...request,workflow_activity_type_id:workflowData[0].activity_type_id},workflowData[0].activity_id)
-
-                                    if (dashboardEntityFieldData.includes(row.field_id) || dashboardEntityFieldData.includes(String(row.field_id)) || dashboardEntityFieldData.includes(Number(row.field_id))) {
-                                        activityCommonService.updateEntityFieldsForDashboardEntity(request, dashboardEntityFieldData, fieldData, fieldDataValue);
+                                    util.logInfo(request,` "dashboard Entity Fields ${JSON.stringify(dashboardEntityFieldData)}`);
+                                    util.logInfo(request, "dashboard Entity keys "+ dashboardEntityFieldData[row.field_id]);
+                                    request.workflow_activity_id = workflowData[0].activity_id;
+                                    if (Object.keys(dashboardEntityFieldData).includes(row.field_id) || Object.keys(dashboardEntityFieldData).includes(String(row.field_id)) || Object.keys(dashboardEntityFieldData).includes(Number(row.field_id))) {
+                                        activityCommonService.updateEntityFieldsForDashboardEntity(request, dashboardEntityFieldData, fieldData, fieldDataValue, row.field_id);
+                                    }else{
+                                        util.logInfo(request,`Not a dashboard Entity Field ${row.field_id}`);
                                     }
 
                                 }
