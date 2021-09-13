@@ -959,12 +959,17 @@ function TasiService(objectCollection) {
         let responseData = [],
             error = true;
         const paramsArr = new Array(
-          request.organization_id,
-          request.asset_id,
-          request.customer_account_type_id,
-          request.start_from,
-          request.limit_value
+            request.organization_id,
+            request.asset_id,
+            request.p_manager_asset_id,
+            request.flag,
+            request.is_freeze,
+            request.start_datetime,
+            request.end_datetime,
+            request.start_from,
+            request.limit_value
         );
+
         const queryString = util.getQueryString('ds_p1_entity_target_mapping_select', paramsArr);
 
         if (queryString !== '') {
