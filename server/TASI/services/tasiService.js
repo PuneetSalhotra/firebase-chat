@@ -1031,41 +1031,43 @@ function TasiService(objectCollection) {
         }
         return [error, responseData];
     }
-    // this.inputListInsert = async function (request) {
-    //     let responseData = [],
-    //         error = true;
-    //     const paramsArr = new Array(
-    //       request.input_name,
-    //       request.input_type_id,
-    //       request.input_url1,
-    //       request.input_url2,
-    //       request.input_url3,
-    //       request.input_url4,
-    //       request.input_url5,
-    //       request.input_text,
-    //       request.input_data,
-    //       request.input_upload_datetime,
-    //       request.period_type_id,
-    //       request.period_start_datetime,
-    //       request.period_end_datetime,
-    //       request.organization_id,
-    //       request.asset_id,
-    //       util.getCurrentUTCTime()
-    //     );
-    //     const queryString = util.getQueryString('ds_p2_input_list_insert', paramsArr);
+    
+    this.inputListInsert = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+          request.input_name,
+          request.input_type_id,
+          request.input_url1,
+          request.input_url2,
+          request.input_url3,
+          request.input_url4,
+          request.input_url5,
+          request.input_text,
+          request.input_data,
+          request.input_upload_datetime,
+          request.period_type_id,
+          request.period_start_datetime,
+          request.period_end_datetime,
+          request.organization_id,
+          request.asset_id,
+          util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p2_input_list_insert', paramsArr);
 
-    //     if (queryString !== '') {
-    //         await db.executeQueryPromise(0, queryString, request)
-    //             .then((data) => {
-    //                 responseData = data;
-    //                 error = false;
-    //             })
-    //             .catch((err) => {
-    //                 error = err;
-    //             })
-    //     }
-    //     return [error, responseData];
-    // }
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     this.reportListInsert = async function (request) {
         let responseData = [],
             error = true;
@@ -1637,6 +1639,159 @@ function TasiService(objectCollection) {
                     responseData = data;
                     error = false;
                     reportListHistoryInsert(request,3302)
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+
+    this.validationInsert = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.validation_name,
+            request.validation_description,
+            request.validation_type_id,
+            request.validation_inline_json,
+            request.entity_1_level_id,
+            request.entity_2_level_id,
+            request.total_target,
+            request.target_variance,
+            request.year,
+            request.asset_id,
+            request.timeline_id,
+            request.period_type_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.organization_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_validation_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = {};
+                    
+                    try {
+                        this.validationHistoryInsert({...request, update_type_id : 3501 });
+                    } catch(e) {
+                        console.log("Error while validationHistoryInsert", e, e.stack);
+                    }
+
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.validationHistoryInsert = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.validation_id,
+            request.update_type_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_validation_list_history_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.validationSelect = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.organization_id,
+            request.validation_type_id,
+            request.start_from,
+            request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p1_validation_list_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    reportListHistoryInsert(request,3302)
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.validationDelete = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.validation_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_validation_list_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = [];
+                    try {
+                        this.validationHistoryInsert({...request, update_type_id : 3503 });
+                    } catch(e) {
+                        console.log("Error while validationHistoryInsert", e, e.stack);
+                    }
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.lovTasiProductListSelect = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.organization_id,
+            request.start_from,
+            request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p1_lov_tasi_product_list_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
                 })
                 .catch((err) => {
                     error = err;
