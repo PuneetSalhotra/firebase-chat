@@ -1931,6 +1931,170 @@ function TasiService(objectCollection) {
         return [error, responseData];
     }
 
-}
 
+    this.entityTargetSettingInsert = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.tag_id_1,
+            request.tag_id_2,
+            request.tag_id_3,
+            request.tag_id_4,
+            request.tag_id_5,
+            request.entity_target_setting_inline,
+            request.level_id,
+            request.flag_is_freeze,
+            request.timeline_id,
+            request.period_type_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.asset_id,
+            request.asset_type_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_entity_target_setting_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = [];
+                    error = false;
+                    try {
+                        this.entityTargetSettingHistoryInsert({...request, update_type_id : 3601 });
+                    } catch(e) {
+                        console.log("Error while validationHistoryInsert", e, e.stack);
+                    }
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.entityTargetSettingUpdateFlagFreeze = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.organization_id,
+            request.entity_target_setting_id,
+            request.flag_is_freeze,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_entity_target_setting_update_flag_freeze', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = [];
+                    error = false;
+
+                    try {
+                        this.entityTargetSettingHistoryInsert({...request, update_type_id : 3602 });
+                    } catch(e) {
+                        console.log("Error while validationHistoryInsert", e, e.stack);
+                    }
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.entityTargetSettingSelectFreeze = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.flag,
+            request.is_freeze,
+            request.start_datetime,
+            request.end_datetime,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+
+        const queryString = util.getQueryString('ds_p1_entity_target_setting_select_freeze', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.entityTargetSettingHistoryInsert = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.entity_target_setting_id,
+            request.update_type_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_entity_target_setting_history_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = [];
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.entityTargetSettingDelete = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.entity_target_setting_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_entity_target_setting_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = [];
+                    error = false;
+
+                    try {
+                        this.entityTargetSettingHistoryInsert({...request, update_type_id : 3603 });
+                    } catch(e) {
+                        console.log("Error while validationHistoryInsert", e, e.stack);
+                    }
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+}
 module.exports = TasiService;

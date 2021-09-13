@@ -538,12 +538,42 @@ function TasiController(objCollection) {
         }
     });
 
-    app.post('/' + global.config.version + '/tasi/outlier/flag/update', async function (req, res) {
-        const [err, resData] = await tasiService.updateOutlierFlag(req.body);
+    app.post('/' + global.config.version + '/tasi/entity/target/setting/select/freeze', async function (req, res) {
+        const [err, resData] = await tasiService.entityTargetSettingSelectFreeze(req.body);
         if (!err) {
             res.json(responseWrapper.getResponse({}, resData, 200, req.body));
         } else {
-            console.log("/tasi/outlier/flag/update | Error: ", err);
+            console.log("/tasi/validation_list/update | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/entity/target/setting/update/freeze', async function (req, res) {
+        const [err, resData] = await tasiService.entityTargetSettingUpdateFlagFreeze(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/entity/target/setting/update/freeze | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/entity/target/setting/insert', async function (req, res) {
+        const [err, resData] = await tasiService.entityTargetSettingInsert(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/entity/target/setting/insert | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/entity/target/setting/delete', async function (req, res) {
+        const [err, resData] = await tasiService.entityTargetSettingDelete(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/outlier/flag/delete | Error: ", err);
             res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
         }
     });
