@@ -4633,6 +4633,17 @@ case 729: // Report form BC Edit
             return;
         }
 
+      //Finding field_data_type_id = 20 and format comment
+        let activityTimelineCollectionJSON =  typeof activityTimelineCollection == 'string' ? JSON.parse(activityTimelineCollection) : activityTimelineCollection;
+        for(let j=0;j<activityTimelineCollectionJSON.form_field_preview_enabled.length;j++){
+           
+               let field_value = activityTimelineCollectionJSON.form_field_preview_enabled[j].field_value;
+               field_value = field_value.replace(/(\r\n|\n|\r)/gm, " ");
+               activityTimelineCollectionJSON.form_field_preview_enabled[j].field_value = field_value;
+
+        }
+
+        activityTimelineCollection = JSON.stringify(activityTimelineCollectionJSON);
 
         const paramsArr = new Array(
             request.activity_id,
