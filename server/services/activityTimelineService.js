@@ -3289,7 +3289,7 @@ async function addFormEntriesAsync(request) {
         let [err, data] = await activityCommonService.getActivityDetailsAsync(request);
         if(data.length > 0){
             [errorWorkflowType, workflowTypeData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, data[0].activity_type_id);
-            //util.logInfo(request, "responseValueContributor "+responseValueContributor.length);
+            util.logInfo(request, "workflowTypeData "+JSON.stringify(workflowTypeData));
             if(workflowTypeData.length > 0){
                 if(workflowTypeData[0].activity_type_inline_data == null){
                     util.logInfo(request, data[0].activity_type_id+" activity_type_inline_data is null");               
@@ -3299,9 +3299,16 @@ async function addFormEntriesAsync(request) {
                     if(finalInlineData.hasOwnProperty('workflow_fields'))
                         finalInlineDataKeys = Object.keys(finalInlineData.workflow_fields);
                     else
-                    util.logInfo(request, "No workflow_fields");                
+                    util.logInfo(request, "No workflow_fields");        
+                                      
                 }
-                dashboardEntityFieldData = await activityCommonService.getDashboardEntityFieldData(workflowTypeData);
+
+                util.logInfo(request, "Dashboard config "+workflowTypeData[0].dashboard_config_fields+ " : "+workflowTypeData[0].dashboard_config_enabled);
+                if(workflowTypeData[0].dashboard_config_fields !== null && workflowTypeData[0].dashboard_config_enabled === 1)
+                    dashboardEntityFieldData = await activityCommonService.getDashboardEntityFieldData(request, workflowTypeData);
+                else
+                    util.logInfo(request, workflowTypeData[0].dashboard_config_fields+ " : "+workflowTypeData[0].dashboard_config_enabled); 
+                
             }else{
                 util.logInfo(request, "No Response from activity_type :: "+responseValueContributor.length);
             }           

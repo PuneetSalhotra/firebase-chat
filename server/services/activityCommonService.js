@@ -6830,7 +6830,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
     this.getDashboardEntityFieldData = async function (request, workflowTypeData) {
         let dashboardEntityFieldData = {};
-        util.logInfo(request, "dashboard_config_enabled : "+ workflowTypeData[0].dashboard_config_enabled);
+        util.logInfo(request, "workflowTypeData : "+ workflowTypeData);
         if (workflowTypeData[0].dashboard_config_enabled !== 1) {
             return dashboardEntityFieldData;
         }else{
