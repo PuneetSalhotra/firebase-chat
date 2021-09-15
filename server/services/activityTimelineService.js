@@ -3280,32 +3280,45 @@ async function addFormEntriesAsync(request) {
     let errorValueContributor = true, responseValueContributor = [], data = [];
     let finalInlineData = {};
     let finalInlineDataKeys = [];
+    let dashboardEntityFieldData = {};
+    let fieldData = null;
+    let fieldDataValue = null;
     // Value Contributors
     if(request.hasOwnProperty("workflow_activity_id")){
 
         let [err, data] = await activityCommonService.getActivityDetailsAsync(request);
         if(data.length > 0){
-            [errorValueContributor, responseValueContributor] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, data[0].activity_type_id);
-            //util.logInfo(request, "responseValueContributor "+responseValueContributor.length);
-            if(responseValueContributor.length > 0){
-                if(responseValueContributor[0].activity_type_inline_data == null){
+            [errorWorkflowType, workflowTypeData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, data[0].activity_type_id);
+            util.logInfo(request, "workflowTypeData "+JSON.stringify(workflowTypeData));
+            if(workflowTypeData.length > 0){
+                if(workflowTypeData[0].activity_type_inline_data == null){
                     util.logInfo(request, data[0].activity_type_id+" activity_type_inline_data is null");               
                 }else{
-                    finalInlineData = JSON.parse(responseValueContributor[0].activity_type_inline_data);
+                    finalInlineData = JSON.parse(workflowTypeData[0].activity_type_inline_data);
 
                     if(finalInlineData.hasOwnProperty('workflow_fields'))
                         finalInlineDataKeys = Object.keys(finalInlineData.workflow_fields);
                     else
-                    util.logInfo(request, "No workflow_fields");                
+                    util.logInfo(request, "No workflow_fields");        
+                                      
                 }
+
+                util.logInfo(request, "Dashboard config "+workflowTypeData[0].dashboard_config_fields+ " : "+workflowTypeData[0].dashboard_config_enabled);
+                if(workflowTypeData[0].dashboard_config_fields !== null && workflowTypeData[0].dashboard_config_enabled === 1)
+                    dashboardEntityFieldData = await activityCommonService.getDashboardEntityFieldData(request, workflowTypeData);
+                else
+                    util.logInfo(request, workflowTypeData[0].dashboard_config_fields+ " : "+workflowTypeData[0].dashboard_config_enabled); 
+                
             }else{
                 util.logInfo(request, "No Response from activity_type :: "+responseValueContributor.length);
-            }
+            }           
+
         }else{
             util.logInfo(request, "No No Workflow");      
         }
     } 
     util.logInfo(request, "value contributors "+finalInlineDataKeys);
+    util.logInfo(request, "dashboardEntityFieldData "+dashboardEntityFieldData);
     //console.log('formDataJson : ', formDataJson);
 
     let workflowReference,documentReference,assetReference;
@@ -3497,6 +3510,8 @@ async function addFormEntriesAsync(request) {
                 break;
             case 33: //Single Selection List
                 params[18] = row.field_value;
+                fieldData = row.field_value;
+                fieldDataValue = "";
                 break;
             case 34: //Multi Selection List
                 params[18] = row.field_value;
@@ -3578,6 +3593,8 @@ async function addFormEntriesAsync(request) {
                         params[27] = row.field_value;
                     }
                 }
+                fieldData = params[13];
+                fieldDataValue = workflowReference[1];
                 break;
             case 58://Document reference
                 // documentReference = row.field_value.split('|');
@@ -3604,6 +3621,8 @@ async function addFormEntriesAsync(request) {
                         params[27] = row.field_value;
                     }
                 }
+                fieldData = params[13];
+                fieldDataValue = params[18];
                 break;
             case 61: //Time Datatype
                 params[18] = row.field_value;
@@ -3678,6 +3697,10 @@ async function addFormEntriesAsync(request) {
                         console.log("Error while handling scheduling data type", row.value, e,e.stack);
                     }
                     break;
+            default:
+                fieldData = row.field_value;
+                fieldDataValue = "";
+                break;
             }
 
             params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
@@ -3733,6 +3756,13 @@ async function addFormEntriesAsync(request) {
                         activityCommonService.updateWorkflowValue(request, row.field_value);
                     }else{
                         util.logInfo(request, "activityTimelineService:updateWorkflowValue Not Configured");
+                    }
+
+                    //request.workflow_activity_id = workflowData[0].activity_id;
+                    if (Object.keys(dashboardEntityFieldData).includes(row.field_id) || Object.keys(dashboardEntityFieldData).includes(String(row.field_id)) || Object.keys(dashboardEntityFieldData).includes(Number(row.field_id))) {
+                        activityCommonService.updateEntityFieldsForDashboardEntity(request, dashboardEntityFieldData, fieldData, fieldDataValue, row.field_id);
+                    }else{
+                        util.logInfo(request,`Not a dashboard Entity Field ${row.field_id}`);
                     }
 
                 })
