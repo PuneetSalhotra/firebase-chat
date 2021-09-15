@@ -914,6 +914,7 @@ function FormConfigService(objCollection) {
 
         var activityInlineData = JSON.parse(request.activity_inline_data);
 
+        let form_name_inline = request.form_name || "Form";
         //If the asset in not a participant on the workflow then add him
         
 
@@ -1071,7 +1072,7 @@ function FormConfigService(objCollection) {
                 
                         });
                     }
-                    let content = `Bulk fields have been updated`;
+                    let content = `In the ${form_name_inline} bulk fields have been updated`;
                     let activityTimelineCollection = {
                         form_submitted: retrievedInlineData,
                         subject: `Fields Updated for ${data[0].form_name}`,

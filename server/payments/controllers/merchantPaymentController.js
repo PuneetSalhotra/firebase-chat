@@ -100,15 +100,15 @@ function MerchantPaymentController(objCollection) {
         }
     });
 
-    // app.post('/' + global.config.version + '/pam/payment/createRefund', async (req, res) => {
-    //     logger.info("------- createrefund ---------");
-    //     const [err, data] = await merchantPaymentService.createRefund(req.body);
-    //     if (!err) {
-    //         res.send(responseWrapper.getResponse({}, data, 200, req.body));
-    //     } else {
-    //         logger.error("/pam/payment/createRefund| Error: ", err);
-    //         res.send(responseWrapper.getResponse(err, data, -9999, req.body));
-    //     }
-    // });
+    app.post('/' + global.config.version + '/pam/payment/createRefund', async (req, res) => {
+        logger.info("------- createrefund ---------");
+        const [err, data] = await merchantPaymentService.createRefund(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            logger.error("/pam/payment/createRefund| Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 module.exports = MerchantPaymentController;

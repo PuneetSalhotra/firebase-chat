@@ -54,6 +54,27 @@ function TasiController(objCollection) {
             res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
         }
     });
+    
+    app.post('/' + global.config.version + '/tasi/admin/frontline/role/update', async function (req, res) {
+        const [err, resData] = await tasiService.updateFrontlineFlagForRole(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/asset_type/sip/admin/role/update | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/admin/frontline/role/select', async function (req, res) {
+        const [err, resData] = await tasiService.selectFrontlineRoles(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/asset_type/sip/admin/role/update | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/tasi/customer/account_type/insert', async function (req, res) {
         const [err, resData] = await tasiService.customerAccountTypeListInsert(req.body);
         if (!err) {
@@ -416,7 +437,146 @@ function TasiController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/tasi/target/type/master/select', async function (req, res) {
+        const [err, resData] = await tasiService.targetTypeMasterSelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/target/type/master/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
 
+
+    app.post('/' + global.config.version + '/tasi/frontline/history/select', async function (req, res) {
+        const [err, resData] = await tasiService.targetFrontlineHistorySelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/frontline/history/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/validation/select', async function (req, res) {
+        const [err, resData] = await tasiService.validationSelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/validation/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/validation/insert', async function (req, res) {
+        const [err, resData] = await tasiService.validationInsert(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/validation/insert | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/validation/delete', async function (req, res) {
+        const [err, resData] = await tasiService.validationDelete(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/validation/delete | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/inputList/insert', async function (req, res) {
+        const [err, resData] = await tasiService.inputListInsert(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/inputList/insert | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/lov/product_list/select', async function (req, res) {
+        const [err, resData] = await tasiService.lovTasiProductListSelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/lov/product_list/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/validation_list/update', async function (req, res) {
+        const [err, resData] = await tasiService.validationListUpdateTarget(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/validation_list/update | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/validation_list/entity/select', async function (req, res) {
+        const [err, resData] = await tasiService.validationListSelectEntity(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/validation_list/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/freeze/flag/update', async function (req, res) {
+        const [err, resData] = await tasiService.updateFreezeFlag(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/freeze/flag/update | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/entity/target/setting/select/freeze', async function (req, res) {
+        const [err, resData] = await tasiService.entityTargetSettingSelectFreeze(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/validation_list/update | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/entity/target/setting/update/freeze', async function (req, res) {
+        const [err, resData] = await tasiService.entityTargetSettingUpdateFlagFreeze(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/entity/target/setting/update/freeze | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/entity/target/setting/insert', async function (req, res) {
+        const [err, resData] = await tasiService.entityTargetSettingInsert(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/entity/target/setting/insert | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/entity/target/setting/delete', async function (req, res) {
+        const [err, resData] = await tasiService.entityTargetSettingDelete(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/outlier/flag/delete | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
 
 }
 
