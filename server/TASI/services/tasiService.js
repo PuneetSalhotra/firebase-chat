@@ -907,7 +907,7 @@ function TasiService(objectCollection) {
             request.total_target_value,
             request.entity_target_inline,
             request.level_id,
-            request.flag_is_freeze,
+            request.flag_is_outlier,
             request.flag_is_bulk,
             request.flag_type,
             request.timeline_id,
