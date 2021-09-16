@@ -2068,7 +2068,7 @@ function TasiService(objectCollection) {
         }
         return [error, responseData];
     }
-
+    
     this.entityTargetSettingDelete = async function (request) {
         let responseData = [],
             error = true;
@@ -2100,5 +2100,148 @@ function TasiService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.entityTargetMappingUpdateTarget = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.entity_target_setting_id,
+            request.target,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_entity_target_mapping_update_target', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = [];
+                    error = false;
+
+                    try {
+                        this.entityTargetSettingHistoryInsert({...request, update_type_id : 3003 });
+                    } catch(e) {
+                        console.log("Error while validationHistoryInsert", e, e.stack);
+                    }
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.reportListSelectPayout = async function (request) {
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = new Array(
+            request.organization_id,
+            request.flag,
+            request.report_type_id,
+            request.payout_id,
+            request.period_type_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.start_form || 0,
+            request.limit_value || 50
+        );
+
+        const queryString = util.getQueryString('ds_v1_report_list_select_payout', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = [];
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.validationListHistorySelect = async function (request) {
+        let responseData = [],
+            error = true;
+        
+        const paramsArr = new Array(
+            request.organization_id,
+            request.validation_id,
+            request.start_form || 0,
+            request.limit_value || 50
+        );
+
+        const queryString = util.getQueryString('ds_p1_validation_list_history_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = [];
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+    
+    this.entityTargetSettingSelectTarget = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.entity_target_setting_id,
+            request.start_form || 0,
+            request.limit_value || 50
+        );
+
+        const queryString = util.getQueryString('ds_p1_entity_target_setting_history_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = [];
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.entityTargetMappingHistorySelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.entity_target_mapping_id,
+            request.start_form || 0,
+            request.limit_value || 50
+        );
+
+        const queryString = util.getQueryString('ds_p1_entity_target_mapping_history_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = [];
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
+
 module.exports = TasiService;
