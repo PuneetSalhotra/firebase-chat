@@ -768,6 +768,15 @@ function ActivityPushService(objectCollection) {
                                                 msg.type = 'activity_duedate';
                                             }
                                             break;
+                                        case '/' + global.config.version + '/activity/participant/access/set':
+                                            pushString.title = senderName;
+                                            msg.description = 'has added you to this conversation.';
+                                            msg.activity_type_category_id = activityTypeCategoryId;
+                                            pushString.title = activityTitle;
+                                            msg.type = 'activity_read';
+                                            pushString.description = 'has added you to this conversation.';
+                                            break;
+                                        
                                         default:
                                             pushString = {};
                                             break;
@@ -1189,7 +1198,7 @@ function ActivityPushService(objectCollection) {
                                     };
                                     objectCollection.activityCommonService.getAssetDetails(reqobj, function (err, data, resp) {
                                         //console.log('SESSION DATA : ', data.asset_session_status_id);
-                                        global.logger.write('debug', 'SESSION DATA: ' + data.asset_session_status_id, {}, request);
+                                        global.logger.write('debug', 'SESSION DATA: ' + data.asset_session_status_id, {}, request);                                    
                                         if (err === false) {
                                             switch (data.asset_session_status_id) {
                                                 case 8:

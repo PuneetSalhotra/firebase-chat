@@ -1211,10 +1211,27 @@ function FormConfigService(objCollection) {
             util.logInfo(request,`[putLatestUpdateSeqId | widgets] arc_1: ${arc_1}`);
             util.logInfo(request,`[putLatestUpdateSeqId | widgets] arc_2: ${arc_2}`);
 
+            
+
             let workflowReference,documentReference,assetReference;
             let dataTypeComboId;
+            let dashboardEntityFieldData = {};
+            let [err, workflowData] = await activityCommonService.getFormWorkflowDetailsAsync(request);
+            util.logInfo(request,`workflowData :: ` +JSON.stringify(workflowData)); 
+            let workfolow_activity_type_id =  workflowData[0].activity_type_id || 0;
+            let [errorWorkflowType, workflowTypeData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workfolow_activity_type_id);
+            util.logInfo(request,`workflowTypeData :: ` +workflowTypeData);  
+            if (workflowTypeData.length > 0) {
+                dashboardEntityFieldData = await activityCommonService.getDashboardEntityFieldData(request, workflowTypeData);
+               // dashboardEntityFieldData = JSON.parse(workflowTypeData[0].dashboard_config_fields);
+            } else {
+                util.logInfo(request, "No Response from activity_type :: " + workflowTypeData.length);
+            }
 
+            util.logInfo(request, "dashboardEntityFieldData :: "+dashboardEntityFieldData)
             forEachAsync(activityInlineData, (next, row) => {
+                let fieldData = row.field_value;
+                let fieldDataValue = "";
                 dataTypeComboId = (row.hasOwnProperty('data_type_combo_id')) ? row.data_type_combo_id: 0;
                 var params = new Array(
                     request.form_transaction_id, //0
@@ -1441,6 +1458,8 @@ function FormConfigService(objCollection) {
                         break;
                     case 33: //Single Selection List
                         params[18] = row.field_value;
+                        fieldData = row.field_value;
+                        fieldDataValue = "";
                         break;
                     case 34: //Multi Selection List
                         params[18] = row.field_value;
@@ -1468,6 +1487,8 @@ function FormConfigService(objCollection) {
                                 // p_entity_text_2 19
                                 params[19] = tempVar[4] || tempVar[2] || "";
                                 params[27] = JSON.stringify(tempObj);
+                                fieldData = tempVar[0];
+                                fieldDataValue = tempVar[1];
                             } catch (err) {
                                 util.logError(request,`ERROR in field edit - 57 : `, { type: 'put_latest_update_seq', error: serializeError(err) });
                             }
@@ -1506,6 +1527,9 @@ function FormConfigService(objCollection) {
                                 params[20] = tempVar[3] || "";
 
                                 params[27] = JSON.stringify(tempObj);
+
+                                fieldData = tempVar[0];
+                                fieldDataValue = tempVar[1];
                             } catch (err) {
                                 util.logError(request,`ERROR in field edit - 59 : `, { type: 'put_latest_update_seq', error: serializeError(err) });
                             }
@@ -1610,6 +1634,10 @@ function FormConfigService(objCollection) {
                     case 76: //Drop box data type
                              params[18] = (typeof row.field_value === 'object') ? JSON.stringify(row.field_value) : row.field_value;
                              break;
+                    default:
+                        fieldData = row.field_value;
+                        fieldDataValue = "";
+                        break;
                 }
 
                 params.push(''); //IN p_device_manufacturer_name VARCHAR(50)
@@ -1649,6 +1677,15 @@ function FormConfigService(objCollection) {
                                 if(workflowData.length > 0) {
                                     util.logInfo(request,`addWorkFlow Values request.activity_id ${workflowData[0].activity_id}  workflowData[0].activity_type_id ${workflowData[0].activity_type_id}`);
                                     await activityService.updateWorkflowValues({...request,workflow_activity_type_id:workflowData[0].activity_type_id},workflowData[0].activity_id)
+                                    util.logInfo(request,` "dashboard Entity Fields ${JSON.stringify(dashboardEntityFieldData)}`);
+                                    util.logInfo(request, "dashboard Entity keys "+ dashboardEntityFieldData[row.field_id]);
+                                    request.workflow_activity_id = workflowData[0].activity_id;
+                                    if (Object.keys(dashboardEntityFieldData).includes(row.field_id) || Object.keys(dashboardEntityFieldData).includes(String(row.field_id)) || Object.keys(dashboardEntityFieldData).includes(Number(row.field_id))) {
+                                        activityCommonService.updateEntityFieldsForDashboardEntity(request, dashboardEntityFieldData, fieldData, fieldDataValue, row.field_id);
+                                    }else{
+                                        util.logInfo(request,`Not a dashboard Entity Field ${row.field_id}`);
+                                    }
+
                                 }
                             });
 /*

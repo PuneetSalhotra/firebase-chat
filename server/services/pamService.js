@@ -3675,7 +3675,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {                  
                    if(err === false){                	   
-                	   resolve();
+                	   resolve(data);
                    }else{
                 	   reject(err);
                    }
@@ -4979,6 +4979,19 @@ this.getChildOfAParent = async (request) => {
         return [error, responseData];
     }
 
+    this.getReservationSerialNumber = async (request) => {
+        return new Promise((resolve, reject)=>{
+            let responseData = [],
+                error = true;
+
+            pamEventBillingInsert(request, request.event_id, request.event_name, request.reservation_id, request.reservation_name, request.activity_status_type_id, request.activity_status_type_name, request.member_asset_id, request.member_asset_name, request.reservation_bill).then((response)=>{
+                resolve([false,response]);
+            }).catch((err) => {
+                error = err;
+                reject([true,response]);
+            })
+        })
+    };    
 };
 
 module.exports = PamService;

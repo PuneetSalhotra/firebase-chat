@@ -4956,6 +4956,11 @@ console.log('new ActivityId321',newActivity_id)
             }
         }
 
+        try {
+            await workforceAssetTypeMappingHistoryInsert({
+                update_type_id: 3
+            }, request.asset_type_id, organizationID);
+        } catch (error) { }
         //checking phone number or email changes to update in aws
         let [errassetData, assetDataOld] = await activityCommonService.getAssetDetailsAsync({...request,asset_id:request.employee_asset_id});
         if(request.email_id != assetDataOld[0].asset_email_id){

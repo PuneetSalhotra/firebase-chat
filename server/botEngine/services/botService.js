@@ -1914,17 +1914,24 @@ function BotService(objectCollection) {
                         break;
 
                 case 30: // Bulk Feasibility Excel Parser Bot
-                        logger.silly("Bulk Feasibility Excel Parser Bot params received from request: %j", request);
-                        try {
-                            await bulkFeasibilityBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_feasibility);
-                        } catch (error) {
-                            logger.error("[Bulk Feasibility Excel Parser Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                            i.bot_operation_status_id = 2;
-                            i.bot_operation_inline_data = JSON.stringify({
-                                "error": error
-                            });
+                    logger.silly("Bulk Feasibility Excel Parser Bot params received from request: %j", request);
+                    try {
+                        // await bulkFeasibilityBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_feasibility);
+                        let requestForSQS = {
+                            request: request,
+                            sqs_switch_flag: 4,
+                            formInlineDataMap: formInlineDataMap,
+                            inlineJSON: botOperationsJson.bot_operations.bulk_feasibility
                         }
-                        break;
+                        sendToSqsPdfGeneration(requestForSQS);
+                    } catch (error) {
+                        logger.error("[Bulk Feasibility Excel Parser Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "error": error
+                        });
+                    }
+                    break;
                 
                 case 31: // workflow start bot
                     global.logger.write('conLog', '****************************************************************', {}, {});
@@ -2400,6 +2407,37 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
 
+                case 55: // Non Ascii Check Bot
+                    logger.silly("Non Ascci Check Bot params received from request: %j", request);
+                    try {
+                        let requestForSQS = {
+                            request: request,
+                            sqs_switch_flag: 5,
+                            formInlineDataMap: formInlineDataMap,
+                            inlineJSON: botOperationsJson.bot_operations.non_ascii_check
+                        }
+                        sendToSqsPdfGeneration(requestForSQS);
+                    } catch (error) {
+                        logger.error("[Non Ascci Check Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "error": error
+                        });
+                    }
+                    break;
+
+                case 56: // Midmile Excel Generation Bot
+                    logger.silly("Midmile Excel Generation Bot: %j", request);
+                    try {
+                        await midmileExcelCreationBot(request, botOperationsJson.bot_operations);
+                    } catch (error) {
+                        logger.error("[Midmile Excel Generation Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "error": error
+                        });
+                    }
+                    break;
 
             }
 
@@ -15975,6 +16013,223 @@ if(workflowActivityData.length==0){
 
             await activityTimelineService.addTimelineTransactionAsync(timelineReq);
         }
+
+    let midmileExcelCreationBot = async (request, inlineJOSN) => {
+
+        try {
+
+            // inlineJOSN = {
+            //     "sqs_queue": "https://sqs.ap-south-1.amazonaws.com/430506864995/clms-test.fifo",
+            //     "input": {
+            //         "input_type": {
+            //             "form_id": 51007,
+            //             "field_id": 313637
+            //         },
+            //         "input_fields": {
+            //             "datacenter": {
+            //                 "0": [{
+            //                     "form_id": 51007,
+            //                     "field_id": 313613
+            //                 }],
+            //                 "1": [{
+            //                     "form_id": 51007,
+            //                     "field_id": 313612
+            //                 }]
+            //             },
+            //             "pincode": {
+            //                 "0": [{
+            //                     "form_id": 51007,
+            //                     "field_id": 313613
+            //                 }],
+            //                 "1": [{
+            //                     "form_id": 51007,
+            //                     "field_id": 313611
+            //                 }, {
+            //                     "form_id": 51007,
+            //                     "field_id": 313639
+            //                 }, {
+            //                     "form_id": 51007,
+            //                     "field_id": 313641
+            //                 }]
+            //             }
+            //         }
+            //     },
+            //     "output": {
+            //         "1": {
+            //             "flag_param_type_id": 1,
+            //             "flag_param_type_name": "field",
+            //             "form_id": 51007,
+            //             "field_id": 313613,
+            //             "param_name": "probability",
+            //             "field_value": ""
+            //         },
+            //         "2": {
+            //             "flag_param_type_id": 1,
+            //             "flag_param_type_name": "field",
+            //             "form_id": 51007,
+            //             "field_id": 313612,
+            //             "param_name": "Data Center",
+            //             "field_value": ""
+            //         },
+            //         "3": {
+            //             "flag_param_type_id": 2,
+            //             "flag_param_type_name": "array_of_field",
+            //             "param_name": "pincode",
+            //             "field_details": [{
+            //                 "form_id": 51007,
+            //                 "field_id": 313611,
+            //                 "field_value": ""
+            //             }, {
+            //                 "form_id": 51007,
+            //                 "field_id": 313639,
+            //                 "field_value": ""
+            //             }, {
+            //                 "form_id": 51007,
+            //                 "field_id": 313641,
+            //                 "field_value": ""
+            //             }]
+            //         }
+            //     }
+            // };
+
+            const workflowActivityID = request.workflow_activity_id || request.activity_id || 0;
+            const sqsQueueUrl = inlineJOSN.sqs_queue;
+            let inputJSON = inlineJOSN.input;
+            let outputJSON = inlineJOSN.output;
+            let inputTypeFormID = inputJSON.input_type.form_id;
+            let inputTypeFieldID = inputJSON.input_type.field_id;
+
+            console.log("inputTypeFormID ", inputTypeFormID);
+            console.log("inputTypeFieldID ", inputTypeFormID);
+
+            const inputTypeFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                organization_id: request.organization_id,
+                account_id: request.account_id
+            }, workflowActivityID, inputTypeFormID);
+
+            let inputTypeFormActivityID = 0, inputTypeFormTransactionID = 0;
+
+            if (Number(inputTypeFormData.length) > 0) {
+                inputTypeFormActivityID = Number(inputTypeFormData[0].data_activity_id);
+                inputTypeFormTransactionID = Number(inputTypeFormData[0].data_form_transaction_id);
+            }
+
+            if (inputTypeFormActivityID === 0 || inputTypeFormTransactionID === 0) {
+                logger.error(`Midmile form is not submitted`);
+                throw new Error("Midmile form is not submitted");
+            }
+
+            const inputTypeFieldDataFieldData = await getFieldValue({
+                form_transaction_id: inputTypeFormTransactionID,
+                form_id: inputTypeFormID,
+                field_id: inputTypeFieldID,
+                organization_id: request.organization_id
+            });
+
+            let inputTypeValue = "";
+            if (inputTypeFieldDataFieldData.length > 0) {
+                inputTypeValue = inputTypeFieldDataFieldData[0][getFielDataValueColumnNameNew(inputTypeFieldDataFieldData[0].data_type_id)];
+            }
+
+            if (inputTypeValue.length > 0) {
+                inputTypeValue = inputTypeValue.split(/\s/).join('').toLowerCase();
+            }
+
+            let inputFields = inputJSON["input_fields"][inputTypeValue];
+
+            let fieldIdValueMap = new Map();
+            for (let key of Object.keys(inputFields)) {
+                for (let field of inputFields[key]) {
+                    console.log(field);
+
+                    const inputFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                        organization_id: request.organization_id,
+                        account_id: request.account_id
+                    }, workflowActivityID, field.form_id);
+
+                    let inputFormActivityID = 0, inputFormTransactionID = 0;
+
+                    if (Number(inputFormData.length) > 0) {
+                        inputFormActivityID = Number(inputFormData[0].data_activity_id);
+                        inputFormTransactionID = Number(inputFormData[0].data_form_transaction_id);
+                    }
+
+                    if (inputFormActivityID === 0 || inputFormTransactionID === 0) {
+                        logger.error(`Midmile form is not submitted`);
+                        throw new Error("Midmile form is not submitted");
+                    }
+
+                    const inputFieldDataFieldData = await getFieldValue({
+                        form_transaction_id: inputTypeFormTransactionID,
+                        form_id: field.form_id,
+                        field_id: field.field_id,
+                        organization_id: request.organization_id
+                    });
+
+                    let inputValue = "";
+                    if (inputFieldDataFieldData.length > 0) {
+                        inputValue = inputFieldDataFieldData[0][getFielDataValueColumnNameNew(inputFieldDataFieldData[0].data_type_id)];
+                    }
+
+                    fieldIdValueMap.set(field.field_id, inputValue);
+
+                }
+            }
+
+            for (const outputFieldKey of Object.keys(outputJSON)) {
+                let outputFieldConfig = outputJSON[outputFieldKey];
+                if (outputFieldConfig.flag_param_type_id === 1) {
+                    let value = fieldIdValueMap.get(outputFieldConfig.field_id);
+                    if (value) {
+                        outputFieldConfig.field_value = fieldIdValueMap.get(outputFieldConfig.field_id);
+                    } else {
+                        delete outputJSON[outputFieldKey];
+                    }
+
+                } else if (outputFieldConfig.flag_param_type_id === 2) {
+
+                    let fieldDetails = outputFieldConfig.field_details.flatMap((fieldDetails) => {
+                        let value = fieldIdValueMap.get(fieldDetails.field_id);
+                        if (value) {
+                            return { ...fieldDetails, field_value: value }
+                        } else {
+                            return []
+                        }
+                    })
+                    if (fieldDetails.length === 0) {
+                        delete outputJSON[outputFieldKey];
+                    } else {
+                        outputFieldConfig.field_details = fieldDetails;
+                    }
+
+                }
+            }
+
+            util.logInfo(request, "Output JSON for midmile sqs %j", { message: JSON.stringify(outputJSON) });
+
+            sqs.sendMessage({
+                MessageBody: JSON.stringify(outputJSON),
+                QueueUrl: sqsQueueUrl,
+                MessageGroupId: `midmile-excel-job-queue-v1`,
+                MessageDeduplicationId: uuidv4(),
+                MessageAttributes: {
+                    "Environment": {
+                        DataType: "String",
+                        StringValue: global.mode
+                    },
+                }
+            }, (error, data) => {
+                if (error) {
+                    util.logError(request, `Error sending excel job to SQS queue`, { type: 'bot_engine', error: serializeError(error), request_body: request });
+                } else {
+                    util.logInfo(request, `Successfully sent excel job to SQS queue: %j`, { type: 'bot_engine', request_body: request });
+                }
+            });
+
+        } catch (e) {
+            console.log(e);
+        }
+    }
 }
 
 

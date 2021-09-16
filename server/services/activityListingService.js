@@ -4033,9 +4033,9 @@ function ActivityListingService(objCollection) {
 					}
 					let participantReq = Object.assign({}, request);
 					participantReq.is_all_flag = isAllFlag;
-					let htmlString = await generateMOMOrdersHtmlCode(request);
-					console.log("htmlString ", htmlString);
 					let [err, participantsList] = await getParticipantsAsync(participantReq);
+					let htmlString = await generateMOMOrdersHtmlCode(request, participantsList);
+					console.log("htmlString ", htmlString);
 
 					for (const asset of participantsList) {
 						let [error, assetDetails] = await getParticipantDetails({ assetID: asset.asset_id });
@@ -4059,7 +4059,7 @@ function ActivityListingService(objCollection) {
 		return true;
 	}
 
-	let generateMOMOrdersHtmlCode = async (request) => {
+	let generateMOMOrdersHtmlCode = async (request, participantsList) => {
 
 		const [errorZero, childMOM] = await this.activityListSelectChildOrders({
 			organization_id: request.organization_id,
@@ -4212,7 +4212,25 @@ function ActivityListingService(objCollection) {
 			}
 			htmlString += '</tr>';
 		}
-		htmlString += '</tbody></table><br><br><p>Thanks,</p><p>Vi&trade; Business</p>';
+
+		let slNoOfParticipant = 1;
+
+		let participantListEmailString = '<br><table border="1" cellspacing="0"><thead><tr><th colspan="3" >Participant List</th><tr><th>Sl No</th><th>Name</th><th>Email</th></tr></thead><tbody>'
+		for (const asset of participantsList) {
+
+			let [error, assetDetails] = await getParticipantDetails({ assetID: asset.asset_id });
+			console.log("assetDetails[0].asset_email_id ", assetDetails[0].asset_email_id);
+			if (assetDetails[0].asset_email_id !== null && assetDetails[0].asset_email_id !== "") {
+				participantListEmailString += '<tr>';
+				participantListEmailString += '<td>' + (slNoOfParticipant++) + '</td>';
+				participantListEmailString += '<td>' + assetDetails[0].operating_asset_first_name + '</td>';
+				participantListEmailString += '<td>' + assetDetails[0].asset_email_id + '</td>';
+				participantListEmailString += '</tr>';
+			}
+		}
+		participantListEmailString += '</tbody></table><br>';
+
+		htmlString += '</tbody></table><br><br>' + participantListEmailString + '<p>Thanks,</p><p>Vi&trade; Business</p>';
 		return htmlString;
 	}
 
