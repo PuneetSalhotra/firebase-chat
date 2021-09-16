@@ -2020,6 +2020,10 @@ function TasiService(objectCollection) {
             request.is_freeze,
             request.start_datetime,
             request.end_datetime,
+            request.asset_id,
+            request.asset_type_id,
+            request.entity_tag_id_1,
+            request.entity_tag_id_2,
             request.start_from || 0,
             request.limit_value || 50
         );
