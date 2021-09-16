@@ -3476,6 +3476,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                         let price_after_discount = 0;
                         let final_price = 0;
                         let service_charge = 0;
+                        let price_after_service_charge = 0;
                         let activity_type_name = '';
 					 	orderActivityId = rowData1.activity_id;
 					 	
@@ -3510,11 +3511,13 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 						total_mrp = total_mrp + cost;
 						                        
 						price_after_discount = cost - dis_amount;
-						tax_percent= JSON.parse(rowData1.activity_inline_data).tax;
-						tax_amount = (price_after_discount * tax_percent)/100;
-						final_price = price_after_discount + tax_amount;
-						service_charge = (final_price * serviceChargePercentage)/100;
-                        final_price = final_price + service_charge;
+						tax_percent= JSON.parse(rowData1.activity_inline_data).tax;                        
+						
+                        service_charge = (price_after_discount * serviceChargePercentage)/100;
+                        price_after_service_charge = price_after_discount + service_charge;
+                        tax_amount = (price_after_service_charge * tax_percent)/100;
+						final_price = price_after_service_charge + tax_amount;
+						
 						total_price = total_price + final_price;
 						//console.log('total price '+total_price);
 						total_tax = total_tax + tax_amount;
@@ -3565,10 +3568,12 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 								
 								let choice_cost = 0;
 								let dis_amount = 0;
+                                let choice_tax_percent = 0;
 								let choice_tax_amount = 0;
 								let choice_service_charge = 0;
 							 	let choice_price_after_discount = 0;
 							 	let choice_final_price = 0;
+                                let choice_price_after_service_charge = 0;
 								
 								choice_cost = choiceData.quantity * choiceData.price;
 								total_mrp = total_mrp + choice_cost;
@@ -3585,16 +3590,14 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 								}
 								
 								dis_amount =  (choice_cost * item_discount)/100;
-								choice_price_after_discount = choice_cost - dis_amount;
+								choice_price_after_discount = choice_cost - dis_amount;								
 								
-								
-								choice_tax= choiceData.tax;
-								
-								choice_tax_amount = (choice_price_after_discount * choice_tax)/100;
-								choice_final_price = choice_price_after_discount + choice_tax_amount;
-
-                                choice_service_charge = (choice_final_price * serviceChargePercentage)/100;
-                                choice_final_price = choice_final_price + choice_service_charge;
+								choice_tax_percent= choiceData.tax;															
+                                
+                                choice_service_charge = (choice_price_after_discount * serviceChargePercentage)/100;
+                                choice_price_after_service_charge = choice_price_after_discount + choice_service_charge;
+                                choice_tax_amount = (choice_price_after_service_charge * choice_tax_percent)/100;
+								choice_final_price = choice_price_after_service_charge + choice_tax_amount;
         
 								total_price = total_price + choice_final_price;
 								//console.log('IN Choice total price '+total_price);
@@ -3618,7 +3621,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 								attributeArray.discount_percent=item_discount;
 								attributeArray.discount=dis_amount;
 								attributeArray.price_after_discount=choice_price_after_discount;
-								attributeArray.tax_percent=choice_tax;
+								attributeArray.tax_percent=choice_tax_percent;
 								attributeArray.tax=choice_tax_amount;
 								attributeArray.final_price=choice_final_price;
 								attributeArray.option_id=1;
