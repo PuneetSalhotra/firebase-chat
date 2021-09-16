@@ -1433,6 +1433,7 @@ function TasiService(objectCollection) {
           request.organization_id,
           request.tag_type_category_id,
           request.flag,
+          request.tag_id,
           request.account_id,
           request.workforce_id,
           request.start_from,
