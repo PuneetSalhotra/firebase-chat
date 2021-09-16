@@ -578,6 +578,57 @@ function TasiController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/tasi/entity/target/mapping/update/target', async function (req, res) {
+        const [err, resData] = await tasiService.entityTargetMappingUpdateTarget(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/entity/target/mapping/update/target | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/report/list/select/payout', async function (req, res) {
+        const [err, resData] = await tasiService.reportListSelectPayout(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("tasi/report/list/select/payout | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/validation/list/history/select', async function (req, res) {
+        const [err, resData] = await tasiService.validationListHistorySelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/validation/list/history/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/entity/target/setting/select/target', async function (req, res) {
+        const [err, resData] = await tasiService.entityTargetSettingSelectTarget(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/entity/target/setting/select/target | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+
+    app.post('/' + global.config.version + '/tasi/entity/target/mapping/history/select', async function (req, res) {
+        const [err, resData] = await tasiService.entityTargetMappingHistorySelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/entity/target/mapping/history/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = TasiController;
