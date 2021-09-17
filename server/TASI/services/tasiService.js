@@ -1733,6 +1733,12 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
+
+                    try {
+                        this.validationHistoryInsert({...request, update_type_id : 3501 });
+                    } catch(e) {
+                        console.log("Error while validationHistoryInsert", e, e.stack);
+                    }
                 })
                 .catch((err) => {
                     error = err;
@@ -1967,7 +1973,7 @@ function TasiService(objectCollection) {
                     responseData = [];
                     error = false;
                     try {
-                        this.entityTargetSettingHistoryInsert({...request, update_type_id : 3601 });
+                        this.entityTargetSettingHistoryInsert({...request, entity_target_setting_id : data[0].entity_target_setting_id, update_type_id : 3601 });
                     } catch(e) {
                         console.log("Error while validationHistoryInsert", e, e.stack);
                     }
