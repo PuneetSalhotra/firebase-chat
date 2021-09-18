@@ -3318,7 +3318,7 @@ async function addFormEntriesAsync(request) {
         }
     } 
     util.logInfo(request, "value contributors "+finalInlineDataKeys);
-    util.logInfo(request, "dashboardEntityFieldData "+dashboardEntityFieldData);
+    util.logInfo(request, "dashboardEntityFieldData "+JSON.stringify(dashboardEntityFieldData));
     //console.log('formDataJson : ', formDataJson);
 
     let workflowReference,documentReference,assetReference;
@@ -3331,7 +3331,8 @@ async function addFormEntriesAsync(request) {
         if (row.hasOwnProperty('data_type_combo_id')) {
             datatypeComboId = row.data_type_combo_id;
         }
-            
+        fieldData = null;
+        fieldDataValue = null;    
         const params = new Array(
             request.form_transaction_id, //0
             row.form_id, //1
@@ -3371,21 +3372,31 @@ async function addFormEntriesAsync(request) {
             case 2: // future Date
             case 3: // past Date
                 params[9] = row.field_value;
+                fieldData = row.field_value;
+                fieldDataValue = "";                
                 break;
             case 4: // Date and time
                 params[10] = row.field_value;
+                fieldData = row.field_value;
+                fieldDataValue = "";                
                 break;
             case 5: //Number
                 //params[12] = row.field_value;
                 params[13] = row.field_value;
+                fieldData = row.field_value;
+                fieldDataValue = "";                
                 break;
             case 6: //Decimal
                 //params[13] = row.field_value;
                 params[14] = row.field_value;
+                fieldData = row.field_value;
+                fieldDataValue = "";                
                 break;
             case 7: //Scale (0 to 100)
             case 8: //Scale (0 to 5)
                 params[11] = row.field_value;
+                fieldData = row.field_value;
+                fieldDataValue = "";                
                 break;
             case 9: // Reference - Organization
             case 10: // Reference - Building
@@ -3451,15 +3462,21 @@ async function addFormEntriesAsync(request) {
                 break;
             case 19: //Short Text
                 params[18] = row.field_value;
+                fieldData = row.field_value;
+                fieldDataValue = "";                
                 break;
             case 20: //Long Text
                 params[19] = row.field_value;
+                fieldData = row.field_value;
+                fieldDataValue = "";                
                 break;
             case 21: //Label
                 params[18] = row.field_value;
                 break;
             case 22: //Email ID
                 params[18] = row.field_value;
+                fieldData = row.field_value;
+                fieldDataValue = "";                
                 break;
             case 23: //Phone Number with Country Code
                 /*var phone = row.field_value.split('|');
