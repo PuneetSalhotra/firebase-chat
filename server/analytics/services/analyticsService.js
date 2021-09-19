@@ -6064,7 +6064,9 @@ function AnalyticsService(objectCollection)
                 let opptydata = opptyVerticalMap.get(iteratorM);
                 for (let idx = 0; idx < opptydata.length; idx++) {
                     let asset_id = opptydata[idx].activity_creator_asset_id;
+                    console.log("request.filter_asset_id = " + request.filter_asset_id + "  typeof filter_asset_id = " + typeof request.filter_asset_id + "  :    asset_id = " + asset_id);
                     if (finalResourceMap.has(asset_id)) {
+                        console.log("manager_asset_id");
                         console.log("asset_id == manager_asset_id [" + asset_id + " == " + asset_id + "]");
                         console.log("count = " + opptydata[idx].count + " :: quantity = " + opptydata[idx].quantity + " :: value = " + opptydata[idx].value);
                         let map = finalResourceMap.get(asset_id);
@@ -6073,6 +6075,7 @@ function AnalyticsService(objectCollection)
                         map.set("flag_" + (iteratorM + 1) + "_value", opptydata[idx].value);
                         finalResourceMap.set(asset_id, map);
                     } else if (assetMap.has(asset_id)) {
+                        console.log("asset_id");
                         let map = assetMap.get(asset_id);
                         map.set("flag_" + (iteratorM + 1) + "_count", opptydata[idx].count);
                         map.set("flag_" + (iteratorM + 1) + "_quantity", opptydata[idx].quantity);
@@ -6081,7 +6084,7 @@ function AnalyticsService(objectCollection)
                         console.log("asset_id != manager_asset_id [" + asset_id + " != " + resourceReporteesMappingMap.get(asset_id) + "]");
                         console.log("count = " + opptydata[idx].count + " :: quantity = " + opptydata[idx].quantity + " :: value = " + opptydata[idx].value);
                     } else {
-                        if ((!finalResourceMap.has(asset_id)) && (!assetMap.has(asset_id)) && (request.filter_asset_id === String(asset_id))) {
+                        if ((!finalResourceMap.has(asset_id)) && (!assetMap.has(asset_id)) && (String(request.filter_asset_id) === String(asset_id))) {
                             let opttyMap = new Map();
                             opttyMap.set("flag_" + (iteratorM + 1) + "_count", opptydata[idx].count);
                             opttyMap.set("flag_" + (iteratorM + 1) + "_quantity", opptydata[idx].quantity);
@@ -6247,7 +6250,9 @@ function AnalyticsService(objectCollection)
                 let opptydata = opptyVerticalMap.get(iteratorM);
                 for (let idx = 0; idx < opptydata.length; idx++) {
                     let asset_id = opptydata[idx].activity_creator_asset_id;
+                    console.log("request.filter_asset_id = " + request.filter_asset_id + "  typeof filter_asset_id = " + typeof request.filter_asset_id + "  :    asset_id = " + asset_id);
                     if (finalResourceMap.has(asset_id)) {
+                        console.log("manager_asset_id");
                         console.log("asset_id == manager_asset_id [" + asset_id + " == " + asset_id + "]");
                         console.log("count = " + opptydata[idx].count + " :: quantity = " + opptydata[idx].quantity + " :: value = " + opptydata[idx].value);
                         let map = finalResourceMap.get(asset_id);
@@ -6256,6 +6261,7 @@ function AnalyticsService(objectCollection)
                         map.set("flag_" + (iteratorM + 1) + "_value", opptydata[idx].value);
                         finalResourceMap.set(asset_id, map);
                     } else if (assetMap.has(asset_id)) {
+                        console.log("asset_id");
                         let map = assetMap.get(asset_id);
                         map.set("flag_" + (iteratorM + 1) + "_count", opptydata[idx].count);
                         map.set("flag_" + (iteratorM + 1) + "_quantity", opptydata[idx].quantity);
@@ -6264,7 +6270,7 @@ function AnalyticsService(objectCollection)
                         console.log("asset_id != manager_asset_id [" + asset_id + " != " + resourceReporteesMappingMap.get(asset_id) + "]");
                         console.log("count = " + opptydata[idx].count + " :: quantity = " + opptydata[idx].quantity + " :: value = " + opptydata[idx].value);
                     } else {
-                        if ((!finalResourceMap.has(asset_id)) && (!assetMap.has(asset_id)) && (request.filter_asset_id === String(asset_id))) {
+                        if ((!finalResourceMap.has(asset_id)) && (!assetMap.has(asset_id)) && (String(request.filter_asset_id) === String(asset_id))) {
                             let opttyMap = new Map();
                             opttyMap.set("flag_" + (iteratorM + 1) + "_count", opptydata[idx].count);
                             opttyMap.set("flag_" + (iteratorM + 1) + "_quantity", opptydata[idx].quantity);
@@ -6474,7 +6480,9 @@ function AnalyticsService(objectCollection)
                 let opptydata = opptyVerticalMap.get(iteratorM);
                 for (let idx = 0; idx < opptydata.length; idx++) {
                     let asset_id = opptydata[idx].activity_creator_asset_id;
+                    console.log("request.filter_asset_id = " + request.filter_asset_id + "  typeof filter_asset_id = " + typeof request.filter_asset_id + "  :    asset_id = " + asset_id);
                     if (finalResourceMap.has(asset_id)) {
+                        console.log("manager_asset");
                         console.log("asset_id == manager_asset_id [" + asset_id + " == " + asset_id + "]");
                         console.log("count = " + opptydata[idx].count + " :: quantity = " + opptydata[idx].quantity + " :: value = " + opptydata[idx].value);
                         let map = finalResourceMap.get(asset_id);
@@ -6483,6 +6491,7 @@ function AnalyticsService(objectCollection)
                         map.set("flag_" + (iteratorM + 1) + "_value", opptydata[idx].value);
                         finalResourceMap.set(asset_id, map);
                     } else if (assetMap.has(asset_id)) {
+                        console.log("asset_id");
                         let map = assetMap.get(asset_id);
                         map.set("flag_" + (iteratorM + 1) + "_count", opptydata[idx].count);
                         map.set("flag_" + (iteratorM + 1) + "_quantity", opptydata[idx].quantity);
@@ -6491,7 +6500,7 @@ function AnalyticsService(objectCollection)
                         console.log("asset_id != manager_asset_id [" + asset_id + " != " + resourceReporteesMappingMap.get(asset_id) + "]");
                         console.log("count = " + opptydata[idx].count + " :: quantity = " + opptydata[idx].quantity + " :: value = " + opptydata[idx].value);
                     } else {
-                        if ((!finalResourceMap.has(asset_id)) && (!assetMap.has(asset_id)) && (request.filter_asset_id === String(asset_id))) {
+                        if ((!finalResourceMap.has(asset_id)) && (!assetMap.has(asset_id)) && (String(request.filter_asset_id) === String(asset_id))) {
                             let opttyMap = new Map();
                             opttyMap.set("flag_" + (iteratorM + 1) + "_count", opptydata[idx].count);
                             opttyMap.set("flag_" + (iteratorM + 1) + "_quantity", opptydata[idx].quantity);
@@ -6654,5 +6663,3 @@ function AnalyticsService(objectCollection)
 }
 
 module.exports = AnalyticsService;
-
-
