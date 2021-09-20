@@ -15753,7 +15753,6 @@ if(workflowActivityData.length==0){
         error = false,
         deskAssetData,
         assetData={};
-      
     for (let i = 0; i < request.emails.length; i++) {
     try{
         let [err, assetDetails] = await getAssetByEmail({
@@ -15810,27 +15809,90 @@ if(workflowActivityData.length==0){
         var timeDifferenceInMinutes = Math.floor(eventTimeDetails[0].field_value.duration);
         let createDate = new Date(moment(eventTimeDetails[0].field_value.start_date_time).utcOffset("-05:30").format("YYYY-MM-DD HH:mm:ss"));
         let today = new Date();
-        
-        ics.createEvent({
-            title: "Telecall/Discussion",
-            description: wfActivityDetails[0].activity_description,
-            busyStatus: 'FREE',
-            start: [createDate.getFullYear(), createDate.getMonth()+1, createDate.getDate(), createDate.getHours(), createDate.getMinutes()],
-            duration: { minutes: timeDifferenceInMinutes },
-            organizer: { name: 'GreneOS', email: 'admin@grenerobotics.com' },
-            attendees: [{ name: receiver_name, email: email }],
+        activityParticipantService.getParticipantsList({...request,activity_id:request.workflow_activity_id,datetime_differential: "1970-01-01 00:00:00"},async function(err,dat){
+            let [err1,activityTypeConfig]= await activityCommonService.getWorkflowFieldsBasedonActTypeId(request,request.activity_type_id);
             
-          }, (error, value) => {
-            if (error) {
-              console.log(error)
+            
+            let emailsToAdd = [];
+            let eventLocation = "";
+            if(activityTypeConfig.length>0 && activityTypeConfig[0].activity_type_inline_data !=""){
+            let activity_type_inline_data = typeof activityTypeConfig[0].activity_type_inline_data == 'string'?JSON.parse(activityTypeConfig[0].activity_type_inline_data):activityTypeConfig[0].activity_type_inline_data;
+            if(activity_type_inline_data.hasOwnProperty('meeting_location_field_id') && activity_type_inline_data.meeting_location_field_id !=""){
+            eventLocation = JSON.parse(wfActivityDetails[0].activity_inline_data).filter((_,i)=>_.field_id==activity_type_inline_data.meeting_location_field_id);
+            
             }
-          let fileName = `${global.config.efsPath}${request.asset_id}-${today.getTime()}.ics`
-            fs.writeFileSync(fileName, value);
-            request.email_sender_name = 'GreneOS';
-            request.email_receiver_name = receiver_name;
-            request.email_sender = "admin@grenerobotics.com"
-            util.sendEmailMailgunV2(request, email, "Telecall/Discussion", fileName, "",  "html")
-          });
+            }
+            console.log(dat.data.length)
+            for(let i=0;i<dat.data.length;i++){
+                let [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+                    organization_id: request.organization_id,
+                    asset_id: dat.data[i].asset_id
+                });
+                if(assetData.length>0&&assetData[0].operating_asset_email_id){
+                emailsToAdd.push({name:assetData[0].operating_asset_first_name,email:assetData[0].operating_asset_email_id})
+                }
+
+            }
+            console.log({
+                title: "Telecall/Discussion",
+                description: wfActivityDetails[0].activity_description,
+                busyStatus: 'FREE',
+                location:eventLocation[0].field_value,
+                start: [createDate.getFullYear(), createDate.getMonth()+1, createDate.getDate(), createDate.getHours(), createDate.getMinutes()],
+                duration: { minutes: timeDifferenceInMinutes },
+                organizer: { name: 'GreneOS', email: 'admin@grenerobotics.com' },
+                attendees: emailsToAdd,
+                
+              });
+              let htmlReceived = await generateHtmlForParticipantList(request,emailsToAdd);
+              console.log(htmlReceived)
+              
+              ics.createEvent({
+                title: `Meeting ID-${wfActivityDetails[0].activity_cuid_3} Scheduled on..`,
+                description: wfActivityDetails[0].activity_description,
+                busyStatus: 'FREE',
+                location:eventLocation[0].field_value,
+                start: [createDate.getFullYear(), createDate.getMonth()+1, createDate.getDate(), createDate.getHours(), createDate.getMinutes()],
+                duration: { minutes: timeDifferenceInMinutes },
+                organizer: { name: 'GreneOS', email: 'admin@grenerobotics.com' },
+                attendees: emailsToAdd,
+                
+              }, (error, value) => {
+                if (error) {
+                  console.log(error)
+                };
+              
+              let fileName = `${global.config.efsPath}${request.asset_id}-${today.getTime()}.ics`
+                fs.writeFileSync(fileName, value);
+                request.email_sender_name = 'GreneOS';
+               
+                request.email_sender = "admin@grenerobotics.com";
+                // for(let j=0;j<emailsToAdd.length;j++){
+                request.email_receiver_name = receiver_name;
+                util.sendEmailMailgunV2(request, email, `Meeting ID-${wfActivityDetails[0].activity_cuid_3} Scheduled on..`, fileName,htmlReceived ,  "html")
+                // }
+              });
+        })
+    }
+
+    async function generateHtmlForParticipantList(req,participantsList){
+        let htmlString = '<p>Hi,</p><p>Greetings from Vi&trade;</p><br><table width="100%" border="1" cellspacing="0"><thead><tr>';
+        let slNoOfParticipant = 1;
+
+		let participantListEmailString = '<br><table border="1" cellspacing="0"><thead><tr><th colspan="3" >Participant List</th><tr><th>Sl No</th><th>Name</th><th>Email</th></tr></thead><tbody>'
+		for (const asset of participantsList) {
+			if (asset.email !== null && asset.email !== "") {
+				participantListEmailString += '<tr>';
+				participantListEmailString += '<td>' + (slNoOfParticipant++) + '</td>';
+				participantListEmailString += '<td>' + asset.name + '</td>';
+				participantListEmailString += '<td>' + asset.email + '</td>';
+				participantListEmailString += '</tr>';
+			}
+		}
+		participantListEmailString += '</tbody></table><br>';
+
+		htmlString += '</tbody></table><br><br>' + participantListEmailString + '<p>Thanks,</p><p>Vi&trade; Business</p>';
+		return htmlString;
     }
 
     async function getAssetByEmail(request) {
