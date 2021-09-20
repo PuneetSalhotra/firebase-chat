@@ -4902,6 +4902,7 @@ async function removeAsOwner(request,data,addT=0)  {
         newReq.device_os_id = 9;
         newReq.log_asset_id = 100; // Tony
         newReq.asset_id = 100; // Tony
+        newReq.creator_asset_id = request.asset_id;
         newReq.message_unique_id = util.getMessageUniqueId((Number(request.asset_id)) || newReq.asset_id);
 
         // Trigger flag for resource manager

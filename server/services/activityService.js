@@ -2739,7 +2739,7 @@ function ActivityService(objectCollection) {
                 // 
                 global.logger.write('conLog', "Calling updateActivityLogLastUpdatedDatetime", {}, request);
                 try {
-                    activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {
+                    activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.creator_asset_id || request.asset_id), function (err, data) {
 
                     });
 
