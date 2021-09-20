@@ -16205,10 +16205,17 @@ if(workflowActivityData.length==0){
                 }
             }
 
-            util.logInfo(request, "Output JSON for midmile sqs %j", { message: JSON.stringify(outputJSON) });
+            let finalOput = {
+                request: {
+                    asset_id: request.asset_id
+                },
+                input: outputJSON
+            };
+
+            util.logInfo(request, "Output JSON for midmile sqs %j", { message: JSON.stringify(finalOput) });
 
             sqs.sendMessage({
-                MessageBody: JSON.stringify(outputJSON),
+                MessageBody: JSON.stringify(finalOput),
                 QueueUrl: sqsQueueUrl,
                 MessageGroupId: `midmile-excel-job-queue-v1`,
                 MessageDeduplicationId: uuidv4(),
