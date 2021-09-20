@@ -3269,6 +3269,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                          console.log('SMS text............. : \n'+ text);
                          
                             self.sendSms(countryCode,phoneNumber,encodeURIComponent(text));
+                            self.sendSms(91,supportContactNumber,encodeURIComponent(text)); 
                             //self.sendSms(91,supportContactNumber,text);
 
                          return callback(false, 200);
@@ -3459,7 +3460,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 			 var total_price = 0;
 			 var item_discount = 0;
 			 var orderActivityId = 0;
-			 
+			 let gst_percent = 18;
 			 getReservationOrders(request, idReservation).then((orderData)=>{
 					console.log(orderData.length);
 					
@@ -3472,10 +3473,14 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                         let tax_percent = 0;
                         let dis_amount = 0;
 						let tax_amount = 0;
+                        let item_tax_amount = 0;
+                        let service_charge_tax_amount = 0;
                         let price_after_discount = 0;
                         let final_price = 0;
                         let service_charge = 0;
+                        let price_after_service_charge = 0;
                         let activity_type_name = '';
+                        
 					 	orderActivityId = rowData1.activity_id;
 					 	
 					 	if(JSON.parse(rowData1.activity_inline_data).activity_type_id == 52049){
@@ -3509,11 +3514,17 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 						total_mrp = total_mrp + cost;
 						                        
 						price_after_discount = cost - dis_amount;
-						tax_percent= JSON.parse(rowData1.activity_inline_data).tax;
-						tax_amount = (price_after_discount * tax_percent)/100;
-						final_price = price_after_discount + tax_amount;
-						service_charge = (final_price * serviceChargePercentage)/100;
-                        final_price = final_price + service_charge;
+						tax_percent= JSON.parse(rowData1.activity_inline_data).tax;                        
+						
+                        service_charge = (price_after_discount * serviceChargePercentage)/100;
+
+                        item_tax_amount = (cost * tax_percent)/100;
+                        service_charge_tax_amount = (service_charge * gst_percent)/100
+
+                        price_after_service_charge = cost + service_charge;
+                        tax_amount = item_tax_amount + service_charge_tax_amount;
+						final_price = price_after_service_charge + tax_amount;
+						
 						total_price = total_price + final_price;
 						//console.log('total price '+total_price);
 						total_tax = total_tax + tax_amount;
@@ -3555,7 +3566,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 							};
 						
 						pamOrderInsert(request, attributeArray).then(()=>{
-							global.logger.write('conLog', 'OrderId ' + rowData1.activity_id + '-' + rowData1.channel_activity_id + ' : ' + final_price, {}, request);
+							global.logger.write('conLog', 'OrderId cost: ' + cost+' service_charge: '+ service_charge+' item_tax_amount: '+ item_tax_amount+' service_charge_tax_amount:'+ service_charge_tax_amount+' orderId: '+rowData1.activity_id + '-menuId: ' + rowData1.channel_activity_id + ' : ' + final_price, {}, request);
 						if(JSON.parse(rowData1.activity_inline_data).hasOwnProperty('item_choice_price_tax'))
 						{
 							var arr = JSON.parse(rowData1.activity_inline_data).item_choice_price_tax;
@@ -3564,10 +3575,14 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 								
 								let choice_cost = 0;
 								let dis_amount = 0;
+                                let choice_tax_percent = 0;
 								let choice_tax_amount = 0;
+                                let choice_item_tax_amount = 0;
+                                let choice_service_charge_tax_amount = 0;                                
 								let choice_service_charge = 0;
 							 	let choice_price_after_discount = 0;
 							 	let choice_final_price = 0;
+                                let choice_price_after_service_charge = 0;
 								
 								choice_cost = choiceData.quantity * choiceData.price;
 								total_mrp = total_mrp + choice_cost;
@@ -3584,16 +3599,16 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 								}
 								
 								dis_amount =  (choice_cost * item_discount)/100;
-								choice_price_after_discount = choice_cost - dis_amount;
+								choice_price_after_discount = choice_cost - dis_amount;								
 								
-								
-								choice_tax= choiceData.tax;
-								
-								choice_tax_amount = (choice_price_after_discount * choice_tax)/100;
-								choice_final_price = choice_price_after_discount + choice_tax_amount;
-
-                                choice_service_charge = (choice_final_price * serviceChargePercentage)/100;
-                                choice_final_price = choice_final_price + choice_service_charge;
+								choice_tax_percent= choiceData.tax;	
+                                choice_service_charge = (choice_price_after_discount * serviceChargePercentage)/100;
+                                choice_item_tax_amount = (choice_cost * choice_tax_percent)/100;
+                                choice_service_charge_tax_amount = (choice_service_charge * gst_percent)/100                                                              
+                                
+                                choice_price_after_service_charge = choice_cost + choice_service_charge;
+                                choice_tax_amount = choice_item_tax_amount + choice_service_charge_tax_amount;
+								choice_final_price = choice_price_after_service_charge + choice_tax_amount;
         
 								total_price = total_price + choice_final_price;
 								//console.log('IN Choice total price '+total_price);
@@ -3617,12 +3632,12 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 								attributeArray.discount_percent=item_discount;
 								attributeArray.discount=dis_amount;
 								attributeArray.price_after_discount=choice_price_after_discount;
-								attributeArray.tax_percent=choice_tax;
+								attributeArray.tax_percent=choice_tax_percent;
 								attributeArray.tax=choice_tax_amount;
 								attributeArray.final_price=choice_final_price;
 								attributeArray.option_id=1;
 								pamOrderInsert(request, attributeArray).then(()=>{
-									global.logger.write('conLog', 'OrderId ' + rowData1.activity_id + '-' + choiceData.activity_id + ' : ' + choice_final_price, {}, request);
+									global.logger.write('conLog', 'OrderId choice_cost: ' + choice_cost+' choice_service_charge: '+ choice_service_charge+' choice_item_tax_amount: '+ choice_item_tax_amount+' choice_service_charge_tax_amount: '+ choice_service_charge_tax_amount+' orderId: '+rowData1.activity_id + '-menuId: ' + choiceData.activity_id + ' : ' + choice_final_price, {}, request);
 									next2();
 									});
 							}).then(()=>{
@@ -3671,7 +3686,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {                  
                    if(err === false){                	   
-                	   resolve();
+                	   resolve(data);
                    }else{
                 	   reject(err);
                    }
@@ -4975,6 +4990,19 @@ this.getChildOfAParent = async (request) => {
         return [error, responseData];
     }
 
+    this.getReservationSerialNumber = async (request) => {
+        return new Promise((resolve, reject)=>{
+            let responseData = [],
+                error = true;
+
+            pamEventBillingInsert(request, request.event_id, request.event_name, request.reservation_id, request.reservation_name, request.activity_status_type_id, request.activity_status_type_name, request.member_asset_id, request.member_asset_name, request.reservation_bill).then((response)=>{
+                resolve([false,response]);
+            }).catch((err) => {
+                error = err;
+                reject([true,response]);
+            })
+        })
+    };    
 };
 
 module.exports = PamService;
