@@ -1503,7 +1503,7 @@ function Util(objectCollection) {
             // bcc: 'bar@example.com',
             subject: subject,
             text: 'Grene os has created event',
-            // html: htmlTemplate,
+            html: htmlTemplate,
             attachment: filepath
         };
 
@@ -1526,10 +1526,12 @@ function Util(objectCollection) {
                         reject(error);
                     }
                     resolve(body);
+                   
                     fs.unlink(filepath,function(err){
                         if(err) return console.log(err);
                         console.log('file deleted successfully');
-                   });  
+                   }); 
+                
                 });
         });
     }

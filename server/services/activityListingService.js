@@ -4026,17 +4026,17 @@ function ActivityListingService(objCollection) {
 					this.generateSummary(request);
 					return;
 				} else {
-					let header = "Telecall/Discussion-Meeting ID-";
+					let header = "Meeting Id - ";
 					let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, 0);
 					if (wfActivityDetails.length > 0) {
-						header += wfActivityDetails[0].activity_cuid_3 + "-MOM Points";
+						header += wfActivityDetails[0].activity_cuid_3 + " - MOM Points Update!!!";
 					}
 					let participantReq = Object.assign({}, request);
 					participantReq.is_all_flag = isAllFlag;
 					let [err, participantsList] = await getParticipantsAsync(participantReq);
-					let htmlString = await generateMOMOrdersHtmlCode(request, participantsList);
+					let htmlString = await generateMOMOrdersHtmlCode(request, participantsList, wfActivityDetails);
 					console.log("htmlString ", htmlString);
-
+					
 					for (const asset of participantsList) {
 						let [error, assetDetails] = await getParticipantDetails({ assetID: asset.asset_id });
 						console.log("assetDetails[0].asset_email_id ", assetDetails[0].asset_email_id);
@@ -4059,7 +4059,7 @@ function ActivityListingService(objCollection) {
 		return true;
 	}
 
-	let generateMOMOrdersHtmlCode = async (request, participantsList) => {
+	let generateMOMOrdersHtmlCode = async (request, participantsList, wfActivityDetails) => {
 
 		const [errorZero, childMOM] = await this.activityListSelectChildOrders({
 			organization_id: request.organization_id,
@@ -4189,8 +4189,7 @@ function ActivityListingService(objCollection) {
 						if (date.isValid()) {
 							value = date.format("DD-MM-YYYY");
 						}
-					} catch (e) {
-					}
+					} catch (e) {}
 				}
 				data[field] = value;
 			}
@@ -4198,7 +4197,9 @@ function ActivityListingService(objCollection) {
 		}
 		console.log("finalSummaryData");
 		console.log(finalSummaryData);
-		let htmlString = '<p>Hi,</p><p>Greetings from Vi&trade;</p><br><table width="100%" border="1" cellspacing="0"><thead><tr>';
+		const date = wfActivityDetails[0].activity_datetime_created.toString();
+		let parts = date.split(" ");
+		let htmlString = `<p>Hi,</p><p>Greetings from Vi&trade;</p><p>The mail is to inform you that Based on Meeting Id:${wfActivityDetails[0].activity_cuid_3} on ${parts[2] + "-" + parts[1]} with ${wfActivityDetails[0].activity_title}, the updated discussion points are the following point(s).</p><br><table width="100%" border="1" cellspacing="0"><thead><tr>`;
 
 		for (const key of momFieldMappingsForSummary["field_order"]) {
 			htmlString += '<th>' + key + '</th>';
@@ -4218,7 +4219,9 @@ function ActivityListingService(objCollection) {
 		let participantListEmailString = '<br><table border="1" cellspacing="0"><thead><tr><th colspan="3" >Participant List</th><tr><th>Sl No</th><th>Name</th><th>Email</th></tr></thead><tbody>'
 		for (const asset of participantsList) {
 
-			let [error, assetDetails] = await getParticipantDetails({ assetID: asset.asset_id });
+			let [error, assetDetails] = await getParticipantDetails({
+				assetID: asset.asset_id
+			});
 			console.log("assetDetails[0].asset_email_id ", assetDetails[0].asset_email_id);
 			if (assetDetails[0].asset_email_id !== null && assetDetails[0].asset_email_id !== "") {
 				participantListEmailString += '<tr>';
@@ -4230,7 +4233,7 @@ function ActivityListingService(objCollection) {
 		}
 		participantListEmailString += '</tbody></table><br>';
 
-		htmlString += '</tbody></table><br><br>' + participantListEmailString + '<p>Thanks,</p><p>Vi&trade; Business</p>';
+		htmlString += '</tbody></table><br><br><p>Thanks,</p><p>Vi&trade; Business</p>';
 		return htmlString;
 	}
 
