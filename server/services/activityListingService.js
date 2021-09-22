@@ -4029,7 +4029,7 @@ function ActivityListingService(objCollection) {
 					let header = "Meeting Id - ";
 					let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, 0);
 					if (wfActivityDetails.length > 0) {
-						header += wfActivityDetails[0].activity_cuid_3 + "-Account Visit MOM Points Update!!!";
+						header += wfActivityDetails[0].activity_cuid_3 + " - MOM Points Update!!!";
 					}
 					let participantReq = Object.assign({}, request);
 					participantReq.is_all_flag = isAllFlag;
@@ -4199,7 +4199,7 @@ function ActivityListingService(objCollection) {
 		console.log(finalSummaryData);
 		const date = wfActivityDetails[0].activity_datetime_created.toString();
 		let parts = date.split(" ");
-		let htmlString = `<p>Hi,</p><p>Greetings from Vi&trade;</p><p>The mail is to inform you that Based on Account Visit(Meeting Id:${wfActivityDetails[0].activity_cuid_3}) on ${parts[2] + "-" + parts[1]} with ${wfActivityDetails[0].activity_title}, the updated discussion points are the following point(s).</p><br><table width="100%" border="1" cellspacing="0"><thead><tr>`;
+		let htmlString = `<p>Hi,</p><p>Greetings from Vi&trade;</p><p>The mail is to inform you that Based on Meeting Id:${wfActivityDetails[0].activity_cuid_3} on ${parts[2] + "-" + parts[1]} with ${wfActivityDetails[0].activity_title}, the updated discussion points are the following point(s).</p><br><table width="100%" border="1" cellspacing="0"><thead><tr>`;
 
 		for (const key of momFieldMappingsForSummary["field_order"]) {
 			htmlString += '<th>' + key + '</th>';
@@ -4233,7 +4233,7 @@ function ActivityListingService(objCollection) {
 		}
 		participantListEmailString += '</tbody></table><br>';
 
-		htmlString += '</tbody></table><br><br>' + participantListEmailString + '<p>Thanks,</p><p>Vi&trade; Business</p>';
+		htmlString += '</tbody></table><br><br><p>Thanks,</p><p>Vi&trade; Business</p>';
 		return htmlString;
 	}
 
