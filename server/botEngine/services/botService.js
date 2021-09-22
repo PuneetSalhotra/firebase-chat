@@ -16208,7 +16208,10 @@ if(workflowActivityData.length==0){
 
             let finalOput = {
                 request: {
-                    asset_id: request.asset_id
+                    asset_id: Number(request.asset_id),
+                    activity_id: Number(request.activity_id),
+                    workforce_id: Number(request.workforce_id),
+                    account_id: Number(request.account_id)
                 },
                 input: outputJSON
             };
