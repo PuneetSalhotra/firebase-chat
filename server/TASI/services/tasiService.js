@@ -2275,6 +2275,32 @@ function TasiService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.reportListUpdateFlagValidated = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.report_id, 
+            request.flag_validated, 
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_m1_report_list_update_flag_validated', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = [];
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = TasiService;

@@ -6642,7 +6642,8 @@ function FormConfigService(objCollection) {
             request.limit_value = 50;
             request.bot_id = 0;
             request.field_id = 0;
-            let [err, fieldLevelBots] = await activityCommonService.getMappedBotSteps(request, 0);
+            request.bot_operation_id = 32;
+            let [err, fieldLevelBots] = await activityCommonService.botOperationMappingSelectOperationType(request);
 
             console.log("fieldLevelBots", JSON.stringify(fieldLevelBots));
 
@@ -6676,10 +6677,17 @@ function FormConfigService(objCollection) {
             
             let response = [];
             for(let row of botInlineData) {
+                let tempActivityID = request.workflow_activity_id;
+                if(row.hasOwnProperty("workflow_reference_dependency") && row.workflow_reference_dependency==1){
+                    let [referr,refAccountDetails] =  await getActActChildActivities(request);
+                    if(refAccountDetails.length>0){
+                        tempActivityID = refAccountDetails[0].parent_activity_id
+                    }
+                }
                 let dependentFormTransaction = await activityCommonService.getActivityTimelineTransactionByFormId713({
                     organization_id: request.organization_id,
                     account_id: request.account_id
-                }, request.workflow_activity_id, row.source_form_id);
+                }, tempActivityID, row.source_form_id);
 
 
                 for(let row1 of dependentFormTransaction) {
@@ -6717,6 +6725,34 @@ function FormConfigService(objCollection) {
             return [true, [{ message : "Something went wrong. Please try again"}]]
         }
     }
+
+    async function getActActChildActivities (request) {
+		let responseData = [],
+			error = true;
+
+		const paramsArr = new Array(
+			request.workflow_activity_id,
+			request.activity_type_id,
+			request.activity_type_category_id || 53,
+			request.organization_id,
+			request.flag || 1,
+			request.page_start || 0,
+			request.page_limit || 50
+		);
+		const queryString = util.getQueryString('ds_p1_activity_activity_mapping_select_child_activities', paramsArr);
+
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
+	};
 
     async function checkWhetherFormWorkflowActID(request) {
         let responseData = [],
