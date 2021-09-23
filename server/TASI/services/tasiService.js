@@ -2301,6 +2301,33 @@ function TasiService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.assetListUpdateFlagSimulation = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.asset_id,
+          request.workforce_id,
+          request.account_id,
+          request.organization_id,
+          request.asset_flag_simulation
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_list_update_flag_simulation', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = [];
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = TasiService;

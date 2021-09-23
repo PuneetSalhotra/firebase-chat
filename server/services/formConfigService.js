@@ -6642,7 +6642,7 @@ function FormConfigService(objCollection) {
             request.limit_value = 50;
             request.bot_id = 0;
             request.field_id = 0;
-            request.bot_operation_id = 32;
+            request.bot_operation_type_id = 32;
             let [err, fieldLevelBots] = await activityCommonService.botOperationMappingSelectOperationType(request);
 
             console.log("fieldLevelBots", JSON.stringify(fieldLevelBots));
@@ -6680,8 +6680,13 @@ function FormConfigService(objCollection) {
                 let tempActivityID = request.workflow_activity_id;
                 if(row.hasOwnProperty("workflow_reference_dependency") && row.workflow_reference_dependency==1){
                     let [referr,refAccountDetails] =  await getActActChildActivities(request);
+                    
                     if(refAccountDetails.length>0){
-                        tempActivityID = refAccountDetails[0].parent_activity_id
+                        for(let i=0;i<refAccountDetails.length;i++){
+                            if(refAccountDetails[i].parent_activity_type_category_id==53){
+                        tempActivityID = refAccountDetails[i].parent_activity_id
+                            }
+                        }
                     }
                 }
                 let dependentFormTransaction = await activityCommonService.getActivityTimelineTransactionByFormId713({
@@ -6693,6 +6698,7 @@ function FormConfigService(objCollection) {
                 for(let row1 of dependentFormTransaction) {
                     let data = JSON.parse(row1.data_entity_inline);
                     let formSubmittedInfo = data.form_submitted;
+                    
                     try {
                         formSubmittedInfo = JSON.parse(formSubmittedInfo);
                     } catch (e) {
@@ -6733,7 +6739,7 @@ function FormConfigService(objCollection) {
 		const paramsArr = new Array(
 			request.workflow_activity_id,
 			request.activity_type_id,
-			request.activity_type_category_id || 53,
+			0,
 			request.organization_id,
 			request.flag || 1,
 			request.page_start || 0,

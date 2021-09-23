@@ -6879,7 +6879,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
         let paramsArr = new Array(
             request.organization_id,
-            request.activity_type_id,
+            request.activity_type_id || 0,
             request.bot_id || 0,
             request.bot_operation_type_id || 0,
             request.form_id || 0,

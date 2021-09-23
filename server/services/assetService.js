@@ -1012,6 +1012,7 @@ function AssetService(objectCollection) {
             "organization_flag_elasticsearch_enabled": util.replaceDefaultNumber(rowArray[0]['organization_flag_elasticsearch_enabled']),
             "asset_flag_export" : util.replaceDefaultNumber(rowArray[0]['asset_flag_export']),
             "organization_flag_calendar_enabled" : util.replaceDefaultNumber(rowArray[0]['organization_flag_calendar_enabled']),
+            "asset_flag_simulation" : util.replaceDefaultNumber(rowArray[0]['asset_flag_simulation'])
         };
 
         callback(false, rowData);
