@@ -7128,6 +7128,35 @@ function FormConfigService(objCollection) {
         }
         return [error, responseData];
     } 
+
+    this.formEntityMappingCategorySelect = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.activity_type_category_id || 31,
+            request.flag || 0,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_p1_form_entity_mapping_select_category', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    } 
 }
 
 module.exports = FormConfigService;
