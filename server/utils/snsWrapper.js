@@ -143,8 +143,8 @@ var AwsSns = function () {
         console.log('Message.subtitle : ', message.subtitle);
         console.log('Message.body : ', message.body);
 
-        //if(message.title !== 'undefined' || message.description !== 'undefined' ||
-        //   message.subtitle !== 'undefined') {
+        if (message.body.length > 0 && (message.subtitle != undefined || message.subtitle != "undefined") && (message.title != undefined || message.title != "undefined")) {
+
             sns.publish(params, function (err, data) {
                 console.log('       ');
                 console.log('^^^^^^^^^^^^^^^^^^^^^^^');
@@ -162,7 +162,7 @@ var AwsSns = function () {
                     // global.logger.write('debug', 'Notification Sent : ' + JSON.stringify(data, null, 2), {}, {});
                     logger.verbose('AwsSns.publish.sns.publish: %j', data, { type: 'sns_push', sns_params: params, data, activity_id: message.activity_id || 0, error: err });
             });
-        //}
+        }
         
     };
 

@@ -4902,6 +4902,7 @@ async function removeAsOwner(request,data,addT=0)  {
         newReq.device_os_id = 9;
         newReq.log_asset_id = 100; // Tony
         newReq.asset_id = 100; // Tony
+        newReq.creator_asset_id = request.asset_id;
         newReq.message_unique_id = util.getMessageUniqueId((Number(request.asset_id)) || newReq.asset_id);
 
         // Trigger flag for resource manager
@@ -9269,6 +9270,7 @@ else{
         }
         
         newReq.asset_id = 100;
+        newReq.creator_asset_id = Number(request.asset_id);
         newReq.activity_id = Number(request.workflow_activity_id);
         const event = {
             name: "alterActivityCover",
@@ -16267,10 +16269,20 @@ if(workflowActivityData.length==0){
                 }
             }
 
-            util.logInfo(request, "Output JSON for midmile sqs %j", { message: JSON.stringify(outputJSON) });
+            let finalOput = {
+                request: {
+                    asset_id: Number(request.asset_id),
+                    activity_id: Number(request.activity_id),
+                    workforce_id: Number(request.workforce_id),
+                    account_id: Number(request.account_id)
+                },
+                input: outputJSON
+            };
+
+            util.logInfo(request, "Output JSON for midmile sqs %j", { message: JSON.stringify(finalOput) });
 
             sqs.sendMessage({
-                MessageBody: JSON.stringify(outputJSON),
+                MessageBody: JSON.stringify(finalOput),
                 QueueUrl: sqsQueueUrl,
                 MessageGroupId: `midmile-excel-job-queue-v1`,
                 MessageDeduplicationId: uuidv4(),

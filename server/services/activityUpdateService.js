@@ -1267,7 +1267,7 @@ function ActivityUpdateService(objectCollection) {
                             if(respData.length > 0) {
                                     let ownerAssetID = Number(respData[0].activity_creator_asset_id);
                                     console.log('ownerAssetID : ', ownerAssetID);
-                                    if(Number(request.asset_id) !== ownerAssetID) {
+                                    if(Number(request.creator_asset_id || request.asset_id) !== ownerAssetID) {
                                         //activityCommonService.updateActivityLogDiffDatetime(request, ownerAssetID, function (err, data) {});
                                         await activityCommonService.increaseUnreadForGivenAsset(request, ownerAssetID, (err, data)=>{});
                                         let newReq = Object.assign({}, request);
