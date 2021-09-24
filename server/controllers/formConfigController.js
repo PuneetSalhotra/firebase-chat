@@ -1015,6 +1015,16 @@ function FormConfigController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/form/entity/mapping/category/select', async (req, res) => {
+        const [err, responseData] = await formConfigService.formEntityMappingCategorySelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/form/entity/mapping/category/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, responseData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = FormConfigController;

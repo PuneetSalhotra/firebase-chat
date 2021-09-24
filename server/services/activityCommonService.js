@@ -6873,6 +6873,35 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
     }
 
+    this.botOperationMappingSelectOperationType = async (request) => {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_id || 0,
+            request.bot_id || 0,
+            request.bot_operation_type_id || 0,
+            request.form_id || 0,
+            request.field_id || 0,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+
+        var queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_select_operation_type',paramsArr);
+        if(queryString !== '') {
+            await db.executeQueryPromise(1,queryString,request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error,responseData];
+    };
+
     
 }
 

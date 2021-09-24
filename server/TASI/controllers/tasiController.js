@@ -629,6 +629,36 @@ function TasiController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/tasi/input/list/history/list', async function (req, res) {
+        const [err, resData] = await tasiService.inputListHistorySelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/input/list/history/list | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/report/list/update/flagValidated', async function (req, res) {
+        const [err, resData] = await tasiService.reportListUpdateFlagValidated(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/report/list/update/flagValidated | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/asset/list/flag-simulation/update', async function (req, res) {
+        const [err, resData] = await tasiService.assetListUpdateFlagSimulation(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/asset/list/flag-simulation/update | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = TasiController;

@@ -2249,6 +2249,85 @@ function TasiService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.inputListHistorySelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.input_id, 
+            request.start_from || 0, 
+            request.limit_value || 50
+        );
+
+        const queryString = util.getQueryString('ds_p1_input_list_history_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = [];
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.reportListUpdateFlagValidated = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.report_id, 
+            request.flag_validated, 
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_m1_report_list_update_flag_validated', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = [];
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.assetListUpdateFlagSimulation = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.asset_id,
+          request.workforce_id,
+          request.account_id,
+          request.organization_id,
+          request.asset_flag_simulation
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_list_update_flag_simulation', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = [];
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = TasiService;

@@ -9284,6 +9284,7 @@ else{
         }
         
         newReq.asset_id = 100;
+        newReq.creator_asset_id = Number(request.asset_id);
         newReq.activity_id = Number(request.workflow_activity_id);
         const event = {
             name: "alterActivityCover",
