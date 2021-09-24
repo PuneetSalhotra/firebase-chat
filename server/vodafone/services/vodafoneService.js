@@ -6212,12 +6212,12 @@ function VodafoneService(objectCollection) {
             pageLimit = 50,
             pageStart = 0,
             query = "";
-            let searchType = 0;
+        let searchType = 0;
         // if(request.hasOwnProperty('search_string') && request.search_string.length<2){
         //     return [false,[]]
         // }
         let splitCout = request.search_string.split(' ');
-        if(splitCout.length>1){
+        if (splitCout.length > 1) {
             searchType = 1;
             request.search_string = request.search_string.replace(/[^a-zA-Z0-9]/g, ' ');
             // console.log(request)
@@ -6229,7 +6229,7 @@ function VodafoneService(objectCollection) {
             pageStart = request.page_start;
 
         try {
-            [query, error, responseData] = await setDynamicQueryArrayV1(request, 'activity_asset_search_mapping',searchType)
+            [query, error, responseData] = await setDynamicQueryArrayV1(request, 'activity_asset_search_mapping', searchType)
             if (query !== '') {
                 if (query.split("WHERE").length > 1) {
                     if (!query.split("WHERE")[1].trim().match(".*[a-zA-Z]+.*")) {
@@ -6238,34 +6238,37 @@ function VodafoneService(objectCollection) {
                 }
                 query += ' LIMIT ' + pageStart + ' , ' + pageLimit + ' ';
                 console.log('Query ', query);
-                if(searchType==1){
+                if (searchType == 1) {
                     let tableChoose = 0;
-                if(request.flag_participating==4){
-                   
-                let paramsArr = [request.asset_id]
-                let dbCall = 'ds_p1_asset_list_select_asset';
-                let [error12, resultData] = await self.executeSqlQuery(request, dbCall, paramsArr);
-                if (resultData.length > 0){
-                    
-                   let idRoleAsset = resultData[0].asset_type_id;
-                if (global.config.roleMappingElastic.includes(Number(idRoleAsset))) {
-                    tableChoose=0
-                }
-                else{
-                    tableChoose=1
-                }
-            }
-            }
-            if(request.flag_participating==2){
-                tableChoose=1
-            }
+                    if (request.flag_participating == 4) {
+
+                        let paramsArr = [request.asset_id]
+                        let dbCall = 'ds_p1_asset_list_select_asset';
+                        let [error12, resultData] = await self.executeSqlQuery(request, dbCall, paramsArr);
+                        if (resultData.length > 0) {
+
+                            let idRoleAsset = resultData[0].asset_type_id;
+                            if (global.config.roleMappingElastic.includes(Number(idRoleAsset))) {
+                                tableChoose = 0
+                            }
+                            else {
+                                tableChoose = 1
+                            }
+                        }
+                    }
+                    if (request.flag_participating == 2) {
+                        tableChoose = 1
+                    }
                     let altQueryArr = query.split('WHERE');
                     // console.log(altQueryArr[1])
                     let tryDum = String(altQueryArr[1]).replace(/=/gi, ':')
-                //    console.log(tryDum)
-                    let altQuery = `/${tableChoose==1?global.config.elasticActivitySearchTable:global.config.elasticActivityAssetTable}/_search?q=${tryDum}`;
-                    util.logInfo(request,"QUERY V1"+altQuery)
+                    //    console.log(tryDum)
+                    let altQuery = `/${tableChoose == 1 ? global.config.elasticActivitySearchTable : global.config.elasticActivityAssetTable}/_search?q=${tryDum}`;
+                    util.logInfo(request, "QUERY V1" + altQuery)
                     let queryToPass = encodeURI(altQuery);
+                    queryToPass = queryToPass.substring(0, queryToPass.lastIndexOf("LIMIT"));
+                    queryToPass = queryToPass + "&from="+pageStart+"&size="+pageLimit;
+                    console.log("queryToPass ", queryToPass);
                     const result = await client.transport.request({
                         method: "GET",
                         path: queryToPass,
@@ -6274,17 +6277,17 @@ function VodafoneService(objectCollection) {
                     // console.log(global.config.elastiSearchNode)
                     responseData = setQueryResponseV1(result)
                 }
-                else{
-                const result = await client.transport.request({
-                    method: "POST",
-                    path: "/_opendistro/_sql",
-                    body: {
-                        query: String(query)
-                    }
-                })
-                // console.log(global.config.elastiSearchNode)
-                responseData = setQueryResponse(result)
-            }
+                else {
+                    const result = await client.transport.request({
+                        method: "POST",
+                        path: "/_opendistro/_sql",
+                        body: {
+                            query: String(query)
+                        }
+                    })
+                    // console.log(global.config.elastiSearchNode)
+                    responseData = setQueryResponse(result)
+                }
             }
             return [false, responseData];
         } catch (error) {
