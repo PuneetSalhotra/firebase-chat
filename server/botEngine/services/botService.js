@@ -1812,7 +1812,8 @@ function BotService(objectCollection) {
                     if(request.activity_type_category_id == 48 && (request.activity_type_id == 150258
                         || request.activity_type_id == 150229 || request.activity_type_id == 150192
                         || request.activity_type_id == 149818 || request.activity_type_id == 149752
-                        || request.activity_type_id == 149058 || request.activity_type_id == 151728 || request.activity_type_id == 151727)){
+                        || request.activity_type_id == 149058 || request.activity_type_id == 151728 || request.activity_type_id == 151727
+                        || request.activity_type_id == 151729 || request.activity_type_id == 151730)){
                             console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_type_id);
                             request.debug_info.push('activity_type_category_id: ' + request.activity_type_category_id);
                             request.debug_info.push('activity_type_id: ' + request.activity_type_id);
@@ -8912,82 +8913,95 @@ else{
             error = false,
             generatedOpportunityID = "OPP-";
 
-        let activityInlineData = JSON.parse(request.activity_inline_data);
+        //let activityInlineData = JSON.parse(request.activity_inline_data);
+        let activityInlineData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data) : request.activity_inline_data;
         let parentActivityID;
-
-        for (let i_iterator of activityInlineData) {
-            if (Number(i_iterator.field_data_type_id) === 57) {
-                let fieldValue = i_iterator.field_value;
-                if (fieldValue.includes('|')) {
-                    //parentActivityID = fieldValue.split('|')[1];                    
-                    parentActivityID = fieldValue.split('|')[0];
+        util.logInfo(request,'request.account_activity_id : ', request.account_activity_id);
+        if(request.account_activity_id > 0){
+            parentActivityID = request.account_activity_id;
+        }else{
+            util.logInfo(request,'activityopportunityset No Account :: '+request.account_activity_id);
+            for (let i_iterator of activityInlineData) {
+                if (Number(i_iterator.field_data_type_id) === 57) {
+                    let fieldValue = i_iterator.field_value;
+                    if (fieldValue.includes('|')) {
+                        //parentActivityID = fieldValue.split('|')[1];                    
+                        parentActivityID = fieldValue.split('|')[0];
+                    }
                 }
             }
         }
-
+   
+        util.logInfo(request,'AccountId : ', parentActivityID);
         //Call activity_activity_mapping retrieval service to get the segment
-        let [err, segmentData] = await activityCommonService.activityActivityMappingSelect({
+       /* let [err, segmentData] = await activityCommonService.activityActivityMappingSelect({
             activity_id: request.activity_id, //Workflow activity id 
             parent_activity_id: parentActivityID, //reference account workflow activity_id
             organization_id: request.organization_id,
             start_from: 0,
             limit_value: 50
-        });
+        }); */
 
-        logger.info('segmentData : ', segmentData);
-        let segmentName = (segmentData.length>0)?(segmentData[0].parent_activity_tag_name).toLowerCase():'';
-        logger.info('segmentData : ', segmentName);
+        let accountDetails = await activityCommonService.getActivityDetailsPromise(request, parentActivityID);
+        util.logInfo(request,'AccountData : '+parentActivityID+" :: LENGTH :: "+accountDetails.length);
+        let segmentName = accountDetails[0].activity_type_tag_name; //(segmentData.length>0)?(segmentData[0].parent_activity_tag_name).toLowerCase():'';
+        util.logInfo(request,'segmentName : ', segmentName);
+        //segmentName = segmentName.toLowerCase();
         switch (segmentName) {
-            case 'la': generatedOpportunityID += 'C-';
+            case 'LA': generatedOpportunityID += 'C-';
                 break;
-            case 'ge': generatedOpportunityID += 'V-';
+            case 'GE': generatedOpportunityID += 'V-';
                 break;
-            case 'soho': generatedOpportunityID += 'D-';
+            case 'SOHO': generatedOpportunityID += 'D-';
                 break;
-            case 'sme': generatedOpportunityID += 'S-';
+            case 'SME': generatedOpportunityID += 'S-';
                 break;
-            case 'govt': generatedOpportunityID += 'G-';
+            case 'GOVT': generatedOpportunityID += 'G-';
                 break;
-            case 'vics': generatedOpportunityID += 'W-';
+            case 'VICS': generatedOpportunityID += 'W-';
                 break;
         }
 
         try {
+                if(generatedOpportunityID.length == 6 && accountDetails[0].tag_type_id == 110){
 
-            let targetOpportunityID = await cacheWrapper.getOpportunityIdPromise();
-            if (targetOpportunityID >= 100000) {
+                    let targetOpportunityID = await cacheWrapper.getOpportunityIdPromise();
+                    if (targetOpportunityID >= 100000) {
 
-            } else if (targetOpportunityID >= 10000) {
-                targetOpportunityID = "0" + targetOpportunityID;
-            } else if (targetOpportunityID >= 1000) {
-                targetOpportunityID = "00" + targetOpportunityID;
-            } else if (targetOpportunityID >= 100) {
-                targetOpportunityID = "000" + targetOpportunityID;
-            } else if (targetOpportunityID >= 10) {
-                targetOpportunityID = "0000" + targetOpportunityID;
-            } else if (targetOpportunityID >= 1) {
-                targetOpportunityID = "00000" + targetOpportunityID;
+                    } else if (targetOpportunityID >= 10000) {
+                        targetOpportunityID = "0" + targetOpportunityID;
+                    } else if (targetOpportunityID >= 1000) {
+                        targetOpportunityID = "00" + targetOpportunityID;
+                    } else if (targetOpportunityID >= 100) {
+                        targetOpportunityID = "000" + targetOpportunityID;
+                    } else if (targetOpportunityID >= 10) {
+                        targetOpportunityID = "0000" + targetOpportunityID;
+                    } else if (targetOpportunityID >= 1) {
+                        targetOpportunityID = "00000" + targetOpportunityID;
+                    }
+
+                    if (targetOpportunityID == 999900) {
+                        await cacheWrapper.setOppurtunity(0);
+                    }
+                    generatedOpportunityID = generatedOpportunityID + targetOpportunityID + '-' + util.getCurrentISTDDMMYY();
+                    responseData.push(generatedOpportunityID);
+
+                    logger.silly("Update CUID Bot");
+                    logger.silly("Update CUID Bot Request: ", request);
+                    try {
+                        request.opportunity_update = true;
+                        await updateCUIDBotOperation(request, {}, { "CUID1": generatedOpportunityID });
+                    } catch (error) {
+                        logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                    }
+                }else{
+                    util.logInfo(request,'WRONG SEGMENT : ', generatedOpportunityID);
+                }
+            } catch (e) {
+                error = true;
+                console.log("error : ", e);
             }
-
-            if (targetOpportunityID == 999900) {
-                await cacheWrapper.setOppurtunity(0);
-            }
-            generatedOpportunityID = generatedOpportunityID + targetOpportunityID + '-' + util.getCurrentISTDDMMYY();
-            responseData.push(generatedOpportunityID);
-
-            logger.silly("Update CUID Bot");
-            logger.silly("Update CUID Bot Request: ", request);
-            try {
-                request.opportunity_update = true;
-                await updateCUIDBotOperation(request, {}, { "CUID1": generatedOpportunityID });
-            } catch (error) {
-                logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
-            }
-
-        } catch (e) {
-            error = true;
-            console.log("error : ", e);
-        }
+        
         return [error, responseData];
     }
 
