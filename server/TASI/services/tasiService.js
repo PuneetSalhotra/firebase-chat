@@ -2066,7 +2066,7 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = [];
+                    responseData = data;
                     error = false;
                 })
                 .catch((err) => {
@@ -2125,7 +2125,7 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = [];
+                    responseData = data;
                     error = false;
 
                     try {
@@ -2162,7 +2162,7 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = [];
+                    responseData = data;
                     error = false;
                 })
                 .catch((err) => {
@@ -2188,7 +2188,7 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = [];
+                    responseData = data;
                     error = false;
                 })
                 .catch((err) => {
@@ -2214,7 +2214,7 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = [];
+                    responseData = data;
                     error = false;
                 })
                 .catch((err) => {
@@ -2240,7 +2240,7 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = [];
+                    responseData = data;
                     error = false;
                 })
                 .catch((err) => {
@@ -2266,7 +2266,7 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = [];
+                    responseData = data;
                     error = false;
                 })
                 .catch((err) => {
@@ -2292,7 +2292,7 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                    responseData = [];
+                    responseData = data;
                     error = false;
                 })
                 .catch((err) => {
@@ -2319,7 +2319,7 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                    responseData = [];
+                    responseData = data;
                     error = false;
                 })
                 .catch((err) => {
