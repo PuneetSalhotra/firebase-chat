@@ -4637,10 +4637,14 @@ case 729: // Report form BC Edit
         let activityTimelineCollectionJSON =  typeof activityTimelineCollection == 'string' ? JSON.parse(activityTimelineCollection) : activityTimelineCollection;
         if(activityTimelineCollectionJSON.hasOwnProperty('form_field_preview_enabled') && activityTimelineCollectionJSON.form_field_preview_enabled.length>0){
         for(let j=0;j<activityTimelineCollectionJSON.form_field_preview_enabled.length;j++){
-           
+           try{
                let field_value = activityTimelineCollectionJSON.form_field_preview_enabled[j].field_value;
-               field_value = field_value.replace(/(\r\n|\n|\r)/gm, " ");
+               field_value = field_value.replace(/(\r\n|\n|\r|\t)/gm, " ");
                activityTimelineCollectionJSON.form_field_preview_enabled[j].field_value = field_value;
+           }
+           catch(err12){
+               console.log("different data type")
+           }
 
         }
     }

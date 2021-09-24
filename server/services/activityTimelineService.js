@@ -897,8 +897,9 @@ function ActivityTimelineService(objectCollection) {
                         temp.field_name = i.field_name;
                         temp.field_value = i.field_value;
 
-                        if(i.field_data_type_id == 59 || i.field_data_type_id == 57 || i.field_data_type_id == 77) {
+                        if(i.field_data_type_id == 59 || i.field_data_type_id == 57 ) {
                             try {
+                                console.log('i.field_value',i.field_value)
                                 temp.field_value = i.field_value.split('|')[1]; //get the name
                             } catch (e) {
                                 util.logError(request,`Could not parse the data type id ${i.field_data_type_id} ${i.field_value}`, { type: 'timeline_stanadard', error: serializeError(e) });
