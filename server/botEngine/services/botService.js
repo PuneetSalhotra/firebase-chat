@@ -16174,7 +16174,6 @@ if(workflowActivityData.length==0){
 
             const workflowActivityID = request.workflow_activity_id || request.activity_id || 0;
             let sqsQueueUrl = inlineJOSN.sqs_queue;
-            sqsQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/clms-test.fifo";
             let inputJSON = inlineJOSN.input;
             let outputJSON = inlineJOSN.output;
             let inputTypeFormID = inputJSON.input_type.form_id;
