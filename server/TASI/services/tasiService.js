@@ -1524,6 +1524,8 @@ function TasiService(objectCollection) {
             request.period_end_datetime,
             request.data_entity_1,
             request.data_entity_2,
+            request.data_entity_url_1,
+            request.data_entity_url_2,
             request.asset_id,
             util.getCurrentUTCTime()
         );
@@ -1607,7 +1609,6 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    reportListHistoryInsert(request,3302)
                 })
                 .catch((err) => {
                     error = err;
@@ -2294,6 +2295,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
+                    reportListHistoryInsert(request,3301)
                 })
                 .catch((err) => {
                     error = err;
