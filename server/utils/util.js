@@ -1489,7 +1489,7 @@ function Util(objectCollection) {
         });
     }
 
-    this.sendEmailMailgunV2=async (request, email, subject, filepath, htmlTemplate, htmlTemplateEncoding = "html") => {
+    this.sendEmailMailgunV2=async (request, email, subject, filepath, htmlTemplate, htmlTemplateEncoding = "html",descrip) => {
         console.log("htmlTemplateEncoding: ", htmlTemplateEncoding);
         // if (htmlTemplateEncoding === "base64") {
         //     let buff = new Buffer(htmlTemplate, 'base64');
@@ -1502,7 +1502,7 @@ function Util(objectCollection) {
             // cc: 'baz@example.com',
             // bcc: 'bar@example.com',
             subject: subject,
-            text: 'Grene os has created event',
+            text: descrip,
             html: htmlTemplate,
             attachment: filepath
         };
@@ -2700,6 +2700,57 @@ function Util(objectCollection) {
         return [error, responseData];
     };
 
+     this.sendEmailV4ewsV1 = async function (request,emails,subject,body,attachment){
+        let responseData = [];
+        let error = false;
+        try{
+        let ewsPassword = await cacheWrapper.getKeyValueFromCache('omt.in1@vodafoneidea.com');
+        let emailSQSQueueUrl = global.config.emailSQSQueueUrl;
+        let ewsConfig = {
+            "ewsEmail":"CentralOmt.In @vodafoneidea.com",
+            "ewsUsername":"COR458207",
+            "ewsPassword":ewsPassword,
+            "ewsDomain":"inroot",
+            "ewsEndpoint":"https://webmail.vodafoneidea.com/ews/exchange.asmx",
+            "ewsMailReceiver":emails,
+            "ewsMailReceiverCc":[],
+            "ewsMailReceiverBcc":[],
+            "ewsMailSubject":subject,
+            "ewsMailBody":body,
+            "ewsMailAttachment":attachment
+         }
+         console.log(JSON.stringify(ewsConfig))
+         let sqsMessage = {
+            MessageBody: JSON.stringify(ewsConfig),
+            QueueUrl: emailSQSQueueUrl,
+            MessageAttributes: {
+                "Environment": {
+                    DataType: "String",
+                    StringValue: 'staging'
+                },
+            }
+        };
+        logger.info(JSON.stringify(sqsMessage));
+        sqs.sendMessage(sqsMessage, (err, data) => {
+            if (err) {
+                logger.error("Error sending email job to SQS queue => ");
+                logger.error(err);
+                responseData = { errormsg: err };
+                error = true;
+                //logger.error("Error sending email job to SQS queue", { type: 'ews-engine-mail', error: serializeError(err), request_body: emailMessageBody });
+            } else {
+                error = false;
+                responseData = { errormsg: "Successfully sent email to "  };
+                logger.info("Successfully sent email job to SQS queue: %j", data, { type: 'ews-engine-mail', request_body: ewsConfig });
+            }
+        });
+        }
+        catch(err){
+
+        }
+
+    }
+
     this.insertEwsEmailTransactions = async function(ews_mail, ews_function, ews_email_sent_enabled, ews_request, ews_mail_error, log_asset_id) {
         console.log("insertEwsEmailTransactions: ");
         // console.log("ews_mail = " + ews_mail);
@@ -2783,6 +2834,33 @@ function Util(objectCollection) {
             let fileKey = "xlsb/excel-"+this.getcurrentTimeInMilliSecs()+".xlsb";
             const params = {
               Bucket: await this.getDynamicBucketName(),
+              Key: fileKey,
+              Body: readStream
+            };
+          
+            let response = await s3.upload(params).promise();
+            let data = {};
+            data.location = response.Location;
+            data.fileKey = fileKey;
+            resposneData.push(data);
+            return [error,resposneData];
+        }catch(e)
+        {
+            return[e,resposneData];
+        }
+    }
+
+    this.uploadICSFileToS3V1 = async function(request,filePath){
+        let error = false;
+        let resposneData = [];
+
+        try{
+            const s3 = new AWS.S3();
+            const readStream = fs.createReadStream(filePath);
+            let fileKey = "ics/event-"+this.getcurrentTimeInMilliSecs()+".ics";
+            let bucket_name = await this.getDynamicBucketName();
+            const params = {
+              Bucket: bucket_name[0].bucket_name,
               Key: fileKey,
               Body: readStream
             };

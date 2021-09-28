@@ -15824,6 +15824,9 @@ if(workflowActivityData.length==0){
         
         var timeDifferenceInMinutes = Math.floor(eventTimeDetails[0].field_value.duration);
         let createDate = new Date(moment(eventTimeDetails[0].field_value.start_date_time).utcOffset("-05:30").format("YYYY-MM-DD HH:mm:ss"));
+        let endDate = new Date(moment(eventTimeDetails[0].field_value.end_date_time).utcOffset("-05:30").format("YYYY-MM-DD HH:mm:ss"));
+        let createDateutc = new Date(moment(eventTimeDetails[0].field_value.start_date_time).format("YYYY-MM-DD HH:mm:ss"));
+        let endDateutc = new Date(moment(eventTimeDetails[0].field_value.end_date_time).format("YYYY-MM-DD HH:mm:ss"));
         let today = new Date();
         activityParticipantService.getParticipantsList({...request,activity_id:request.workflow_activity_id,datetime_differential: "1970-01-01 00:00:00"},async function(err,dat){
             let [err1,activityTypeConfig]= await activityCommonService.getWorkflowFieldsBasedonActTypeId(request,request.activity_type_id);
@@ -15838,7 +15841,10 @@ if(workflowActivityData.length==0){
             
             }
             }
-            console.log(dat.data.length)
+            var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul","Aug", "Sep", "Oct", "Nov", "Dec"];
+            let subjectContent = `Meeting ID-${wfActivityDetails[0].activity_cuid_3} Scheduled on ${createDateutc.getDate()} - ${months[createDateutc.getMonth()]} from ${createDateutc.getHours()<10?0:""}${createDateutc.getHours()}:${createDateutc.getMinutes()<10?0:""}${createDateutc.getMinutes()} to ${endDateutc.getHours()<10?0:""}${endDateutc.getHours()}:${endDateutc.getMinutes()<10?0:""}${endDateutc.getMinutes()}.`
+            let bodyContent = `A Meeting(Meeting ID-${wfActivityDetails[0].activity_cuid_3}) has been scheduled on ${createDateutc.getDate()} - ${months[createDateutc.getMonth()]} from ${createDateutc.getHours()<10?0:""}${createDateutc.getHours()}:${createDateutc.getMinutes()<10?0:""}${createDateutc.getMinutes()} to ${endDateutc.getHours()<10?0:""}${endDateutc.getHours()}:${endDateutc.getMinutes()<10?0:""}${endDateutc.getMinutes()}. you are asked to join as participant`;
+            // console.log(dat.data.length)
             for(let i=0;i<dat.data.length;i++){
                 let [error, assetData] = await activityCommonService.getAssetDetailsAsync({
                     organization_id: request.organization_id,
@@ -15849,23 +15855,24 @@ if(workflowActivityData.length==0){
                 }
 
             }
-            console.log({
-                title: "Telecall/Discussion",
-                description: wfActivityDetails[0].activity_description,
-                busyStatus: 'FREE',
-                location:eventLocation[0].field_value,
-                start: [createDate.getFullYear(), createDate.getMonth()+1, createDate.getDate(), createDate.getHours(), createDate.getMinutes()],
-                duration: { minutes: timeDifferenceInMinutes },
-                organizer: { name: 'GreneOS', email: 'admin@grenerobotics.com' },
-                attendees: emailsToAdd,
+            // console.log({
+            //     title: "Telecall/Discussion",
+            //     description: wfActivityDetails[0].activity_description,
+            //     busyStatus: 'FREE',
+            //     location:eventLocation[0].field_value,
+            //     start: [createDate.getFullYear(), createDate.getMonth()+1, createDate.getDate(), createDate.getHours(), createDate.getMinutes()],
+            //     duration: { minutes: timeDifferenceInMinutes },
+            //     organizer: { name: 'GreneOS', email: 'admin@grenerobotics.com' },
+            //     attendees: emailsToAdd,
                 
-              });
-              let htmlReceived = await generateHtmlForParticipantList(request,emailsToAdd);
-              console.log(htmlReceived)
+            //   });
+            //   let htmlReceived = await generateHtmlForParticipantList(request,emailsToAdd);
+            let htmlReceived = "";
+            //   console.log(htmlReceived)
               
               ics.createEvent({
-                title: `Meeting ID-${wfActivityDetails[0].activity_cuid_3} Scheduled on..`,
-                description: wfActivityDetails[0].activity_description,
+                title: subjectContent,
+                description: bodyContent,
                 busyStatus: 'FREE',
                 location:eventLocation[0].field_value,
                 start: [createDate.getFullYear(), createDate.getMonth()+1, createDate.getDate(), createDate.getHours(), createDate.getMinutes()],
@@ -15873,19 +15880,31 @@ if(workflowActivityData.length==0){
                 organizer: { name: 'GreneOS', email: 'admin@grenerobotics.com' },
                 attendees: emailsToAdd,
                 
-              }, (error, value) => {
+              }, async (error, value) => {
                 if (error) {
                   console.log(error)
                 };
               
               let fileName = `${global.config.efsPath}${request.asset_id}-${today.getTime()}.ics`
                 fs.writeFileSync(fileName, value);
+
                 request.email_sender_name = 'GreneOS';
                
                 request.email_sender = "admin@grenerobotics.com";
                 // for(let j=0;j<emailsToAdd.length;j++){
                 request.email_receiver_name = receiver_name;
-                util.sendEmailMailgunV2(request, email, `Meeting ID-${wfActivityDetails[0].activity_cuid_3} Scheduled on..`, fileName,htmlReceived ,  "html")
+                let emailsToSend = [];
+                for(let i=0;i<emailsToAdd.length;i++){
+                    emailsToSend.push(emailsToAdd[i].email)
+                }
+                let [s3err,s3Response] = await util.uploadICSFileToS3V1(request,fileName);
+                console.log("emails to send",emailsToSend)
+                util.sendEmailV4ewsV1(request,emailsToSend,subjectContent,bodyContent,s3Response[0].location);
+                fs.unlink(fileName,function(err){
+                    if(err) return console.log(err);
+                    console.log('file deleted successfully');
+               });
+                // util.sendEmailMailgunV2(request, email, subjectContent, fileName,htmlReceived ,  "html",bodyContent)
                 // }
               });
         })
