@@ -8914,94 +8914,96 @@ else{
             generatedOpportunityID = "OPP-";
 
         //let activityInlineData = JSON.parse(request.activity_inline_data);
-        let activityInlineData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data) : request.activity_inline_data;
-        let parentActivityID;
-        util.logInfo(request,'request.account_activity_id : ', request.account_activity_id);
-        if(request.account_activity_id > 0){
-            parentActivityID = request.account_activity_id;
-        }else{
-            util.logInfo(request,'activityopportunityset No Account :: '+request.account_activity_id);
-            for (let i_iterator of activityInlineData) {
-                if (Number(i_iterator.field_data_type_id) === 57) {
-                    let fieldValue = i_iterator.field_value;
-                    if (fieldValue.includes('|')) {
-                        //parentActivityID = fieldValue.split('|')[1];                    
-                        parentActivityID = fieldValue.split('|')[0];
-                    }
-                }
+        let accountActivityId;
+        util.logInfo(request, 'request.account_activity_id : ', request.account_activity_id);
+        if (request.account_activity_id > 0) {
+            accountActivityId = request.account_activity_id;
+        } else {
+            util.logInfo(request, 'activityopportunityset No Account :: ' + request.account_activity_id);
+            let fieldValue = request.reference_data;
+            if (fieldValue.includes('|')) {
+                accountActivityId = fieldValue.split('|')[0];
             }
         }
-   
-        util.logInfo(request,'AccountId : ', parentActivityID);
+        util.logInfo(request, 'AccountId : ', accountActivityId);
         //Call activity_activity_mapping retrieval service to get the segment
-       /* let [err, segmentData] = await activityCommonService.activityActivityMappingSelect({
-            activity_id: request.activity_id, //Workflow activity id 
-            parent_activity_id: parentActivityID, //reference account workflow activity_id
-            organization_id: request.organization_id,
-            start_from: 0,
-            limit_value: 50
-        }); */
+        /* let [err, segmentData] = await activityCommonService.activityActivityMappingSelect({
+             activity_id: request.activity_id, //Workflow activity id
+             parent_activity_id: parentActivityID, //reference account workflow activity_id
+             parent_activity_id: accountActivityId, //reference account workflow activity_id
+             organization_id: request.organization_id,
+             start_from: 0,
+             limit_value: 50
+         }); */
 
-        let accountDetails = await activityCommonService.getActivityDetailsPromise(request, parentActivityID);
-        util.logInfo(request,'AccountData : '+parentActivityID+" :: LENGTH :: "+accountDetails.length);
-        let segmentName = accountDetails[0].activity_type_tag_name; //(segmentData.length>0)?(segmentData[0].parent_activity_tag_name).toLowerCase():'';
-        util.logInfo(request,'segmentName : ', segmentName);
+        let accountDetails = await activityCommonService.getActivityDetailsPromise(request, accountActivityId);
+        util.logInfo(request, 'AccountData : ' + accountActivityId + " :: LENGTH :: " + accountDetails.length);
+
         //segmentName = segmentName.toLowerCase();
-        switch (segmentName) {
-            case 'LA': generatedOpportunityID += 'C-';
-                break;
-            case 'GE': generatedOpportunityID += 'V-';
-                break;
-            case 'SOHO': generatedOpportunityID += 'D-';
-                break;
-            case 'SME': generatedOpportunityID += 'S-';
-                break;
-            case 'GOVT': generatedOpportunityID += 'G-';
-                break;
-            case 'VICS': generatedOpportunityID += 'W-';
-                break;
+        if (accountDetails.length > 0) {
+            let segmentId = accountDetails[0].activity_type_tag_id; //(segmentData.length>0)?(segmentData[0].parent_activity_tag_name).toLowerCase():'';
+            util.logInfo(request, 'segmentId : '+ segmentId);
+            switch (segmentId) {
+                case 91: generatedOpportunityID += 'C-';
+                    break;
+                case 122: generatedOpportunityID += 'V-';
+                    break;
+                case 124: generatedOpportunityID += 'D-';
+                    break;
+                case 120: generatedOpportunityID += 'S-';
+                    break;
+                case 123: generatedOpportunityID += 'G-';
+                    break;
+                case 121: generatedOpportunityID += 'W-';
+                    break;
+                default : 
+                    util.logError(request, '-segmentIDError- '+segmentId);
+                    generatedOpportunityID += '';
+                    break;
+            }
+        } else {
+            util.logError(request, '-OptyIDError- No Account details');
+        }
+        try {
+            if (generatedOpportunityID.length == 6 && accountDetails[0].tag_type_id == 110) {
+
+                let targetOpportunityID = await cacheWrapper.getOpportunityIdPromise();
+                if (targetOpportunityID >= 100000) {
+
+                } else if (targetOpportunityID >= 10000) {
+                    targetOpportunityID = "0" + targetOpportunityID;
+                } else if (targetOpportunityID >= 1000) {
+                    targetOpportunityID = "00" + targetOpportunityID;
+                } else if (targetOpportunityID >= 100) {
+                    targetOpportunityID = "000" + targetOpportunityID;
+                } else if (targetOpportunityID >= 10) {
+                    targetOpportunityID = "0000" + targetOpportunityID;
+                } else if (targetOpportunityID >= 1) {
+                    targetOpportunityID = "00000" + targetOpportunityID;
+                }
+
+                if (targetOpportunityID == 999900) {
+                    await cacheWrapper.setOppurtunity(0);
+                }
+                generatedOpportunityID = generatedOpportunityID + targetOpportunityID + '-' + util.getCurrentISTDDMMYY();
+                responseData.push(generatedOpportunityID);
+
+                logger.silly("Update CUID Bot");
+                logger.silly("Update CUID Bot Request: ", request);
+                try {
+                    request.opportunity_update = true;
+                    await updateCUIDBotOperation(request, {}, { "CUID1": generatedOpportunityID });
+                } catch (error) {
+                    logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                }
+            } else {
+                util.logInfo(request, 'WRONG SEGMENT : ', generatedOpportunityID);
+            }
+        } catch (e) {
+            error = true;
+            console.log("error : ", e);
         }
 
-        try {
-                if(generatedOpportunityID.length == 6 && accountDetails[0].tag_type_id == 110){
-
-                    let targetOpportunityID = await cacheWrapper.getOpportunityIdPromise();
-                    if (targetOpportunityID >= 100000) {
-
-                    } else if (targetOpportunityID >= 10000) {
-                        targetOpportunityID = "0" + targetOpportunityID;
-                    } else if (targetOpportunityID >= 1000) {
-                        targetOpportunityID = "00" + targetOpportunityID;
-                    } else if (targetOpportunityID >= 100) {
-                        targetOpportunityID = "000" + targetOpportunityID;
-                    } else if (targetOpportunityID >= 10) {
-                        targetOpportunityID = "0000" + targetOpportunityID;
-                    } else if (targetOpportunityID >= 1) {
-                        targetOpportunityID = "00000" + targetOpportunityID;
-                    }
-
-                    if (targetOpportunityID == 999900) {
-                        await cacheWrapper.setOppurtunity(0);
-                    }
-                    generatedOpportunityID = generatedOpportunityID + targetOpportunityID + '-' + util.getCurrentISTDDMMYY();
-                    responseData.push(generatedOpportunityID);
-
-                    logger.silly("Update CUID Bot");
-                    logger.silly("Update CUID Bot Request: ", request);
-                    try {
-                        request.opportunity_update = true;
-                        await updateCUIDBotOperation(request, {}, { "CUID1": generatedOpportunityID });
-                    } catch (error) {
-                        logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                    }
-                }else{
-                    util.logInfo(request,'WRONG SEGMENT : ', generatedOpportunityID);
-                }
-            } catch (e) {
-                error = true;
-                console.log("error : ", e);
-            }
-        
         return [error, responseData];
     }
 
@@ -16171,7 +16173,7 @@ if(workflowActivityData.length==0){
             // };
 
             const workflowActivityID = request.workflow_activity_id || request.activity_id || 0;
-            const sqsQueueUrl = inlineJOSN.sqs_queue;
+            let sqsQueueUrl = inlineJOSN.sqs_queue;
             let inputJSON = inlineJOSN.input;
             let outputJSON = inlineJOSN.output;
             let inputTypeFormID = inputJSON.input_type.form_id;
