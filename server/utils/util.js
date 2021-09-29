@@ -2400,7 +2400,7 @@ function Util(objectCollection) {
         let pwd;
         let ewsConfig;
         if(request.hasOwnProperty('is_version_v1') && request.is_version_v1 === 1) {
-            let decrypted = CryptoJS.AES.decrypt(request.email_sender_password_text.toString() || "", 'lp-n5^+8M@62').toString(CryptoJS.enc.Utf8);
+            let decrypted = CryptoJS.AES.decrypt(request.email_sender_password.toString() || "", 'lp-n5^+8M@62').toString(CryptoJS.enc.Utf8);
             console.log('decrypted PWD : ', decrypted);
 
             ewsConfig = {
