@@ -7,7 +7,7 @@ var AwsSns = require('../utils/snsWrapper');
 var makingRequest = require('request');
 const nodeUtil = require('util');
 let TinyURL = require('tinyurl');
-const XLSX = require('XLSX');
+const XLSX = require('xlsx');
 
 function PamService(objectCollection) {
 
