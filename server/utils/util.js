@@ -594,7 +594,7 @@ function Util(objectCollection) {
             if (queryString != '') {
                 await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                    responseData = data;
+                    responseData = data[0].bucket_name;
                     
                 })
                 .catch((err) => {
@@ -1356,14 +1356,15 @@ function Util(objectCollection) {
         console.log('subject : ', subject);
         console.log('text : ', text);
 
-        let emailProvider = 0;
+        let emailProvider = 1;
         try {
             emailProvider = await cacheWrapper.getEmailProvider();
         } catch (error) {
             console.log("Error fetching the app_config:emailProvider: ", error);
         }
 
-        if (Number(emailProvider) === 1) {
+        console.log("emailProvider", emailProvider);
+        if (Number(emailProvider) === 1 || request.sendRegularEmail == 1) {
             try {
                 const responseBody = await sendEmailMailgunV1(
                     request, email, subject,
@@ -1457,7 +1458,7 @@ function Util(objectCollection) {
             request.hasOwnProperty("attachment") &&
             request.attachment !== null
         ) {
-            mailOptions.attachment = mailgun.Attachment({
+            mailOptions.attachment = new mailgun.Attachment({
                 data: request.attachment,
                 filename: path.basename(request.attachment)
             });
@@ -2838,6 +2839,33 @@ function Util(objectCollection) {
               Body: readStream
             };
           
+            let response = await s3.upload(params).promise();
+            let data = {};
+            data.location = response.Location;
+            data.fileKey = fileKey;
+            resposneData.push(data);
+            return [error,resposneData];
+        }catch(e)
+        {
+            return[e,resposneData];
+        }
+    }
+
+    //Uploading XLSXfile PAM
+    this.uploadExcelFileToS3V2 = async function(request, filePath){
+        let error = false;
+        let resposneData = [];
+        try{
+            const s3 = new AWS.S3();
+            const readStream = fs.createReadStream(filePath);
+            let fileKey = "xlsx/excel-"+this.getcurrentTimeInMilliSecs()+".xlsx";
+            const params = {
+            Bucket: await this.getDynamicBucketName(),
+            Key: fileKey,
+            Body:JSON.stringify(readStream)
+            };
+            // console.log(params,"params");
+
             let response = await s3.upload(params).promise();
             let data = {};
             data.location = response.Location;

@@ -7,6 +7,7 @@ var AwsSns = require('../utils/snsWrapper');
 var makingRequest = require('request');
 const nodeUtil = require('util');
 let TinyURL = require('tinyurl');
+const XLSX = require('XLSX');
 
 function PamService(objectCollection) {
 
@@ -5003,6 +5004,566 @@ this.getChildOfAParent = async (request) => {
             })
         })
     };    
+
+     //Get event summary
+     this.emailEventSummary = async (request) => {
+
+        if(!request.email) {
+            return [true, []];
+        }
+        
+        const Current_Date = util.getTimestamp();
+        let responseData = [],
+            error = true;
+            let fileName = "";
+        // //HANDLE THE PATHS in STAGING and PREPROD AND PRODUCTION
+        switch(global.mode) {            
+            case 'staging': fileName = '/apistaging-data/';
+                            break;
+            case 'preprod': fileName = '/data/';
+                            break;
+            case 'prod': fileName = '/api-data/';
+                         break;            
+            default: fileName = '/api-data/'; 
+                     break;
+        }
+        const header = [
+            ["Most Ordered Food", "Count"],
+            ["Most Ordered Spirit:", "Count"],
+            ["Most Ordered Cocktail:", "Count"],
+            [
+                [
+                    "SNo",
+                    "ReservationId",
+                    "Reservation Name",
+                    "Amount",
+                    "card",
+                    "cash",
+                    "unpaid",
+                    "Date",
+                ],
+            ],
+            [
+                [
+                    "ReservationId",
+                    "ReservationName",
+                    "Status",
+                    "Order Type.",
+                    "Order Id",
+                    "Order Name",
+                    "Quantity",
+                    "Unit Price",
+                    "Is Full Bottle",
+                    "Full Bottle Price",
+                    "Choices",
+                    "Choice Count",
+                    "Order Price",
+                    "Service Charge Percent",
+                    "Service Charge",
+                    "Discount%",
+                    "Discount",
+                    "PriceAfterDiscount",
+                    "Tax%",
+                    "Tax",
+                    "Final Price",
+                    "Date",
+                    "Ordered Time",
+                ],
+            ],
+            [
+                [
+                    "LogUser",
+                    "Reservation Id",
+                    "Reservation Name",
+                    "Status",
+                    "Order Type",
+                    "Order Id",
+                    "Order Name",
+                    "Quantity",
+                    "Unit Price",
+                    "Is Full Bottle",
+                    "Full Bottle Price",
+                    "Choices",
+                    "Choices Count",
+                    "Order Price",
+                    "Service Charge%",
+                    "Service Charge",
+                    "Discount%",
+                    "Discount",
+                    "PriceAfterDiscount",
+                    "Tax%",
+                    "Tax",
+                    "Final Price",
+                    "Date",
+                    "Ordered Datetime",
+                ],
+            ],
+            [
+                [
+                    "IngredientAssetId",
+                    "IngredientName",
+                    "Unit Quantity",
+                    "Consumed Quantity in ml",
+                    "Consumption(in bottles)",
+                    "Extra in ml",
+                ],
+            ],
+            [
+                [
+                    "Item Name",
+                    "Quantity",
+                    "item_price",
+                    "discount",
+                    "tax",
+                    "service charge",
+                    "Bill",
+                    "Type",
+                ],
+            ],
+            [
+                [
+                    "Item Name",
+                    "FullBottle",
+                    "item_price",
+                    "discount",
+                    "tax",
+                    "service charge",
+                    "Bill",
+                    "Type",
+                ],
+            ],
+            [
+                [
+                    "ReservationId",
+                    "ReservationName",
+                    "MemberId",
+                    "MemberName",
+                    "Discount %",
+                    "Discount",
+                ],
+            ],
+        ];
+        for (let i = 1; i <= 13; i++) {
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.event_activity_id,
+                request.start_date,
+                request.end_date,
+                request.flag = i
+            );
+            let queryString = util.getQueryString(
+                "pm_v1_pam_order_list_select_event_summary",
+                paramsArr
+            );
+            if (queryString != "") {
+                await db
+                    .executeQueryPromise(1, queryString, request)
+                    .then(async (data) => {
+                        responseData = data;
+                        error = false;
+
+                        let responseDataValues = [];
+
+                        fs.stat(
+                            `${fileName}EventReport_${request.event_activity_id}_${Current_Date}.xlsx`,
+                            function (err, stat) {
+                                if (err == null) {
+                                    let wb = XLSX.readFile(
+                                        `${fileName}EventReport_${request.event_activity_id}_${Current_Date}.xlsx`, {
+                                            cellText: false,
+                                            cellDates: true,
+                                            cellStyles: true,
+                                        }
+                                    );
+                                    salesReoprt(wb, responseData);
+                                } else if (err.code === "ENOENT") {
+                                    let nwb = XLSX.utils.book_new();
+                                    var ws_name = [
+                                        "Summary",
+                                        "Reservation Wise Report",
+                                        "Group By Quantity-item",
+                                        "Item wise Report",
+                                        "Inventory Report",
+                                        "Detailed Inventory Report",
+                                        "Wasted&Removed from billing",
+                                        "Discount Report",
+                                    ];
+                                    /* make worksheet */
+                                    for (let i = 0; i < ws_name.length; i++) {
+                                        var ws_data = [
+                                            [""]
+                                        ];
+                                        var ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+                                        /* Add the worksheet to the workbook */
+                                        XLSX.utils.book_append_sheet(nwb, ws, ws_name[i]);
+                                    }
+                                    XLSX.writeFile(
+                                        nwb,
+                                        `${fileName}EventReport_${request.event_activity_id}_${
+                       Current_Date
+                    }.xlsx`, {
+                                            cellStyles: true
+                                        }
+                                    );
+                                    let wb = XLSX.readFile(
+                                        `${fileName}EventReport_${request.event_activity_id}_${Current_Date}.xlsx`, {
+                                            cellText: false,
+                                            cellDates: true,
+                                            cellStyles: true,
+                                        }
+                                    );
+                                    salesReoprt(wb, responseData);
+                                } else {
+                                    //    console.log("Some other error: ", err.code);
+                                }
+                            }
+                        );
+
+                        function salesReoprt(wb, responseData) {
+                            //Total Liquor Sale
+                            wb.Sheets["Summary"]["B18"] = {
+                                f: "SUM(B15:B16)",
+                            };
+                            wb.Sheets["Summary"]["C18"] = {
+                                f: "SUM(C15:C16)",
+                            };
+                            wb.Sheets["Summary"]["D18"] = {
+                                f: "SUM(D15:D16)",
+                            };
+                            wb.Sheets["Summary"]["E18"] = {
+                                f: "SUM(E15:E16)",
+                            };
+
+
+                            //Total Sale sum
+                            wb.Sheets["Summary"]["B19"] = {
+                                f: "SUM(B14:B17)",
+                            };
+                            wb.Sheets["Summary"]["C19"] = {
+                                f: "SUM(C14:C17)",
+                            };
+                            wb.Sheets["Summary"]["D19"] = {
+                                f: "SUM(D14:D17)",
+                            };
+                            wb.Sheets["Summary"]["E19"] = {
+                                f: "SUM(E14:E17)",
+                            };
+
+                            wb.Sheets["Summary"]["B20"] = {
+                                f: "B19-C19",
+                            };
+                            wb.Sheets["Summary"]["D20"] = {
+                                f: "D19-E19",
+                            };
+
+                            //Total bill
+                            wb.Sheets["Summary"]["D7"] = {
+                                f: "SUM(C2:C7)",
+                            };
+                            wb.Sheets["Summary"]["C8"] = {
+                                f: "SUM(C2:C7)",
+                            };
+
+                            // let ws =  wb.Sheets['Summary']
+                            switch (i) {
+                                //MOST ORDERED FOOD
+                                case 1:
+                                    responseDataValues = Object.values(responseData[0]);
+                                    let result = Object.assign.apply({},
+                                        header[0].map((v, i) => ({
+                                            [v]: responseDataValues[i],
+                                        }))
+                                    );
+                                    ws = XLSX.utils.sheet_add_json(wb.Sheets.Summary, [result], {
+                                        origin: "G13",
+                                        cellStyles: true,
+                                    });
+                                    break;
+                                    // MOST ORDERED SPIRITS
+                                case 2:
+                                    responseDataValues = Object.values(responseData[0]);
+                                    let result1 = Object.assign.apply({},
+                                        header[1].map((v, i) => ({
+                                            [v]: responseDataValues[i],
+                                        }))
+                                    );
+                                    ws = XLSX.utils.sheet_add_json(
+                                        wb.Sheets.Summary,
+                                        [result1], {
+                                            origin: "G16",
+                                        }
+                                    );
+
+                                    break;
+                                    //MOST ORDERED COCKTAILS
+                                case 3:
+                                    responseDataValues = Object.values(responseData[0]);
+                                    let result2 = Object.assign.apply({},
+                                        header[2].map((v, i) => ({
+                                            [v]: responseDataValues[i],
+                                        }))
+                                    );
+                                    ws = XLSX.utils.sheet_add_json(
+                                        wb.Sheets.Summary,
+                                        [result2], {
+                                            origin: "G20",
+                                        }
+                                    );
+
+                                    break;
+                                    //RESERVATION WISE BILLING
+                                case 4:
+                                    XLSX.utils.sheet_add_aoa(
+                                        wb.Sheets["Reservation Wise Report"],
+                                        header[3]
+                                    );
+                                    XLSX.utils.sheet_add_json(
+                                        wb.Sheets["Reservation Wise Report"],
+                                        responseData, {
+                                            origin: "A2",
+                                            skipHeader: true,
+                                            dateNF: 'd"."mm"."yyyy',
+                                        }
+                                    );
+
+                                    break;
+                                    //Sale without/with Tax MTD
+                                case 5:
+                                    responseData.map((i) => {
+                                        return responseDataValues.push({
+                                            "MTD with Tax": i.billing_amount,
+                                            "MTD removing Tax": i.bill_without_tax,
+                                        });
+                                    });
+
+                                    ws = XLSX.utils.sheet_add_json(
+                                        wb.Sheets.Summary,
+                                        responseDataValues, {
+                                            origin: "D13",
+                                        }
+                                    );
+
+                                    break;
+                                    //Sale without/with Tax for the given event
+                                case 6:
+                                    let column = [{
+                                            "Daily Sale": "Total Food Sale",
+                                        },
+                                        {
+                                            "Daily Sale": "Total Spirit Sale",
+                                        },
+                                        {
+                                            "Daily Sale": "Total Cocktail Sale",
+                                        },
+                                        {
+                                            "Daily Sale": "Total Other Sale",
+                                        },
+                                        {
+                                            "Daily Sale": "Total Liquor Sale",
+                                        },
+                                        {
+                                            "Daily Sale": "Total Sale",
+                                        },
+                                    ];
+                                    ws = XLSX.utils.sheet_add_json(wb.Sheets.Summary, column, {
+                                        origin: "A13",
+                                    });
+
+                                    responseData.map((i) => {
+                                        return responseDataValues.push({
+                                            "with Tax": i.billing_amount,
+                                            "Without Tax": i.bill_without_tax,
+                                        });
+                                    });
+
+                                    ws = XLSX.utils.sheet_add_json(
+                                        wb.Sheets.Summary,
+                                        responseDataValues, {
+                                            origin: "B13",
+                                        }
+                                    );
+
+                                    break;
+                                    //ITEM WISE REPORT
+                                case 7:
+                                    XLSX.utils.sheet_add_aoa(
+                                        wb.Sheets["Item wise Report"],
+                                        header[4]
+                                    );
+                                    XLSX.utils.sheet_add_json(
+                                        wb.Sheets["Item wise Report"],
+                                        responseData, {
+                                            origin: "A2",
+                                            skipHeader: true,
+                                            dateNF: "yyyy.mm.dd",
+                                        }
+                                    );
+
+                                    break;
+                                    //WASTED, REMOVED FROM BILLING, CANCELLED
+                                case 8:
+                                    XLSX.utils.sheet_add_aoa(
+                                        wb.Sheets["Wasted&Removed from billing"],
+                                        header[5]
+                                    );
+                                    XLSX.utils.sheet_add_json(
+                                        wb.Sheets["Wasted&Removed from billing"],
+                                        responseData, {
+                                            origin: "A2",
+                                            skipHeader: true,
+                                            dateNF: 'dd"."mm"."yyyy',
+                                        }
+                                    );
+
+                                    break;
+                                    //ITEM STATUS WISE billing_transaction
+                                case 9:
+                                    let Heading = [
+                                        ["Item Status", "Count", "Bill"]
+                                    ];
+                                    let columns_ = [{
+                                            "": "Total",
+                                        },
+                                        {
+                                            "": " Wasted",
+                                        },
+                                        {
+                                            "": " Removed from Billing",
+                                        },
+                                        {
+                                            "": " Cancelled",
+                                        },
+                                    ];
+                                    ws = XLSX.utils.sheet_add_json(wb.Sheets.Summary, columns_, {
+                                        origin: "A7",
+                                    });
+
+                                    responseData.map((i) => {
+                                        return responseDataValues.push({
+                                            "Item Status": i.order_status_type_name,
+                                            Count: i.order_count,
+                                            Bill: i.final_price,
+                                        });
+                                    });
+
+                                    XLSX.utils.sheet_add_aoa(wb.Sheets.Summary, Heading);
+
+                                    XLSX.utils.sheet_add_json(wb.Sheets.Summary, responseData, {
+                                        origin: "A2",
+                                        skipHeader: true,
+                                        cellStyles: true,
+                                    });
+
+                                    break;
+                                    //INGREDIENT CONSUMPTION
+                                case 10:
+                                    XLSX.utils.sheet_add_aoa(
+                                        wb.Sheets["Inventory Report"],
+                                        header[6]
+                                    );
+                                    XLSX.utils.sheet_add_json(
+                                        wb.Sheets["Inventory Report"],
+                                        responseData, {
+                                            origin: "A2",
+                                            skipHeader: true,
+                                            dateNF: 'dd"."mm"."yyyy',
+                                        }
+                                    );
+
+                                    break;
+                                    //ITEM GROUP BY report
+                                case 11:
+                                    XLSX.utils.sheet_add_aoa(
+                                        wb.Sheets["Group By Quantity-item"],
+                                        header[7]
+                                    );
+                                    XLSX.utils.sheet_add_json(
+                                        wb.Sheets["Group By Quantity-item"],
+                                        responseData, {
+                                            origin: "A2",
+                                            skipHeader: true,
+                                            dateNF: 'dd"."mm"."yyyy',
+                                        }
+                                    );
+                                    break;
+                                    //Full Bottles
+                                case 12:
+                                    XLSX.utils.sheet_add_aoa(
+                                        wb.Sheets["Group By Quantity-item"],
+                                        header[8], {
+                                            origin: "J1",
+                                        }
+                                    );
+                                    XLSX.utils.sheet_add_json(
+                                        wb.Sheets["Group By Quantity-item"],
+                                        responseData, {
+                                            origin: "J2",
+                                            skipHeader: true,
+                                            dateNF: 'dd"."mm"."yyyy',
+                                        }
+                                    );
+                                    break;
+                                    //Discount Report
+                                case 13:
+                                    XLSX.utils.sheet_add_aoa(
+                                        wb.Sheets["Discount Report"],
+                                        header[9]
+                                    );
+
+                                    XLSX.utils.sheet_add_json(
+                                        wb.Sheets["Discount Report"],
+                                        responseData, {
+                                            origin: "A2",
+                                            skipHeader: true,
+                                            dateNF: 'dd"."mm"."yyyy',
+                                        }
+                                    );
+
+                                    break;
+                            }
+                            XLSX.writeFile(
+                                wb,
+                                `${fileName}EventReport_${request.event_activity_id}_${Current_Date}.xlsx`, {
+                                    cellDates: true,
+                                    cellStyles: true
+                                }
+                            );
+                        }
+
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+        }
+        let path = `${fileName}EventReport_${request.event_activity_id}_${Current_Date}.xlsx`;
+
+        request.attachment = path;
+        request.sendRegularEmail = 1;
+        request.email_receiver_name="";
+        request.email_sender_name="greneOS";
+        //request.email_id = request.email_id;
+        request.email_sender="support@greneos.com";
+        
+        util.sendEmailV3(request,
+            request.email,
+            "Summary Report",
+            "greneOS",
+            "<html></html>",
+            (err, data) => {
+                if (err) {
+                    global.logger.write('conLog', "[Send Email On Form Submission | Error]: ", {}, {});
+                    global.logger.write('conLog', err, {}, {});
+                } else {
+                    global.logger.write('conLog', "[Send Email On Form Submission | Response]: " + "Email Sent", {}, {});
+                    global.logger.write('conLog', data, {}, {});
+                }                        
+            });
+        return [error, []];
+
+    };
 };
 
 module.exports = PamService;
