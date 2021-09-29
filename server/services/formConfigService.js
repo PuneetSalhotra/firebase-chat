@@ -1218,7 +1218,7 @@ function FormConfigService(objCollection) {
             let dashboardEntityFieldData = {};
             let [err, workflowData] = await activityCommonService.getFormWorkflowDetailsAsync(request);
             util.logInfo(request,`workflowData :: ` +JSON.stringify(workflowData)); 
-            let workfolow_activity_type_id =  workflowData[0].activity_type_id || 0;
+            let workfolow_activity_type_id =  workflowData.length>0? workflowData[0].activity_type_id || 0:0;
             let [errorWorkflowType, workflowTypeData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workfolow_activity_type_id);
             util.logInfo(request,`workflowTypeData :: ` +workflowTypeData);  
             if (workflowTypeData.length > 0) {

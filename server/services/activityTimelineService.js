@@ -4078,7 +4078,9 @@ async function addFormEntriesAsync(request) {
                     console.log('Number(request.organization_id === 868) : ', Number(request.organization_id));
 
                     if(request.hasOwnProperty('is_version_v1') && request.is_version_v1 === 1) {
-                        const senderEmail = (Number(request.organization_id === 868)) ? senderAssetData[0].operating_asset_email_id : request.email_sender;
+                        console.log(senderAssetData[0].operating_asset_email_id)
+                        const senderEmail = (Number(request.organization_id) === 868) ? senderAssetData[0].operating_asset_email_id : request.email_sender;
+                        console.log('sender',senderEmail)
                         const senderEmailPwd =  senderAssetData[0].asset_email_password;
                         const [err, resp] = await sendEmail({
                                             workflow_title: request.workflow_title,
@@ -4100,7 +4102,10 @@ async function addFormEntriesAsync(request) {
                             responseData.push({'message': `${resp} for the mailId - ${senderEmail}`});
                         }
                     } else {
-                        const senderEmail = (Number(request.organization_id === 868)) ? 'ESMSMails@vodafoneidea.com' : request.email_sender;
+                        if(Number(request.organization_id) === 868){
+                            return [false,[]]
+                        }
+                        const senderEmail = (Number(request.organization_id) === 868) ? 'ESMSMails@vodafoneidea.com' : senderAssetData[0].operating_asset_email_id;
                         const [err, resp] = await sendEmail({
                                                 workflow_title: request.workflow_title,
                                                 workflow_update: request.workflow_update,
