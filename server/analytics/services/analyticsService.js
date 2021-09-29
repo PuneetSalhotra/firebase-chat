@@ -6587,32 +6587,49 @@ function AnalyticsService(objectCollection)
     //Get SIP Widgets
     this.getSipWidgets = async function (request) {
         let responseData = [], responseDataPersonal = []
-            error = true;
+            error = true,
+            reporteeError = true, reporteeData = [],
+            reporteeKpiDataError = true, reporteeKpiData = [];
+            let paramsArr = [];
+        
 
-        let paramsArr = [
+        // get the direct reportees
+        // loop this procedure for all the 
+        [reporteeError, reporteeData] = await self.getUsersByManager(request);
+        paramsArr = [
             request.organization_id,
             request.activity_type_category_id,
-            request.manager_asset_id,
+            0,
             request.page_start,
             request.page_limit,
             0
         ];
+        for(let counter = 0; counter < reporteeData.length; counter ++){
 
-        let queryString = util.getQueryString('ds_v1_activity_list_select_sip_widgets', paramsArr);
-        if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                })
+            paramsArr[2]=reporteeData[counter].asset_id;
+            let queryString = util.getQueryString('ds_v1_1_activity_list_select_sip_widgets', paramsArr);
+            if (queryString !== '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then(async (data) => {
+                        //responseData = data;
+                        error = false;
+                        let formattedData = await self.formatData(data, reporteeData[counter].asset_id);
+                        //console.log("formattedData ",formattedData);
+                        responseData = responseData.concat(formattedData);
+                    })
+                    .catch((err) => {
+                        error = err;
+                    })
+            }
         }
 
-        paramsArr.pop();
-        paramsArr.push(1);
-
+        console.log(responseData)
+        //paramsArr.pop();
+        //paramsArr.push(1);
+        paramsArr[5]=1;
+        paramsArr[2]=request.manager_asset_id;
+        //console.log(paramsArr)
+        //console.log("responseData ",responseData)
         queryString = util.getQueryString('ds_v1_activity_list_select_sip_widgets', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -6623,9 +6640,100 @@ function AnalyticsService(objectCollection)
                 .catch((err) => {
                     error = err;
                 })
-        }        
-        let resp = {"manager_kpi":responseDataPersonal, "reportee_kpi":responseData};
+        }  
+        
+        let kpi_data = {};
+        let reportee_kpi_data_array= [];
+        let manager_kpi_data_array= [];
+        for(let i = 0; i < reporteeData.length; i ++){
+            request.target_asset_id = reporteeData[i].asset_id;
+            kpi_data[request.target_asset_id] = {};
+            [reporteeKpiDataError, reporteeKpiData] = await self.getHierarchyReporteesByManager(request);
+            for(let j = 0; j < reporteeKpiData.length; j++){
+                let idAsset = request.target_asset_id;
+                let idActivityType = reporteeKpiData[j].param1_kpi_activity_type_id;
+               // let target_base =kpi_data[idAsset];
+                let obj = {"target": reporteeKpiData[j].param1_monthly_target,
+                            "achieved":reporteeKpiData[j].param1_monthly_ach,
+                            "percentage":(reporteeKpiData[j].param1_monthly_ach/reporteeKpiData[j].param1_monthly_target)*100,
+                            "asset_id":idAsset,
+                            "activity_type_id":idActivityType}
+                 //target_base= target_base[idActivityType];
+                // kpi_data[idAsset].target = reporteeKpiData[j].param1_monthly_target;
+                // kpi_data[idAsset].achieved = reporteeKpiData[j].param1_monthly_ach;
+                // kpi_data[idAsset].percentage = (reporteeKpiData[j].param1_monthly_ach/reporteeKpiData[j].param1_monthly_target)*100;
+               // if(reporteeKpiData[j].param1_monthly_target))
+               reportee_kpi_data_array.push(obj);
+               kpi_data[idAsset][idActivityType] = obj;
+            }
+        }
+
+        let resp = {"manager_kpi":responseDataPersonal, "reportee_kpi":responseData, "reportee_data":reportee_kpi_data_array, "manager_data":manager_kpi_data_array};
         return [false, resp];
+    }
+
+    this.getUsersByManager = async function(request){
+        let responseData = [],
+        error = true;
+
+    const paramsArr = new Array(
+        request.organization_id,
+        request.manager_asset_id,
+        request.flag || 1,
+        request.page_start || 0,
+        request.page_limit || 500
+    );
+    const queryString = util.getQueryString('ds_p1_asset_list_select_manager', paramsArr);
+
+    if (queryString !== '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+    }
+    return [error, responseData];
+    }
+
+    this.getHierarchyReporteesByManager = async function(request){
+        let responseData = [],
+        error = true;
+
+    const paramsArr = new Array(
+        request.organization_id,
+        request.target_asset_id,
+        request.month,
+        request.year,
+        request.page_start || 0,
+        request.page_limit || 500
+    );
+    const queryString = util.getQueryString('ds_v1_sip_payout_report_select_manager', paramsArr);
+
+    if (queryString !== '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+    }
+    return [error, responseData];
+    }
+
+    this.formatData = async function(data, idTargetAsset){
+        let finalArray = [];
+        for(let i = 0; i < data.length; i++){
+            data[i].asset_id = idTargetAsset;
+            finalArray.push(data[i]);
+        }
+        //console.log(finalArray);
+        return data;
+        //return Promise.resolve(finalArray);
     }
 
 }
