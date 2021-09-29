@@ -1996,7 +1996,7 @@ function AssetService(objectCollection) {
             request.organization_id,
             3,
             util.getCurrentUTCTime(),
-            request.target_asset_id,
+            request.asset_id,
             request.datetime_log
         );
         var queryString = util.getQueryString('ds_v1_asset_archived_list_insert', paramsArr);
@@ -2530,7 +2530,7 @@ function AssetService(objectCollection) {
         const paramsArr = [     
             request.target_asset_id,
             request.organization_id,
-            request.target_asset_id,
+            request.asset_id,
             util.getCurrentUTCTime()
         ];
 
