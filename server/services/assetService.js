@@ -1992,7 +1992,7 @@ function AssetService(objectCollection) {
          responseData = [];
 
         var paramsArr = new Array(
-            request.asset_id,
+            request.target_asset_id,
             request.organization_id,
             3,
             util.getCurrentUTCTime(),
@@ -2541,10 +2541,11 @@ function AssetService(objectCollection) {
                   responseData = data;
                   error = false;
                   archiveAsset(request);
-                  assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 204, dateTimeLog, function (err, data) { });
+                  assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 204, util.getCurrentUTCTime(), function (err, data) { });
 
               })
               .catch((err) => {
+                  console.log("error in removeAssets", err, err.stack);
                   error = err;
               })
         }
