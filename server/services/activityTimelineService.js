@@ -4078,9 +4078,7 @@ async function addFormEntriesAsync(request) {
                     console.log('Number(request.organization_id === 868) : ', Number(request.organization_id));
 
                     if(request.hasOwnProperty('is_version_v1') && request.is_version_v1 === 1) {
-                        console.log(senderAssetData[0].operating_asset_email_id)
                         const senderEmail = (Number(request.organization_id) === 868) ? senderAssetData[0].operating_asset_email_id : request.email_sender;
-                        console.log('sender',senderEmail)
                         const senderEmailPwd =  senderAssetData[0].asset_email_password;
                         const [err, resp] = await sendEmail({
                                             workflow_title: request.workflow_title,
