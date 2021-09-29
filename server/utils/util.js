@@ -31,6 +31,15 @@ AWS.config.update({
 });
 const sqs = new AWS.SQS();
 
+
+const AWS1 = require('aws-sdk');
+AWS1.config.update({
+    "accessKeyId": "AKIAWIPBVOFRSFSVJZMF",
+    "secretAccessKey": "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",
+    "region": "ap-south-1"
+});
+const sqs1 = new AWS1.SQS();
+
 //AWS.config.update(
 //    {
 //        accessKeyId: "AKIAWIPBVOFRZMTH7FPD",
@@ -3435,6 +3444,35 @@ function Util(objectCollection) {
         }
         return [error, assetName];
     };
+
+
+    this.handleElasticSearchResponse = async function (request, dataTobeSent, elasticIndex, err, response) {
+        if (err) {
+            util.logError(request, `${elasticIndex} - data insert error`, { type: "elastic_search", data: dataTobeSent, error: err });
+
+            sqs1.sendMessage({
+                MessageBody: JSON.stringify({ err, data: dataTobeSent, elasticIndex : elasticIndex }),
+                QueueUrl: global.config.elasticSearchFailedEntriesSQSQueueUrl,
+                MessageGroupId: `elastic-search-error-group-v1`,
+                MessageDeduplicationId: uuidv4(),
+                MessageAttributes: {
+                    "Environment": {
+                        DataType: "String",
+                        StringValue: global.mode
+                    },
+                }
+            }, (error, data) => {
+                if (error) {
+                    util.logError(request, `Error sending excel job to SQS queue`, { type: 'elastic_search', error });
+                } else {
+                    util.logInfo(request, `Successfully sent excel job to SQS queue: %j`, { type: 'elastic_search', request_body: request });
+                }
+            });
+
+        } else {
+            util.logInfo(request, `${elasticIndex} - data insert done %j`, dataTobeSent);
+        }
+    }
 }
 
 module.exports = Util;

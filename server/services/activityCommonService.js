@@ -6273,16 +6273,20 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                         }
                     }
                 }
-            });
+             }, function (err, res) {
+                 util.handleElasticSearchResponse(request, dataToBeUpdated, global.config.elasticActivityAssetTable, err, res);
+             });
             }
             else{
                 util.logInfo(request,"insertActivityAssetMappingsinElastic : Inserting new value to : " + JSON.stringify(dataTobeSent))
-             client.index({
-                 index:global.config.elasticActivityAssetTable,
-                 body:{
-                     ...dataTobeSent
-                 }
-             })
+                client.index({
+                    index: global.config.elasticActivityAssetTable,
+                    body: {
+                        ...dataTobeSent
+                    }
+                }, function (err, res) {
+                    util.handleElasticSearchResponse(request, dataTobeSent, global.config.elasticActivityAssetTable, err, res);
+                })
             }
             }
                 error = false;
@@ -6295,124 +6299,132 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
     return [error, responseData];
     }
     
-    this.insertManyAssetMappingsinElastic=async function (request){
+    this.insertManyAssetMappingsinElastic = async function (request) {
         let responseData = [],
-        error = true;
-        util.logInfo(request,"insertManyAssetMappingsinElastic : ---Entered----")
-    const paramsArr = [
-                        request.activity_id,
-                        request.asset_id,
-                        1                           
-                      ];
-    const queryString = util.getQueryString('ds_p1_activity_asset_search_mapping_select', paramsArr);
-    if (queryString !== '') {
-        await db.executeQueryPromise(1, queryString, request)
-            .then(async (data) => {
-                responseData = data;
-                if(data.length>0){
-                let dataTobeSent = responseData[0];
-                   let resultData = await client.search({
-                index: global.config.elasticActivityAssetTable,
-                body: {
-                    query: {
-                        bool: {
-                            must: [
-                              {
-                                match: {
-                                  activity_id:Number(request.activity_id)
-                                }
-                              },
-                              {
-                                match: {
-                                  asset_id:Number(request.asset_id)
-                                }
-                              }
-                            ],
-                    
-                        }
-                    }
-                }
-            });
-            // console.log(resultData.hits.hits);
-            // return;
-            for(let i=0;i<resultData.hits.hits.length;i++){
-                util.logInfo(request,"insertManyAssetMappingsinElastic : Updatting existing value to : " + JSON.stringify(dataTobeSent))
-                // console.log("came inside",resultData.hits.hits[i],i);
-             
-            //  let dd ={ activity_title: 'FR01621483',
-            //  activity_cuid_1: null,
-            //  activity_cuid_2: null,
-            //  activity_cuid_3: null,
-            //  activity_status_id: 282557,
-            //  activity_status_type_id: 155,
-            //  activity_type_id: 134562,
-            //  activity_type_name: 'New FLD - MPLS CAF',
-            //  activity_type_category_id: 48,
-            //  activity_type_tag_id: 1,
-            //  tag_type_id: 8,
-            //  organization_id: 868,
-            //  asset_id: 33240,
-            //  asset_first_name: 'Account Manager',
-            //  operating_asset_first_name: 'Esha Pant',
-            //  activity_creator_asset_id: 33240,
-            //  activity_creator_asset_first_name: 'Account Manager',
-            //  activity_creator_operating_asset_first_name: 'Esha Pant',
-            //  asset_participant_access_id: 21,
-            //  asset_flag_is_owner: 1,
-            //  log_state: 2,
-            //  log_active: 1}
-            //  console.log(dataToBeUpdated)
-             
-            await client.updateByQuery({
-                index: global.config.elasticActivityAssetTable,
-                "body": {
-                    "query": {
-                        bool: {
-                            must: [
-                              {
-                                match: {
-                                  activity_id:Number(request.activity_id)
-                                }
-                              },
-                              {
-                                match: {
-                                  asset_id:Number(request.asset_id)
-                                }
-                              }
-                            ],
-                    
-                        }
-                    },
-                    "script": {
-                        "source": "ctx._source = params",
-                        "lang": "painless",
-                        "params": {...dataTobeSent
-                        }
-                    }
-                }
-            });
-            }
-            }
-            if(resultData.hits.hits.length==0){
-                util.logInfo(request,"insertManyAssetMappingsinElastic : Inserting new value to : " + JSON.stringify(dataTobeSent));
-                let insertedResponse = await new Promise((resolve)=>{ client.index({
-                    index:global.config.elasticActivityAssetTable,
-                    body:{
-                        ...dataTobeSent
-                    }
-                }).then(res=>{
-                    util.logInfo(request,"insertManyAssetMappingsinElastic : Inserted new value to : " + JSON.stringify(res));
-                    resolve()
-                }).catch(err=>resolve())})
-            }
-                error = false;
-            })
-            .catch((err) => {
-                error = err;
-            });
-    }
+            error = true;
+        util.logInfo(request, "insertManyAssetMappingsinElastic : ---Entered----")
+        const paramsArr = [
+            request.activity_id,
+            request.asset_id,
+            1
+        ];
+        const queryString = util.getQueryString('ds_p1_activity_asset_search_mapping_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {
+                    responseData = data;
+                    if (data.length > 0) {
+                        let dataTobeSent = responseData[0];
+                        let resultData = await client.search({
+                            index: global.config.elasticActivityAssetTable,
+                            body: {
+                                query: {
+                                    bool: {
+                                        must: [
+                                            {
+                                                match: {
+                                                    activity_id: Number(request.activity_id)
+                                                }
+                                            },
+                                            {
+                                                match: {
+                                                    asset_id: Number(request.asset_id)
+                                                }
+                                            }
+                                        ],
 
-    return [error, responseData];
+                                    }
+                                }
+                            }
+                        });
+                        // console.log(resultData.hits.hits);
+                        // return;
+                        for (let i = 0; i < resultData.hits.hits.length; i++) {
+                            util.logInfo(request, "insertManyAssetMappingsinElastic : Updatting existing value to : " + JSON.stringify(dataTobeSent))
+                            // console.log("came inside",resultData.hits.hits[i],i);
+
+                            //  let dd ={ activity_title: 'FR01621483',
+                            //  activity_cuid_1: null,
+                            //  activity_cuid_2: null,
+                            //  activity_cuid_3: null,
+                            //  activity_status_id: 282557,
+                            //  activity_status_type_id: 155,
+                            //  activity_type_id: 134562,
+                            //  activity_type_name: 'New FLD - MPLS CAF',
+                            //  activity_type_category_id: 48,
+                            //  activity_type_tag_id: 1,
+                            //  tag_type_id: 8,
+                            //  organization_id: 868,
+                            //  asset_id: 33240,
+                            //  asset_first_name: 'Account Manager',
+                            //  operating_asset_first_name: 'Esha Pant',
+                            //  activity_creator_asset_id: 33240,
+                            //  activity_creator_asset_first_name: 'Account Manager',
+                            //  activity_creator_operating_asset_first_name: 'Esha Pant',
+                            //  asset_participant_access_id: 21,
+                            //  asset_flag_is_owner: 1,
+                            //  log_state: 2,
+                            //  log_active: 1}
+                            //  console.log(dataToBeUpdated)
+
+                            await client.updateByQuery({
+                                index: global.config.elasticActivityAssetTable,
+                                "body": {
+                                    "query": {
+                                        bool: {
+                                            must: [
+                                                {
+                                                    match: {
+                                                        activity_id: Number(request.activity_id)
+                                                    }
+                                                },
+                                                {
+                                                    match: {
+                                                        asset_id: Number(request.asset_id)
+                                                    }
+                                                }
+                                            ],
+
+                                        }
+                                    },
+                                    "script": {
+                                        "source": "ctx._source = params",
+                                        "lang": "painless",
+                                        "params": {
+                                            ...dataTobeSent
+                                        }
+                                    }
+                                }
+                            }, function (err, res) {
+                                util.handleElasticSearchResponse(request, dataTobeSent, global.config.elasticActivityAssetTable, err, res);
+                            });
+                        }
+
+                        if (resultData.hits.hits.length == 0) {
+                            util.logInfo(request, "insertManyAssetMappingsinElastic : Inserting new value to : " + JSON.stringify(dataTobeSent));
+                            let insertedResponse = await new Promise((resolve) => {
+                                client.index({
+                                    index: global.config.elasticActivityAssetTable,
+                                    body: {
+                                        ...dataTobeSent
+                                    }
+                                }, function (err, res) {
+                                    util.handleElasticSearchResponse(request, dataTobeSent, global.config.elasticActivityAssetTable, err, res);
+                                    resolve();
+                                })
+                            })
+                        }
+
+                    }
+
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
     }
 
     this.insertActivityMappingsinElastic=async function (request){
@@ -6495,7 +6507,9 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                         }
                     }
                 }
-            });
+             }, function (err, res) {
+                 util.handleElasticSearchResponse(request, dataToBeUpdated, global.config.elasticActivitySearchTable, err, res);
+             });
             }
             else{
                 util.logInfo(request,"insertActivityMappingsinElastic : inserting new value : " + JSON.stringify(dataTobeSent))
@@ -6511,15 +6525,17 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 //     .catch((err) => console.log(err));
                 // }
 
-               let insertedResponse = await new Promise((resolve)=>{ client.index({
-                    index:global.config.elasticActivitySearchTable,
-                    body:{
-                        ...dataTobeSent
-                    }
-                }).then(res=>{
-                    
-                    resolve()
-                }).catch(err=>resolve())})
+                let insertedResponse = await new Promise((resolve) => {
+                    client.index({
+                        index: global.config.elasticActivitySearchTable,
+                        body: {
+                            ...dataTobeSent
+                        }
+                    }, function (err, res) {
+                        util.handleElasticSearchResponse(request, dataTobeSent, global.config.elasticActivitySearchTable, err, res);
+                        resolve();
+                    })
+                })
             }
         }
                 error = false;
@@ -6620,27 +6636,31 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
             if(responseData.length>0){
                 console.log(responseData)
-                let insertedResponse = await new Promise((resolve)=>{ client.index({
-                    index:global.config.elasticActivitySearchTable,
-                    body:{
-                        ...responseData[0]
-                    }
-                }).then(res=>{
-                    logger.info('came in elastic activity 1 insert :'+ JSON.stringify(res))
-                    resolve()
-                }).catch(err=>resolve())})
-
-                for(let i=0;i<responseData.length;i++){
-                    util.logInfo(request, i);
-                    let insertedResponse = await new Promise((resolve)=>{ client.index({
-                        index:global.config.elasticActivityAssetTable,
-                        body:{
-                            ...responseData[i]
+                let insertedResponse = await new Promise((resolve) => {
+                    client.index({
+                        index: global.config.elasticActivitySearchTable,
+                        body: {
+                            ...responseData[0]
                         }
-                    }).then(res=>{
-                        logger.info('came in elastic activity 1 insert :'+ JSON.stringify(res))
-                        resolve()
-                    }).catch(err=>resolve())})
+                    }, function (err, res) {
+                        util.handleElasticSearchResponse(request, responseData[0], global.config.elasticActivitySearchTable, err, res);
+                        resolve();
+                    })
+                })
+
+                for (let i = 0; i < responseData.length; i++) {
+                    util.logInfo(request, i);
+                    let insertedResponse = await new Promise((resolve) => {
+                        client.index({
+                            index: global.config.elasticActivityAssetTable,
+                            body: {
+                                ...responseData[i]
+                            }
+                        }, function (err, res) {
+                            util.handleElasticSearchResponse(request, responseData[i], global.config.elasticActivityAssetTable, err, res);
+                            resolve();
+                        });
+                    })
                 }
             }
             
