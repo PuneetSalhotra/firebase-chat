@@ -3457,7 +3457,9 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     	return new Promise((resolve, reject)=>{    		
 			 var total_mrp = 0;
 			 var total_discount = 0;
-			 var total_tax = 0;			 
+			 var total_tax = 0;
+             let total_service_charge = 0;
+             let total_item_tax = 0;
 			 var total_price = 0;
 			 var item_discount = 0;
 			 var orderActivityId = 0;
@@ -3521,11 +3523,14 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 
                         item_tax_amount = (cost * tax_percent)/100;
                         service_charge_tax_amount = (service_charge * gst_percent)/100
+                        
+                        total_service_charge = service_charge_tax_amount + total_service_charge;
+                        total_item_tax = total_item_tax + item_tax_amount;
 
                         price_after_service_charge = cost + service_charge;
                         tax_amount = item_tax_amount + service_charge_tax_amount;
 						final_price = price_after_service_charge + tax_amount;
-						
+
 						total_price = total_price + final_price;
 						//console.log('total price '+total_price);
 						total_tax = total_tax + tax_amount;
@@ -3659,7 +3664,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 				}).then(()=>{
 					//console.log("Reservation "+idReservation+" is done");
 					global.logger.write('conLog', 'Reservation ' + idReservation + ' is done', {}, request);
-					resolve(total_price);
+					resolve({total_price, total_discount, total_tax, gst_percent, total_mrp, total_service_charge, total_item_tax});
 				});
 			 
 			 }); 
