@@ -1187,7 +1187,7 @@ function PamListingService(objectCollection) {
 	        		request.organization_id,
 	        		request.account_id,
 	        		request.reservation_activity_id,
-					request.is_sort,
+					// request.is_sort,
 					request.start_limit,
 					request.end_limit
 	                );
