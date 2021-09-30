@@ -3448,7 +3448,7 @@ function Util(objectCollection) {
 
     this.handleElasticSearchResponse = async function (request, dataTobeSent, elasticIndex, err, response) {
         if (err) {
-            util.logError(request, `${elasticIndex} - data insert error`, { type: "elastic_search", data: dataTobeSent, error: err });
+            this.logError(request, `${elasticIndex} - data insert error`, { type: "elastic_search", data: dataTobeSent, error: err });
 
             sqs1.sendMessage({
                 MessageBody: JSON.stringify({ err, data: dataTobeSent, elasticIndex : elasticIndex }),
@@ -3463,14 +3463,14 @@ function Util(objectCollection) {
                 }
             }, (error, data) => {
                 if (error) {
-                    util.logError(request, `Error sending excel job to SQS queue`, { type: 'elastic_search', error });
+                    this.logError(request, `Error sending excel job to SQS queue`, { type: 'elastic_search', error });
                 } else {
-                    util.logInfo(request, `Successfully sent excel job to SQS queue: %j`, { type: 'elastic_search', request_body: request });
+                    this.logInfo(request, `Successfully sent excel job to SQS queue: %j`, { type: 'elastic_search', request_body: request });
                 }
             });
 
         } else {
-            util.logInfo(request, `${elasticIndex} - data insert done %j`, dataTobeSent);
+            this.logInfo(request, `${elasticIndex} - data insert done %j`, dataTobeSent);
         }
     }
 }
