@@ -3524,7 +3524,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                         item_tax_amount = (cost * tax_percent)/100;
                         service_charge_tax_amount = (service_charge * gst_percent)/100
                         
-                        total_service_charge = service_charge_tax_amount + total_service_charge;
+                        total_service_charge = service_charge + total_service_charge;
                         total_item_tax = total_item_tax + item_tax_amount;
 
                         price_after_service_charge = cost + service_charge;
@@ -3664,7 +3664,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 				}).then(()=>{
 					//console.log("Reservation "+idReservation+" is done");
 					global.logger.write('conLog', 'Reservation ' + idReservation + ' is done', {}, request);
-					resolve({total_price, total_discount, total_tax, gst_percent, total_mrp, total_service_charge, total_item_tax});
+					resolve({total_price, total_discount, total_tax, gst_percent, total_mrp, total_service_charge});
 				});
 			 
 			 }); 
