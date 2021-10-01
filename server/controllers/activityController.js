@@ -545,7 +545,14 @@ function ActivityController(objCollection) {
         };
 
         try {
-            JSON.parse(req.body.activity_inline_data);
+            let activityinlineData = JSON.parse(req.body.activity_inline_data);
+            util.logInfo(req.body, ` Type of inline Data : ${typeof activityinlineData}`);
+            if (typeof activityinlineData === "string") {
+                JSON.parse(activityinlineData);
+                util.logInfo(req.body, `Updating Correct activity_inline_data for request %j `, { activity_inline_data: activityinlineData });
+                req.body.activity_inline_data = activityinlineData;
+            }
+
         } catch (exeption) {
             res.json(responseWrapper.getResponse(false, {
                 activity_id: 0

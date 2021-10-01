@@ -1524,6 +1524,8 @@ function TasiService(objectCollection) {
             request.period_end_datetime,
             request.data_entity_1,
             request.data_entity_2,
+            request.data_entity_url_1,
+            request.data_entity_url_2,
             request.asset_id,
             util.getCurrentUTCTime()
         );
@@ -1607,7 +1609,6 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
-                    reportListHistoryInsert(request,3302)
                 })
                 .catch((err) => {
                     error = err;
@@ -2066,7 +2067,7 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = [];
+                    responseData = data;
                     error = false;
                 })
                 .catch((err) => {
@@ -2125,7 +2126,7 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = [];
+                    responseData = data;
                     error = false;
 
                     try {
@@ -2162,7 +2163,7 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = [];
+                    responseData = data;
                     error = false;
                 })
                 .catch((err) => {
@@ -2188,7 +2189,7 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = [];
+                    responseData = data;
                     error = false;
                 })
                 .catch((err) => {
@@ -2214,7 +2215,7 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = [];
+                    responseData = data;
                     error = false;
                 })
                 .catch((err) => {
@@ -2240,7 +2241,7 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = [];
+                    responseData = data;
                     error = false;
                 })
                 .catch((err) => {
@@ -2266,7 +2267,7 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = [];
+                    responseData = data;
                     error = false;
                 })
                 .catch((err) => {
@@ -2292,8 +2293,9 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                    responseData = [];
+                    responseData = data;
                     error = false;
+                    reportListHistoryInsert(request,3301)
                 })
                 .catch((err) => {
                     error = err;
@@ -2319,7 +2321,88 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                    responseData = [];
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.payoutAuditLogListing = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.payout_id, 
+            request.start_from || 0, 
+            request.limit_value || 50
+        );
+
+        const queryString = util.getQueryString('ds_p1_payout_list_history_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.customerAccountTypeHistoryListing = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.customer_account_type_id, 
+            request.start_from || 0, 
+            request.limit_value || 50
+        );
+
+        const queryString = util.getQueryString('ds_p1_customer_account_type_list_history_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.accountMappingByPeriodList = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.input_type_id,
+            request.flag,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.start_from || 0, 
+            request.limit_value || 50
+        );
+
+        const queryString = util.getQueryString('ds_p2_input_list_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
                     error = false;
                 })
                 .catch((err) => {

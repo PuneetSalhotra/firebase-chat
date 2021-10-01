@@ -31,6 +31,15 @@ AWS.config.update({
 });
 const sqs = new AWS.SQS();
 
+
+const AWS1 = require('aws-sdk');
+AWS1.config.update({
+    "accessKeyId": "AKIAWIPBVOFRSFSVJZMF",
+    "secretAccessKey": "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",
+    "region": "ap-south-1"
+});
+const sqs1 = new AWS1.SQS();
+
 //AWS.config.update(
 //    {
 //        accessKeyId: "AKIAWIPBVOFRZMTH7FPD",
@@ -594,7 +603,7 @@ function Util(objectCollection) {
             if (queryString != '') {
                 await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                    responseData = data;
+                    responseData = data[0].bucket_name;
                     
                 })
                 .catch((err) => {
@@ -1356,14 +1365,15 @@ function Util(objectCollection) {
         console.log('subject : ', subject);
         console.log('text : ', text);
 
-        let emailProvider = 0;
+        let emailProvider = 1;
         try {
             emailProvider = await cacheWrapper.getEmailProvider();
         } catch (error) {
             console.log("Error fetching the app_config:emailProvider: ", error);
         }
 
-        if (Number(emailProvider) === 1) {
+        console.log("emailProvider", emailProvider);
+        if (Number(emailProvider) === 1 || request.sendRegularEmail == 1) {
             try {
                 const responseBody = await sendEmailMailgunV1(
                     request, email, subject,
@@ -1457,7 +1467,7 @@ function Util(objectCollection) {
             request.hasOwnProperty("attachment") &&
             request.attachment !== null
         ) {
-            mailOptions.attachment = mailgun.Attachment({
+            mailOptions.attachment = new mailgun.Attachment({
                 data: request.attachment,
                 filename: path.basename(request.attachment)
             });
@@ -1489,7 +1499,7 @@ function Util(objectCollection) {
         });
     }
 
-    this.sendEmailMailgunV2=async (request, email, subject, filepath, htmlTemplate, htmlTemplateEncoding = "html") => {
+    this.sendEmailMailgunV2=async (request, email, subject, filepath, htmlTemplate, htmlTemplateEncoding = "html",descrip) => {
         console.log("htmlTemplateEncoding: ", htmlTemplateEncoding);
         // if (htmlTemplateEncoding === "base64") {
         //     let buff = new Buffer(htmlTemplate, 'base64');
@@ -1502,7 +1512,7 @@ function Util(objectCollection) {
             // cc: 'baz@example.com',
             // bcc: 'bar@example.com',
             subject: subject,
-            text: 'Grene os has created event',
+            text: descrip,
             html: htmlTemplate,
             attachment: filepath
         };
@@ -2399,7 +2409,7 @@ function Util(objectCollection) {
         let pwd;
         let ewsConfig;
         if(request.hasOwnProperty('is_version_v1') && request.is_version_v1 === 1) {
-            let decrypted = CryptoJS.AES.decrypt(request.email_sender_password_text.toString() || "", 'lp-n5^+8M@62').toString(CryptoJS.enc.Utf8);
+            let decrypted = CryptoJS.AES.decrypt(request.email_sender_password.toString() || "", 'lp-n5^+8M@62').toString(CryptoJS.enc.Utf8);
             console.log('decrypted PWD : ', decrypted);
 
             ewsConfig = {
@@ -2700,6 +2710,57 @@ function Util(objectCollection) {
         return [error, responseData];
     };
 
+     this.sendEmailV4ewsV1 = async function (request,emails,subject,body,attachment){
+        let responseData = [];
+        let error = false;
+        try{
+        let ewsPassword = await cacheWrapper.getKeyValueFromCache('omt.in1@vodafoneidea.com');
+        let emailSQSQueueUrl = global.config.emailSQSQueueUrl;
+        let ewsConfig = {
+            "ewsEmail":"CentralOmt.In @vodafoneidea.com",
+            "ewsUsername":"COR458207",
+            "ewsPassword":ewsPassword,
+            "ewsDomain":"inroot",
+            "ewsEndpoint":"https://webmail.vodafoneidea.com/ews/exchange.asmx",
+            "ewsMailReceiver":emails,
+            "ewsMailReceiverCc":[],
+            "ewsMailReceiverBcc":[],
+            "ewsMailSubject":subject,
+            "ewsMailBody":body,
+            "ewsMailAttachment":attachment
+         }
+         console.log(JSON.stringify(ewsConfig))
+         let sqsMessage = {
+            MessageBody: JSON.stringify(ewsConfig),
+            QueueUrl: emailSQSQueueUrl,
+            MessageAttributes: {
+                "Environment": {
+                    DataType: "String",
+                    StringValue: 'staging'
+                },
+            }
+        };
+        logger.info(JSON.stringify(sqsMessage));
+        sqs.sendMessage(sqsMessage, (err, data) => {
+            if (err) {
+                logger.error("Error sending email job to SQS queue => ");
+                logger.error(err);
+                responseData = { errormsg: err };
+                error = true;
+                //logger.error("Error sending email job to SQS queue", { type: 'ews-engine-mail', error: serializeError(err), request_body: emailMessageBody });
+            } else {
+                error = false;
+                responseData = { errormsg: "Successfully sent email to "  };
+                logger.info("Successfully sent email job to SQS queue: %j", data, { type: 'ews-engine-mail', request_body: ewsConfig });
+            }
+        });
+        }
+        catch(err){
+
+        }
+
+    }
+
     this.insertEwsEmailTransactions = async function(ews_mail, ews_function, ews_email_sent_enabled, ews_request, ews_mail_error, log_asset_id) {
         console.log("insertEwsEmailTransactions: ");
         // console.log("ews_mail = " + ews_mail);
@@ -2787,6 +2848,59 @@ function Util(objectCollection) {
               Body: readStream
             };
           
+            let response = await s3.upload(params).promise();
+            let data = {};
+            data.location = response.Location;
+            data.fileKey = fileKey;
+            resposneData.push(data);
+            return [error,resposneData];
+        }catch(e)
+        {
+            return[e,resposneData];
+        }
+    }
+
+    //Uploading XLSXfile PAM
+    this.uploadExcelFileToS3V2 = async function(request, filePath){
+        let error = false;
+        let resposneData = [];
+        try{
+            const s3 = new AWS.S3();
+            const readStream = fs.createReadStream(filePath);
+            let fileKey = "xlsx/excel-"+this.getcurrentTimeInMilliSecs()+".xlsx";
+            const params = {
+            Bucket: await this.getDynamicBucketName(),
+            Key: fileKey,
+            Body:JSON.stringify(readStream)
+            };
+            // console.log(params,"params");
+
+            let response = await s3.upload(params).promise();
+            let data = {};
+            data.location = response.Location;
+            data.fileKey = fileKey;
+            resposneData.push(data);
+            return [error,resposneData];
+        }catch(e)
+        {
+            return[e,resposneData];
+        }
+    }
+
+    this.uploadICSFileToS3V1 = async function(request,filePath){
+        let error = false;
+        let resposneData = [];
+
+        try{
+            const s3 = new AWS.S3();
+            const readStream = fs.createReadStream(filePath);
+            let fileKey = "ics/event-"+this.getcurrentTimeInMilliSecs()+".ics";
+            let bucket_name = await this.getDynamicBucketName();      
+            const params = {
+              Bucket: bucket_name,
+              Key: fileKey,
+              Body: readStream
+            };
             let response = await s3.upload(params).promise();
             let data = {};
             data.location = response.Location;
@@ -3329,6 +3443,35 @@ function Util(objectCollection) {
         }
         return [error, assetName];
     };
+
+
+    this.handleElasticSearchResponse = async function (request, dataTobeSent, elasticIndex, err, response) {
+        if (err) {
+            this.logError(request, `${elasticIndex} - data insert error`, { type: "elastic_search", data: dataTobeSent, error: err });
+
+            sqs1.sendMessage({
+                MessageBody: JSON.stringify({ err, data: dataTobeSent, elasticIndex : elasticIndex }),
+                QueueUrl: global.config.elasticSearchFailedEntriesSQSQueueUrl,
+                MessageGroupId: `elastic-search-error-group-v1`,
+                MessageDeduplicationId: uuidv4(),
+                MessageAttributes: {
+                    "Environment": {
+                        DataType: "String",
+                        StringValue: global.mode
+                    },
+                }
+            }, (error, data) => {
+                if (error) {
+                    this.logError(request, `Error sending excel job to SQS queue`, { type: 'elastic_search', error });
+                } else {
+                    this.logInfo(request, `Successfully sent excel job to SQS queue: %j`, { type: 'elastic_search', request_body: request });
+                }
+            });
+
+        } else {
+            this.logInfo(request, `${elasticIndex} - data insert done %j`, dataTobeSent);
+        }
+    }
 }
 
 module.exports = Util;

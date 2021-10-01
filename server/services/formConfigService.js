@@ -1218,7 +1218,7 @@ function FormConfigService(objCollection) {
             let dashboardEntityFieldData = {};
             let [err, workflowData] = await activityCommonService.getFormWorkflowDetailsAsync(request);
             util.logInfo(request,`workflowData :: ` +JSON.stringify(workflowData)); 
-            let workfolow_activity_type_id =  workflowData[0].activity_type_id || 0;
+            let workfolow_activity_type_id =  workflowData.length>0 && workflowData[0].activity_type_id ? workflowData[0].activity_type_id :0;
             let [errorWorkflowType, workflowTypeData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workfolow_activity_type_id);
             util.logInfo(request,`workflowTypeData :: ` +workflowTypeData);  
             if (workflowTypeData.length > 0) {
@@ -6704,6 +6704,7 @@ function FormConfigService(objCollection) {
                     } catch (e) {
                         console.log("got formSubmittedInfo as string");
                     }
+                    // console.log(formSubmittedInfo)
 
                     for(let newRow of formSubmittedInfo) {
                         if(newRow.field_id == row.source_field_id) {
@@ -6738,7 +6739,7 @@ function FormConfigService(objCollection) {
 
 		const paramsArr = new Array(
 			request.workflow_activity_id,
-			request.activity_type_id,
+			request.activity_type_id || 0,
 			0,
 			request.organization_id,
 			request.flag || 1,

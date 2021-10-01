@@ -659,6 +659,36 @@ function TasiController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/tasi/payout/audit/log/list', async function (req, res) {
+        const [err, resData] = await tasiService.payoutAuditLogListing(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/payout/audit/log/list | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/customer/account/type/list', async function (req, res) {
+        const [err, resData] = await tasiService.customerAccountTypeHistoryListing(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/customer/account/type/list | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/period/account/mapping/list', async function (req, res) {
+        const [err, resData] = await tasiService.accountMappingByPeriodList(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/period/account/mapping/list | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = TasiController;

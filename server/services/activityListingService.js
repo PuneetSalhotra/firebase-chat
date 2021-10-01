@@ -4037,15 +4037,19 @@ function ActivityListingService(objCollection) {
 					let htmlString = await generateMOMOrdersHtmlCode(request, participantsList, wfActivityDetails);
 					console.log("htmlString ", htmlString);
 					
+					let emailList = [];
 					for (const asset of participantsList) {
 						let [error, assetDetails] = await getParticipantDetails({ assetID: asset.asset_id });
-						console.log("assetDetails[0].asset_email_id ", assetDetails[0].asset_email_id);
-						if (assetDetails[0].asset_email_id !== null && assetDetails[0].asset_email_id !== "") {
-							await util.sendEmailV4ews(request, assetDetails[0].asset_email_id, header, htmlString, "", 1);
-						} else {
-							console.log("No Email ID to send email");
+						if (assetDetails.length > 0) {
+							if (assetDetails[0].asset_email_id !== null && assetDetails[0].asset_email_id !== "") {
+								emailList.push(assetDetails[0].asset_email_id);
+							} else {
+								console.log("No Email ID to send email");
+							}
 						}
+
 					}
+					await util.sendEmailV4ews(request, emailList, header, htmlString, "", 1);
 				}
 
 			}
@@ -4114,7 +4118,6 @@ function ActivityListingService(objCollection) {
 			},
 			"field_order": [
 				"SL_NO",
-				"Status",
 				"Meeting_ID",
 				"MOM_Point_ID",
 				"Discussion_Point",
@@ -4125,7 +4128,8 @@ function ActivityListingService(objCollection) {
 				"Assigned_To",
 				"Assigned_Date",
 				"Due_Date",
-				"Comments"
+				"Comments",
+				"Status"
 			],
 			"date_fields": [
 				312767,
@@ -4213,25 +4217,6 @@ function ActivityListingService(objCollection) {
 			}
 			htmlString += '</tr>';
 		}
-
-		let slNoOfParticipant = 1;
-
-		let participantListEmailString = '<br><table border="1" cellspacing="0"><thead><tr><th colspan="3" >Participant List</th><tr><th>Sl No</th><th>Name</th><th>Email</th></tr></thead><tbody>'
-		for (const asset of participantsList) {
-
-			let [error, assetDetails] = await getParticipantDetails({
-				assetID: asset.asset_id
-			});
-			console.log("assetDetails[0].asset_email_id ", assetDetails[0].asset_email_id);
-			if (assetDetails[0].asset_email_id !== null && assetDetails[0].asset_email_id !== "") {
-				participantListEmailString += '<tr>';
-				participantListEmailString += '<td>' + (slNoOfParticipant++) + '</td>';
-				participantListEmailString += '<td>' + assetDetails[0].operating_asset_first_name + '</td>';
-				participantListEmailString += '<td>' + assetDetails[0].asset_email_id + '</td>';
-				participantListEmailString += '</tr>';
-			}
-		}
-		participantListEmailString += '</tbody></table><br>';
 
 		htmlString += '</tbody></table><br><br><p>Thanks,</p><p>Vi&trade; Business</p>';
 		return htmlString;

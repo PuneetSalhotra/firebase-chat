@@ -652,10 +652,12 @@ function CommnElasticService(objectCollection) {
                                 "source": "ctx._source = params",
                                 "lang": "painless",
                                 "params": {
-                                    ...dataTobeSent  
+                                    ...dataTobeSent
                                 }
                             }
                         }
+                    }, function (err, res) {
+                        util.handleElasticSearchResponse(request, dataTobeSent, global.config.elasticActivitySearchTable, err, res);
                     });
                 }
                 error = false;

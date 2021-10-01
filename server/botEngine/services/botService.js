@@ -8914,94 +8914,96 @@ else{
             generatedOpportunityID = "OPP-";
 
         //let activityInlineData = JSON.parse(request.activity_inline_data);
-        let activityInlineData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data) : request.activity_inline_data;
-        let parentActivityID;
-        util.logInfo(request,'request.account_activity_id : ', request.account_activity_id);
-        if(request.account_activity_id > 0){
-            parentActivityID = request.account_activity_id;
-        }else{
-            util.logInfo(request,'activityopportunityset No Account :: '+request.account_activity_id);
-            for (let i_iterator of activityInlineData) {
-                if (Number(i_iterator.field_data_type_id) === 57) {
-                    let fieldValue = i_iterator.field_value;
-                    if (fieldValue.includes('|')) {
-                        //parentActivityID = fieldValue.split('|')[1];                    
-                        parentActivityID = fieldValue.split('|')[0];
-                    }
-                }
+        let accountActivityId;
+        util.logInfo(request, 'request.account_activity_id : ', request.account_activity_id);
+        if (request.account_activity_id > 0) {
+            accountActivityId = request.account_activity_id;
+        } else {
+            util.logInfo(request, 'activityopportunityset No Account :: ' + request.account_activity_id);
+            let fieldValue = request.reference_data;
+            if (fieldValue.includes('|')) {
+                accountActivityId = fieldValue.split('|')[0];
             }
         }
-   
-        util.logInfo(request,'AccountId : ', parentActivityID);
+        util.logInfo(request, 'AccountId : ', accountActivityId);
         //Call activity_activity_mapping retrieval service to get the segment
-       /* let [err, segmentData] = await activityCommonService.activityActivityMappingSelect({
-            activity_id: request.activity_id, //Workflow activity id 
-            parent_activity_id: parentActivityID, //reference account workflow activity_id
-            organization_id: request.organization_id,
-            start_from: 0,
-            limit_value: 50
-        }); */
+        /* let [err, segmentData] = await activityCommonService.activityActivityMappingSelect({
+             activity_id: request.activity_id, //Workflow activity id
+             parent_activity_id: parentActivityID, //reference account workflow activity_id
+             parent_activity_id: accountActivityId, //reference account workflow activity_id
+             organization_id: request.organization_id,
+             start_from: 0,
+             limit_value: 50
+         }); */
 
-        let accountDetails = await activityCommonService.getActivityDetailsPromise(request, parentActivityID);
-        util.logInfo(request,'AccountData : '+parentActivityID+" :: LENGTH :: "+accountDetails.length);
-        let segmentName = accountDetails[0].activity_type_tag_name; //(segmentData.length>0)?(segmentData[0].parent_activity_tag_name).toLowerCase():'';
-        util.logInfo(request,'segmentName : ', segmentName);
+        let accountDetails = await activityCommonService.getActivityDetailsPromise(request, accountActivityId);
+        util.logInfo(request, 'AccountData : ' + accountActivityId + " :: LENGTH :: " + accountDetails.length);
+
         //segmentName = segmentName.toLowerCase();
-        switch (segmentName) {
-            case 'LA': generatedOpportunityID += 'C-';
-                break;
-            case 'GE': generatedOpportunityID += 'V-';
-                break;
-            case 'SOHO': generatedOpportunityID += 'D-';
-                break;
-            case 'SME': generatedOpportunityID += 'S-';
-                break;
-            case 'GOVT': generatedOpportunityID += 'G-';
-                break;
-            case 'VICS': generatedOpportunityID += 'W-';
-                break;
+        if (accountDetails.length > 0) {
+            let segmentId = accountDetails[0].activity_type_tag_id; //(segmentData.length>0)?(segmentData[0].parent_activity_tag_name).toLowerCase():'';
+            util.logInfo(request, 'segmentId : '+ segmentId);
+            switch (segmentId) {
+                case 91: generatedOpportunityID += 'C-';
+                    break;
+                case 122: generatedOpportunityID += 'V-';
+                    break;
+                case 124: generatedOpportunityID += 'D-';
+                    break;
+                case 120: generatedOpportunityID += 'S-';
+                    break;
+                case 123: generatedOpportunityID += 'G-';
+                    break;
+                case 121: generatedOpportunityID += 'W-';
+                    break;
+                default : 
+                    util.logError(request, '-segmentIDError- '+segmentId);
+                    generatedOpportunityID += '';
+                    break;
+            }
+        } else {
+            util.logError(request, '-OptyIDError- No Account details');
+        }
+        try {
+            if (generatedOpportunityID.length == 6 && accountDetails[0].tag_type_id == 110) {
+
+                let targetOpportunityID = await cacheWrapper.getOpportunityIdPromise();
+                if (targetOpportunityID >= 100000) {
+
+                } else if (targetOpportunityID >= 10000) {
+                    targetOpportunityID = "0" + targetOpportunityID;
+                } else if (targetOpportunityID >= 1000) {
+                    targetOpportunityID = "00" + targetOpportunityID;
+                } else if (targetOpportunityID >= 100) {
+                    targetOpportunityID = "000" + targetOpportunityID;
+                } else if (targetOpportunityID >= 10) {
+                    targetOpportunityID = "0000" + targetOpportunityID;
+                } else if (targetOpportunityID >= 1) {
+                    targetOpportunityID = "00000" + targetOpportunityID;
+                }
+
+                if (targetOpportunityID == 999900) {
+                    await cacheWrapper.setOppurtunity(0);
+                }
+                generatedOpportunityID = generatedOpportunityID + targetOpportunityID + '-' + util.getCurrentISTDDMMYY();
+                responseData.push(generatedOpportunityID);
+
+                logger.silly("Update CUID Bot");
+                logger.silly("Update CUID Bot Request: ", request);
+                try {
+                    request.opportunity_update = true;
+                    await updateCUIDBotOperation(request, {}, { "CUID1": generatedOpportunityID });
+                } catch (error) {
+                    logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                }
+            } else {
+                util.logInfo(request, 'WRONG SEGMENT : ', generatedOpportunityID);
+            }
+        } catch (e) {
+            error = true;
+            console.log("error : ", e);
         }
 
-        try {
-                if(generatedOpportunityID.length == 6 && accountDetails[0].tag_type_id == 110){
-
-                    let targetOpportunityID = await cacheWrapper.getOpportunityIdPromise();
-                    if (targetOpportunityID >= 100000) {
-
-                    } else if (targetOpportunityID >= 10000) {
-                        targetOpportunityID = "0" + targetOpportunityID;
-                    } else if (targetOpportunityID >= 1000) {
-                        targetOpportunityID = "00" + targetOpportunityID;
-                    } else if (targetOpportunityID >= 100) {
-                        targetOpportunityID = "000" + targetOpportunityID;
-                    } else if (targetOpportunityID >= 10) {
-                        targetOpportunityID = "0000" + targetOpportunityID;
-                    } else if (targetOpportunityID >= 1) {
-                        targetOpportunityID = "00000" + targetOpportunityID;
-                    }
-
-                    if (targetOpportunityID == 999900) {
-                        await cacheWrapper.setOppurtunity(0);
-                    }
-                    generatedOpportunityID = generatedOpportunityID + targetOpportunityID + '-' + util.getCurrentISTDDMMYY();
-                    responseData.push(generatedOpportunityID);
-
-                    logger.silly("Update CUID Bot");
-                    logger.silly("Update CUID Bot Request: ", request);
-                    try {
-                        request.opportunity_update = true;
-                        await updateCUIDBotOperation(request, {}, { "CUID1": generatedOpportunityID });
-                    } catch (error) {
-                        logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                    }
-                }else{
-                    util.logInfo(request,'WRONG SEGMENT : ', generatedOpportunityID);
-                }
-            } catch (e) {
-                error = true;
-                console.log("error : ", e);
-            }
-        
         return [error, responseData];
     }
 
@@ -14949,7 +14951,10 @@ if(workflowActivityData.length==0){
                         const [errorZero, workflowActivityDataOfEnteredOpportunity] = await getActivityDetailsAsync({
                             organization_id: request.organization_id,
                         }, workflowActivityIDOfEnteredOpportunity);
-                        if (!workflowActivityDataOfEnteredOpportunity[0].activity_master_data) {
+                        let activityMasterData = workflowActivityDataOfEnteredOpportunity[0].activity_master_data || {};
+                        if(primaryFeasibilityRequestID === FRID && !activityMasterData.hasOwnProperty("feasibility_xml")){
+                            errorMessage += `The entered FRID ${Opportunity.FRID} in row ${i + 1} is not yet published \n`;
+                        }else if(secondaryFeasibilityRequestID === FRID && !activityMasterData.hasOwnProperty("feasibility_secondary")){
                             errorMessage += `The entered FRID ${Opportunity.FRID} in row ${i + 1} is not yet published \n`;
                         }
                     }
@@ -15816,79 +15821,202 @@ if(workflowActivityData.length==0){
         return [error, responseData];
     };
 
+    async function getFormInlineData(request,flag) {
+        //flag 
+        // 1. Send the entire formdata 713
+        // 2. Send only the submitted form_data
+        //3. Send both
 
+        let formData = [];
+        let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request,request.workflow_activity_id,request.form_id);
+        if(!formDataFrom713Entry.length > 0) {
+            responseData.push({'message': `${i_iterator.form_id} is not submitted`});
+            console.log('responseData : ',responseData);
+            return [true,responseData];
+        }
 
-    async function icsEventCreation(request,email,receiver_name){
-        let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
-        let eventTimeDetails = JSON.parse(wfActivityDetails[0].activity_inline_data).filter((_,i)=>_.field_data_type_id === 77);
-        
+        //console.log('formDataFrom713Entry[0] : ', formDataFrom713Entry[0]);
+        let formTransactionInlineData = JSON.parse(formDataFrom713Entry[0].data_entity_inline);
+        //console.log('formTransactionInlineData form Submitted: ', formTransactionInlineData.form_submitted);
+        formData = formTransactionInlineData.form_submitted;
+        formData = (typeof formData === 'string') ? JSON.parse(formData) : formData;
+
+        switch(Number(flag)) {
+            case 1: return formDataFrom713Entry[0];
+            case 2: return formData;
+            case 3: break;
+            default: return formData;
+        }
+    }
+
+    async function icsEventCreation(request, email, receiver_name) {
+
+      //Getting Activity Type Config
+      let [err1, activityTypeConfig] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request,request.activity_type_id);
+      
+      if(err1 || activityTypeConfig.length == 0 || activityTypeConfig[0].activity_type_inline_data == ""){
+        util.logInfo(request,"Exiting without creating Ics Event due to missing config settings");
+          return [false,[]]
+      }
+      let activity_type_inline_data = typeof activityTypeConfig[0].activity_type_inline_data == 'string' ? JSON.parse(activityTypeConfig[0].activity_type_inline_data) : activityTypeConfig[0].activity_type_inline_data;
+      console.log(activity_type_inline_data)
+      //Getting Activity Details
+      let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
+
+      if(!(activity_type_inline_data.hasOwnProperty('meeting_location_form_id') && activity_type_inline_data.meeting_location_form_id != "")){
+        util.logInfo(request,"Exiting without creating Ics Event due to missing config settings");
+        return [false,[ ]]
+      }
+      // Get Form Data
+      let formData = await getFormInlineData({
+        organization_id: request.organization_id,
+        account_id: request.account_id,
+        workflow_activity_id: request.workflow_activity_id,
+        form_id: activity_type_inline_data.meeting_location_form_id
+        },2);
+      
+        let eventLocation = formData.filter((_, i) =>_.field_id == activity_type_inline_data.meeting_location_field_id);
+        let eventTimeDetails = formData.filter((_, i) => _.field_data_type_id === 77);
+
         var timeDifferenceInMinutes = Math.floor(eventTimeDetails[0].field_value.duration);
         let createDate = new Date(moment(eventTimeDetails[0].field_value.start_date_time).utcOffset("-05:30").format("YYYY-MM-DD HH:mm:ss"));
+        let endDate = new Date(moment(eventTimeDetails[0].field_value.end_date_time).utcOffset("-05:30").format("YYYY-MM-DD HH:mm:ss"));
+        let createDateutc = new Date(moment(eventTimeDetails[0].field_value.start_date_time).format("YYYY-MM-DD HH:mm:ss"));
+        let endDateutc = new Date(moment(eventTimeDetails[0].field_value.end_date_time).format("YYYY-MM-DD HH:mm:ss"));
         let today = new Date();
-        activityParticipantService.getParticipantsList({...request,activity_id:request.workflow_activity_id,datetime_differential: "1970-01-01 00:00:00"},async function(err,dat){
-            let [err1,activityTypeConfig]= await activityCommonService.getWorkflowFieldsBasedonActTypeId(request,request.activity_type_id);
-            
-            
-            let emailsToAdd = [];
-            let eventLocation = "";
-            if(activityTypeConfig.length>0 && activityTypeConfig[0].activity_type_inline_data !=""){
-            let activity_type_inline_data = typeof activityTypeConfig[0].activity_type_inline_data == 'string'?JSON.parse(activityTypeConfig[0].activity_type_inline_data):activityTypeConfig[0].activity_type_inline_data;
-            if(activity_type_inline_data.hasOwnProperty('meeting_location_field_id') && activity_type_inline_data.meeting_location_field_id !=""){
-            eventLocation = JSON.parse(wfActivityDetails[0].activity_inline_data).filter((_,i)=>_.field_id==activity_type_inline_data.meeting_location_field_id);
-            
-            }
-            }
-            console.log(dat.data.length)
-            for(let i=0;i<dat.data.length;i++){
-                let [error, assetData] = await activityCommonService.getAssetDetailsAsync({
+
+        //Getting Participants list 
+        activityParticipantService.getParticipantsList({...request,activity_id: request.workflow_activity_id,datetime_differential: "1970-01-01 00:00:00"},async function(err, dat) {
+        
+        util.logInfo(request,"Participants length : "+ dat.length);
+        let emailsToAdd = [];
+        var months = [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+        ];
+        let subjectContent = `Meeting ID-${
+                wfActivityDetails[0].activity_cuid_3
+              } Scheduled on ${createDateutc.getDate()} - ${
+                months[createDateutc.getMonth()]
+              } from ${
+                createDateutc.getHours() < 10 ? 0 : ""
+              }${createDateutc.getHours()}:${
+                createDateutc.getMinutes() < 10 ? 0 : ""
+              }${createDateutc.getMinutes()} to ${
+                endDateutc.getHours() < 10 ? 0 : ""
+              }${endDateutc.getHours()}:${
+                endDateutc.getMinutes() < 10 ? 0 : ""
+              }${endDateutc.getMinutes()}.`;
+        let bodyContent = `A Meeting(Meeting ID-${
+                wfActivityDetails[0].activity_cuid_3
+              }) has been scheduled on ${createDateutc.getDate()} - ${
+                months[createDateutc.getMonth()]
+              } from ${
+                createDateutc.getHours() < 10 ? 0 : ""
+              }${createDateutc.getHours()}:${
+                createDateutc.getMinutes() < 10 ? 0 : ""
+              }${createDateutc.getMinutes()} to ${
+                endDateutc.getHours() < 10 ? 0 : ""
+              }${endDateutc.getHours()}:${
+                endDateutc.getMinutes() < 10 ? 0 : ""
+              }${endDateutc.getMinutes()}. you are asked to join as participant`;
+
+              util.logInfo(request,"Subject & Title :" + subjectContent+bodyContent);
+           let creatorAssetDetails = [];
+            for (let i = 0; i < dat.data.length; i++) {
+                let [error, assetData] =
+                await activityCommonService.getAssetDetailsAsync({
                     organization_id: request.organization_id,
-                    asset_id: dat.data[i].asset_id
+                    asset_id: dat.data[i].asset_id,
                 });
-                if(assetData.length>0&&assetData[0].operating_asset_email_id){
-                emailsToAdd.push({name:assetData[0].operating_asset_first_name,email:assetData[0].operating_asset_email_id})
+                if (
+                    assetData.length > 0 &&
+                    assetData[0].operating_asset_email_id
+                ) {
+                    if(assetData.activity_creator_asset_id==assetData.asset_id){
+                        creatorAssetDetails.push({ name: assetData[0].operating_asset_first_name,
+                            email: assetData[0].operating_asset_email_id,})
+                    }
+                    emailsToAdd.push({
+                        name: assetData[0].operating_asset_first_name,
+                        email: assetData[0].operating_asset_email_id,
+                    });
+                }
+            }
+            let htmlReceived = "";
+        //   console.log(htmlReceived)
+
+        ics.createEvent({
+                title: subjectContent,
+                description: bodyContent,
+                busyStatus: "FREE",
+                location: eventLocation[0].field_value,
+                start: [
+                    createDate.getFullYear(),
+                    createDate.getMonth() + 1,
+                    createDate.getDate(),
+                    createDate.getHours(),
+                    createDate.getMinutes(),
+                ],
+                duration: {
+                    minutes: timeDifferenceInMinutes
+                },
+                organizer: {
+                    name: creatorAssetDetails[0].name,
+                    email: creatorAssetDetails[0].email,
+                },
+                attendees: emailsToAdd,
+            },
+            async (error, value) => {
+                if (error) {
+                    console.log(error);
                 }
 
-            }
-            console.log({
-                title: "Telecall/Discussion",
-                description: wfActivityDetails[0].activity_description,
-                busyStatus: 'FREE',
-                location:eventLocation[0].field_value,
-                start: [createDate.getFullYear(), createDate.getMonth()+1, createDate.getDate(), createDate.getHours(), createDate.getMinutes()],
-                duration: { minutes: timeDifferenceInMinutes },
-                organizer: { name: 'GreneOS', email: 'admin@grenerobotics.com' },
-                attendees: emailsToAdd,
-                
-              });
-              let htmlReceived = await generateHtmlForParticipantList(request,emailsToAdd);
-              console.log(htmlReceived)
-              
-              ics.createEvent({
-                title: `Meeting ID-${wfActivityDetails[0].activity_cuid_3} Scheduled on..`,
-                description: wfActivityDetails[0].activity_description,
-                busyStatus: 'FREE',
-                location:eventLocation[0].field_value,
-                start: [createDate.getFullYear(), createDate.getMonth()+1, createDate.getDate(), createDate.getHours(), createDate.getMinutes()],
-                duration: { minutes: timeDifferenceInMinutes },
-                organizer: { name: 'GreneOS', email: 'admin@grenerobotics.com' },
-                attendees: emailsToAdd,
-                
-              }, (error, value) => {
-                if (error) {
-                  console.log(error)
-                };
-              
-              let fileName = `${global.config.efsPath}${request.asset_id}-${today.getTime()}.ics`
+                let fileName = `${global.config.efsPath}${
+                    request.asset_id
+                  }-${today.getTime()}.ics`;
                 fs.writeFileSync(fileName, value);
-                request.email_sender_name = 'GreneOS';
-               
+
+                request.email_sender_name = "GreneOS";
+
                 request.email_sender = "admin@grenerobotics.com";
                 // for(let j=0;j<emailsToAdd.length;j++){
                 request.email_receiver_name = receiver_name;
-                util.sendEmailMailgunV2(request, email, `Meeting ID-${wfActivityDetails[0].activity_cuid_3} Scheduled on..`, fileName,htmlReceived ,  "html")
-                // }
-              });
-        })
+                let emailsToSend = [];
+                for (let i = 0; i < emailsToAdd.length; i++) {
+                    emailsToSend.push(emailsToAdd[i].email);
+                }
+                let [s3err, s3Response] = await util.uploadICSFileToS3V1(
+                    request,
+                    fileName
+                );
+                util.logInfo(request,"Emails To Send" + emailsToSend);
+                console.log(s3Response)
+                util.sendEmailV4ewsV1(
+                    request,
+                    emailsToSend,
+                    subjectContent,
+                    bodyContent,
+                    s3Response[0].location
+                );
+                fs.unlink(fileName, function(err) {
+                    if (err) return console.log(err);
+                    console.log("file deleted successfully");
+                });
+            })
+        });
+
+
     }
 
     async function generateHtmlForParticipantList(req,participantsList){
@@ -16171,7 +16299,7 @@ if(workflowActivityData.length==0){
             // };
 
             const workflowActivityID = request.workflow_activity_id || request.activity_id || 0;
-            const sqsQueueUrl = inlineJOSN.sqs_queue;
+            let sqsQueueUrl = inlineJOSN.sqs_queue;
             let inputJSON = inlineJOSN.input;
             let outputJSON = inlineJOSN.output;
             let inputTypeFormID = inputJSON.input_type.form_id;
