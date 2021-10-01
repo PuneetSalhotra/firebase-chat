@@ -2161,15 +2161,20 @@ function TasiService(objectCollection) {
             error = true;
         
         const paramsArr = new Array(
-            request.organization_id,
-            request.flag,
-            request.report_type_id,
-            request.payout_id,
-            request.period_type_id,
-            request.period_start_datetime,
-            request.period_end_datetime,
-            request.start_form || 0,
-            request.limit_value || 50
+          request.organization_id,
+          request.flag,
+          request.report_type_id,
+          request.payout_id,
+          request.period_type_id,
+          request.period_start_datetime,
+          request.period_end_datetime,
+          request.customer_account_type_id,
+          request.level_id,
+          request.workforce_tag_id,
+          request.workforce_id,
+          request.account_id,
+          request.start_form || 0,
+          request.limit_value || 50
         );
 
         const queryString = util.getQueryString('ds_v1_report_list_select_payout', paramsArr);
