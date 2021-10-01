@@ -6313,10 +6313,14 @@ function VodafoneService(objectCollection) {
 
     function setQueryResponseV1(result) {
         let responseData = [];
-        for(let i=0;i<result.hits.hits.length;i++){
-            responseData.push(result.hits.hits[i]._source)
+        for (let i = 0; i < result.hits.hits.length; i++) {
+
+            if (result.hits.hits[i]._source.log_state < 3) {
+                responseData.push(result.hits.hits[i]._source)
+            }
+
         }
-       
+
         return responseData
     }
 
@@ -6357,7 +6361,7 @@ function VodafoneService(objectCollection) {
                             }
                             appendedAnd=true;
                 }
-                query += " ORDER BY activity_title";
+                query += " and log_state < 3 ORDER BY activity_title";
                 break;
             case 2: //
                 tableName = global.config.elasticActivitySearchTable; // for distinct result mapping
@@ -6477,7 +6481,7 @@ function VodafoneService(objectCollection) {
 
                     }
                 }
-                query += " ORDER BY activity_title";
+                query += " and log_state < 3 ORDER BY activity_title";
                 break;
             case 3: // aaa
                 paramsArr = [request.asset_id]
@@ -6508,7 +6512,7 @@ function VodafoneService(objectCollection) {
                         }
                         appendedAnd=true;
             }
-                    query += " ORDER BY activity_title";
+                    query += " and log_state < 3 ORDER BY activity_title";
                 } else {
                     [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
                     if (request.asset_id && request.asset_id > 0) {
@@ -6535,7 +6539,7 @@ function VodafoneService(objectCollection) {
                         }
                         appendedAnd=true;
             }
-                    query += " ORDER BY activity_title";
+                    query += " and log_state < 3 ORDER BY activity_title";
                 }
                 break;
             case 4: //
@@ -6577,7 +6581,7 @@ function VodafoneService(objectCollection) {
                         }
                         appendedAnd=true;
             }
-                    query += " ORDER BY activity_title";
+                    query += " and log_state < 3 ORDER BY activity_title";
                 } else {
                     tableName = global.config.elasticActivitySearchTable; // for distinct result mapping
                     query = "SELECT activity_id,activity_title,activity_cuid_1,activity_cuid_2,activity_cuid_3,activity_creator_asset_id,activity_creator_asset_first_name,activity_creator_operating_asset_first_name FROM " + tableName + " WHERE ";
@@ -6599,7 +6603,7 @@ function VodafoneService(objectCollection) {
                         appendedAnd=true;
             }
                    
-                    query += " ORDER BY activity_title";
+                    query += " and log_state < 3 ORDER BY activity_title";
                 }
                 break;
             case 5: //
