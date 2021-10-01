@@ -3610,7 +3610,9 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 								choice_tax_percent= choiceData.tax;	
                                 choice_service_charge = (choice_price_after_discount * serviceChargePercentage)/100;
                                 choice_item_tax_amount = (choice_cost * choice_tax_percent)/100;
-                                choice_service_charge_tax_amount = (choice_service_charge * gst_percent)/100                                                              
+                                choice_service_charge_tax_amount = (choice_service_charge * gst_percent)/100;                                           
+                                
+                                total_service_charge = total_service_charge + choice_service_charge;
                                 
                                 choice_price_after_service_charge = choice_cost + choice_service_charge;
                                 choice_tax_amount = choice_item_tax_amount + choice_service_charge_tax_amount;
