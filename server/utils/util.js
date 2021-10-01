@@ -2886,13 +2886,12 @@ function Util(objectCollection) {
             const s3 = new AWS.S3();
             const readStream = fs.createReadStream(filePath);
             let fileKey = "ics/event-"+this.getcurrentTimeInMilliSecs()+".ics";
-            let bucket_name = await this.getDynamicBucketName();
+            let bucket_name = await this.getDynamicBucketName();      
             const params = {
-              Bucket: bucket_name[0].bucket_name,
+              Bucket: bucket_name,
               Key: fileKey,
               Body: readStream
             };
-          
             let response = await s3.upload(params).promise();
             let data = {};
             data.location = response.Location;
