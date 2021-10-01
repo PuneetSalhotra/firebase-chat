@@ -3328,6 +3328,7 @@ function AnalyticsService(objectCollection)
           request.data_entity_name_4,
           request.data_entity_id_5,
           request.data_entity_name_5,
+          request.widget_type_code,
           request.workforce_id,
           request.workforce_tag_id,
           request.workforce_type_id,
