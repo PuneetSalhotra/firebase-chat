@@ -6737,6 +6737,35 @@ function AnalyticsService(objectCollection)
         //return Promise.resolve(finalArray);
     }
 
+    this.getSipEmployeeData = async function(request){
+        //get the list of direct reportees
+        //for each reportee get their respective reportee count, reportee with sop count
+        let reporteeError = true, reporteeData = [],
+        reporteeError1 = true, reporteeData1 = [];
+        let sipMap = new Map();
+        request.flag = 4;
+        [reporteeError, reporteeData] = await self.getUsersByManager(request);
+        
+        if(reporteeData.length > 0){           
+            request.flag = 5;
+            [reporteeError1, reporteeData1] = await self.getUsersByManager(request);
+            for(let i = 0; i < reporteeData1.length; i ++){
+                sipMap.set((reporteeData1[i].manager_asset_id+"_"+reporteeData1[i].asset_flag_sip_enabled), reporteeData1[i].count);
+            }
+        }
+
+        for(let i = 0; i < reporteeData.length; i ++){
+            let sipReporteeCount = sipMap.get(reporteeData[i].asset_id+"_1")?sipMap.get(reporteeData[i].asset_id+"_1"):0;
+            let nonsipreporteeCount = sipMap.get(reporteeData[i].asset_id+"_0")?sipMap.get(reporteeData[i].asset_id+"_0"):0;
+            let reporteeCount = sipReporteeCount + nonsipreporteeCount;
+            reporteeData[i].reportee_count = reporteeCount;
+            reporteeData[i].sip_reportee_count = sipReporteeCount;
+            reporteeData[i].penetration_percent = ((sipReporteeCount/reporteeCount)*100).toFixed(2);
+            reporteeData[i].utilization_percent = 0;
+        }
+
+        return reporteeData;
+    }
 }
 
 module.exports = AnalyticsService;
