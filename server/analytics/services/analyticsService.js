@@ -6743,7 +6743,7 @@ function AnalyticsService(objectCollection)
         let reporteeError = true, reporteeData = [],
         reporteeError1 = true, reporteeData1 = [];
         let sipMap = new Map();
-        request.flag = 4;
+        request.flag = 6;
         [reporteeError, reporteeData] = await self.getUsersByManager(request);
         
         if(reporteeData.length > 0){           
