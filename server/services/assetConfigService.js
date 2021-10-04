@@ -319,6 +319,7 @@ function AssetConfigService() {
           request.data_entity_type_name,
           request.period_start_datetime,
           request.period_end_datetime,
+          request.workforce_tag_id,
           request.organization_id,
           request.asset_id,
           util.getCurrentUTCTime()
