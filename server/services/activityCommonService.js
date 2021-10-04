@@ -724,6 +724,8 @@ this.getAllParticipantsAsync = async (request) => {
             case 2505: // [Contact] Add Comment 
             case 2605: // [Product] Add Comment
             case 723:
+            case 509: 
+                activityTimelineCollection = request.activity_timeline_collection;
             case 724:
                 let attachmentNames = '',
                     isAttachment = 0;
@@ -4571,6 +4573,8 @@ case 729: // Report form BC Edit
             case 26004: // [Widget] Comment Added on Widget
             case 2505: // [Contact] Add Comment
             case 2605: // [Product] Add Comment
+            case 509: 
+                activityTimelineCollection = request.activity_timeline_collection;
             case 723:
             case 724:
                 let attachmentNames = '',

@@ -14951,7 +14951,7 @@ if(workflowActivityData.length==0){
                         const [errorZero, workflowActivityDataOfEnteredOpportunity] = await getActivityDetailsAsync({
                             organization_id: request.organization_id,
                         }, workflowActivityIDOfEnteredOpportunity);
-                        let activityMasterData = workflowActivityDataOfEnteredOpportunity[0].activity_master_data || {};
+                        let activityMasterData = JSON.parse(workflowActivityDataOfEnteredOpportunity[0].activity_master_data || "{}");
                         if(primaryFeasibilityRequestID === FRID && !activityMasterData.hasOwnProperty("feasibility_xml")){
                             errorMessage += `The entered FRID ${Opportunity.FRID} in row ${i + 1} is not yet published \n`;
                         }else if(secondaryFeasibilityRequestID === FRID && !activityMasterData.hasOwnProperty("feasibility_secondary")){
