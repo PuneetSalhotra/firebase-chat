@@ -630,7 +630,16 @@ function AnalyticsController(objCollection)
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
-
+    //Get SIP Employee Data
+    app.post('/' + global.config.version + '/get/sip/reportee/data', async (req, res) => {
+        try {
+            let result = await analyticsService.getSipEmployeeData(req.body);
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch (err) {
+            console.log(err)
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
     }
 
 module.exports = AnalyticsController;
