@@ -7716,6 +7716,33 @@ this.getQrBarcodeFeeback = async(request) => {
 
         return [error, responseData];
     };
+
+    this.assetListUpdateUserPassword = async function (request) {
+        let responseData = [],
+            error = true;
+
+       let paramsArr = new Array(
+         request.target_asset_id,
+         request.organization_id,
+         request.username,
+         request.user_password,
+         request.asset_id,
+         util.getCurrentUTCTime()
+       );
+        const queryString = util.getQueryString('ds_p1_asset_list_update_user_password', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
 }
 module.exports = AssetService;
 
