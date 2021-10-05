@@ -310,7 +310,7 @@ function AssetConfigService() {
           request.input_url4,
           request.input_url5,
           request.input_text,
-          JSON.stringify(request.input_inline_data),
+          request.input_inline_data,
           request.input_upload_datetime,
           request.period_type_id,
           request.data_entity_id,
