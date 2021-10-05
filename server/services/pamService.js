@@ -3389,10 +3389,10 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 					
 					getReservationBilling(request, idReservation, data[0].nameReservation, data[0].idMember, data[0].nameMember, data[0].memberDiscount, data[0].serviceChargePercentage).then((resevationBillAmount)=>{
 						
-						global.logger.write('conLog', 'resevationBill ' + resevationBillAmount, {}, request);
+						global.logger.write('conLog', 'resevationBill ' + resevationBillAmount.total_price, {}, request);
 						
 						if(request.hasOwnProperty('is_insert')){
-							pamEventBillingInsert(request, data[0].idEvent, data[0].titleEvent, idReservation, data[0].nameReservation, data[0].idActivityStatusType, data[0].nameActivityStatusType, data[0].idMember, data[0].nameMember, resevationBillAmount);
+							pamEventBillingInsert(request, data[0].idEvent, data[0].titleEvent, idReservation, data[0].nameReservation, data[0].idActivityStatusType, data[0].nameActivityStatusType, data[0].idMember, data[0].nameMember, resevationBillAmount.total_price);
 						}
 						resolve(resevationBillAmount);
 						
