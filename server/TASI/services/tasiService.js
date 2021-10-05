@@ -2433,6 +2433,75 @@ function TasiService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.payoutReportOverrideLog = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.override_name,
+          request.override_description,
+          request.override_type_id,
+          request.override_inline_data,
+          request.override_datetime,
+          request.override_upload_url_1,
+          request.override_upload_url_2,
+          request.data_entity_id,
+          request.period_type_id,
+          request.period_start_datetime,
+          request.period_end_datetime,
+          request.customer_account_type_id,
+          request.organization_id,
+          request.asset_id,
+          util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_override_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.overrideLogList = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.override_type_id, 
+            request.flag,
+            request.data_entity_id,
+            request.period_type_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.customer_account_type_id,
+            request.start_from || 0, 
+            request.limit_value || 50
+        );
+
+        const queryString = util.getQueryString('ds_p1_override_list_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = TasiService;
