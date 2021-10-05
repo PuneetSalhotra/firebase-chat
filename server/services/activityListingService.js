@@ -4041,8 +4041,8 @@ function ActivityListingService(objCollection) {
 					for (const asset of participantsList) {
 						let [error, assetDetails] = await getParticipantDetails({ assetID: asset.asset_id });
 						if (assetDetails.length > 0) {
-							if (assetDetails[0].asset_email_id !== null && assetDetails[0].asset_email_id !== "") {
-								emailList.push(assetDetails[0].asset_email_id);
+							if (assetDetails[0].operating_asset_email_id !== null && assetDetails[0].operating_asset_email_id !== "") {
+								emailList.push(assetDetails[0].operating_asset_email_id);
 							} else {
 								console.log("No Email ID to send email");
 							}
