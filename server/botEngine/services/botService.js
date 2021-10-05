@@ -1917,14 +1917,14 @@ function BotService(objectCollection) {
                 case 30: // Bulk Feasibility Excel Parser Bot
                     logger.silly("Bulk Feasibility Excel Parser Bot params received from request: %j", request);
                     try {
-                        // await bulkFeasibilityBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_feasibility);
-                        let requestForSQS = {
-                            request: request,
-                            sqs_switch_flag: 4,
-                            formInlineDataMap: formInlineDataMap,
-                            inlineJSON: botOperationsJson.bot_operations.bulk_feasibility
-                        }
-                        sendToSqsPdfGeneration(requestForSQS);
+                        await bulkFeasibilityBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_feasibility);
+                        // let requestForSQS = {
+                        //     request: request,
+                        //     sqs_switch_flag: 4,
+                        //     formInlineDataMap: formInlineDataMap,
+                        //     inlineJSON: botOperationsJson.bot_operations.bulk_feasibility
+                        // }
+                        // sendToSqsPdfGeneration(requestForSQS);
                     } catch (error) {
                         logger.error("[Bulk Feasibility Excel Parser Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
