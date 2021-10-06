@@ -3385,9 +3385,9 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 	    		var row_count = 0;
 				getReservationMemberDiscount(request, idReservation).then((data)=>{
 						//console.log(data[0].memberDiscount); 
-					global.logger.write('debug','Discount '+data[0].memberDiscount, {},request);
+					global.logger.write('debug','Discount '+ JSON.stringify(data), {},request);
 					
-					getReservationBilling(request, idReservation, data[0].nameReservation, data[0].idMember, data[0].nameMember, data[0].memberDiscount, data[0].serviceChargePercentage).then((resevationBillAmount)=>{
+					getReservationBilling(request, idReservation, data[0].nameReservation, data[0].idMember, data[0].nameMember, data[0].memberDiscount, data[0].serviceChargePercentage, data[0].memberEnabled).then((resevationBillAmount)=>{
 						
 						global.logger.write('conLog', 'resevationBill ' + resevationBillAmount.total_price, {}, request);
 						
@@ -3453,7 +3453,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
         });
     };
     
-    function getReservationBilling(request, idReservation, nameReservation, idMember, nameMember, discount, serviceChargePercentage){
+    function getReservationBilling(request, idReservation, nameReservation, idMember, nameMember, discount, serviceChargePercentage, memberEnabled){
     	return new Promise((resolve, reject)=>{    		
 			 var total_mrp = 0;
 			 var total_discount = 0;
@@ -3464,6 +3464,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 			 var item_discount = 0;
 			 var orderActivityId = 0;
 			 let gst_percent = 18;
+             console.log("memberEnabled", memberEnabled);
+             let is_nc = memberEnabled == 4 ? 1 : 0;
 			 getReservationOrders(request, idReservation).then((orderData)=>{
 					console.log(orderData.length);
 					
@@ -3504,6 +3506,10 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 							//console.log("cost2", cost);
 						}
 						
+                        if(is_nc) {
+                            cost = 0;
+                        }
+
 						if(rowData1.activity_status_type_id == 126 || rowData1.activity_status_type_id == 139 || rowData1.activity_status_type_id == 104){
 							cost = 0;
 						}
@@ -3589,8 +3595,13 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 							 	let choice_price_after_discount = 0;
 							 	let choice_final_price = 0;
                                 let choice_price_after_service_charge = 0;
-								
+
 								choice_cost = choiceData.quantity * choiceData.price;
+
+                                if(is_nc) {
+                                    choice_cost = 0;
+                                }
+                                
 								total_mrp = total_mrp + choice_cost;
 								
 								if(rowData1.activity_status_type_id == 126 || rowData1.activity_status_type_id == 139 || rowData1.activity_status_type_id == 104){
@@ -3603,7 +3614,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 									if(choiceData.form_id == 1)
 										item_discount = 0;
 								}
-								
+
 								dis_amount =  (choice_cost * item_discount)/100;
 								choice_price_after_discount = choice_cost - dis_amount;								
 								
