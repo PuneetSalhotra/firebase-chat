@@ -396,6 +396,9 @@ this.getAllParticipantsAsync = async (request) => {
             case 704: // form: status alter
             case 711: //alered the due date
             case 734: //alered the due date
+                entityTypeId = 0;
+                entityText1 = request.from_date;
+                entityText2 = request.to_date;
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
@@ -643,6 +646,9 @@ this.getAllParticipantsAsync = async (request) => {
             case 704: // form: status alter
             case 711: //alered the due date
             case 734: //alered the due date
+                entityTypeId = 0;
+                entityText1 = request.from_date;
+                entityText2 = request.to_date;
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
@@ -4498,6 +4504,9 @@ this.getAllParticipantsAsync = async (request) => {
             case 704: // form: status alter
             case 711: //alered the due date
             case 734: //alered the due date
+                entityTypeId = 0;
+                entityText1 = request.from_date;
+                entityText2 = request.to_date;
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
@@ -4815,6 +4824,9 @@ case 729: // Report form BC Edit
             case 704: // form: status alter
             case 711: //alered the due date
             case 734: //alered the due date
+                entityTypeId = 0;
+                entityText1 = request.from_date;
+                entityText2 = request.to_date;
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
@@ -6276,7 +6288,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                         "params": {...dataToBeUpdated
                         }
                     }
-                }
+                },
+                conflicts: 'proceed'
              }, function (err, res) {
                  util.handleElasticSearchResponse(request, dataToBeUpdated, global.config.elasticActivityAssetTable, err, res);
              });
@@ -6398,7 +6411,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                                             ...dataTobeSent
                                         }
                                     }
-                                }
+                                },
+                                conflicts: 'proceed'
                             }, function (err, res) {
                                 util.handleElasticSearchResponse(request, dataTobeSent, global.config.elasticActivityAssetTable, err, res);
                             });
@@ -6510,7 +6524,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                         "params": {...dataToBeUpdated
                         }
                     }
-                }
+                },
+                conflicts: 'proceed'
              }, function (err, res) {
                  util.handleElasticSearchResponse(request, dataToBeUpdated, global.config.elasticActivitySearchTable, err, res);
              });
