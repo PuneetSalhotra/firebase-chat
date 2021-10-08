@@ -1137,7 +1137,7 @@ function ActivityConfigService(db,util,objCollection) {
         }
         //Check the uniqueness of the account title
         if (isNameDedupeRequired) {
-            let isAccountPresent = await duplicateAccountNameElasticSearch(accountTitle);
+            let isAccountPresent = await duplicateAccountNameElasticSearch(request,accountTitle);
             if (isAccountPresent) {
                 console.log("Account name already exists!")
                 responseData.push({ 'message': 'Account Name already exists!' });
@@ -1162,7 +1162,7 @@ function ActivityConfigService(db,util,objCollection) {
 
         if (hasAccountCode && (isCodeDedupeRequired || isPanDedupeRequired)) {
             //Check the generated code is unique or not?
-            let [err1, accountData] = await checkWhetherAccountCodeExists(accountCode);
+            let [err1, accountData] = await checkWhetherAccountCodeExists(request,accountCode);
             if (err1) {
                 responseData.push({ 'message': 'Error in Checking Acount Code!' });
                 return [true, responseData];
@@ -1190,7 +1190,7 @@ function ActivityConfigService(db,util,objCollection) {
                     console.log('New Account Code : ', newAccountCode);
 
                     //Check the uniqueness of the account code
-                    let [err, accountData] = await checkWhetherAccountCodeExists(newAccountCode);
+                    let [err, accountData] = await checkWhetherAccountCodeExists(request,newAccountCode);
                     console.log('**********', accountData);
 
                     if (err) {
@@ -1305,7 +1305,7 @@ function ActivityConfigService(db,util,objCollection) {
         accountTitle = accountTitle.toLowerCase().replace(/pvt/gi, 'private').replace(/ltd/gi, 'limited').replace(/\s+/gi, '').replace(/[^a-zA-Z0-9]/g, '');
         accountTitle = accountTitle.split(' ').join('')
 
-        let isAccountPresent = await duplicateAccountNameElasticSearch(accountTitle);
+        let isAccountPresent = await duplicateAccountNameElasticSearch(request,accountTitle);
         if (isAccountPresent) {
             console.log("Account name already exists!")
             responseData.push({ 'message': 'Account Name already exists!' });
@@ -1400,7 +1400,8 @@ function ActivityConfigService(db,util,objCollection) {
         
     }
 
-    let duplicateAccountNameElasticSearch = async function (title) { 
+    let duplicateAccountNameElasticSearch = async function (request,title) { 
+        let workFlowActivityID = request.workflow_activity_id || 0;
         let isAccountPresent = false;
         console.log('Searching elastisearch for Accounyt title : ',title);
         let altQuery = `/${global.config.elasticCrawlingAccountTable}/_search?q=activity_title_expression:${title}`;
@@ -1434,7 +1435,7 @@ function ActivityConfigService(db,util,objCollection) {
         console.log('response from ElastiSearch: ',JSON.stringify(resultData));
 
         for(const i_iterator of resultData.hits.hits) {
-            if(i_iterator._source.log_state != 3 && i_iterator._source.activity_title_expression === title) {
+            if(i_iterator._source.log_state != 3 && i_iterator._source.activity_title_expression === title && (Number(i_iterator._source.activity_id) !== Number(workFlowActivityID))) {
                 isAccountPresent = true;
                 break;
             }
@@ -2076,9 +2077,10 @@ function ActivityConfigService(db,util,objCollection) {
         }
     }
 
-    async function checkWhetherAccountCodeExists(accountCode) {
+    async function checkWhetherAccountCodeExists(request,accountCode) {
         let error = false,
             responseData = [];
+            let workFlowActivityID = request.workflow_activity_id || 0; 
         //accountCode = 'S-CCMOTO17317-2HARDW';
         console.log('Searching elastisearch for account-code : ',accountCode);
         const response = await client.search({
@@ -2103,7 +2105,7 @@ function ActivityConfigService(db,util,objCollection) {
 
         for(const i_iterator of response.hits.hits) {
 
-            if(i_iterator._source.activity_cuid_3 === accountCode) {
+            if(i_iterator._source.activity_cuid_3 === accountCode  && (Number(i_iterator._source.activity_id) !== Number(workFlowActivityID))) {
                 responseData.push({'message': 'Found a Match!'});
                 console.log('found a Match!');
             }
