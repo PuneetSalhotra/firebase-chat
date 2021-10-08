@@ -2923,7 +2923,7 @@ function Util(objectCollection) {
             let fileKey = "868/984/5404/38850/2020/01/103/"+this.getcurrentTimeInMilliSecs()+".pdf";
             let bucName = await this.getS3BucketNameV1(request);
             const params = {
-              Bucket: bucName[0].bucket_name,
+              Bucket: bucName,
               Key: fileKey,
               Body: readStream
             };

@@ -700,7 +700,7 @@ function TasiController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/tasi/payout/report/override/list', async function (req, res) {
-        const [err, resData] = await tasiService.payoutReportOverrideLog(req.body);
+        const [err, resData] = await tasiService.overrideLogList(req.body);
         if (!err) {
             res.json(responseWrapper.getResponse({}, resData, 200, req.body));
         } else {

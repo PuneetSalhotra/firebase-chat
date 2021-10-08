@@ -1917,14 +1917,14 @@ function BotService(objectCollection) {
                 case 30: // Bulk Feasibility Excel Parser Bot
                     logger.silly("Bulk Feasibility Excel Parser Bot params received from request: %j", request);
                     try {
-                        // await bulkFeasibilityBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_feasibility);
-                        let requestForSQS = {
-                            request: request,
-                            sqs_switch_flag: 4,
-                            formInlineDataMap: formInlineDataMap,
-                            inlineJSON: botOperationsJson.bot_operations.bulk_feasibility
-                        }
-                        sendToSqsPdfGeneration(requestForSQS);
+                        await bulkFeasibilityBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_feasibility);
+                        // let requestForSQS = {
+                        //     request: request,
+                        //     sqs_switch_flag: 4,
+                        //     formInlineDataMap: formInlineDataMap,
+                        //     inlineJSON: botOperationsJson.bot_operations.bulk_feasibility
+                        // }
+                        // sendToSqsPdfGeneration(requestForSQS);
                     } catch (error) {
                         logger.error("[Bulk Feasibility Excel Parser Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
@@ -9344,7 +9344,7 @@ else{
 
             let assetName = (assetDetails.length > 0) ? assetDetails[0].operating_asset_first_name : 'Bot';
 
-            let content = `Due date changed from ${oldDate} to ${newDate} by ${assetName}`;
+            let content = `Due date changed from ${moment(oldDate).format('Do MMMM YYYY, h:mm a')} to ${moment(newDate).format('Do MMMM YYYY, h:mm a')} by ${assetName}`;
             let activityTimelineCollection = {
                 content: content,
                 subject: `Note - ${util.getCurrentDate()}`,
@@ -9366,6 +9366,8 @@ else{
                 timelineReq.track_gps_datetime = timelineReq.timeline_transaction_datetime;
                 timelineReq.datetime_log = timelineReq.timeline_transaction_datetime;
                 timelineReq.message_unique_id = util.getMessageUniqueId(100);
+                timelineReq.form_date = oldDate;
+                timelineReq.to_date = newDate;
                 //timelineReq.device_os_id = 10; //Do not trigger Bots
 
             timelineReq.activity_id = Number(request.workflow_activity_id);
