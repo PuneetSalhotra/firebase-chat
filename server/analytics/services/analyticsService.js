@@ -6659,7 +6659,13 @@ function AnalyticsService(objectCollection)
                             "achieved":reporteeKpiData[j].param1_monthly_ach,
                             "percentage":(reporteeKpiData[j].param1_monthly_ach/reporteeKpiData[j].param1_monthly_target)*100,
                             "asset_id":idAsset,
-                            "activity_type_id":idActivityType}
+                            "activity_type_id":idActivityType,
+                            "measurement_type_unit":"INR",
+                            "measurement_type_id":4,
+                            "measurement_type_name":"thousands",
+                            "predicted_achievement":0,
+                            "predicted_payout_percent":0                           
+                        }
                  //target_base= target_base[idActivityType];
                 // kpi_data[idAsset].target = reporteeKpiData[j].param1_monthly_target;
                 // kpi_data[idAsset].achieved = reporteeKpiData[j].param1_monthly_ach;
@@ -6759,8 +6765,10 @@ function AnalyticsService(objectCollection)
             let sipReporteeCount = sipMap.get(reporteeData[i].asset_id+"_1")?sipMap.get(reporteeData[i].asset_id+"_1"):0;
             let nonsipreporteeCount = sipMap.get(reporteeData[i].asset_id+"_0")?sipMap.get(reporteeData[i].asset_id+"_0"):0;
             let reporteeCount = sipReporteeCount + nonsipreporteeCount;
+            let sipQualifiedCount = 0;
             reporteeData[i].reportee_count = reporteeCount;
             reporteeData[i].sip_reportee_count = sipReporteeCount;
+            reporteeData[i].sip_qualified_reportee_count = sipQualifiedCount;
             reporteeData[i].penetration_percent = ((sipReporteeCount/reporteeCount)*100).toFixed(2);
             reporteeData[i].utilization_percent = 0;
         }
