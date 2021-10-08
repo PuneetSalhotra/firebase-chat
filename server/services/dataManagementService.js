@@ -27,7 +27,7 @@ module.exports = function DataManagementService(params) {
             const pdfResult = await generateFormDataPdf(req,res);// generate pdf    
             console.log("pdf generated");
             const pdfUrl = await pushStreamToS3(req,pdfResult,res);// upload pdf to s3 
-            console.log("pdf to s3",pdfUrl);
+            // console.log("pdf to s3",pdfUrl);
             if(!req.body.is_timeline_disable) {
                 await putTimelineEntry(req,res,pdfUrl); // add timeline entry
             }

@@ -6944,10 +6944,11 @@ this.getQrBarcodeFeeback = async(request) => {
                             request.organization_id,
                             request.new_password,
                             util.addDaysToGivenDate(util.getCurrentUTCTime(), 90, "YYYY-MM-DD HH:mm:ss"), //PWD expiry datetime,
+                            request.operating_asset_username,
                             request.asset_id,
                             util.getCurrentUTCTime()
                         ];
-        const queryString = util.getQueryString('ds_p1_asset_list_update_password', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_asset_list_update_password', paramsArr);
         if (queryString != '') {
             await db.executeQueryPromise(0, queryString, request)
               .then((data)=>{
