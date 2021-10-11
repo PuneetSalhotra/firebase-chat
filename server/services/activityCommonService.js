@@ -6291,7 +6291,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 },
                 conflicts: 'proceed'
              }, function (err, res) {
-                 util.handleElasticSearchResponse(request, dataToBeUpdated, global.config.elasticActivityAssetTable, err, res);
+                 let stackTrace = util.getStackTrace();
+                 util.handleElasticSearchResponse(request, dataToBeUpdated, global.config.elasticActivityAssetTable, err, res, stackTrace);
              });
             }
             else{
@@ -6414,7 +6415,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                                 },
                                 conflicts: 'proceed'
                             }, function (err, res) {
-                                util.handleElasticSearchResponse(request, dataTobeSent, global.config.elasticActivityAssetTable, err, res);
+                                let stackTrace = util.getStackTrace();
+                                util.handleElasticSearchResponse(request, dataTobeSent, global.config.elasticActivityAssetTable, err, res, stackTrace);
                             });
                         }
 
@@ -6527,7 +6529,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 },
                 conflicts: 'proceed'
              }, function (err, res) {
-                 util.handleElasticSearchResponse(request, dataToBeUpdated, global.config.elasticActivitySearchTable, err, res);
+                 let stackTrace = util.getStackTrace();
+                 util.handleElasticSearchResponse(request, dataToBeUpdated, global.config.elasticActivitySearchTable, err, res, stackTrace);
              });
             }
             else{

@@ -657,7 +657,8 @@ function CommnElasticService(objectCollection) {
                             }
                         }
                     }, function (err, res) {
-                        util.handleElasticSearchResponse(request, dataTobeSent, global.config.elasticActivitySearchTable, err, res);
+                        let stackTrace = util.getStackTrace();
+                        util.handleElasticSearchResponse(request, dataTobeSent, global.config.elasticActivitySearchTable, err, res, stackTrace);
                     });
                 }
                 error = false;
