@@ -676,6 +676,7 @@ function TasiService(objectCollection) {
           request.period_start_datetime,
           request.period_end_datetime,
           request.workforce_tag_id,
+          request.product_id,
           request.start_from,
           request.limit_value
         );
@@ -1699,13 +1700,17 @@ function TasiService(objectCollection) {
             request.total_target,
             request.target_variance,
             request.year,
-            request.asset_id,
+            request.target_asset_id,
             request.timeline_id,
             request.period_type_id,
             request.period_start_datetime,
             request.period_end_datetime,
+            request.validation_flag_is_bulk,
+            request.validation_file_upload_url,
+            request.product_id,
+            request.widget_type_id,
             request.organization_id,
-            request.log_asset_id,
+            request.asset_id,
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_validation_list_insert', paramsArr);
@@ -1766,10 +1771,19 @@ function TasiService(objectCollection) {
         let responseData = [],
             error = true;
         const paramsArr = new Array(
-            request.organization_id,
-            request.validation_type_id,
-            request.start_from,
-            request.limit_value
+          request.organization_id,
+          request.validation_type_id,
+          request.flag,
+          request.widget_type_id,
+          request.widget_type_category_id,
+          request.timeline_id,
+          request.period_type_id,
+          request.period_start_datetime,
+          request.period_end_datetime,
+          request.workforce_tag_id,
+          request.product_id,
+          request.start_from,
+          request.limit_value
         );
 
         const queryString = util.getQueryString('ds_p1_validation_list_select', paramsArr);
@@ -1973,6 +1987,8 @@ function TasiService(objectCollection) {
             request.period_end_datetime,
             request.asset_id,
             request.asset_type_id,
+            request.widget_type_id,
+            request.product_id,
             request.workforce_id,
             request.account_id,
             request.organization_id,
