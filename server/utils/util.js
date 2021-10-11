@@ -3445,33 +3445,83 @@ function Util(objectCollection) {
     };
 
 
-    this.handleElasticSearchResponse = async function (request, dataTobeSent, elasticIndex, err, response) {
+    this.handleElasticSearchResponse = async function (request, dataTobeSent, elasticIndex, err, response, stackTrace = "") {
         if (err) {
-            this.logError(request, `${elasticIndex} - data insert error`, { type: "elastic_search", data: dataTobeSent, error: err });
+            this.logError(request, `${elasticIndex} - elastic data insert error`, { type: "elastic_search", data: dataTobeSent, error: err });
 
-            sqs1.sendMessage({
-                MessageBody: JSON.stringify({ err, data: dataTobeSent, elasticIndex : elasticIndex }),
-                QueueUrl: global.config.elasticSearchFailedEntriesSQSQueueUrl,
-                MessageGroupId: `elastic-search-error-group-v1`,
-                MessageDeduplicationId: uuidv4(),
-                MessageAttributes: {
-                    "Environment": {
-                        DataType: "String",
-                        StringValue: global.mode
-                    },
-                }
-            }, (error, data) => {
-                if (error) {
-                    this.logError(request, `Error sending excel job to SQS queue`, { type: 'elastic_search', error });
-                } else {
-                    this.logInfo(request, `Successfully sent excel job to SQS queue: %j`, { type: 'elastic_search', request_body: request });
-                }
-            });
+            // sqs1.sendMessage({
+            //     MessageBody: JSON.stringify({ err, data: dataTobeSent, elasticIndex: elasticIndex, stackTrace, request }),
+            //     QueueUrl: global.config.elasticSearchFailedEntriesSQSQueueUrl,
+            //     MessageGroupId: `elastic-search-error-group-v1`,
+            //     MessageDeduplicationId: uuidv4(),
+            //     MessageAttributes: {
+            //         "Environment": {
+            //             DataType: "String",
+            //             StringValue: global.mode
+            //         },
+            //     }
+            // }, (error, data) => {
+            //     if (error) {
+            //         this.logError(request, `Error sending excel job to SQS queue`, { type: 'elastic_search', error });
+            //     } else {
+            //         this.logInfo(request, `Successfully sent excel job to SQS queue: %j`, { type: 'elastic_search', request_body: request });
+            //     }
+            // });
 
+            let [error, responseData] = await this.insertElasticFailedEntries(request, JSON.stringify({ err, data: dataTobeSent, elasticIndex: elasticIndex, stackTrace, request }), elasticIndex)
+            if (error) {
+                this.logError(request, `Error inserting failed elastic entries into db`, { type: 'elastic_search', error });
+            } else {
+                this.logInfo(request, `Successfully inserted failed elastic entries into db %j`, { type: 'elastic_search', request_body: request });
+            }
         } else {
-            this.logInfo(request, `${elasticIndex} - data insert done %j`, dataTobeSent);
+            this.logInfo(request, `${elasticIndex} - elastic data insert done %j`, dataTobeSent);
         }
     }
+
+    this.getStackTrace = () => {
+
+        var stack;
+
+        try {
+            throw new Error('');
+        }
+        catch (error) {
+            stack = error.stack || '';
+        }
+
+        stack = stack.split('\n').map(function (line) { return line.trim(); });
+        return stack.splice(stack[0] == 'Error' ? 2 : 1);
+    }
+
+    this.insertElasticFailedEntries = async (request, message, index) => {
+        let responseData = [],
+            error = true;
+
+        try {
+            const paramsArr = new Array(
+                message,
+                index
+            );
+            const queryString = util.getQueryString('ds_v1_elastic_error_transaction_insert', paramsArr);
+
+            if (queryString !== '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    })
+            }
+        } catch (e) {
+            this.logError(request, "Error inserting elastic faild entries into DB", { type: 'elastic_search', error: e });
+        }
+
+        return [error, responseData];
+    }
+
 }
 
 module.exports = Util;
