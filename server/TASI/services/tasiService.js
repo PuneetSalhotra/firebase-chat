@@ -202,12 +202,13 @@ function TasiService(objectCollection) {
             request.asset_type_flag_enable_send_sms,
             request.asset_type_flag_sip_admin_access,
             request.asset_type_flag_frontline,
+            request.asset_type_flag_email_login,
             request.organization_id,
             request.flag,
             util.getCurrentUTCTime(),
             request.log_asset_id,
         );
-        const queryString = util.getQueryString('ds_p4_workforce_asset_type_mapping_update', paramsArr);
+        const queryString = util.getQueryString('ds_p5_workforce_asset_type_mapping_update', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -2053,17 +2054,20 @@ function TasiService(objectCollection) {
             error = true;
 
         const paramsArr = new Array(
-            request.organization_id,
-            request.flag,
-            request.is_freeze,
-            request.start_datetime,
-            request.end_datetime,
-            request.asset_id,
-            request.asset_type_id,
-            request.entity_tag_id_1,
-            request.entity_tag_id_2,
-            request.start_from || 0,
-            request.limit_value || 50
+          request.organization_id,
+          request.flag,
+          request.is_freeze,
+          request.level_id,
+          request.asset_id,
+          request.asset_type_id,
+          request.widget_type_id,
+          request.workforce_tag_id,
+          request.start_datetime,
+          request.end_datetime,
+          request.timeline_id,
+          request.period_type_id,
+          request.start_from || 0,
+          request.limit_value || 50
         );
 
         const queryString = util.getQueryString('ds_p1_entity_target_setting_select_freeze', paramsArr);
@@ -2234,7 +2238,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_v1_report_list_select_payout', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -2260,7 +2264,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_validation_list_history_select', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -2286,7 +2290,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_entity_target_setting_history_select', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -2312,7 +2316,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_entity_target_mapping_history_select', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -2338,7 +2342,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_input_list_history_select', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -2364,7 +2368,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_m1_report_list_update_flag_validated', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -2392,7 +2396,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_asset_list_update_flag_simulation', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -2418,7 +2422,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_payout_list_history_select', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -2444,7 +2448,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_customer_account_type_list_history_select', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -2476,7 +2480,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p2_input_list_select', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -2513,7 +2517,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_override_list_insert', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -2545,7 +2549,44 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_override_list_select', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.inputListSelectFilter = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.input_type_id,
+          request.flag,
+          request.period_start_datetime,
+          request.period_end_datetime,
+          request.input_period_type_id,
+          request.workforce_tag_id,
+          request.widget_type_id,
+          request.widget_type_category_id,
+          request.product_id,
+          request.level_id,
+          request.asset_id,
+          request.asset_type_id,
+          request.start_from,
+          request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p1_input_list_select_filter', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;

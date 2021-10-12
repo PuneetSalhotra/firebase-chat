@@ -522,7 +522,7 @@ function AssetService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
-                    console.log(data);
+                    // console.log(data);
                     formatAssetData(data, function (error, data) {
                         if (error === false)
                             callback(false, {
@@ -1019,6 +1019,34 @@ function AssetService(objectCollection) {
 
         callback(false, rowData);
     };
+
+    this.updateAssetPassword = async function(request) {
+        let [err,assetData]= await activityCommonService.getAssetDetailsAsync(request);
+        if(err || assetData.length==0){
+            return [true,{message:"something went wrong"}]
+        }
+          if (assetData[0].asset_flag_email_login == 1 && assetData[0].asset_email_login_password != request.new_password) {
+            var paramsArr1 = new Array(
+              request.asset_email,
+              request.organization_id,
+              request.new_password,
+              request.log_asset_id,
+              util.getCurrentUTCTime()
+            );
+            var queryString1 = util.getQueryString("ds_p1_asset_list_update_login_password",paramsArr1);
+            db.executeQuery(0,queryString1,request,function (err1, updatedData) {
+                if (!err1) {
+                return [false,[]]
+                }
+                else{
+                    return [true,{message:"something went wrong"}]
+                }
+              }
+            );
+          } else {
+            return [true,{message:"check email password flag is set and password should not match"}]
+          }
+    }
 
 
     this.checkAssetPasscode = function (request, callback) {
