@@ -543,7 +543,17 @@ function TasiController(objCollection) {
         if (!err) {
             res.json(responseWrapper.getResponse({}, resData, 200, req.body));
         } else {
-            console.log("/tasi/validation_list/update | Error: ", err);
+            console.log("/tasi/entity/target/setting/select/freeze | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/entity/target/setting/select', async function (req, res) {
+        const [err, resData] = await tasiService.entityTargetSettingSelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/entity/target/setting/select | Error: ", err);
             res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
         }
     });

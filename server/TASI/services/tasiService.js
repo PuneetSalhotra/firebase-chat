@@ -1985,14 +1985,14 @@ function TasiService(objectCollection) {
             request.period_type_id,
             request.period_start_datetime,
             request.period_end_datetime,
-            request.asset_id,
+            request.target_asset_id,
             request.asset_type_id,
             request.widget_type_id,
             request.product_id,
             request.workforce_id,
             request.account_id,
             request.organization_id,
-            request.log_asset_id,
+            request.asset_id,
             util.getCurrentUTCTime()
         );
 
@@ -2067,6 +2067,44 @@ function TasiService(objectCollection) {
         );
 
         const queryString = util.getQueryString('ds_p1_entity_target_setting_select_freeze', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.entityTargetSettingSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.flag,
+          request.is_freeze,
+          request.level_id,
+          request.asset_id,
+          request.asset_type_id,
+          request.workforce_tag_id,
+          request.widget_type_id,
+          request.widget_type_category_id,
+          request.product_id,
+          request.timeline_id,
+          request.period_type_id,
+          request.start_datetime,
+          request.end_datetime,
+          request.start_from || 0,
+          request.limit_value || 50
+        );
+
+        const queryString = util.getQueryString('ds_p1_entity_target_setting_select', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
