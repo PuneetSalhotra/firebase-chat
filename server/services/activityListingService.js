@@ -4074,6 +4074,43 @@ function ActivityListingService(objCollection) {
 		if (errorZero || childMOM.length === 0) {
 			return "";
 		}
+
+		const formTimelineDataOfMeeting = await activityCommonService.getActivityTimelineTransactionByFormId713({
+			organization_id: request.organization_id,
+			account_id: request.account_id
+		}, request.activity_id, 50816);
+		//312542
+		let meetingDate = "";
+
+		let formTransactionID = 0, formActivityID = 0;
+		if (formTimelineDataOfMeeting.length > 0) {
+			formTransactionID = Number(formTimelineDataOfMeeting[0].data_form_transaction_id);
+			formActivityID = Number(formTimelineDataOfMeeting[0].data_activity_id);
+		}
+
+		if (formTransactionID > 0) {
+
+			const fieldData = await getFieldValue({
+				form_transaction_id: formTransactionID,
+				form_id: 50816,
+				field_id: 312542,
+				organization_id: request.organization_id
+			});
+
+
+			if(fieldData.length > 0) {
+				let entityInlineJSON = JSON.parse(fieldData[0].data_entity_inline || "{}") ;
+				if (entityInlineJSON.hasOwnProperty("start_date_time")) {
+					meetingDate = entityInlineJSON.start_date_time;
+					if (meetingDate) {
+						meetingDate = moment(meetingDate);
+						meetingDate = `${meetingDate.format('DD')}-${meetingDate.format("MMMM")}`;
+					}
+				}
+			}
+		}
+
+
 		let finalSummaryData = [];
 		let momFieldMappingsForSummary = {
 			"190797": {
@@ -4193,17 +4230,14 @@ function ActivityListingService(objCollection) {
 						if (date.isValid()) {
 							value = date.format("DD-MM-YYYY");
 						}
-					} catch (e) {}
+					} catch (e) { }
 				}
 				data[field] = value;
 			}
 			finalSummaryData.push(data);
 		}
-		console.log("finalSummaryData");
-		console.log(finalSummaryData);
-		const date = wfActivityDetails[0].activity_datetime_created.toString();
-		let parts = date.split(" ");
-		let htmlString = `<p>Hi,</p><p>Greetings from Vi&trade;</p><p>The mail is to inform you that Based on Meeting Id:${wfActivityDetails[0].activity_cuid_3} on ${parts[2] + "-" + parts[1]} with ${wfActivityDetails[0].activity_title}, the updated discussion points are the following point(s).</p><br><table width="100%" border="1" cellspacing="0"><thead><tr>`;
+
+		let htmlString = `<p>Hi,</p><p>Greetings from Vi&trade;</p><p>The mail is to inform you that Based on Meeting Id:${wfActivityDetails[0].activity_cuid_3} on ${meetingDate} with ${wfActivityDetails[0].activity_title}, the updated discussion points are the following point(s).</p><br><table width="100%" border="1" cellspacing="0"><thead><tr>`;
 
 		for (const key of momFieldMappingsForSummary["field_order"]) {
 			htmlString += '<th>' + key + '</th>';
@@ -4339,6 +4373,22 @@ function ActivityListingService(objCollection) {
 			console.log(e)
 		}
 	}
+
+	//Get the field value based on form id and form_transaction_id
+	async function getFieldValue(request) {
+		let paramsArr = new Array(
+			request.form_transaction_id || 0,
+			request.form_id,
+			request.field_id,
+			request.organization_id
+		);
+		let queryString = util.getQueryString('ds_p1_activity_form_transaction_select_field_sequence_id', paramsArr);
+		if (queryString != '') {
+			return await (db.executeQueryPromise(1, queryString, request));
+		}
+	}
+
+
 }
 
 module.exports = ActivityListingService;
