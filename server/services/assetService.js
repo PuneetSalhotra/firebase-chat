@@ -1022,7 +1022,7 @@ function AssetService(objectCollection) {
     };
 
     this.updateAssetPassword = async function(request) {
-        
+
         let [err,assetData]= await activityCommonService.getAssetDetailsAsync(request);
         if(assetData[0].asset_flag_email_login != 1){
             return [true,{message:"Enable email login flag for asset"}]
@@ -7747,6 +7747,36 @@ this.getQrBarcodeFeeback = async(request) => {
             request.limit_value || 20               
         );
         const queryString = util.getQueryString('Ds_p1_asset_timeline_transaction_select_asset_flag', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+    this.assetListAssetTypeCategorySearch = async function (request) {
+        let responseData = [],
+            error = true;
+
+       let paramsArr = new Array(
+        request.organization_id,
+        request.account_id,
+        request.workforce_id,
+        request.asset_type_category_id,
+        request.search_string,
+        request.asset_type_id,
+        request.workforce_tag_id,
+        request.start_from,
+        request.limit_value            
+        );
+        const queryString = util.getQueryString('ds_p2_asset_list_search_asset_type_category', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {

@@ -1084,5 +1084,14 @@ function AssetController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/asset/type/category/search', async function (req, res) {
+        const [err, data] = await assetService.assetListAssetTypeCategorySearch(req.body);
+        if (err) {
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
+
 }
 module.exports = AssetController;
