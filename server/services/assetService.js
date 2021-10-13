@@ -8,6 +8,7 @@ var AwsSss = require('../utils/s3Wrapper');
 var fs = require('fs');
 const moment = require('moment');
 const xlsx = require('xlsx');
+const CryptoJS = require("crypto-js");
 
 const OpenTok = require('opentok');
 let opentok = new OpenTok(global.config.opentok_apiKey, global.config.opentok_apiSecret);
@@ -1021,15 +1022,24 @@ function AssetService(objectCollection) {
     };
 
     this.updateAssetPassword = async function(request) {
+        
         let [err,assetData]= await activityCommonService.getAssetDetailsAsync(request);
+        if(assetData[0].asset_flag_email_login != 1){
+            return [true,{message:"Enable email login flag for asset"}]
+        }
+        
         if(err || assetData.length==0){
             return [true,{message:"something went wrong"}]
         }
-          if (assetData[0].asset_flag_email_login == 1 && assetData[0].asset_email_login_password != request.new_password) {
+      try{
+        let decryptedPassword = CryptoJS.AES.decrypt(assetData[0].asset_email_login_password.toString() || "", 'lp-n5^+8M@62').toString(CryptoJS.enc.Utf8);
+
+          if (decryptedPassword == request.old_password) {
+              let newPasswordEncrypt =  CryptoJS.AES.encrypt(request.new_password, 'lp-n5^+8M@62').toString();
             var paramsArr1 = new Array(
               request.asset_email,
               request.organization_id,
-              request.new_password,
+              newPasswordEncrypt,
               request.log_asset_id,
               util.getCurrentUTCTime()
             );
@@ -1044,8 +1054,11 @@ function AssetService(objectCollection) {
               }
             );
           } else {
-            return [true,{message:"check email password flag is set and password should not match"}]
+            return [true,{message:"your old password does not match"}]
           }
+        }catch(catcherr){
+        return [true,{message:"something went wrong"}] 
+        }
     }
 
 
