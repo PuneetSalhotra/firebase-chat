@@ -320,6 +320,11 @@ function AssetConfigService() {
           request.period_start_datetime,
           request.period_end_datetime,
           request.workforce_tag_id,
+          request.level_id,
+          request.product_id,
+          request.widget_type_id,
+          request.asset_id,
+          request.asset_type_id,
           request.organization_id,
           request.asset_id,
           util.getCurrentUTCTime()

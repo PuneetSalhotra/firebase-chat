@@ -568,6 +568,48 @@ function CommnElasticService(objectCollection) {
         let [activitySearchmappErr,activitySearchmappData] = await addintoActivitySearchMapping(request);
         return [false, responseData];
     };
+    this.updateAccountCodeV1 = async (request,flag) => {
+        let resultData = await client.search({
+            index: global.config.elasticCrawlingAccountTable,
+            body: {
+              query: {
+                bool: {
+                  must: [
+                    {
+                      match: {
+                        activity_id: request.workflow_activity_id
+                      }
+                    }
+                  ],
+          
+                }
+              }
+            }
+          });
+          if(resultData.hits.hits.length==0){
+              return
+          }
+        let dataToSend = resultData.hits.hits[0]._source;
+        dataToSend.log_state = flag;
+        
+        client.updateByQuery({
+            index: global.config.elasticCrawlingAccountTable,
+            "body": {
+                "query": {
+                    "match": {
+                        "activity_id": Number(request.workflow_activity_id)
+                    }
+                },
+                "script": {
+                    "source": "ctx._source = params",
+                    "lang": "painless",
+                    "params": {
+                        ...dataToSend
+                    }
+                }
+            }
+        });
+    }
     async function addintoActivitySearchMapping (request){
         // try{
         //    let ss = await client.search({
@@ -657,7 +699,8 @@ function CommnElasticService(objectCollection) {
                             }
                         }
                     }, function (err, res) {
-                        util.handleElasticSearchResponse(request, dataTobeSent, global.config.elasticActivitySearchTable, err, res);
+                        let stackTrace = util.getStackTrace();
+                        util.handleElasticSearchResponse(request, dataTobeSent, global.config.elasticActivitySearchTable, err, res, stackTrace);
                     });
                 }
                 error = false;

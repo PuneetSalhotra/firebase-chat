@@ -2439,7 +2439,19 @@ function BotService(objectCollection) {
                         });
                     }
                     break;
-
+                
+                case 57: // Add Pan to elastic
+                    
+                    try{
+                        await addCUIDs(request, botOperationsJson.bot_operations);
+                    } catch (error){
+                        logger.error("[Add Pan to elastic Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "error": error
+                        });
+                    }
+                    break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -15070,7 +15082,39 @@ if(workflowActivityData.length==0){
         }
 
         logger.info("Remove CUID BOT : " + JSON.stringify({request, activityTitleExpression}));
-        await elasticService.updateAccountCode(request, "", activityTitleExpression);
+        await elasticService.updateAccountCodeV1(request, 3);
+
+        return;
+    }
+
+    async function addCUIDs(request, inlineData) {
+
+        // switch (parseInt(inlineData.add_cuids.add_cuid_flag)) {
+        //     case 1:
+        //         request.cuid_1 = null;
+        //         break;
+
+        //     case 2:
+        //         request.cuid_2 = null;
+        //         break;
+
+        //     case 3:
+        //         request.cuid_3 = null;
+        //         break;
+
+        //     case 0 :
+        //         request.cuid_1 = null;
+        //         request.cuid_2 = null;
+        //         request.cuid_3 = null;
+        //         break;
+        //     default:
+        //         logger.info("Remove CUID BOT : " + `cuidInlineData contains incorrect cuid key: ${inlineData.remove_cuids.remove_cuid_flag}`);
+        //         throw new Error(`cuidInlineData contains incorrect cuid key: ${inlineData.remove_cuids.remove_cuid_flag}`)
+        //     // break;
+        // }
+
+        // logger.info("Add CUID BOT : " + JSON.stringify({request, activityTitleExpression}));
+        await elasticService.updateAccountCodeV1(request, 1);
 
         return;
     }

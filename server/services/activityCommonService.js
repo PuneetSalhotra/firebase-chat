@@ -4646,23 +4646,6 @@ case 729: // Report form BC Edit
             return;
         }
 
-      //Finding field_data_type_id = 20 and format comment
-        let activityTimelineCollectionJSON =  typeof activityTimelineCollection == 'string' ? JSON.parse(activityTimelineCollection) : activityTimelineCollection;
-        if(activityTimelineCollectionJSON.hasOwnProperty('form_field_preview_enabled') && activityTimelineCollectionJSON.form_field_preview_enabled.length>0){
-        for(let j=0;j<activityTimelineCollectionJSON.form_field_preview_enabled.length;j++){
-           try{
-               let field_value = activityTimelineCollectionJSON.form_field_preview_enabled[j].field_value;
-               field_value = field_value.replace(/(\r\n|\n|\r|\t)/gm, " ");
-               activityTimelineCollectionJSON.form_field_preview_enabled[j].field_value = field_value;
-           }
-           catch(err12){
-               console.log("different data type")
-           }
-
-        }
-    }
-
-        activityTimelineCollection = JSON.stringify(activityTimelineCollectionJSON);
 
         const paramsArr = new Array(
             request.activity_id,
@@ -6291,7 +6274,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 },
                 conflicts: 'proceed'
              }, function (err, res) {
-                 util.handleElasticSearchResponse(request, dataToBeUpdated, global.config.elasticActivityAssetTable, err, res);
+                 let stackTrace = util.getStackTrace();
+                 util.handleElasticSearchResponse(request, dataToBeUpdated, global.config.elasticActivityAssetTable, err, res, stackTrace);
              });
             }
             else{
@@ -6414,7 +6398,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                                 },
                                 conflicts: 'proceed'
                             }, function (err, res) {
-                                util.handleElasticSearchResponse(request, dataTobeSent, global.config.elasticActivityAssetTable, err, res);
+                                let stackTrace = util.getStackTrace();
+                                util.handleElasticSearchResponse(request, dataTobeSent, global.config.elasticActivityAssetTable, err, res, stackTrace);
                             });
                         }
 
@@ -6527,7 +6512,8 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 },
                 conflicts: 'proceed'
              }, function (err, res) {
-                 util.handleElasticSearchResponse(request, dataToBeUpdated, global.config.elasticActivitySearchTable, err, res);
+                 let stackTrace = util.getStackTrace();
+                 util.handleElasticSearchResponse(request, dataToBeUpdated, global.config.elasticActivitySearchTable, err, res, stackTrace);
              });
             }
             else{
