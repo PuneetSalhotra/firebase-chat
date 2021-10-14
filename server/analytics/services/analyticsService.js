@@ -6586,7 +6586,7 @@ function AnalyticsService(objectCollection)
         return [error, responseData];
     }
     //------------------------------------------------------------------------
-    //Get SIP Widgets
+    //Get SIP Widgets Dynamic Data
     this.getSipWidgets = async function (request) {
         let responseData = [], responseDataPersonal = []
             error = true,
@@ -6597,7 +6597,8 @@ function AnalyticsService(objectCollection)
 
         // get the direct reportees
         // loop this procedure for all the 
-        [reporteeError, reporteeData] = await self.getUsersByManager(request);
+        request.flag = 6;
+        [reporteeError, reporteeData] = await self.getDirectReporteesByManagerSip(request);
         paramsArr = [
             request.organization_id,
             request.activity_type_category_id,
@@ -6653,18 +6654,20 @@ function AnalyticsService(objectCollection)
             [reporteeKpiDataError, reporteeKpiData] = await self.getHierarchyReporteesByManager(request);
             for(let j = 0; j < reporteeKpiData.length; j++){
                 let idAsset = request.target_asset_id;
-                let idActivityType = reporteeKpiData[j].param1_kpi_activity_type_id;
+                let idActivityType = reporteeKpiData[j].kpi_activity_type_id;
                // let target_base =kpi_data[idAsset];
-                let obj = {"target": reporteeKpiData[j].param1_monthly_target,
-                            "achieved":reporteeKpiData[j].param1_monthly_ach,
-                            "percentage":(reporteeKpiData[j].param1_monthly_ach/reporteeKpiData[j].param1_monthly_target)*100,
+               const activityData = await activityCommonService.getActivityDetailsPromise(request, reporteeKpiData[j].param1_activity_id);
+               const [predictionError, predictionData] = await self.getPredictionDataOfAUser(request);
+                let obj = {"target": reporteeKpiData[j].monthly_target,
+                            "achieved":reporteeKpiData[j].monthly_ach,
+                            "percentage":(reporteeKpiData[j].monthly_ach/reporteeKpiData[j].monthly_target)*100,
                             "asset_id":idAsset,
                             "activity_type_id":idActivityType,
-                            "measurement_type_unit":"INR",
-                            "measurement_type_id":4,
-                            "measurement_type_name":"thousands",
-                            "predicted_achievement":0,
-                            "predicted_payout_percent":0                           
+                            "measurement_type_unit":activityData[0]?activityData[0].measurement_type_unit:'',
+                            "measurement_type_id":activityData[0]?activityData[0].measurement_type_id:0,
+                            "measurement_type_name":activityData[0]?activityData[0].measurement_type_name:'',
+                            "predicted_achievement":predictionData[0]?predictionData[0].predicted_achievement:0,
+                            "predicted_payout_percent":predictionData[0]?predictionData[0].predicted_percentage:0                 
                         }
                  //target_base= target_base[idActivityType];
                 // kpi_data[idAsset].target = reporteeKpiData[j].param1_monthly_target;
@@ -6679,21 +6682,24 @@ function AnalyticsService(objectCollection)
         let resp = {"manager_kpi":responseDataPersonal, "reportee_kpi":responseData, "reportee_data":reportee_kpi_data_array, "manager_data":manager_kpi_data_array};
         return [false, resp];
     }
-
-    this.getUsersByManager = async function(request){
+    this.getDirectReporteesByManagerSip = async function(request){
         let responseData = [],
         error = true;
 
-    const paramsArr = new Array(
-        request.organization_id,
-        request.manager_asset_id,
-        request.flag || 1,
-        request.page_start || 0,
-        request.page_limit || 500
-    );
-    const queryString = util.getQueryString('ds_p1_asset_list_select_manager', paramsArr);
+        const paramsArr = new Array(
+            request.organization_id,
+            request.manager_asset_id,
+            request.workforce_tag_id,
+            request.timeline_flag,
+            request.flag || 1,
+            request.datetime_start || null,
+            request.datetime_end || null,
+            request.page_start || 0,
+            request.page_limit || 500
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select_direct_reportees_sip', paramsArr);
 
-    if (queryString !== '') {
+        if (queryString !== '') {
         await db.executeQueryPromise(1, queryString, request)
             .then((data) => {
                 responseData = data;
@@ -6702,35 +6708,34 @@ function AnalyticsService(objectCollection)
             .catch((err) => {
                 error = err;
             })
+        }
+        return [error, responseData];
     }
-    return [error, responseData];
-    }
-
     this.getHierarchyReporteesByManager = async function(request){
         let responseData = [],
         error = true;
 
-    const paramsArr = new Array(
-        request.organization_id,
-        request.target_asset_id,
-        request.month,
-        request.year,
-        request.page_start || 0,
-        request.page_limit || 500
-    );
-    const queryString = util.getQueryString('ds_v1_sip_payout_report_select_manager', paramsArr);
+        const paramsArr = new Array(
+            request.organization_id,
+            request.target_asset_id,
+            request.month,
+            request.year,
+            request.page_start || 0,
+            request.page_limit || 500
+        );
+        const queryString = util.getQueryString('ds_v1_sip_payout_report_select_manager', paramsArr);
 
-    if (queryString !== '') {
-        await db.executeQueryPromise(1, queryString, request)
-            .then((data) => {
-                responseData = data;
-                error = false;
-            })
-            .catch((err) => {
-                error = err;
-            })
-    }
-    return [error, responseData];
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
 
     this.formatData = async function(data, idTargetAsset){
@@ -6743,19 +6748,137 @@ function AnalyticsService(objectCollection)
         return data;
         //return Promise.resolve(finalArray);
     }
+    this.getPredictionDataOfAUser = async function(request){
+        let responseData = [],
+        error = true;
 
+        const paramsArr = new Array(
+            request.organization_id,
+            request.manager_asset_id,
+            request.datetime_start,
+            request.datetime_end
+        );
+        const queryString = util.getQueryString('ds_v1_vil_sip_prediction_transaction_select_asset', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }   
+    //Get SIP Widgets Payout Data
+    this.getSipPayoutWidgets = async function (request) {
+        let responseData = [], responseDataPersonal = []
+            error = true,
+            reporteeError = true, reporteeData = [],
+            reporteeKpiDataError = true, reporteeKpiData = [];
+            let paramsArr = [];
+
+        // get the direct reportees
+        // loop this procedure for all the 
+        request.flag = 7;
+        [reporteeError, reporteeData] = await self.getDirectReporteesByManagerSip(request);
+        paramsArr = [
+            request.organization_id,
+            request.activity_type_category_id,
+            0,
+            request.page_start,
+            request.page_limit,
+            0,
+            request.datetime_start,
+            request.datetime_end
+        ];
+        for(let counter = 0; counter < reporteeData.length; counter ++){
+
+            paramsArr[2]=reporteeData[counter].asset_id;
+            let queryString = util.getQueryString('ds_v1_1_activity_list_select_sip_widgets_payout', paramsArr);
+            if (queryString !== '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then(async (data) => {
+                        //responseData = data;
+                        error = false;
+                        let formattedData = await self.formatData(data, reporteeData[counter].asset_id);
+                        //console.log("formattedData ",formattedData);
+                        responseData = responseData.concat(formattedData);
+                    })
+                    .catch((err) => {
+                        error = err;
+                    })
+            }
+        }
+
+        console.log(responseData)
+        //paramsArr.pop();
+        //paramsArr.push(1);
+        paramsArr[5]=1;
+        paramsArr[2]=request.manager_asset_id;
+        //console.log(paramsArr)
+        //console.log("responseData ",responseData)
+        queryString = util.getQueryString('ds_v1_activity_list_select_sip_widgets_payout', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseDataPersonal = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }  
+        
+        let kpi_data = {};
+        let reportee_kpi_data_array= [];
+        let manager_kpi_data_array= [];
+
+        for(let i = 0; i < reporteeData.length; i ++){
+            request.target_asset_id = reporteeData[i].asset_id;
+            kpi_data[request.target_asset_id] = {};
+            [reporteeKpiDataError, reporteeKpiData] = await self.getHierarchyReporteesByManagerSip(request);
+            for(let j = 0; j < reporteeKpiData.length; j++){
+                let idAsset = request.target_asset_id;
+                let idActivityType = reporteeKpiData[j].kpi_activity_type_id;
+               // let target_base =kpi_data[idAsset];
+               //const activityData = await activityCommonService.getActivityDetailsPromise(request, reporteeKpiData[j].param1_activity_id);
+
+                let obj = {"target": reporteeKpiData[j].monthly_target,
+                            "achieved":reporteeKpiData[j].monthly_ach,
+                            "percentage":(reporteeKpiData[j].monthly_ach/reporteeKpiData[j].monthly_target)*100,
+                            "asset_id":idAsset,
+                            "activity_type_id":idActivityType
+                           }
+                // target_base= target_base[idActivityType];
+                // kpi_data[idAsset].target = reporteeKpiData[j].param1_monthly_target;
+                // kpi_data[idAsset].achieved = reporteeKpiData[j].param1_monthly_ach;
+                // kpi_data[idAsset].percentage = (reporteeKpiData[j].param1_monthly_ach/reporteeKpiData[j].param1_monthly_target)*100;
+                // if(reporteeKpiData[j].param1_monthly_target))
+               reportee_kpi_data_array.push(obj);
+               kpi_data[idAsset][idActivityType] = obj;
+            }
+        }       
+        
+        let resp = {"manager_kpi":responseDataPersonal, "reportee_kpi":responseData, "reportee_data":reportee_kpi_data_array, "manager_data":manager_kpi_data_array};
+        return [false, resp];
+    }
+    
     this.getSipEmployeeData = async function(request){
         //get the list of direct reportees
         //for each reportee get their respective reportee count, reportee with sop count
         let reporteeError = true, reporteeData = [],
         reporteeError1 = true, reporteeData1 = [];
         let sipMap = new Map();
-        request.flag = 6;
-        [reporteeError, reporteeData] = await self.getUsersByManager(request);
+        request.flag = 7;
+        [reporteeError, reporteeData] = await self.getDirectReporteesByManagerSip(request);
         
         if(reporteeData.length > 0){           
             request.flag = 5;
-            [reporteeError1, reporteeData1] = await self.getUsersByManager(request);
+            reporteeData.manager_asset_id = reporteeData
+            [reporteeError1, reporteeData1] = await self.getDirectReporteesByManagerSip(request);
             for(let i = 0; i < reporteeData1.length; i ++){
                 sipMap.set((reporteeData1[i].manager_asset_id+"_"+reporteeData1[i].asset_flag_sip_enabled), reporteeData1[i].count);
             }
@@ -6769,12 +6892,72 @@ function AnalyticsService(objectCollection)
             reporteeData[i].reportee_count = reporteeCount;
             reporteeData[i].sip_reportee_count = sipReporteeCount;
             reporteeData[i].sip_qualified_reportee_count = sipQualifiedCount;
-            reporteeData[i].penetration_percent = ((sipReporteeCount/reporteeCount)*100).toFixed(2);
+            reporteeData[i].penetration_percent = ((sipQualifiedCount/sipReporteeCount)*100).toFixed(2);
             reporteeData[i].utilization_percent = 0;
+            reporteeData[i].weighted_sip_target_ach_percent = 0;
         }
 
         return reporteeData;
     }
+    this.customerAccountMapping = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.target_asset_id,
+            request.channel_flag,
+            request.start_datetime,
+            request.end_datetime,
+            request.page_start,
+            request.page_limit,
+
+        );
+        const queryString = util.getQueryString('ds_v1_asset_customer_account_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+    this.getHierarchyReporteesByManagerSip = async function(request){
+        let responseData = [],
+        error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.target_asset_id,
+            request.month,
+            request.year,
+            request.datetime_start,
+            request.datetime_end,
+            request.workforce_tag_id,
+            request.timeline_flag,
+            request.page_start || 0,
+            request.page_limit || 500
+        );
+        const queryString = util.getQueryString('ds_v1_sip_payout_report_select_manager_sip', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+    
 }
 
 module.exports = AnalyticsService;
