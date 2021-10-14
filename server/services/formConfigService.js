@@ -6667,7 +6667,7 @@ function FormConfigService(objCollection) {
                     }
                 }
             }
-
+// return [true,{}]
             if(!botInlineData) {
                 return [true, [{ message : "Form field data is empty"}]];
             }
@@ -6678,6 +6678,7 @@ function FormConfigService(objCollection) {
             let response = [];
             for(let row of botInlineData) {
                 let tempActivityID = request.workflow_activity_id;
+                let creatorEmail = "";
                 if(row.hasOwnProperty("workflow_reference_dependency") && row.workflow_reference_dependency==1){
                     let [referr,refAccountDetails] =  await getActActChildActivities(request);
                     
@@ -6687,6 +6688,17 @@ function FormConfigService(objCollection) {
                         tempActivityID = refAccountDetails[i].parent_activity_id
                             }
                         }
+                    }
+                }
+                if(row.hasOwnProperty('activity_creator_email') && row.activity_creator_email==1){
+                    let activityDataResp = await activityCommonService.getActivityDetailsPromise(request, tempActivityID);
+                    if(activityDataResp.length>0){
+                       let [err,creatorAssetDetails] =  await activityCommonService.getAssetDetailsAsync({...request,asset_id:activityDataResp[0].activity_creator_asset_id});
+                       creatorEmail = creatorAssetDetails[0].operating_asset_email_id;
+                       response.push({
+                        [row.target_field_id]: creatorEmail
+                    });
+                    continue;
                     }
                 }
                 let dependentFormTransaction = await activityCommonService.getActivityTimelineTransactionByFormId713({

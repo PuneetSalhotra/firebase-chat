@@ -8,6 +8,7 @@ var AwsSss = require('../utils/s3Wrapper');
 var fs = require('fs');
 const moment = require('moment');
 const xlsx = require('xlsx');
+const CryptoJS = require("crypto-js");
 
 const OpenTok = require('opentok');
 let opentok = new OpenTok(global.config.opentok_apiKey, global.config.opentok_apiSecret);
@@ -522,7 +523,7 @@ function AssetService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
-                    console.log(data);
+                    // console.log(data);
                     formatAssetData(data, function (error, data) {
                         if (error === false)
                             callback(false, {
@@ -969,6 +970,8 @@ function AssetService(objectCollection) {
             "asset_approval_activity_id":util.replaceDefaultString(rowArray[0]['asset_approval_activity_id']),
             "manager_asset_id":util.replaceDefaultString(rowArray[0]['manager_asset_id']),
             "asset_type_flag_enable_suspension":util.replaceDefaultNumber(rowArray[0]['asset_type_flag_enable_suspension']),
+            "operating_asset_username":util.replaceDefaultString(rowArray[0]['operating_asset_username']),
+            "asset_email_password":util.replaceDefaultString(rowArray[0]['asset_email_password']),
 
             //Returning the following data - Document Repository System
             "asset_doc_repo_access_type_id":util.replaceDefaultNumber(rowArray[0]['asset_doc_repo_access_type_id']),
@@ -1017,6 +1020,46 @@ function AssetService(objectCollection) {
 
         callback(false, rowData);
     };
+
+    this.updateAssetPassword = async function(request) {
+
+        let [err,assetData]= await activityCommonService.getAssetDetailsAsync(request);
+        if(assetData[0].asset_flag_email_login != 1){
+            return [true,{message:"Enable email login flag for asset"}]
+        }
+        
+        if(err || assetData.length==0){
+            return [true,{message:"something went wrong"}]
+        }
+      try{
+        let decryptedPassword = CryptoJS.AES.decrypt(assetData[0].asset_email_login_password.toString() || "", 'lp-n5^+8M@62').toString(CryptoJS.enc.Utf8);
+
+          if (decryptedPassword == request.old_password) {
+              let newPasswordEncrypt =  CryptoJS.AES.encrypt(request.new_password, 'lp-n5^+8M@62').toString();
+            var paramsArr1 = new Array(
+              request.asset_email,
+              request.organization_id,
+              newPasswordEncrypt,
+              request.log_asset_id,
+              util.getCurrentUTCTime()
+            );
+            var queryString1 = util.getQueryString("ds_p1_asset_list_update_login_password",paramsArr1);
+            db.executeQuery(0,queryString1,request,function (err1, updatedData) {
+                if (!err1) {
+                return [false,[]]
+                }
+                else{
+                    return [true,{message:"something went wrong"}]
+                }
+              }
+            );
+          } else {
+            return [true,{message:"your old password does not match"}]
+          }
+        }catch(catcherr){
+        return [true,{message:"something went wrong"}] 
+        }
+    }
 
 
     this.checkAssetPasscode = function (request, callback) {
@@ -7704,6 +7747,36 @@ this.getQrBarcodeFeeback = async(request) => {
             request.limit_value || 20               
         );
         const queryString = util.getQueryString('Ds_p1_asset_timeline_transaction_select_asset_flag', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+    this.assetListAssetTypeCategorySearch = async function (request) {
+        let responseData = [],
+            error = true;
+
+       let paramsArr = new Array(
+        request.organization_id,
+        request.account_id,
+        request.workforce_id,
+        request.asset_type_category_id,
+        request.search_string,
+        request.asset_type_id,
+        request.workforce_tag_id,
+        request.start_from,
+        request.limit_value            
+        );
+        const queryString = util.getQueryString('ds_p2_asset_list_search_asset_type_category', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
