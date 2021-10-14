@@ -1388,7 +1388,7 @@ function ActivityConfigService(db,util,objCollection) {
                 // console.log(i_iterator._source.activity_cuid_1.toUpperCase() == panNumber.toUpperCase());
                 // console.log(panNumber)
                 // console.log(Number(i_iterator._source.activity_id) !== Number(request.workflow_activity_id))
-                if((i_iterator._source.activity_cuid_1.toUpperCase() === panNumber.toUpperCase()) && (Number(i_iterator._source.activity_id) !== Number(request.workflow_activity_id))) {
+                if((Number(i_iterator._source.log_state) != 3 && i_iterator._source.activity_cuid_1.toUpperCase() === panNumber.toUpperCase()) && (Number(i_iterator._source.activity_id) !== Number(request.workflow_activity_id))) {
                     
                     responseData.push({'message': 'Found a Match!'});
                     console.log('found a Match!');
