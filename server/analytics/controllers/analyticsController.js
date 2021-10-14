@@ -630,6 +630,7 @@ function AnalyticsController(objCollection)
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
+    
     //Get SIP Employee Data
     app.post('/' + global.config.version + '/get/sip/reportee/data', async (req, res) => {
         try {
@@ -640,6 +641,38 @@ function AnalyticsController(objCollection)
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/admin/manger/assets/list/V2', async (req, res) => {
+        const [err, data] = await analyticsService.getUsersByManagerSip(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/admin/manager/assets/list/V2 | Error: ", err);
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/sip/asset/account/channel/flag', async (req, res) => {
+        try {
+            let result = await analyticsService.customerAccountMapping(req.body);
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch (err) {
+            console.log(err)
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
+    //Get SIP Payout Widgets
+    app.post('/' + global.config.version + '/get/sip/payout/widgets', async (req, res) => {
+        try {
+            let result = await analyticsService.getSipPayoutWidgets(req.body);
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch (err) {
+            console.log(err)
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
     }
 
 module.exports = AnalyticsController;
