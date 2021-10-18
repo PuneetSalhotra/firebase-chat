@@ -658,6 +658,7 @@ function AnalyticsController(objCollection)
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
             console.log(err)
+            console.log("/sip/asset/account/channel/flag | Error: ", err);
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
@@ -669,9 +670,21 @@ function AnalyticsController(objCollection)
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
             console.log(err)
+            console.log("/get/sip/payout/widgets | Error: ", err);
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/get/sip/leaderboard', async (req, res) => {
+        try {
+            let result = await analyticsService.getEmployeeLeaderboard(req.body);
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch (err) {
+            console.log(err)
+            console.log("/get/sip/leaderboard | Error: ", err);
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });    
 
     }
 
