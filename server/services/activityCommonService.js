@@ -399,6 +399,8 @@ this.getAllParticipantsAsync = async (request) => {
                 entityTypeId = 0;
                 entityText1 = request.from_date;
                 entityText2 = request.to_date;
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
+                break;
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
@@ -649,6 +651,8 @@ this.getAllParticipantsAsync = async (request) => {
                 entityTypeId = 0;
                 entityText1 = request.from_date;
                 entityText2 = request.to_date;
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
+                break;
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
@@ -4507,6 +4511,8 @@ this.getAllParticipantsAsync = async (request) => {
                 entityTypeId = 0;
                 entityText1 = request.from_date;
                 entityText2 = request.to_date;
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
+                break;
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
@@ -4810,6 +4816,8 @@ case 729: // Report form BC Edit
                 entityTypeId = 0;
                 entityText1 = request.from_date;
                 entityText2 = request.to_date;
+                activityTimelineCollection = request.activity_timeline_collection || '{}';
+                break;
             case 717: // Workflow: Percentage alter
                 entityTypeId = 0;
                 entityText2 = request.activity_timeline_collection;
