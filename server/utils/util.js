@@ -3487,7 +3487,7 @@ function Util(objectCollection) {
             sqs1.sendMessage({
                 MessageBody: JSON.stringify({ queryData, entryType, elasticIndex, stackTrace, request }),
                 QueueUrl: global.config.elasticSearchEntriesSQSQueueUrl,
-                MessageGroupId: `elastic-search-error-group-v1`,
+                MessageGroupId: `elastic-search-group-v1`,
                 MessageDeduplicationId: uuidv4(),
                 MessageAttributes: {
                     "Environment": {
