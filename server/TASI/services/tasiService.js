@@ -202,7 +202,8 @@ function TasiService(objectCollection) {
             request.asset_type_flag_enable_send_sms,
             request.asset_type_flag_sip_admin_access,
             request.asset_type_flag_frontline,
-            request.asset_type_flag_email_login,
+            request.asset_type_flag_email_login || 0,
+            request.asset_type_flag_form_access || 0,
             request.organization_id,
             request.flag,
             util.getCurrentUTCTime(),
@@ -2660,6 +2661,30 @@ function TasiService(objectCollection) {
         );
 
         const queryString = util.getQueryString('ds_p3_entity_target_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.widgetTypeCategoryMasterSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.start_from,
+          request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p1_widget_type_category_master_select', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
