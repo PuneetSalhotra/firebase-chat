@@ -6605,7 +6605,9 @@ function AnalyticsService(objectCollection)
             0,
             request.page_start,
             request.page_limit,
-            0
+            0,
+            request.datetime_start,
+            request.datetime_end
         ];
         for(let counter = 0; counter < reporteeData.length; counter ++){
 
@@ -6649,10 +6651,16 @@ function AnalyticsService(objectCollection)
         let reportee_kpi_data_array= [];
         let manager_kpi_data_array= [];
 
-        for(let i = 0; i < reporteeData.length; i ++){
+        reporteeData.push({"asset_id":request.manager_asset_id});
 
+        for(let i = 0; i < reporteeData.length; i ++){
+            request.is_manager = 0;
             request.target_asset_id = reporteeData[i].asset_id;
             kpi_data[request.target_asset_id] = {};
+
+            if(request.target_asset_id == request.manager_asset_id)
+            request.is_manager = 1;
+
             [reporteeKpiDataError, reporteeKpiData] = await self.getHierarchyReporteesByManager(request);
 
             for(let j = 0; j < reporteeKpiData.length; j++){
@@ -6661,27 +6669,31 @@ function AnalyticsService(objectCollection)
                 let idActivityType = reporteeKpiData[j].kpi_activity_type_id;
 
                // let target_base =kpi_data[idAsset];
-               const activityData = self.getAssetKPIByActivityType(request, idAsset, idActivityType);
+               const [err2, activityData] = await self.getAssetKPIByActivityType(request, idAsset, idActivityType);
                // const activityData = await activityCommonService.getActivityDetailsPromise(request, reporteeKpiData[j].param1_activity_id);
-             
-               const [predictionError, predictionData] = await self.getPredictionDataOfAUser(request);
+                console.log("activityData ",activityData);
+                if(activityData.length > 0 ){
+                    console.log(JSON.parse(activityData[0].activity_inline_data).measurement_type_unit)
+                }
+                const [predictionError, predictionData] = await self.getPredictionDataOfAUser(request);
                 let obj = {"target": reporteeKpiData[j].monthly_target,
                             "achieved":reporteeKpiData[j].monthly_ach,
                             "percentage":(reporteeKpiData[j].monthly_ach/reporteeKpiData[j].monthly_target)*100,
                             "asset_id":idAsset,
                             "activity_type_id":idActivityType,
-                            "measurement_type_unit":activityData[0]?activityData[0].activity_inline_data.measurement_type_unit:'',
-                            "measurement_type_id":activityData[0]?activityData[0].activity_inline_data.measurement_type_id:0,
-                            "measurement_type_name":activityData[0]?activityData[0].activity_inline_data.measurement_type_name:'',
+                            "measurement_type_unit":activityData.length>0?JSON.parse(activityData[0].activity_inline_data).measurement_type_unit:'',
+                            "measurement_type_id":activityData.length>0?JSON.parse(activityData[0].activity_inline_data).measurement_type_id:0,
+                            "measurement_type_name":activityData.length>0?JSON.parse(activityData[0].activity_inline_data).measurement_type_name:'',
                             "predicted_achievement":predictionData[0]?predictionData[0].predicted_achievement:0,
-                            "predicted_payout_percent":predictionData[0]?predictionData[0].predicted_percentage:0                 
+                            "predicted_payout_percent":predictionData[0]?predictionData[0].predicted_percentage:0,
+                            "activity_id":activityData.length>0?activityData[0].activity_id:0
                         }
-                 //target_base= target_base[idActivityType];
-                // kpi_data[idAsset].target = reporteeKpiData[j].param1_monthly_target;
-                // kpi_data[idAsset].achieved = reporteeKpiData[j].param1_monthly_ach;
-                // kpi_data[idAsset].percentage = (reporteeKpiData[j].param1_monthly_ach/reporteeKpiData[j].param1_monthly_target)*100;
-               // if(reporteeKpiData[j].param1_monthly_target))
+
+               if(request.is_manager == 0)                  
                reportee_kpi_data_array.push(obj);
+               else
+               manager_kpi_data_array.push(obj);
+
                kpi_data[idAsset][idActivityType] = obj;
             }
         }
@@ -6702,7 +6714,8 @@ function AnalyticsService(objectCollection)
             request.datetime_start || null,
             request.datetime_end || null,
             request.page_start || 0,
-            request.page_limit || 500
+            request.page_limit || 500,
+            request.is_manager || 0
         );
         const queryString = util.getQueryString('ds_p1_asset_list_select_direct_reportees_sip', paramsArr);
 
@@ -6728,7 +6741,8 @@ function AnalyticsService(objectCollection)
             request.month,
             request.year,
             request.page_start || 0,
-            request.page_limit || 500
+            request.page_limit || 500,
+            request.is_manager || 0
         );
         const queryString = util.getQueryString('ds_v1_sip_payout_report_select_manager', paramsArr);
 
@@ -7125,9 +7139,12 @@ function AnalyticsService(objectCollection)
             request.manager_asset_id,
             request.datetime_start,
             request.datetime_end,
-            request.timeline_flag,
-            request.year,
-            request.workforce_tag_id
+            request.workforce_tag_id,
+            request.vertical_tag_id,
+            request.circle_id,
+            request.asset_type_id,
+            request.page_start,
+            request.page_limit
         );
         const queryString = util.getQueryString('ds_v1_sip_payout_report_analytics_select_leaderboard', paramsArr);
 
