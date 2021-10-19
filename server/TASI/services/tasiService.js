@@ -2608,11 +2608,9 @@ function TasiService(objectCollection) {
             request.organization_id, 
             request.flag, 
             request.report_type_id, 
-            request.payout_id, 
             request.period_type_id,
             request.period_start_datetime, 
             request.period_end_datetime,
-            request.customer_account_type_id,
             request.level_id,
             request.workforce_tag_id,
             request.product_id,
@@ -2627,7 +2625,44 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_v1_report_list_select_simulation', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.entityTargetMappingListV1 = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.asset_id,
+          request.manager_asset_id,
+          request.asset_type_id,
+          request.flag,
+          request.flag_type,
+          request.period_type_id,
+          request.period_start_datetime,
+          request.period_end_datetime,
+          request.workforce_tag_id,
+          request.widget_type_id,
+          request.widget_type_category_id,
+          request.product_id,
+          request.start_from,
+          request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p3_entity_target_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
