@@ -380,6 +380,7 @@ if(mode === 'local') {
     //SQS Queue
     config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-staging"; //Staging SQS QUEUE
     config.elasticSearchFailedEntriesSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-elastic-search-failed-entries-v1.fifo";
+    config.elasticSearchEntriesSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-elastic-search-entries-v1.fifo";
     
     //Portal Service URL & Mobile Service URL
     config.portalBaseUrl = "http://localhost:7001/";
@@ -840,6 +841,7 @@ if(mode === 'staging') {
     //SQS Queue
     config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-staging"; //Staging SQS QUEUE
     config.elasticSearchFailedEntriesSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-elastic-search-failed-entries-v1.fifo";
+    config.elasticSearchEntriesSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-elastic-search-entries-v1.fifo";
     
     //Portal Service URL & Mobile Service URL
     config.portalBaseUrl = "https://stagingportal.worlddesk.cloud/";
@@ -998,6 +1000,7 @@ if(mode === 'preprod') {
     config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-production";
     
     config.elasticSearchFailedEntriesSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-elastic-search-failed-entries-v1.fifo";
+    config.elasticSearchEntriesSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-elastic-search-entries-v1.fifo";
     
     //Portal Service URL & Mobile Service URL
     config.portalBaseUrl = "https://preprodportal.worlddesk.cloud/";
