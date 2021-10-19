@@ -3485,7 +3485,7 @@ function Util(objectCollection) {
 
         let insertedResponse = await new Promise((resolve) => {
             sqs1.sendMessage({
-                MessageBody: JSON.stringify({ queryData, elasticIndex, stackTrace, request }),
+                MessageBody: JSON.stringify({ queryData, entryType, elasticIndex, stackTrace, request }),
                 QueueUrl: global.config.elasticSearchEntriesSQSQueueUrl,
                 MessageGroupId: `elastic-search-error-group-v1`,
                 MessageDeduplicationId: uuidv4(),
