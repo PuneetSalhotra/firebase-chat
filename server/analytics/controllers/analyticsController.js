@@ -653,13 +653,12 @@ function AnalyticsController(objCollection)
     });
 
     app.post('/' + global.config.version + '/sip/asset/account/channel/flag', async (req, res) => {
-        try {
-            let result = await analyticsService.customerAccountMapping(req.body);
-            res.json(responseWrapper.getResponse(false, result, 200, req.body));
-        } catch (err) {
-            console.log(err)
+        const [err, result] = await analyticsService.customerAccountMapping(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
             console.log("/sip/asset/account/channel/flag | Error: ", err);
-            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, result, -9999, req.body));
         }
     });
 
