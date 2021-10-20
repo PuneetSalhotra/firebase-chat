@@ -5579,6 +5579,23 @@ this.getChildOfAParent = async (request) => {
                     global.logger.write('conLog', data, {}, {});
                 }                        
             });
+        if(process.env == 'pamProd') {
+            util.sendEmailV3(request,
+                "accounts@puddingandmink.com",
+                "Summary Report",
+                "greneOS",
+                "<html></html>",
+                (err, data) => {
+                    if (err) {
+                        global.logger.write('conLog', "[Send Email On Form Submission | Error]: ", {}, {});
+                        global.logger.write('conLog', err, {}, {});
+                    } else {
+                        global.logger.write('conLog', "[Send Email On Form Submission | Response]: " + "Email Sent", {}, {});
+                        global.logger.write('conLog', data, {}, {});
+                    }                        
+            });
+        }
+    
         return [error, []];
 
     };
