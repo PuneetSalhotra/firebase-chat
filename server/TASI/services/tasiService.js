@@ -202,7 +202,8 @@ function TasiService(objectCollection) {
             request.asset_type_flag_enable_send_sms,
             request.asset_type_flag_sip_admin_access,
             request.asset_type_flag_frontline,
-            request.asset_type_flag_email_login,
+            request.asset_type_flag_email_login || 0,
+            request.asset_type_flag_form_access || 0,
             request.organization_id,
             request.flag,
             util.getCurrentUTCTime(),
@@ -2608,11 +2609,9 @@ function TasiService(objectCollection) {
             request.organization_id, 
             request.flag, 
             request.report_type_id, 
-            request.payout_id, 
             request.period_type_id,
             request.period_start_datetime, 
             request.period_end_datetime,
-            request.customer_account_type_id,
             request.level_id,
             request.workforce_tag_id,
             request.product_id,
@@ -2627,7 +2626,158 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_v1_report_list_select_simulation', paramsArr);
 
         if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.entityTargetMappingListV1 = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.asset_id,
+          request.manager_asset_id,
+          request.asset_type_id,
+          request.flag,
+          request.flag_type,
+          request.period_type_id,
+          request.period_start_datetime,
+          request.period_end_datetime,
+          request.workforce_tag_id,
+          request.widget_type_id,
+          request.widget_type_category_id,
+          request.product_id,
+          request.start_from,
+          request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p3_entity_target_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.widgetTypeCategoryMasterSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.start_from,
+          request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p1_widget_type_category_master_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.accountTargetSettingInsert = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.target_setting_name,
+            request.target_setting_description,
+            request.target_setting_inline,
+            request.timeline_id,
+            request.period_type_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.product_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()            
+        );
+
+        const queryString = util.getQueryString('ds_p1_account_target_setting_insert', paramsArr);
+
+        if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.accountTargetSettingDelete = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_target_setting_id,
+            request.asset_id,
+            util.getCurrentUTCTime()            
+        );
+
+        const queryString = util.getQueryString('ds_p1_account_target_setting_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.accountTargetSettingSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.flag,
+          request.timeline_id,
+          request.period_type_id,
+          request.period_start_datetime,
+          request.period_end_datetime,
+          request.product_id,
+          request.start_from,
+          request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p1_account_target_setting_select_filter', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;

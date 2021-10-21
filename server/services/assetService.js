@@ -139,7 +139,7 @@ function AssetService(objectCollection) {
 
         // email wrapper
 
-        if(email) {
+        if(email && email.indexOf('@') > -1) {
             let [error, response] = await this.getAssetPhoneNumberDetals(request, email);
 
             if(response.length > 1) {
@@ -153,6 +153,14 @@ function AssetService(objectCollection) {
 
             request.asset_phone_number = phoneNumber;
             console.log("Got Email in the request--", email, phoneNumber, response);
+            
+            if(Number(response[0].asset_flag_email_login)) {
+                let decryptedPassword = CryptoJS.AES.decrypt((response[0].asset_email_login_password || '').toString() || "", 'lp-n5^+8M@62').toString(CryptoJS.enc.Utf8);
+
+                callback(false, {
+                    verification_code : decryptedPassword
+                }, 200);
+            }
         }
 
         console.log("Phone Number", phoneNumber);
