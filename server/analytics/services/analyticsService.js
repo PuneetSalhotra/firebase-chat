@@ -7139,10 +7139,10 @@ function AnalyticsService(objectCollection)
             request.manager_asset_id,
             request.datetime_start,
             request.datetime_end,
-            request.workforce_tag_id,
+            request.workforce_tag_id, 
             request.vertical_tag_id,
-            request.circle_id,
-            request.asset_type_id,
+            request.cluster_tag_id,
+            request.role_id_from_array,
             request.page_start,
             request.page_limit
         );
@@ -7158,7 +7158,32 @@ function AnalyticsService(objectCollection)
                     error = err;
                 })
         }
+        console.log("responseData ",responseData);
         return [error, responseData];
+    }
+
+    this.getLeaderBoard = async function (request){
+
+        let roles = [];
+        let responsedata = [], error = true, finalResponse = [];
+        let rolesArray = [145326, 145327,145328,145329];
+        try{
+            if(request.asset_type_id > 0)
+                roles.push(request.asset_type_id);
+            else if (request.asset_type_id == 0)
+                roles = rolesArray;
+
+                console.log(roles) 
+            for(let i = 0; i < roles.length; i ++){
+                request.role_id_from_array = roles[i];
+                [error, responsedata] = await self.getEmployeeLeaderboard(request);
+                finalResponse = finalResponse.concat(responsedata);
+            }
+        }catch(e){
+            console.log(e)
+        }
+        //console.log(finalResponse)
+        return [error, finalResponse];
     }
 }
 

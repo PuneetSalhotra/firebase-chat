@@ -676,7 +676,7 @@ function AnalyticsController(objCollection)
 
     app.post('/' + global.config.version + '/get/sip/leaderboard', async (req, res) => {
         try {
-            let result = await analyticsService.getEmployeeLeaderboard(req.body);
+            let result = await analyticsService.getLeaderBoard(req.body);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
             console.log(err)
