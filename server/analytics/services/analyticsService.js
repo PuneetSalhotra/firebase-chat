@@ -6230,6 +6230,11 @@ function AnalyticsService(objectCollection)
                 paramsArray.push(widgetFlags[iteratorM]);
                 paramsArray[10] = request.filter_asset_id;
 
+                if (widgetFlags[iteratorM] > 4 && widgetFlags[iteratorM] < 8) {
+                    paramsArray[1] = 2;
+                }
+
+                responseJson.filter_date_type_id = paramsArray[1];
                 responseJson.filter_activity_status_tag_id = paramsArray[16];
                 responseJson.filter_asset_id = paramsArray[10];
                 responseJson.sequence_id = widgetFlags[iteratorM];
@@ -7227,6 +7232,32 @@ function AnalyticsService(objectCollection)
         //console.log(finalResponse)
         return [error, finalResponse];
     }
+
+    this.getSipEnabledRoles = async function(request){
+        let responseData = [],
+        error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_v1_workforce_asset_type_mapping_select_sip', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }      
 }
 
 module.exports = AnalyticsService;

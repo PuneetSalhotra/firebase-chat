@@ -685,6 +685,17 @@ function AnalyticsController(objCollection)
         }
     });    
 
+    app.post('/' + global.config.version + '/get/sip/enabled/roles', async (req, res) => {
+        try {
+            const [err, result] = await analyticsService.getSipEnabledRoles(req.body);
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch (err) {
+            console.log(err)
+            console.log("/get/sip/enabled/roles | Error: ", err);
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    }); 
+
     }
 
 module.exports = AnalyticsController;
