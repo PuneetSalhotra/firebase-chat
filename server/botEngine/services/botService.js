@@ -1812,7 +1812,8 @@ function BotService(objectCollection) {
                     if(request.activity_type_category_id == 48 && (request.activity_type_id == 150258
                         || request.activity_type_id == 150229 || request.activity_type_id == 150192
                         || request.activity_type_id == 149818 || request.activity_type_id == 149752
-                        || request.activity_type_id == 149058 || request.activity_type_id == 151728 || request.activity_type_id == 151727)){
+                        || request.activity_type_id == 149058 || request.activity_type_id == 151728 || request.activity_type_id == 151727
+                        || request.activity_type_id == 151729 || request.activity_type_id == 151730)){
                             console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_type_id);
                             request.debug_info.push('activity_type_category_id: ' + request.activity_type_category_id);
                             request.debug_info.push('activity_type_id: ' + request.activity_type_id);
@@ -1916,14 +1917,14 @@ function BotService(objectCollection) {
                 case 30: // Bulk Feasibility Excel Parser Bot
                     logger.silly("Bulk Feasibility Excel Parser Bot params received from request: %j", request);
                     try {
-                        // await bulkFeasibilityBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_feasibility);
-                        let requestForSQS = {
-                            request: request,
-                            sqs_switch_flag: 4,
-                            formInlineDataMap: formInlineDataMap,
-                            inlineJSON: botOperationsJson.bot_operations.bulk_feasibility
-                        }
-                        sendToSqsPdfGeneration(requestForSQS);
+                        await bulkFeasibilityBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_feasibility);
+                        // let requestForSQS = {
+                        //     request: request,
+                        //     sqs_switch_flag: 4,
+                        //     formInlineDataMap: formInlineDataMap,
+                        //     inlineJSON: botOperationsJson.bot_operations.bulk_feasibility
+                        // }
+                        // sendToSqsPdfGeneration(requestForSQS);
                     } catch (error) {
                         logger.error("[Bulk Feasibility Excel Parser Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
@@ -2438,7 +2439,19 @@ function BotService(objectCollection) {
                         });
                     }
                     break;
-
+                
+                case 57: // Add Pan to elastic
+                    
+                    try{
+                        await addCUIDs(request, botOperationsJson.bot_operations);
+                    } catch (error){
+                        logger.error("[Add Pan to elastic Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "error": error
+                        });
+                    }
+                    break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -4902,6 +4915,7 @@ async function removeAsOwner(request,data,addT=0)  {
         newReq.device_os_id = 9;
         newReq.log_asset_id = 100; // Tony
         newReq.asset_id = 100; // Tony
+        newReq.creator_asset_id = request.asset_id;
         newReq.message_unique_id = util.getMessageUniqueId((Number(request.asset_id)) || newReq.asset_id);
 
         // Trigger flag for resource manager
@@ -8911,82 +8925,97 @@ else{
             error = false,
             generatedOpportunityID = "OPP-";
 
-        let activityInlineData = JSON.parse(request.activity_inline_data);
-        let parentActivityID;
-
-        for (let i_iterator of activityInlineData) {
-            if (Number(i_iterator.field_data_type_id) === 57) {
-                let fieldValue = i_iterator.field_value;
-                if (fieldValue.includes('|')) {
-                    //parentActivityID = fieldValue.split('|')[1];                    
-                    parentActivityID = fieldValue.split('|')[0];
-                }
+        //let activityInlineData = JSON.parse(request.activity_inline_data);
+        let accountActivityId;
+        util.logInfo(request, 'request.account_activity_id : ', request.account_activity_id);
+        if (request.account_activity_id > 0) {
+            accountActivityId = request.account_activity_id;
+        } else {
+            util.logInfo(request, 'activityopportunityset No Account :: ' + request.account_activity_id);
+            let fieldValue = request.reference_data;
+            if (fieldValue.includes('|')) {
+                accountActivityId = fieldValue.split('|')[0];
             }
         }
-
+        util.logInfo(request, 'AccountId : ', accountActivityId);
         //Call activity_activity_mapping retrieval service to get the segment
-        let [err, segmentData] = await activityCommonService.activityActivityMappingSelect({
-            activity_id: request.activity_id, //Workflow activity id 
-            parent_activity_id: parentActivityID, //reference account workflow activity_id
-            organization_id: request.organization_id,
-            start_from: 0,
-            limit_value: 50
-        });
+        /* let [err, segmentData] = await activityCommonService.activityActivityMappingSelect({
+             activity_id: request.activity_id, //Workflow activity id
+             parent_activity_id: parentActivityID, //reference account workflow activity_id
+             parent_activity_id: accountActivityId, //reference account workflow activity_id
+             organization_id: request.organization_id,
+             start_from: 0,
+             limit_value: 50
+         }); */
 
-        logger.info('segmentData : ', segmentData);
-        let segmentName = (segmentData.length>0)?(segmentData[0].parent_activity_tag_name).toLowerCase():'';
-        logger.info('segmentData : ', segmentName);
-        switch (segmentName) {
-            case 'la': generatedOpportunityID += 'C-';
-                break;
-            case 'ge': generatedOpportunityID += 'V-';
-                break;
-            case 'soho': generatedOpportunityID += 'D-';
-                break;
-            case 'sme': generatedOpportunityID += 'S-';
-                break;
-            case 'govt': generatedOpportunityID += 'G-';
-                break;
-            case 'vics': generatedOpportunityID += 'W-';
-                break;
+        let accountDetails = await activityCommonService.getActivityDetailsPromise(request, accountActivityId);
+        util.logInfo(request, 'AccountData : ' + accountActivityId + " :: LENGTH :: " + accountDetails.length);
+
+        //segmentName = segmentName.toLowerCase();
+        if (accountDetails.length > 0) {
+            let segmentId = accountDetails[0].activity_type_tag_id; //(segmentData.length>0)?(segmentData[0].parent_activity_tag_name).toLowerCase():'';
+            util.logInfo(request, 'segmentId : '+ segmentId);
+            switch (segmentId) {
+                case 91: generatedOpportunityID += 'C-';
+                    break;
+                case 122: generatedOpportunityID += 'V-';
+                    break;
+                case 124: generatedOpportunityID += 'D-';
+                    break;
+                case 120: generatedOpportunityID += 'S-';
+                    break;
+                case 123: generatedOpportunityID += 'G-';
+                    break;
+                case 121: generatedOpportunityID += 'W-';
+                    break;
+                default : 
+                    util.logError(request, '-segmentIDError- '+segmentId);
+                    generatedOpportunityID += '';
+                    break;
+            }
+        } else {
+            util.logError(request, '-OptyIDError- No Account details');
         }
-
         try {
+            if (generatedOpportunityID.length == 6 && accountDetails[0].tag_type_id == 110) {
 
-            let targetOpportunityID = await cacheWrapper.getOpportunityIdPromise();
-            if (targetOpportunityID >= 100000) {
+                let targetOpportunityID = await cacheWrapper.getOpportunityIdPromise();
+                if (targetOpportunityID >= 100000) {
 
-            } else if (targetOpportunityID >= 10000) {
-                targetOpportunityID = "0" + targetOpportunityID;
-            } else if (targetOpportunityID >= 1000) {
-                targetOpportunityID = "00" + targetOpportunityID;
-            } else if (targetOpportunityID >= 100) {
-                targetOpportunityID = "000" + targetOpportunityID;
-            } else if (targetOpportunityID >= 10) {
-                targetOpportunityID = "0000" + targetOpportunityID;
-            } else if (targetOpportunityID >= 1) {
-                targetOpportunityID = "00000" + targetOpportunityID;
+                } else if (targetOpportunityID >= 10000) {
+                    targetOpportunityID = "0" + targetOpportunityID;
+                } else if (targetOpportunityID >= 1000) {
+                    targetOpportunityID = "00" + targetOpportunityID;
+                } else if (targetOpportunityID >= 100) {
+                    targetOpportunityID = "000" + targetOpportunityID;
+                } else if (targetOpportunityID >= 10) {
+                    targetOpportunityID = "0000" + targetOpportunityID;
+                } else if (targetOpportunityID >= 1) {
+                    targetOpportunityID = "00000" + targetOpportunityID;
+                }
+
+                if (targetOpportunityID == 999900) {
+                    await cacheWrapper.setOppurtunity(0);
+                }
+                generatedOpportunityID = generatedOpportunityID + targetOpportunityID + '-' + util.getCurrentISTDDMMYY();
+                responseData.push(generatedOpportunityID);
+
+                logger.silly("Update CUID Bot");
+                logger.silly("Update CUID Bot Request: ", request);
+                try {
+                    request.opportunity_update = true;
+                    await updateCUIDBotOperation(request, {}, { "CUID1": generatedOpportunityID });
+                } catch (error) {
+                    logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                }
+            } else {
+                util.logInfo(request, 'WRONG SEGMENT : ', generatedOpportunityID);
             }
-
-            if (targetOpportunityID == 999900) {
-                await cacheWrapper.setOppurtunity(0);
-            }
-            generatedOpportunityID = generatedOpportunityID + targetOpportunityID + '-' + util.getCurrentISTDDMMYY();
-            responseData.push(generatedOpportunityID);
-
-            logger.silly("Update CUID Bot");
-            logger.silly("Update CUID Bot Request: ", request);
-            try {
-                request.opportunity_update = true;
-                await updateCUIDBotOperation(request, {}, { "CUID1": generatedOpportunityID });
-            } catch (error) {
-                logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
-            }
-
         } catch (e) {
             error = true;
             console.log("error : ", e);
         }
+
         return [error, responseData];
     }
 
@@ -9269,6 +9298,7 @@ else{
         }
         
         newReq.asset_id = 100;
+        newReq.creator_asset_id = Number(request.asset_id);
         newReq.activity_id = Number(request.workflow_activity_id);
         const event = {
             name: "alterActivityCover",
@@ -9326,7 +9356,7 @@ else{
 
             let assetName = (assetDetails.length > 0) ? assetDetails[0].operating_asset_first_name : 'Bot';
 
-            let content = `Due date changed from ${oldDate} to ${newDate} by ${assetName}`;
+            let content = `Due date changed from ${moment(oldDate).format('Do MMMM YYYY, h:mm a')} to ${moment(newDate).format('Do MMMM YYYY, h:mm a')} by ${assetName}`;
             let activityTimelineCollection = {
                 content: content,
                 subject: `Note - ${util.getCurrentDate()}`,
@@ -9348,6 +9378,8 @@ else{
                 timelineReq.track_gps_datetime = timelineReq.timeline_transaction_datetime;
                 timelineReq.datetime_log = timelineReq.timeline_transaction_datetime;
                 timelineReq.message_unique_id = util.getMessageUniqueId(100);
+                timelineReq.form_date = oldDate;
+                timelineReq.to_date = newDate;
                 //timelineReq.device_os_id = 10; //Do not trigger Bots
 
             timelineReq.activity_id = Number(request.workflow_activity_id);
@@ -14933,7 +14965,10 @@ if(workflowActivityData.length==0){
                         const [errorZero, workflowActivityDataOfEnteredOpportunity] = await getActivityDetailsAsync({
                             organization_id: request.organization_id,
                         }, workflowActivityIDOfEnteredOpportunity);
-                        if (!workflowActivityDataOfEnteredOpportunity[0].activity_master_data) {
+                        let activityMasterData = JSON.parse(workflowActivityDataOfEnteredOpportunity[0].activity_master_data || "{}");
+                        if(primaryFeasibilityRequestID === FRID && !activityMasterData.hasOwnProperty("feasibility_xml")){
+                            errorMessage += `The entered FRID ${Opportunity.FRID} in row ${i + 1} is not yet published \n`;
+                        }else if(secondaryFeasibilityRequestID === FRID && !activityMasterData.hasOwnProperty("feasibility_secondary")){
                             errorMessage += `The entered FRID ${Opportunity.FRID} in row ${i + 1} is not yet published \n`;
                         }
                     }
@@ -15047,7 +15082,39 @@ if(workflowActivityData.length==0){
         }
 
         logger.info("Remove CUID BOT : " + JSON.stringify({request, activityTitleExpression}));
-        await elasticService.updateAccountCode(request, "", activityTitleExpression);
+        await elasticService.updateAccountCodeV1(request, 3);
+
+        return;
+    }
+
+    async function addCUIDs(request, inlineData) {
+
+        // switch (parseInt(inlineData.add_cuids.add_cuid_flag)) {
+        //     case 1:
+        //         request.cuid_1 = null;
+        //         break;
+
+        //     case 2:
+        //         request.cuid_2 = null;
+        //         break;
+
+        //     case 3:
+        //         request.cuid_3 = null;
+        //         break;
+
+        //     case 0 :
+        //         request.cuid_1 = null;
+        //         request.cuid_2 = null;
+        //         request.cuid_3 = null;
+        //         break;
+        //     default:
+        //         logger.info("Remove CUID BOT : " + `cuidInlineData contains incorrect cuid key: ${inlineData.remove_cuids.remove_cuid_flag}`);
+        //         throw new Error(`cuidInlineData contains incorrect cuid key: ${inlineData.remove_cuids.remove_cuid_flag}`)
+        //     // break;
+        // }
+
+        // logger.info("Add CUID BOT : " + JSON.stringify({request, activityTitleExpression}));
+        await elasticService.updateAccountCodeV1(request, 1);
 
         return;
     }
@@ -15753,7 +15820,6 @@ if(workflowActivityData.length==0){
         error = false,
         deskAssetData,
         assetData={};
-      
     for (let i = 0; i < request.emails.length; i++) {
     try{
         let [err, assetDetails] = await getAssetByEmail({
@@ -15801,36 +15867,222 @@ if(workflowActivityData.length==0){
         return [error, responseData];
     };
 
+    async function getFormInlineData(request,flag) {
+        //flag 
+        // 1. Send the entire formdata 713
+        // 2. Send only the submitted form_data
+        //3. Send both
 
+        let formData = [];
+        let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request,request.workflow_activity_id,request.form_id);
+        if(!formDataFrom713Entry.length > 0) {
+            responseData.push({'message': `${i_iterator.form_id} is not submitted`});
+            console.log('responseData : ',responseData);
+            return [true,responseData];
+        }
 
-    async function icsEventCreation(request,email,receiver_name){
-        let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
-        let eventTimeDetails = JSON.parse(wfActivityDetails[0].activity_inline_data).filter((_,i)=>_.field_data_type_id === 77);
-        
+        //console.log('formDataFrom713Entry[0] : ', formDataFrom713Entry[0]);
+        let formTransactionInlineData = JSON.parse(formDataFrom713Entry[0].data_entity_inline);
+        //console.log('formTransactionInlineData form Submitted: ', formTransactionInlineData.form_submitted);
+        formData = formTransactionInlineData.form_submitted;
+        formData = (typeof formData === 'string') ? JSON.parse(formData) : formData;
+
+        switch(Number(flag)) {
+            case 1: return formDataFrom713Entry[0];
+            case 2: return formData;
+            case 3: break;
+            default: return formData;
+        }
+    }
+
+    async function icsEventCreation(request, email, receiver_name) {
+
+      //Getting Activity Type Config
+      let [err1, activityTypeConfig] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request,request.activity_type_id);
+      
+      if(err1 || activityTypeConfig.length == 0 || activityTypeConfig[0].activity_type_inline_data == ""){
+        util.logInfo(request,"Exiting without creating Ics Event due to missing config settings");
+          return [false,[]]
+      }
+      let activity_type_inline_data = typeof activityTypeConfig[0].activity_type_inline_data == 'string' ? JSON.parse(activityTypeConfig[0].activity_type_inline_data) : activityTypeConfig[0].activity_type_inline_data;
+      console.log(activity_type_inline_data)
+      //Getting Activity Details
+      let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
+
+      if(!(activity_type_inline_data.hasOwnProperty('meeting_location_form_id') && activity_type_inline_data.meeting_location_form_id != "")){
+        util.logInfo(request,"Exiting without creating Ics Event due to missing config settings");
+        return [false,[ ]]
+      }
+      // Get Form Data
+      let formData = await getFormInlineData({
+        organization_id: request.organization_id,
+        account_id: request.account_id,
+        workflow_activity_id: request.workflow_activity_id,
+        form_id: activity_type_inline_data.meeting_location_form_id
+        },2);
+      
+        let eventLocation = formData.filter((_, i) =>_.field_id == activity_type_inline_data.meeting_location_field_id);
+        let eventTimeDetails = formData.filter((_, i) => _.field_data_type_id === 77);
+
         var timeDifferenceInMinutes = Math.floor(eventTimeDetails[0].field_value.duration);
         let createDate = new Date(moment(eventTimeDetails[0].field_value.start_date_time).utcOffset("-05:30").format("YYYY-MM-DD HH:mm:ss"));
+        let endDate = new Date(moment(eventTimeDetails[0].field_value.end_date_time).utcOffset("-05:30").format("YYYY-MM-DD HH:mm:ss"));
+        let createDateutc = new Date(moment(eventTimeDetails[0].field_value.start_date_time).format("YYYY-MM-DD HH:mm:ss"));
+        let endDateutc = new Date(moment(eventTimeDetails[0].field_value.end_date_time).format("YYYY-MM-DD HH:mm:ss"));
         let today = new Date();
+
+        //Getting Participants list 
+        activityParticipantService.getParticipantsList({...request,activity_id: request.workflow_activity_id,datetime_differential: "1970-01-01 00:00:00"},async function(err, dat) {
         
-        ics.createEvent({
-            title: "Telecall/Discussion",
-            description: wfActivityDetails[0].activity_description,
-            busyStatus: 'FREE',
-            start: [createDate.getFullYear(), createDate.getMonth()+1, createDate.getDate(), createDate.getHours(), createDate.getMinutes()],
-            duration: { minutes: timeDifferenceInMinutes },
-            organizer: { name: 'GreneOS', email: 'admin@grenerobotics.com' },
-            attendees: [{ name: receiver_name, email: email }],
-            
-          }, (error, value) => {
-            if (error) {
-              console.log(error)
+        util.logInfo(request,"Participants length : "+ dat.length);
+        let emailsToAdd = [];
+        var months = [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+        ];
+        let subjectContent = `Meeting ID-${
+                wfActivityDetails[0].activity_cuid_3
+              } Scheduled on ${createDateutc.getDate()} - ${
+                months[createDateutc.getMonth()]
+              } from ${
+                createDateutc.getHours() < 10 ? 0 : ""
+              }${createDateutc.getHours()}:${
+                createDateutc.getMinutes() < 10 ? 0 : ""
+              }${createDateutc.getMinutes()} to ${
+                endDateutc.getHours() < 10 ? 0 : ""
+              }${endDateutc.getHours()}:${
+                endDateutc.getMinutes() < 10 ? 0 : ""
+              }${endDateutc.getMinutes()}.`;
+        let bodyContent = `A Meeting(Meeting ID-${
+                wfActivityDetails[0].activity_cuid_3
+              }) has been scheduled on ${createDateutc.getDate()} - ${
+                months[createDateutc.getMonth()]
+              } from ${
+                createDateutc.getHours() < 10 ? 0 : ""
+              }${createDateutc.getHours()}:${
+                createDateutc.getMinutes() < 10 ? 0 : ""
+              }${createDateutc.getMinutes()} to ${
+                endDateutc.getHours() < 10 ? 0 : ""
+              }${endDateutc.getHours()}:${
+                endDateutc.getMinutes() < 10 ? 0 : ""
+              }${endDateutc.getMinutes()}. you are asked to join as participant`;
+
+              util.logInfo(request,"Subject & Title :" + subjectContent+bodyContent);
+           let creatorAssetDetails = [];
+            for (let i = 0; i < dat.data.length; i++) {
+                let [error, assetData] =
+                await activityCommonService.getAssetDetailsAsync({
+                    organization_id: request.organization_id,
+                    asset_id: dat.data[i].asset_id,
+                });
+                if (
+                    assetData.length > 0 &&
+                    assetData[0].operating_asset_email_id
+                ) {
+                    if(assetData.activity_creator_asset_id==assetData.asset_id){
+                        creatorAssetDetails.push({ name: assetData[0].operating_asset_first_name,
+                            email: assetData[0].operating_asset_email_id,})
+                    }
+                    emailsToAdd.push({
+                        name: assetData[0].operating_asset_first_name,
+                        email: assetData[0].operating_asset_email_id,
+                    });
+                }
             }
-          let fileName = `${global.config.efsPath}${request.asset_id}-${today.getTime()}.ics`
-            fs.writeFileSync(fileName, value);
-            request.email_sender_name = 'GreneOS';
-            request.email_receiver_name = receiver_name;
-            request.email_sender = "admin@grenerobotics.com"
-            util.sendEmailMailgunV2(request, email, "Telecall/Discussion", fileName, "",  "html")
-          });
+            let htmlReceived = "";
+        //   console.log(htmlReceived)
+
+        ics.createEvent({
+                title: subjectContent,
+                description: bodyContent,
+                busyStatus: "FREE",
+                location: eventLocation[0].field_value,
+                start: [
+                    createDate.getFullYear(),
+                    createDate.getMonth() + 1,
+                    createDate.getDate(),
+                    createDate.getHours(),
+                    createDate.getMinutes(),
+                ],
+                duration: {
+                    minutes: timeDifferenceInMinutes
+                },
+                organizer: {
+                    name: creatorAssetDetails[0].name,
+                    email: creatorAssetDetails[0].email,
+                },
+                attendees: emailsToAdd,
+            },
+            async (error, value) => {
+                if (error) {
+                    console.log(error);
+                }
+
+                let fileName = `${global.config.efsPath}${
+                    request.asset_id
+                  }-${today.getTime()}.ics`;
+                fs.writeFileSync(fileName, value);
+
+                request.email_sender_name = "GreneOS";
+
+                request.email_sender = "admin@grenerobotics.com";
+                // for(let j=0;j<emailsToAdd.length;j++){
+                request.email_receiver_name = receiver_name;
+                let emailsToSend = [];
+                for (let i = 0; i < emailsToAdd.length; i++) {
+                    emailsToSend.push(emailsToAdd[i].email);
+                }
+                let [s3err, s3Response] = await util.uploadICSFileToS3V1(
+                    request,
+                    fileName
+                );
+                util.logInfo(request,"Emails To Send" + emailsToSend);
+                console.log(s3Response)
+                util.sendEmailV4ewsV1(
+                    request,
+                    emailsToSend,
+                    subjectContent,
+                    bodyContent,
+                    s3Response[0].location
+                );
+                fs.unlink(fileName, function(err) {
+                    if (err) return console.log(err);
+                    console.log("file deleted successfully");
+                });
+            })
+        });
+
+
+    }
+
+    async function generateHtmlForParticipantList(req,participantsList){
+        let htmlString = '<p>Hi,</p><p>Greetings from Vi&trade;</p><br><table width="100%" border="1" cellspacing="0"><thead><tr>';
+        let slNoOfParticipant = 1;
+
+		let participantListEmailString = '<br><table border="1" cellspacing="0"><thead><tr><th colspan="3" >Participant List</th><tr><th>Sl No</th><th>Name</th><th>Email</th></tr></thead><tbody>'
+		for (const asset of participantsList) {
+			if (asset.email !== null && asset.email !== "") {
+				participantListEmailString += '<tr>';
+				participantListEmailString += '<td>' + (slNoOfParticipant++) + '</td>';
+				participantListEmailString += '<td>' + asset.name + '</td>';
+				participantListEmailString += '<td>' + asset.email + '</td>';
+				participantListEmailString += '</tr>';
+			}
+		}
+		participantListEmailString += '</tbody></table><br>';
+
+		htmlString += '</tbody></table><br><br>' + participantListEmailString + '<p>Thanks,</p><p>Vi&trade; Business</p>';
+		return htmlString;
     }
 
     async function getAssetByEmail(request) {
@@ -16093,7 +16345,7 @@ if(workflowActivityData.length==0){
             // };
 
             const workflowActivityID = request.workflow_activity_id || request.activity_id || 0;
-            const sqsQueueUrl = inlineJOSN.sqs_queue;
+            let sqsQueueUrl = inlineJOSN.sqs_queue;
             let inputJSON = inlineJOSN.input;
             let outputJSON = inlineJOSN.output;
             let inputTypeFormID = inputJSON.input_type.form_id;
@@ -16205,10 +16457,20 @@ if(workflowActivityData.length==0){
                 }
             }
 
-            util.logInfo(request, "Output JSON for midmile sqs %j", { message: JSON.stringify(outputJSON) });
+            let finalOput = {
+                request: {
+                    asset_id: Number(request.asset_id),
+                    activity_id: Number(request.activity_id),
+                    workforce_id: Number(request.workforce_id),
+                    account_id: Number(request.account_id)
+                },
+                input: outputJSON
+            };
+
+            util.logInfo(request, "Output JSON for midmile sqs %j", { message: JSON.stringify(finalOput) });
 
             sqs.sendMessage({
-                MessageBody: JSON.stringify(outputJSON),
+                MessageBody: JSON.stringify(finalOput),
                 QueueUrl: sqsQueueUrl,
                 MessageGroupId: `midmile-excel-job-queue-v1`,
                 MessageDeduplicationId: uuidv4(),

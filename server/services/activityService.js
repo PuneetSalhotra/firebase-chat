@@ -557,7 +557,8 @@ function ActivityService(objectCollection) {
                                activityTypeCategroyId === 31) { 
                                 //Listener
                                 //Form Submission - When the form has data type reference type
-                                let formInlineData = JSON.parse(request.activity_inline_data);
+                                //let formInlineData = JSON.parse(request.activity_inline_data);
+                                let formInlineData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data) : request.activity_inline_data;
                                 //console.log('formInlineData : ', formInlineData);
                                 let fieldData;
                                 for(let i=0; i<formInlineData.length;i++){                                    
@@ -575,6 +576,24 @@ function ActivityService(objectCollection) {
                                                 await fireBotInsertIntTables(request, fieldData);                                                
                                                 await activityActivityMappingInsert(request, fieldData);
                                                 await processFieldWidgetData(request, fieldData);
+                                                if(request.activity_type_category_id == 48 && (request.activity_type_id == 150258
+                                                    || request.activity_type_id == 150229 || request.activity_type_id == 150192
+                                                    || request.activity_type_id == 149818 || request.activity_type_id == 149752
+                                                    || request.activity_type_id == 149058 || request.activity_type_id == 151728 || request.activity_type_id == 151727 
+                                                    || request.activity_type_id == 151729 || request.activity_type_id == 151730 || request.activity_type_id == 151728)){
+                    
+                                                        let opportunityRequest = Object.assign({}, request);
+                                                        opportunityRequest.workflow_activity_id = request.activity_id;
+                                                        opportunityRequest.reference_data = fieldData;
+
+                                                        if(fieldData.field_value.includes('|')){
+                                                            let parsedFieldValue = fieldData.field_value;
+                                                            opportunityRequest.account_activity_id = parsedFieldValue.split('|')[0];
+                                                        }
+
+                                                        opportunityRequest.generic_url = '/activity/opportunity/set';
+                                                        activityCommonService.makeGenericRequest(opportunityRequest);
+                                                }                                                
                                                 break;
                                         case 33: //Fire the Bot                                                 
                                                 await fireBotInsertIntTables(request, fieldData);
@@ -604,18 +623,6 @@ function ActivityService(objectCollection) {
                                 }
 
                                 //addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 0); //0 - Non-Widget
-                            }
-
-                            if(request.activity_type_category_id == 48 && (request.activity_type_id == 150258
-                                || request.activity_type_id == 150229 || request.activity_type_id == 150192
-                                || request.activity_type_id == 149818 || request.activity_type_id == 149752
-                                || request.activity_type_id == 149058 || request.activity_type_id == 151728 || request.activity_type_id == 151727 
-                                || request.activity_type_id == 151729 || request.activity_type_id == 151730 || request.activity_type_id == 151728)){
-
-                                    let opportunityRequest = Object.assign({}, request);
-                                    opportunityRequest.workflow_activity_id = request.activity_id;
-                                    opportunityRequest.generic_url = '/activity/opportunity/set';
-                                    activityCommonService.makeGenericRequest(opportunityRequest);
                             }
 
                             if (request.activity_type_category_id == 31 && request.activity_type_id == 190797) {
@@ -2739,7 +2746,7 @@ function ActivityService(objectCollection) {
                 // 
                 global.logger.write('conLog', "Calling updateActivityLogLastUpdatedDatetime", {}, request);
                 try {
-                    activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.asset_id), function (err, data) {
+                    activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.creator_asset_id || request.asset_id), function (err, data) {
 
                     });
 

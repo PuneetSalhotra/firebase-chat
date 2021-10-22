@@ -1218,7 +1218,7 @@ function FormConfigService(objCollection) {
             let dashboardEntityFieldData = {};
             let [err, workflowData] = await activityCommonService.getFormWorkflowDetailsAsync(request);
             util.logInfo(request,`workflowData :: ` +JSON.stringify(workflowData)); 
-            let workfolow_activity_type_id =  workflowData[0].activity_type_id || 0;
+            let workfolow_activity_type_id =  workflowData.length>0 && workflowData[0].activity_type_id ? workflowData[0].activity_type_id :0;
             let [errorWorkflowType, workflowTypeData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, workfolow_activity_type_id);
             util.logInfo(request,`workflowTypeData :: ` +workflowTypeData);  
             if (workflowTypeData.length > 0) {
@@ -6642,7 +6642,8 @@ function FormConfigService(objCollection) {
             request.limit_value = 50;
             request.bot_id = 0;
             request.field_id = 0;
-            let [err, fieldLevelBots] = await activityCommonService.getMappedBotSteps(request, 0);
+            request.bot_operation_type_id = 32;
+            let [err, fieldLevelBots] = await activityCommonService.botOperationMappingSelectOperationType(request);
 
             console.log("fieldLevelBots", JSON.stringify(fieldLevelBots));
 
@@ -6666,7 +6667,7 @@ function FormConfigService(objCollection) {
                     }
                 }
             }
-
+// return [true,{}]
             if(!botInlineData) {
                 return [true, [{ message : "Form field data is empty"}]];
             }
@@ -6676,20 +6677,46 @@ function FormConfigService(objCollection) {
             
             let response = [];
             for(let row of botInlineData) {
+                let tempActivityID = request.workflow_activity_id;
+                let creatorEmail = "";
+                if(row.hasOwnProperty("workflow_reference_dependency") && row.workflow_reference_dependency==1){
+                    let [referr,refAccountDetails] =  await getActActChildActivities(request);
+                    
+                    if(refAccountDetails.length>0){
+                        for(let i=0;i<refAccountDetails.length;i++){
+                            if(refAccountDetails[i].parent_activity_type_category_id==53){
+                        tempActivityID = refAccountDetails[i].parent_activity_id
+                            }
+                        }
+                    }
+                }
+                if(row.hasOwnProperty('activity_creator_email') && row.activity_creator_email==1){
+                    let activityDataResp = await activityCommonService.getActivityDetailsPromise(request, tempActivityID);
+                    if(activityDataResp.length>0){
+                       let [err,creatorAssetDetails] =  await activityCommonService.getAssetDetailsAsync({...request,asset_id:activityDataResp[0].activity_creator_asset_id});
+                       creatorEmail = creatorAssetDetails[0].operating_asset_email_id;
+                       response.push({
+                        [row.target_field_id]: creatorEmail
+                    });
+                    continue;
+                    }
+                }
                 let dependentFormTransaction = await activityCommonService.getActivityTimelineTransactionByFormId713({
                     organization_id: request.organization_id,
                     account_id: request.account_id
-                }, request.workflow_activity_id, row.source_form_id);
+                }, tempActivityID, row.source_form_id);
 
 
                 for(let row1 of dependentFormTransaction) {
                     let data = JSON.parse(row1.data_entity_inline);
                     let formSubmittedInfo = data.form_submitted;
+                    
                     try {
                         formSubmittedInfo = JSON.parse(formSubmittedInfo);
                     } catch (e) {
                         console.log("got formSubmittedInfo as string");
                     }
+                    // console.log(formSubmittedInfo)
 
                     for(let newRow of formSubmittedInfo) {
                         if(newRow.field_id == row.source_field_id) {
@@ -6717,6 +6744,34 @@ function FormConfigService(objCollection) {
             return [true, [{ message : "Something went wrong. Please try again"}]]
         }
     }
+
+    async function getActActChildActivities (request) {
+		let responseData = [],
+			error = true;
+
+		const paramsArr = new Array(
+			request.workflow_activity_id,
+			request.activity_type_id || 0,
+			0,
+			request.organization_id,
+			request.flag || 1,
+			request.page_start || 0,
+			request.page_limit || 50
+		);
+		const queryString = util.getQueryString('ds_p1_activity_activity_mapping_select_child_activities', paramsArr);
+
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				});
+		}
+		return [error, responseData];
+	};
 
     async function checkWhetherFormWorkflowActID(request) {
         let responseData = [],
@@ -7115,6 +7170,35 @@ function FormConfigService(objCollection) {
             request.page_limit
         );
         const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select_meeting_form_origin', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {                    
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    } 
+
+    this.formEntityMappingCategorySelect = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.activity_type_category_id || 31,
+            request.flag || 0,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('ds_p1_form_entity_mapping_select_category', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)

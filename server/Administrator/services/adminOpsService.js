@@ -123,10 +123,11 @@ function AdminOpsService(objectCollection) {
             request.flag_enable_sip_module,
             request.flag_enable_elasticsearch,
             request.flag_enable_calendar,
+            request.flag_enable_grouping || 0,
             request.asset_id,
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_3_organization_list_update_flags', paramsArr);
+        const queryString = util.getQueryString('ds_p1_4_organization_list_update_flags', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -957,11 +958,12 @@ function AdminOpsService(objectCollection) {
           request.org_exchange_server_url || "",
           request.org_exchange_server_domain || "",
           request.flag_enable_calendar || "",
+          request.flag_enable_grouping || 0,
           request.organization_type_id || 1,
           request.asset_id || 1,
           util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_5_organization_list_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_6_organization_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -5767,13 +5769,15 @@ console.log('new ActivityId321',newActivity_id)
             request.asset_type_suspension_wait_duration||0,
             request.asset_type_flag_hide_organization_details||"",
             request.asset_type_flag_enable_send_sms || 0,
+            request.asset_type_flag_form_access || 0,
+            request.asset_type_flag_email_login || 0,
             workforceID,
             accountID,
             organizationID,
             request.asset_id,
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_2_workforce_asset_type_mapping_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_3_workforce_asset_type_mapping_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)

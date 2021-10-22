@@ -4026,26 +4026,30 @@ function ActivityListingService(objCollection) {
 					this.generateSummary(request);
 					return;
 				} else {
-					let header = "Telecall/Discussion-Meeting ID-";
+					let header = "Meeting Id - ";
 					let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, 0);
 					if (wfActivityDetails.length > 0) {
-						header += wfActivityDetails[0].activity_cuid_3 + "-MOM Points";
+						header += wfActivityDetails[0].activity_cuid_3 + " - MOM Points Update!!!";
 					}
 					let participantReq = Object.assign({}, request);
 					participantReq.is_all_flag = isAllFlag;
 					let [err, participantsList] = await getParticipantsAsync(participantReq);
-					let htmlString = await generateMOMOrdersHtmlCode(request, participantsList);
+					let htmlString = await generateMOMOrdersHtmlCode(request, participantsList, wfActivityDetails);
 					console.log("htmlString ", htmlString);
-
+					
+					let emailList = [];
 					for (const asset of participantsList) {
 						let [error, assetDetails] = await getParticipantDetails({ assetID: asset.asset_id });
-						console.log("assetDetails[0].asset_email_id ", assetDetails[0].asset_email_id);
-						if (assetDetails[0].asset_email_id !== null && assetDetails[0].asset_email_id !== "") {
-							await util.sendEmailV4ews(request, assetDetails[0].asset_email_id, header, htmlString, "", 1);
-						} else {
-							console.log("No Email ID to send email");
+						if (assetDetails.length > 0) {
+							if (assetDetails[0].operating_asset_email_id !== null && assetDetails[0].operating_asset_email_id !== "") {
+								emailList.push(assetDetails[0].operating_asset_email_id);
+							} else {
+								console.log("No Email ID to send email");
+							}
 						}
+
 					}
+					await util.sendEmailV4ews(request, emailList, header, htmlString, "", 1);
 				}
 
 			}
@@ -4059,7 +4063,7 @@ function ActivityListingService(objCollection) {
 		return true;
 	}
 
-	let generateMOMOrdersHtmlCode = async (request, participantsList) => {
+	let generateMOMOrdersHtmlCode = async (request, participantsList, wfActivityDetails) => {
 
 		const [errorZero, childMOM] = await this.activityListSelectChildOrders({
 			organization_id: request.organization_id,
@@ -4070,6 +4074,43 @@ function ActivityListingService(objCollection) {
 		if (errorZero || childMOM.length === 0) {
 			return "";
 		}
+
+		const formTimelineDataOfMeeting = await activityCommonService.getActivityTimelineTransactionByFormId713({
+			organization_id: request.organization_id,
+			account_id: request.account_id
+		}, request.activity_id, 50816);
+		//312542
+		let meetingDate = "";
+
+		let formTransactionID = 0, formActivityID = 0;
+		if (formTimelineDataOfMeeting.length > 0) {
+			formTransactionID = Number(formTimelineDataOfMeeting[0].data_form_transaction_id);
+			formActivityID = Number(formTimelineDataOfMeeting[0].data_activity_id);
+		}
+
+		if (formTransactionID > 0) {
+
+			const fieldData = await getFieldValue({
+				form_transaction_id: formTransactionID,
+				form_id: 50816,
+				field_id: 312542,
+				organization_id: request.organization_id
+			});
+
+
+			if(fieldData.length > 0) {
+				let entityInlineJSON = JSON.parse(fieldData[0].data_entity_inline || "{}") ;
+				if (entityInlineJSON.hasOwnProperty("start_date_time")) {
+					meetingDate = entityInlineJSON.start_date_time;
+					if (meetingDate) {
+						meetingDate = moment(meetingDate);
+						meetingDate = `${meetingDate.format('DD')}-${meetingDate.format("MMMM")}`;
+					}
+				}
+			}
+		}
+
+
 		let finalSummaryData = [];
 		let momFieldMappingsForSummary = {
 			"190797": {
@@ -4114,7 +4155,6 @@ function ActivityListingService(objCollection) {
 			},
 			"field_order": [
 				"SL_NO",
-				"Status",
 				"Meeting_ID",
 				"MOM_Point_ID",
 				"Discussion_Point",
@@ -4125,7 +4165,8 @@ function ActivityListingService(objCollection) {
 				"Assigned_To",
 				"Assigned_Date",
 				"Due_Date",
-				"Comments"
+				"Comments",
+				"Status"
 			],
 			"date_fields": [
 				312767,
@@ -4189,16 +4230,14 @@ function ActivityListingService(objCollection) {
 						if (date.isValid()) {
 							value = date.format("DD-MM-YYYY");
 						}
-					} catch (e) {
-					}
+					} catch (e) { }
 				}
 				data[field] = value;
 			}
 			finalSummaryData.push(data);
 		}
-		console.log("finalSummaryData");
-		console.log(finalSummaryData);
-		let htmlString = '<p>Hi,</p><p>Greetings from Vi&trade;</p><br><table width="100%" border="1" cellspacing="0"><thead><tr>';
+
+		let htmlString = `<p>Hi,</p><p>Greetings from Vi&trade;</p><p>The mail is to inform you that Based on Meeting Id:${wfActivityDetails[0].activity_cuid_3} on ${meetingDate} with ${wfActivityDetails[0].activity_title}, the updated discussion points are the following point(s).</p><br><table width="100%" border="1" cellspacing="0"><thead><tr>`;
 
 		for (const key of momFieldMappingsForSummary["field_order"]) {
 			htmlString += '<th>' + key + '</th>';
@@ -4213,24 +4252,7 @@ function ActivityListingService(objCollection) {
 			htmlString += '</tr>';
 		}
 
-		let slNoOfParticipant = 1;
-
-		let participantListEmailString = '<br><table border="1" cellspacing="0"><thead><tr><th colspan="3" >Participant List</th><tr><th>Sl No</th><th>Name</th><th>Email</th></tr></thead><tbody>'
-		for (const asset of participantsList) {
-
-			let [error, assetDetails] = await getParticipantDetails({ assetID: asset.asset_id });
-			console.log("assetDetails[0].asset_email_id ", assetDetails[0].asset_email_id);
-			if (assetDetails[0].asset_email_id !== null && assetDetails[0].asset_email_id !== "") {
-				participantListEmailString += '<tr>';
-				participantListEmailString += '<td>' + (slNoOfParticipant++) + '</td>';
-				participantListEmailString += '<td>' + assetDetails[0].operating_asset_first_name + '</td>';
-				participantListEmailString += '<td>' + assetDetails[0].asset_email_id + '</td>';
-				participantListEmailString += '</tr>';
-			}
-		}
-		participantListEmailString += '</tbody></table><br>';
-
-		htmlString += '</tbody></table><br><br>' + participantListEmailString + '<p>Thanks,</p><p>Vi&trade; Business</p>';
+		htmlString += '</tbody></table><br><br><p>Thanks,</p><p>Vi&trade; Business</p>';
 		return htmlString;
 	}
 
@@ -4351,6 +4373,22 @@ function ActivityListingService(objCollection) {
 			console.log(e)
 		}
 	}
+
+	//Get the field value based on form id and form_transaction_id
+	async function getFieldValue(request) {
+		let paramsArr = new Array(
+			request.form_transaction_id || 0,
+			request.form_id,
+			request.field_id,
+			request.organization_id
+		);
+		let queryString = util.getQueryString('ds_p1_activity_form_transaction_select_field_sequence_id', paramsArr);
+		if (queryString != '') {
+			return await (db.executeQueryPromise(1, queryString, request));
+		}
+	}
+
+
 }
 
 module.exports = ActivityListingService;

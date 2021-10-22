@@ -751,7 +751,7 @@ function ActivityTimelineController(objCollection) {
 
 
     app.post('/' + global.config.version + '/activity/timeline/mentions/send_email/v1', async (req, res) => {
-        req.body.is_version_v1 = 1;
+        // req.body.is_version_v1 = 1;
         const [err, orgData] = await activityTimelineService.mentionsSendEmail(req.body);
         if (!err) {
             res.json(responseWrapper.getResponse({}, orgData, 200, req.body));

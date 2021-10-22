@@ -8,6 +8,7 @@ var AwsSss = require('../utils/s3Wrapper');
 var fs = require('fs');
 const moment = require('moment');
 const xlsx = require('xlsx');
+const CryptoJS = require("crypto-js");
 
 const OpenTok = require('opentok');
 let opentok = new OpenTok(global.config.opentok_apiKey, global.config.opentok_apiSecret);
@@ -138,7 +139,7 @@ function AssetService(objectCollection) {
 
         // email wrapper
 
-        if(email) {
+        if(email && email.indexOf('@') > -1) {
             let [error, response] = await this.getAssetPhoneNumberDetals(request, email);
 
             if(response.length > 1) {
@@ -152,6 +153,14 @@ function AssetService(objectCollection) {
 
             request.asset_phone_number = phoneNumber;
             console.log("Got Email in the request--", email, phoneNumber, response);
+            
+            if(Number(response[0].asset_flag_email_login)) {
+                let decryptedPassword = CryptoJS.AES.decrypt((response[0].asset_email_login_password || '').toString() || "", 'lp-n5^+8M@62').toString(CryptoJS.enc.Utf8);
+
+                callback(false, {
+                    verification_code : decryptedPassword
+                }, 200);
+            }
         }
 
         console.log("Phone Number", phoneNumber);
@@ -522,7 +531,7 @@ function AssetService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
-                    console.log(data);
+                    // console.log(data);
                     formatAssetData(data, function (error, data) {
                         if (error === false)
                             callback(false, {
@@ -969,6 +978,8 @@ function AssetService(objectCollection) {
             "asset_approval_activity_id":util.replaceDefaultString(rowArray[0]['asset_approval_activity_id']),
             "manager_asset_id":util.replaceDefaultString(rowArray[0]['manager_asset_id']),
             "asset_type_flag_enable_suspension":util.replaceDefaultNumber(rowArray[0]['asset_type_flag_enable_suspension']),
+            "operating_asset_username":util.replaceDefaultString(rowArray[0]['operating_asset_username']),
+            "asset_email_password":util.replaceDefaultString(rowArray[0]['asset_email_password']),
 
             //Returning the following data - Document Repository System
             "asset_doc_repo_access_type_id":util.replaceDefaultNumber(rowArray[0]['asset_doc_repo_access_type_id']),
@@ -1012,10 +1023,51 @@ function AssetService(objectCollection) {
             "organization_flag_elasticsearch_enabled": util.replaceDefaultNumber(rowArray[0]['organization_flag_elasticsearch_enabled']),
             "asset_flag_export" : util.replaceDefaultNumber(rowArray[0]['asset_flag_export']),
             "organization_flag_calendar_enabled" : util.replaceDefaultNumber(rowArray[0]['organization_flag_calendar_enabled']),
+            "asset_flag_simulation" : util.replaceDefaultNumber(rowArray[0]['asset_flag_simulation'])
         };
 
         callback(false, rowData);
     };
+
+    this.updateAssetPassword = async function(request) {
+
+        let [err,assetData]= await activityCommonService.getAssetDetailsAsync(request);
+        if(assetData[0].asset_flag_email_login != 1){
+            return [true,{message:"Enable email login flag for asset"}]
+        }
+        
+        if(err || assetData.length==0){
+            return [true,{message:"something went wrong"}]
+        }
+      try{
+        let decryptedPassword = CryptoJS.AES.decrypt(assetData[0].asset_email_login_password.toString() || "", 'lp-n5^+8M@62').toString(CryptoJS.enc.Utf8);
+
+          if (decryptedPassword == request.old_password) {
+              let newPasswordEncrypt =  CryptoJS.AES.encrypt(request.new_password, 'lp-n5^+8M@62').toString();
+            var paramsArr1 = new Array(
+              request.asset_email,
+              request.organization_id,
+              newPasswordEncrypt,
+              request.log_asset_id,
+              util.getCurrentUTCTime()
+            );
+            var queryString1 = util.getQueryString("ds_p1_asset_list_update_login_password",paramsArr1);
+            db.executeQuery(0,queryString1,request,function (err1, updatedData) {
+                if (!err1) {
+                return [false,[]]
+                }
+                else{
+                    return [true,{message:"something went wrong"}]
+                }
+              }
+            );
+          } else {
+            return [true,{message:"your old password does not match"}]
+          }
+        }catch(catcherr){
+        return [true,{message:"something went wrong"}] 
+        }
+    }
 
 
     this.checkAssetPasscode = function (request, callback) {
@@ -1991,11 +2043,11 @@ function AssetService(objectCollection) {
          responseData = [];
 
         var paramsArr = new Array(
-            request.asset_id,
+            request.target_asset_id,
             request.organization_id,
             3,
             util.getCurrentUTCTime(),
-            request.target_asset_id,
+            request.asset_id,
             request.datetime_log
         );
         var queryString = util.getQueryString('ds_v1_asset_archived_list_insert', paramsArr);
@@ -2529,7 +2581,7 @@ function AssetService(objectCollection) {
         const paramsArr = [     
             request.target_asset_id,
             request.organization_id,
-            request.target_asset_id,
+            request.asset_id,
             util.getCurrentUTCTime()
         ];
 
@@ -2540,10 +2592,11 @@ function AssetService(objectCollection) {
                   responseData = data;
                   error = false;
                   archiveAsset(request);
-                  assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 204, dateTimeLog, function (err, data) { });
+                  assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 204, util.getCurrentUTCTime(), function (err, data) { });
 
               })
               .catch((err) => {
+                  console.log("error in removeAssets", err, err.stack);
                   error = err;
               })
         }
@@ -6942,10 +6995,11 @@ this.getQrBarcodeFeeback = async(request) => {
                             request.organization_id,
                             request.new_password,
                             util.addDaysToGivenDate(util.getCurrentUTCTime(), 90, "YYYY-MM-DD HH:mm:ss"), //PWD expiry datetime,
+                            request.operating_asset_username,
                             request.asset_id,
                             util.getCurrentUTCTime()
                         ];
-        const queryString = util.getQueryString('ds_p1_asset_list_update_password', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_asset_list_update_password', paramsArr);
         if (queryString != '') {
             await db.executeQueryPromise(0, queryString, request)
               .then((data)=>{
@@ -7701,6 +7755,36 @@ this.getQrBarcodeFeeback = async(request) => {
             request.limit_value || 20               
         );
         const queryString = util.getQueryString('Ds_p1_asset_timeline_transaction_select_asset_flag', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+    this.assetListAssetTypeCategorySearch = async function (request) {
+        let responseData = [],
+            error = true;
+
+       let paramsArr = new Array(
+        request.organization_id,
+        request.account_id,
+        request.workforce_id,
+        request.asset_type_category_id,
+        request.search_string,
+        request.asset_type_id,
+        request.workforce_tag_id,
+        request.start_from,
+        request.limit_value            
+        );
+        const queryString = util.getQueryString('ds_p2_asset_list_search_asset_type_category', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
