@@ -671,7 +671,7 @@ function CommnElasticService(objectCollection) {
     request.debug_info.push("addintoActivitySearchMapping "+queryString);
     if (queryString !== '') {
         await db.executeQueryPromise(1, queryString, request)
-            .then((data) => {
+            .then(async (data) => {
                 responseData = data;
                 request.debug_info.push("data.length : "+data.length);
                 if(data.length>0){                    
@@ -682,7 +682,29 @@ function CommnElasticService(objectCollection) {
                     //     ...dataTobeSent              
                     //     }
                     // })
-                    client.updateByQuery({
+
+                    // client.updateByQuery({
+                    //     index: global.config.elasticActivitySearchTable,
+                    //     "body": {
+                    //         "query": {
+                    //             "match": {
+                    //                 "activity_id": Number(request.workflow_activity_id)
+                    //             }
+                    //         },
+                    //         "script": {
+                    //             "source": "ctx._source = params",
+                    //             "lang": "painless",
+                    //             "params": {
+                    //                 ...dataTobeSent
+                    //             }
+                    //         }
+                    //     }
+                    // }, function (err, res) {
+                    //     let stackTrace = util.getStackTrace();
+                    //     util.handleElasticSearchResponse(request, dataTobeSent, global.config.elasticActivitySearchTable, err, res, stackTrace);
+                    // });
+
+                    let queryData ={
                         index: global.config.elasticActivitySearchTable,
                         "body": {
                             "query": {
@@ -698,10 +720,11 @@ function CommnElasticService(objectCollection) {
                                 }
                             }
                         }
-                    }, function (err, res) {
-                        let stackTrace = util.getStackTrace();
-                        util.handleElasticSearchResponse(request, dataTobeSent, global.config.elasticActivitySearchTable, err, res, stackTrace);
-                    });
+                    };
+
+                    let stackTrace = util.getStackTrace();
+                    await util.handleElasticSearchEntries(request, "update", queryData, global.config.elasticActivitySearchTable, stackTrace);
+
                 }
                 error = false;
             })
