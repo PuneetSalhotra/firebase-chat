@@ -638,15 +638,6 @@ function PamController(objCollection) {
         }
     });
 
-//whatsapp Notification...
-app.post('/' + global.config.version + '/pam/send/whatsapp/notification', async (req, res) => {
-    let [err, result] = await pamService.whatsAppNotification(req.body)
-    if (!err) {
-        res.json(responseWrapper.getResponse({}, result, 200, req.body));
-    } else {
-        res.json(responseWrapper.getResponse(err, result, -9999, req.body));
-    }
-});
     
 };
 
