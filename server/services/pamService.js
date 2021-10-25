@@ -5599,6 +5599,89 @@ this.getChildOfAParent = async (request) => {
         return [error, []];
 
     };
+     //Whats App Integration
+     this.whatsAppNotification = async (request) => {
+        let responseData = [],
+            error = false;
+            let template_Name={};        
+            if(request.hasOwnProperty('reservation_confirmation')){
+                template_Name=  {
+                    "name": request.name,
+                    "dateTime": request.dateTime,
+                    "count": request.count,
+                    "code": request.code,
+                    "supportNumber": request.supportNumber
+                  }
+            }
+
+            else  if(request.hasOwnProperty('Reservation_Entry')){
+                template_Name=  {
+                    "name": 'mahesh',
+                    "supportNumber": request.supportNumber
+                  }
+            }
+
+            else  if(request.hasOwnProperty('Order_Entry')){
+                template_Name=  {
+                    "name": 'mahesh',
+                    "item_count": request.item_count,
+                    "supportNumber": request.supportNumber
+                  }
+            }
+            else  if(request.hasOwnProperty('Bill_Sending')){
+                template_Name=  {
+                    "name": 'mahesh',
+                  }
+            }
+            let data ={
+            "channelId": "60da1151e6179200044d30a1",
+            "channelType": "whatsapp",
+            "recipient": {
+            "name": "mahesh",
+            "phone":request.Number
+            },
+            "whatsapp": {
+            "type": "template",
+            "template": {
+            "templateName":request.templateName,
+            "bodyValues": {
+                "name": request.name,
+                "dateTime": request.dateTime,
+                "count": request.count,
+                "code": request.code,
+                "supportNumber": request.supportNumber
+              }
+            }
+            }
+            };
+            var config = {
+            method: 'post',
+            url: 'https://server.gallabox.dev/devapi/messages/whatsapp',
+            headers: { 
+            'apiSecret': 'b04c6be0a1c94bbcbc1a92017f85beea', 
+            'apiKey': '616ffab395383200045df38b', 
+            '616ffab395383200045df38b': '', 
+            'Content-Type': 'application/json', 
+            'Cookie': 'connect.sid=s%3ANpRNlgUVmECJXsA330kGjxeLsCgYWdE_.OBzNZUIKlD9oW5gPjAkh0EpubJlKla7h06V1vJqZ3Lw'
+            },
+            data :data
+            };
+          await  axios(config)
+            .then((response)=> {
+                responseData.push(response.data);
+              
+            }).catch(err=>{
+              error=err
+            })
+            
+        return [error, responseData];
+
+    };
+
+
+
+
+
 };
 
 module.exports = PamService;

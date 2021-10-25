@@ -637,6 +637,17 @@ function PamController(objCollection) {
             res.json(responseWrapper.getResponse(true, result, -9999, req.body));
         }
     });
+
+//whatsapp Notification...
+app.post('/' + global.config.version + '/pam/send/whatsapp/notification', async (req, res) => {
+    let [err, result] = await pamService.whatsAppNotification(req.body)
+    if (!err) {
+        res.json(responseWrapper.getResponse({}, result, 200, req.body));
+    } else {
+        res.json(responseWrapper.getResponse(err, result, -9999, req.body));
+    }
+});
+    
 };
 
 module.exports = PamController;
