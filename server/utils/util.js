@@ -698,6 +698,11 @@ function Util(objectCollection) {
         return value;
     };
 
+    this.addMinutes = function (datetime, minutes) {
+         var value = moment(datetime).add(minutes, 'minutes').format("YYYY-MM-DD HH:mm:ss");
+         return value;
+     };
+
     this.getDayOfWeek = function (datetime) {
         let arr = new Array();
         arr.push("SUNDAY");
