@@ -635,8 +635,9 @@ function FormConfigService(objCollection) {
                     //console.log('oldFieldValue: ', oldFieldValue);
                     let content = '';
                     let simpleDataTypes = [1,2,3,7,8,9,10,14,15,19,21,22];
+                    let excludeDataTypeIds = [77,64]
                     util.logInfo(request,` /activity/form/alter data_type_category_id  ${newData.field_data_type_category_id} exists in simple categories : ${simpleDataTypes.includes(newData.field_data_type_category_id)}`);
-                    if(simpleDataTypes.includes(newData.field_data_type_category_id) && newData.field_data_type_id !=77){
+                    if(simpleDataTypes.includes(newData.field_data_type_category_id) && !excludeDataTypeIds.includes(newData.field_data_type_id)){
                         if (String(oldFieldValue).trim().length === 0) {
                             content = `In the ${newData.form_name}, the field ${newData.field_name} was updated to ${newFieldValue}`;
                         } else {
@@ -4793,6 +4794,7 @@ function FormConfigService(objCollection) {
                     let fieldName = fieldsNewValuesMap.get(fieldID).field_name;
                     // Update the activity inline data as well
                     let simpleDataTypes = [1,2,3,7,8,9,10,14,15,19,21,22];
+                    let excludeDataTypeIds = [77,64]
                     if (activityInlineDataMap.has(fieldID)) {
                         let oldFieldEntry = activityInlineDataMap.get(fieldID);
                         let newFieldEntry = Object.assign({}, oldFieldEntry);

@@ -6295,6 +6295,11 @@ function AnalyticsService(objectCollection)
                 paramsArray.push(widgetFlags[iteratorM]);
                 paramsArray[10] = request.filter_asset_id;
 
+                if (widgetFlags[iteratorM] > 4 && widgetFlags[iteratorM] < 8) {
+                    paramsArray[1] = 2;
+                }
+
+                responseJson.filter_date_type_id = paramsArray[1];
                 responseJson.filter_activity_status_tag_id = paramsArray[16];
                 responseJson.filter_asset_id = paramsArray[10];
                 responseJson.sequence_id = widgetFlags[iteratorM];

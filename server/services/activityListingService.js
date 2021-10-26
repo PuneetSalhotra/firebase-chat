@@ -2659,9 +2659,10 @@ function ActivityListingService(objCollection) {
 				paramsArr.pop();
 				paramsArr.push(request.activity_status_id);
 				paramsArr.push(request.activity_type_id);
+				paramsArr.push(request.activity_type_category_id);
 				paramsArr.push(request.page_start);
 				paramsArr.push(request.page_limit);
-				queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_all_filter_v2', paramsArr);
+				queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_all_filter_v3', paramsArr);
 		    }
 
 			if (queryString !== '') {
