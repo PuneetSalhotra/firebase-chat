@@ -17,7 +17,6 @@ const RMBotService = require('../botEngine/services/rmbotService');
 const awesomePhoneNumber = require( 'awesome-phonenumber' );
 
 
-
 function AssetService(objectCollection) {
 
     var db = objectCollection.db;
@@ -7798,6 +7797,185 @@ this.getQrBarcodeFeeback = async(request) => {
 
         return [error, responseData];
     };
+
+    this.emailVerifyRequest = async function(request) {
+        try {
+
+            let [error, assetDetails] = await this.assetDetailsByEmail(request);
+
+            if(assetDetails.length == 0) {
+                return [true, {}];
+            }
+
+
+            let verificationCode = util.getVerificationCode();
+
+            sendCallOrSms(3, '', '', verificationCode, request);
+
+            request.email_passcode = verificationCode;
+
+            this.updatePasscodeBasedOnEmail(request);;
+
+            this.insertEmailTransaction(request);
+
+            return [false, {}];
+
+        } catch(e) {
+            console.log("emailVerifyRequest error", e, e.stack);
+            return [true, {}];
+        }
+    }
+
+    this.emailPasscodeVerification = async function(request) {
+        try {
+            let [err,assetDetails] = await this.assetDetailsByEmail(request);
+
+            console.log("assetDetails[0].asset_email_passcode", assetDetails[0].asset_email_passcode);
+            if(Number(request.verification_code) !== Number(assetDetails[0].asset_email_passcode)) {
+                return [true, {}];
+            }
+            
+
+            this.emailVerifyFlagUpdate(request);
+
+            return [false, {}];
+
+        } catch(e) {
+            console.log("emailPasscodeVerification", e, e.stack);
+            return [true, {}];
+        }
+    }
+
+    this.assetDetailsByEmail = async function (request) {
+        let responseData = [],
+            error = true;
+
+       let paramsArr = new Array(
+            request.organization_id,
+            request.email
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select_email_all', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+    this.updatePasscodeBasedOnEmail = async function (request) {
+        let responseData = [],
+            error = true;
+            
+       let paramsArr = new Array(
+            request.asset_id, 
+            request.organization_id, 
+            request.email_passcode, 
+            util.addMinutes(util.getCurrentUTCTime(), 10), 
+            request.log_asset_id || request.asset_id, 
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_update_email_passcode', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = {};
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+    this.insertEmailTransaction = async function (request) {
+        let responseData = [],
+            error = true;
+            
+       let paramsArr = new Array(
+            request.email,
+            request.email_passcode,
+            util.getCurrentUTCTime(),
+            util.addMinutes(util.getCurrentUTCTime(), 10),
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_email_passcode_transaction_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = {};
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+    this.emailVerifyFlagUpdate = async function (request) {
+        let responseData = [],
+            error = true;
+            
+       let paramsArr = new Array(
+            request.email,
+            request.workforce_id, 
+            request.account_id, 
+            request.organization_id,  
+            1
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_update_email_verified', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = {};
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+    this.activityAssetMappingAssetCategorySelect = async function (request) {
+        let responseData = [],
+            error = true;
+            
+       let paramsArr = new Array(
+        request.asset_id,
+        request.organization_id,
+        request.account_id,
+        request.activity_type_category_id,
+        request.start_from,
+        request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_1_activity_asset_mapping_select_asset_category', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = {};
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
 }
 module.exports = AssetService;
+
 

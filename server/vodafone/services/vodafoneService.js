@@ -6216,6 +6216,10 @@ function VodafoneService(objectCollection) {
         // if(request.hasOwnProperty('search_string') && request.search_string.length<2){
         //     return [false,[]]
         // }
+        var format = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+        if(format.test(request.search_string)){
+            searchType = 1;
+        }
         let splitCout = request.search_string.split(' ');
         if (splitCout.length > 1) {
             searchType = 1;
@@ -6239,6 +6243,7 @@ function VodafoneService(objectCollection) {
                 query += ' LIMIT ' + pageStart + ' , ' + pageLimit + ' ';
                 console.log('Query ', query);
                 if (searchType == 1) {
+                    let finalQuer = query;
                     let tableChoose = 0;
                     if (request.flag_participating == 4) {
 
@@ -6275,18 +6280,14 @@ function VodafoneService(objectCollection) {
                     })
                     // console.log(result)
                     // console.log(global.config.elastiSearchNode)
-                    responseData = setQueryResponseV1(result)
+                    responseData = setQueryResponseV1(result);
+                    if(responseData.length==0){
+                        responseData = await getSqlBasedElasticResult(request,finalQuer) 
+                    }
                 }
                 else {
-                    const result = await client.transport.request({
-                        method: "POST",
-                        path: "/_opendistro/_sql",
-                        body: {
-                            query: String(query)
-                        }
-                    })
                     // console.log(global.config.elastiSearchNode)
-                    responseData = setQueryResponse(result)
+                    responseData = await getSqlBasedElasticResult(request,query)
                 }
             }
             return [false, responseData];
@@ -6294,6 +6295,19 @@ function VodafoneService(objectCollection) {
             return [error, []];
         }
     };
+
+    async function getSqlBasedElasticResult(request,query){
+        const result = await client.transport.request({
+            method: "POST",
+            path: "/_opendistro/_sql",
+            body: {
+                query: String(query)
+            }
+        })
+        // console.log(global.config.elastiSearchNode)
+        let responseData = setQueryResponse(result);
+        return responseData
+    }
 
     function setQueryResponse(result) {
         let responseData = []

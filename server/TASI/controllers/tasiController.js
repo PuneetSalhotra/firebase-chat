@@ -779,6 +779,16 @@ function TasiController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/tasi/account/target/setting/list', async function (req, res) {
+        const [err, resData] = await tasiService.accountTargetSettingSelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/account/target/setting/list | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/tasi/account/coverage/insert', async function (req, res) {
         const [err, resData] = await tasiService.accountCoverageListInsert(req.body);
         if (!err) {

@@ -698,6 +698,11 @@ function Util(objectCollection) {
         return value;
     };
 
+    this.addMinutes = function (datetime, minutes) {
+         var value = moment(datetime).add(minutes, 'minutes').format("YYYY-MM-DD HH:mm:ss");
+         return value;
+     };
+
     this.getDayOfWeek = function (datetime) {
         let arr = new Array();
         arr.push("SUNDAY");
@@ -3477,6 +3482,35 @@ function Util(objectCollection) {
         } else {
             this.logInfo(request, `${elasticIndex} - elastic data insert done %j`, dataTobeSent);
         }
+    }
+
+    this.handleElasticSearchEntries = async function (request, entryType, queryData, elasticIndex, stackTrace = "") {
+
+        this.logInfo(request, `${elasticIndex} - request for elastic search data ${entryType}  %j`, { queryData, elasticIndex, stackTrace, request });
+
+        let insertedResponse = await new Promise((resolve) => {
+            sqs1.sendMessage({
+                MessageBody: JSON.stringify({ queryData, entryType, elasticIndex, stackTrace, request }),
+                QueueUrl: global.config.elasticSearchEntriesSQSQueueUrl,
+                MessageGroupId: `elastic-search-group-v1`,
+                MessageDeduplicationId: uuidv4(),
+                MessageAttributes: {
+                    "Environment": {
+                        DataType: "String",
+                        StringValue: global.mode
+                    },
+                }
+            }, (error, data) => {
+                if (error) {
+                    this.logError(request, `${elasticIndex}-${entryType} - error sending elastic search entry into SQS`, { type: 'elastic_search', error, queryData, elasticIndex, stackTrace, request });
+                    resolve();
+                } else {
+                    this.logInfo(request, `${elasticIndex}-${entryType} - successfully sent to SQS`, { queryData, elasticIndex, stackTrace, request });
+                    resolve();
+                }
+            });
+
+        })
     }
 
     this.getStackTrace = () => {
