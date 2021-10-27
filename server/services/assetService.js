@@ -7948,6 +7948,33 @@ this.getQrBarcodeFeeback = async(request) => {
         return [error, responseData];
     };
 
+    this.activityAssetMappingAssetCategorySelect = async function (request) {
+        let responseData = [],
+            error = true;
+            
+       let paramsArr = new Array(
+        request.asset_id,
+        request.organization_id,
+        request.account_id,
+        request.activity_type_category_id,
+        request.start_from,
+        request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_1_activity_asset_mapping_select_asset_category', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = {};
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
 }
 module.exports = AssetService;
 
