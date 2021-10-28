@@ -7806,6 +7806,12 @@ this.getQrBarcodeFeeback = async(request) => {
             if(assetDetails.length == 0) {
                 return [true, {}];
             }
+            let [err, rateLimit] = await this.checkIfEmailOTPRateLimitExceeded(request);
+           
+            if(rateLimit.length > 0 && rateLimit[0].passcode_count >= 5){
+                return [false, { message: `OTP rate limit exceeded!`}];
+                
+            }
 
 
             let verificationCode = util.getVerificationCode();
@@ -7947,7 +7953,30 @@ this.getQrBarcodeFeeback = async(request) => {
 
         return [error, responseData];
     };
+    this.checkIfEmailOTPRateLimitExceeded=async function(request) {
+  
+        let responseData = [],
+            error = true;           
+        let paramsArr = new Array(
+            request.email,
+            util.substractMinutes(util.getCurrentUTCTime(), 60),
+            util.getCurrentUTCTime()
 
+        );
+        const queryString = util.getQueryString('ds_p1_email_passcode_transaction_select_passcode_count', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
     this.activityAssetMappingAssetCategorySelect = async function (request) {
         let responseData = [],
             error = true;
