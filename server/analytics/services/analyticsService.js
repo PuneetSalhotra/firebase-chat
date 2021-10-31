@@ -1016,7 +1016,23 @@ function AnalyticsService(objectCollection)
                     results[0] = await db.callDBProcedureR2(request, dbCall, paramsArray, 1);
                     return results[0];                
 
-                    break;                         
+                    break;  
+                //All Accounts
+                case 0:
+                    paramsArray = 
+                    new Array
+                    (
+                        request.organization_id,
+                        request.page_start,
+                        util.replaceQueryLimit(request.page_limit)
+                    );
+                    
+                    dbCall = "ds_p1_account_list_select_organization";
+                    results[0] = await db.callDBProcedureR2(request, dbCall, paramsArray, 1);
+                   // console.log(results)
+                    return results[0];
+                    
+                    break;                                           
             }
         }
         catch(error)
@@ -7273,8 +7289,9 @@ function AnalyticsService(objectCollection)
         //console.log("sipReporteeCount "+sipReporteeCount)
         return sipReporteeCount;
     }
-
     this.getSipUtilizationPercent = async function (request, managerAssetId){
+
+        let error= true, responseData = [];
         let sipUtilizationPercent = 0;
 
         const paramsArr = new Array(
@@ -7300,7 +7317,7 @@ function AnalyticsService(objectCollection)
                     return sipUtilizationPercent;
                 })
         }        
-        sipUtilizationPercent = responseData?responseData[0].payout_slab:0;
+        sipUtilizationPercent = responseData[0]?responseData[0].utilization_percent:0;
         return sipUtilizationPercent;
     }
     this.getSipWeightedTargetVsAchievementPercent = async function (request, managerAssetId){
@@ -7414,14 +7431,7 @@ function AnalyticsService(objectCollection)
         //console.log(finalResponse)
         return [error, finalResponse];
     }
-
-    this.getSipPeriodicSummaryRoles = async function(request){
-        // get list of roles 
-        // get all the parameters 
-    }   
-    
-    this.getSipPeriodicSummarySegments = async function(request){
-    }      
+   
 
     this.getSipEnabledRoles = async function(request){
         let responseData = [],
@@ -7449,8 +7459,133 @@ function AnalyticsService(objectCollection)
         return [error, responseData];
     }      
 
-    this.getSipPeriodicQualifiedCount = async function(request, managerAssetId){
+    this.getSipPeriodicOverallAchievedPercent = async function(request){
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.manager_asset_id,
+            request.datetime_start,
+            request.datetime_end,
+            request.timeline_flag,
+            request.year,
+            request.workforce_tag_id,
+            request.flag
+
+        );
+        const queryString = util.getQueryString('ds_v1_sip_payout_report_select_overall_ach_percent', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];        
+    }  
+    this.getSipPeriodicAchievedPercent = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.manager_asset_id,
+            request.datetime_start,
+            request.datetime_end,
+            request.timeline_flag,
+            request.year,
+            request.workforce_tag_id,
+            request.flag
+
+        );
+        const queryString = util.getQueryString('ds_v1_sip_payout_report_select_achievement_percent', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.getSipPeriodicPayoutPercent = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.manager_asset_id,
+            request.datetime_start,
+            request.datetime_end,
+            request.timeline_flag,
+            request.year,
+            request.workforce_tag_id,
+            request.flag
+
+        );
+        const queryString = util.getQueryString('ds_v1_sip_payout_report_select_payout_percent', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.getSipPeriodicQualifiers = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.manager_asset_id,
+            request.datetime_start,
+            request.datetime_end,
+            request.timeline_flag,
+            request.year,
+            request.workforce_tag_id,
+            request.flag
+        );
+        const queryString = util.getQueryString('ds_v1_sip_payout_report_select_payout_qualifieres', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.getSipPeriodicSummaryRoleData = async function(request){
+        // get list of roles 
+        // get all the parameters 
+    }  
+    
+    this.getSipPeriodicQualifiedCount = async function (request, managerAssetId){
         let sipQualifiedCount = 0;
+
+        let error = true, responseData = [];
 
         const paramsArr = new Array(
             request.organization_id,
@@ -7460,7 +7595,7 @@ function AnalyticsService(objectCollection)
             request.timeline_flag,
             request.year,
             request.workforce_tag_id,
-            request.flag
+            request.flag || 0
         );
         const queryString = util.getQueryString('ds_v1_sip_payout_report_analytics_select_sip_qualified', paramsArr);
 
@@ -7472,29 +7607,183 @@ function AnalyticsService(objectCollection)
                 })
                 .catch((err) => {
                     error = err;
-                    return sipQualifiedCount;
                 })
         }
-        if(responseData.length > 0)        
-        sipQualifiedCount = responseData[0].sip_qualified_reportee_count;
 
-        return sipQualifiedCount;
+        return [error,responseData];
+    }    
+    this.getSipPeriodicReporteeCount = async function (request, managerAssetId){
+        let sipReporteeCount = 0;
+        let error = true, responseData = [];
+        const paramsArr = new Array(
+            request.organization_id,
+            managerAssetId,
+            request.datetime_start,
+            request.datetime_end,
+            request.timeline_flag,
+            request.year,
+            request.workforce_tag_id,
+            request.flag || 0
+        );
+        const queryString = util.getQueryString('ds_v1_asset_customer_account_mapping_select_sip_emp', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;                   
+                })
+        }        
+        return [error,responseData];
     }
-    this.getSipPeriodicReporteeCount = async function(request){
-    }
-    this.getSipPeriodicUtilizationPercent = async function(request){
-    }
-    this.getSipPeriodicOverallAchievedPercent = async function(request){
-    }  
-    this.getSipPeriodicAchievedPercent = async function(request){
-        //% of Target Achieved P1 P2 P3 P4 P5 P6 param6 monthly target
-    }  
-    this.getSipPeriodicPayoutPercent = async function(request){
-        //% of SIP Payout P1 P2 P3 P4 P5 P6 param6 payout mtd 
-    }  
-    this.getSipPeriodicQualifiers = async function(request){
-        //SIP Qualifiers P1 P2 P3 P4 P5 P6 SUM(p1 to p6 payout ytd) > 0
+    this.getSipPeriodicUtilizationPercent = async function (request, managerAssetId){
+
+        let error= true, responseData = [];
+        let sipUtilizationPercent = 0;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            managerAssetId,
+            request.datetime_start,
+            request.datetime_end,
+            request.timeline_flag,
+            request.year,
+            request.workforce_tag_id,
+            request.flag || 0
+        );
+        const queryString = util.getQueryString('ds_v1_sip_payout_report_analytics_utilization', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;                    
+                })
+        }               
+        return [error,responseData];
+    }    
+    
+    this.getSipPeriodicSummary = async function(request){
+        let finalresponse = {"role_summary":{},"vertical_summary":{}, "circle_summary":{}};
+        let roleError = true, roleResponse = [],
+        verticalError = true, verticalResponse = [],
+        circleError = true, circleResponse = [];
+        let managerAssetId = request.manager_asset_id;
+        let error1 = true, responseData1 = [];
+        let error2 = true, responseData2 = [];
+        let error3 = true, responseData3 = [];
+        let error4 = true, responseData4 = [];
+        let error5 = true, responseData5 = [];
+        let error6 = true, responseData6 = [];
+        let error7 = true, responseData7 = [];
+
+        let vcerror1 = true, vcresponseData1 = [];
+        let vcerror2 = true, vcresponseData2 = [];
+        let vcerror3 = true, vcresponseData3 = [];
+        let vcerror4 = true, vcresponseData4 = [];
+        let vcerror5 = true, vcresponseData5 = [];
+        let vcerror6 = true, vcresponseData6 = [];
+        let vcerror7 = true, vcresponseData7 = [];        
+
+        //roles 
+        [roleError, roleResponse] = await self.getSipEnabledRoles(request);
+       // for(let roleCounter = 0; roleCounter < roleResponse.length; roleCounter++){
+       //     finalresponse.role_summary[roleResponse[roleCounter].asset_type_id] = {"sip_employees":0, "sip_qualified_employees":0, "sip_utilization_percent":0, "sip_overall_target_achieved_percent":0,"sip_target_achieved_percent":{},"sip_payout_percent":{}, "sip_qualifiers":{}};
+       // }
+        
+        /*
+        {
+        "sip_employees": 0,
+        "sip_qualified_employees": 0,
+        "sip_utilization_percent": 0,
+        "sip_overall_target_achieved_percent": 0,
+        "sip_target_achieved_percent": {},
+        "sip_payout_percent": {},
+        "sip_qualifiers": {}
+        }
+        */        
+        request.flag = 1; // ROLE WISE 
+        [error1,responseData1] = await self.getSipPeriodicReporteeCount(request, managerAssetId);
+        [error2,responseData2] = await self.getSipPeriodicQualifiedCount(request, managerAssetId);
+        [error3,responseData3] = await self.getSipPeriodicUtilizationPercent(request, managerAssetId);        
+        [error4,responseData4] = await self.getSipPeriodicOverallAchievedPercent(request);
+        [error5,responseData5] = await self.getSipPeriodicAchievedPercent(request);
+        [error6,responseData6] = await self.getSipPeriodicPayoutPercent(request);
+        [error7,responseData7] = await self.getSipPeriodicQualifiers(request);
+
+        finalresponse.role_summary.roles = roleResponse;
+        finalresponse.role_summary.sip_employees = responseData1;
+        finalresponse.role_summary.sip_qualified_employees = responseData2;
+        finalresponse.role_summary.sip_utilization_percent = responseData3;
+        finalresponse.role_summary.sip_target_achieved_percent = responseData5;
+        finalresponse.role_summary.sip_payout_percent = responseData6;
+        finalresponse.role_summary.sip_qualifiers = responseData7;
+
+        if(request.workforce_tag_id == 341){
+            // get verticals
+            request.type_flag = 28;
+            request.filter_is_search = 0;
+            request.filter_search_string = '';
+            [verticalError, verticalResponse] = await self.getTagListSelectDashobardFilters(request);
+            //finalresponse.vertical_summary = verticalResponse;
+            //for(let verticalCounter = 0; verticalCounter < verticalResponse.length; verticalCounter++){
+            //    finalresponse.vertical_summary[verticalResponse[verticalCounter].tag_id] = {"sip_employees":0, "sip_qualified_employees":0, "sip_utilization_percent":0, "sip_overall_target_achieved_percent":0,"sip_target_achieved_percent":{},"sip_payout_percent":{}, "sip_qualifiers":{}};
+            //}   
+
+            request.flag = 2; // ROLE WISE 
+            [vcerror1,vcresponseData1] = await self.getSipPeriodicReporteeCount(request, managerAssetId);
+            [vcerror2,vcresponseData2] = await self.getSipPeriodicQualifiedCount(request, managerAssetId);
+            [vcerror3,vcresponseData3] = await self.getSipPeriodicUtilizationPercent(request, managerAssetId);        
+            [vcerror4,vcresponseData4] = await self.getSipPeriodicOverallAchievedPercent(request);
+            [vcerror5,vcresponseData5] = await self.getSipPeriodicAchievedPercent(request);
+            [vcerror6,vcresponseData6] = await self.getSipPeriodicPayoutPercent(request);
+            [vcerror7,vcresponseData7] = await self.getSipPeriodicQualifiers(request);
+    
+            finalresponse.vertical_summary.verticals = verticalResponse;
+            finalresponse.vertical_summary.sip_employees = vcresponseData1;
+            finalresponse.vertical_summary.sip_qualified_employees = vcresponseData2;
+            finalresponse.vertical_summary.sip_utilization_percent = vcresponseData3;
+            finalresponse.vertical_summary.sip_target_achieved_percent = vcresponseData5;
+            finalresponse.vertical_summary.sip_payout_percent = vcresponseData6;
+            finalresponse.vertical_summary.sip_qualifiers = vcresponseData7;          
+ 
+        }else{
+
+
+            request.filter_id = 0;
+             circleResponse = await self.getFilterValues(request);
+            //finalresponse.circle_summary = circleResponse;
+           // for(let circleCounter = 0; circleCounter < circleResponse.length; circleCounter++){
+           //     finalresponse.circle_summary[circleResponse[circleCounter].account_id] = {"sip_employees":0, "sip_qualified_employees":0, "sip_utilization_percent":0, "sip_overall_target_achieved_percent":0,"sip_target_achieved_percent":{},"sip_payout_percent":{}, "sip_qualifiers":{}};
+            //}  
+            request.flag = 3;
+
+            [vcerror1,vcresponseData1] = await self.getSipPeriodicReporteeCount(request, managerAssetId);
+            [vcerror2,vcresponseData2] = await self.getSipPeriodicQualifiedCount(request, managerAssetId);
+            [vcerror3,vcresponseData3] = await self.getSipPeriodicUtilizationPercent(request, managerAssetId);        
+            [vcerror4,vcresponseData4] = await self.getSipPeriodicOverallAchievedPercent(request);
+            [vcerror5,vcresponseData5] = await self.getSipPeriodicAchievedPercent(request);
+            [vcerror6,vcresponseData6] = await self.getSipPeriodicPayoutPercent(request);
+            [vcerror7,vcresponseData7] = await self.getSipPeriodicQualifiers(request);
+    
+            finalresponse.circle_summary.circles = circleResponse;
+            finalresponse.circle_summary.sip_employees = vcresponseData1;
+            finalresponse.circle_summary.sip_qualified_employees = vcresponseData2;
+            finalresponse.circle_summary.sip_utilization_percent = vcresponseData3;
+            finalresponse.circle_summary.sip_target_achieved_percent = vcresponseData5;
+            finalresponse.circle_summary.sip_payout_percent = vcresponseData6;
+            finalresponse.circle_summary.sip_qualifiers = vcresponseData7;    
+        }
+
+        return [false, finalresponse];
     }       
+    
 }
 
 module.exports = AnalyticsService;

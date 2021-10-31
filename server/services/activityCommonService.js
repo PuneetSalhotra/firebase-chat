@@ -7022,7 +7022,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
         const queryString = util.getQueryString('ds_v1_activity_search_list_update_entity_fields', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
