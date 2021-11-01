@@ -24,6 +24,7 @@ function AdminOpsService(objectCollection) {
 
     const util = objectCollection.util;
     const db = objectCollection.db;
+    const queueWrapper = objectCollection.queueWrapper;
     const activityCommonService = objectCollection.activityCommonService;
     const adminListingService = new AdminListingService(objectCollection);
     const assetService = new AssetService(objectCollection);
@@ -1652,7 +1653,23 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         //Update Manager Details
         let newReq = Object.assign({}, request);
         newReq.asset_id = deskAssetID;
-        this.updateAssetsManagerDetails(newReq);
+        await this.updateAssetsManagerDetails(newReq);
+
+        const mode = global.mode;
+        if (request.organization_id === 868 && (mode === "preprod" || mode === "prod")) {
+
+            try {
+                await triggerESMSIntegrationsService({
+                    asset_id: operatingAssetID
+                }, {
+                    mode: mode,
+                    request_type: "CLMS_USER_SERVICE_ADD"
+                });
+            } catch (e) {
+                console.log(e);
+            }
+
+        }
 
         return [false, {
             desk_asset_id: deskAssetID,
@@ -11032,6 +11049,33 @@ console.log('new ActivityId321',newActivity_id)
         return [error, responseData];
     }
 
+    async function triggerESMSIntegrationsService(request = {}, options = {}) {
+        logger.silly("ESMS Integrations User service trigger request : %j", request);
+        let esmsIntegrationsTopicName = "";
+
+        const mode = options.mode || "";
+        switch (mode) {
+            case "preprod":
+                esmsIntegrationsTopicName = "staging-vil-esms-ibmmq-v3";
+                break;
+            case "prod":
+                esmsIntegrationsTopicName = "production-vil-esms-ibmmq-v1";
+                break;
+        }
+
+        esmsIntegrationsTopicName = "local-vil-esms-ibmmq-v4";
+        try {
+            if (esmsIntegrationsTopicName === "") { throw new Error("EsmsIntegrationsTopicNotDefinedForMode"); }
+
+            await queueWrapper.raiseActivityEventToTopicPromise({
+                type: "VIL_ESMS_IBMMQ_INTEGRATION",
+                trigger_form_id: options.request_type,
+                payload: request
+            }, esmsIntegrationsTopicName, 0);
+        } catch (error) {
+            logger.error("[ESMS Integrations User service trigger] Error ", { type: 'user_creation', error: serializeError(error), request_body: request });
+        }
+    }
 }
 
 module.exports = AdminOpsService;
