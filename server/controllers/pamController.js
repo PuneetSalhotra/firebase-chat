@@ -637,6 +637,8 @@ function PamController(objCollection) {
             res.json(responseWrapper.getResponse(true, result, -9999, req.body));
         }
     });
+
+    
 };
 
 module.exports = PamController;
