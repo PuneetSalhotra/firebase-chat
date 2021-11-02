@@ -351,32 +351,7 @@ function TasiService(objectCollection) {
           request.organization_id,
           request.customer_account_type_id,
           request.account_type_inline_json,
-          request.asset_id,
-          util.getCurrentUTCTime()
-        );
-        const queryString = util.getQueryString('ds_p1_customer_account_type_list_update_inline', paramsArr);
-
-        if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                     customerAccountTypeHistoryInsert(request,2503)
-                })
-                .catch((err) => {
-                    error = err;
-                })
-        }
-        return [error, responseData];
-    }
-
-    this.customerAccountTypeEntityMappingUpdate = async function (request) {
-        let responseData = [],
-            error = true;
-        const paramsArr = new Array(
-          request.organization_id,
-          request.customer_account_type_id,
-          request.account_type_inline_json,
+          request.description,
           request.asset_id,
           util.getCurrentUTCTime()
         );
@@ -2957,6 +2932,55 @@ function TasiService(objectCollection) {
         );
 
         const queryString = util.getQueryString('ds_p1_productive_infra_list_select_filter', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.widgetTypeMasterCodeSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.widget_type_code
+        );
+
+        const queryString = util.getQueryString('ds_p1_widget_type_master_select_code', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.lovTasiNonProductList = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.start_from,
+          request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p1_lov_tasi_non_product_list_select', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)

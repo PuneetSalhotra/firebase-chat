@@ -508,6 +508,16 @@ function TasiController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/tasi/lov/non_product_list/select', async function (req, res) {
+        const [err, resData] = await tasiService.lovTasiNonProductList(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/lov/product_list/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/tasi/validation_list/update', async function (req, res) {
         const [err, resData] = await tasiService.validationListUpdateTarget(req.body);
         if (!err) {
@@ -851,6 +861,16 @@ function TasiController(objCollection) {
 
     app.post('/' + global.config.version + '/tasi/productive/infra/list', async function (req, res) {
         const [err, resData] = await tasiService.productiveInfraListSelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/productive/infra/list | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/widget/master/code/select', async function (req, res) {
+        const [err, resData] = await tasiService.widgetTypeMasterCodeSelect(req.body);
         if (!err) {
             res.json(responseWrapper.getResponse({}, resData, 200, req.body));
         } else {
