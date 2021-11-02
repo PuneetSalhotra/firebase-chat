@@ -3698,7 +3698,19 @@ async function addFormEntriesAsync(request) {
                      params[18] = row.field_value;
                      break;
             case 74: //Composite Online List
-                     params[18] = row.field_value;
+                     let fieldValue = row.field_value;
+                     console.log("******fieldValue1****** "+fieldValue);
+                     console.log("******typeof fieldValue1****** "+typeof fieldValue);
+                     try {
+                         if (typeof fieldValue === 'string') {
+                             params[18] = fieldValue;
+                         }
+                         if (typeof fieldValue === 'object') {
+                             params[18] = JSON.stringify(fieldValue);
+                         }
+                     } catch (err) {
+                         util.logError(request,`[74] row.field_value ${row.field_value}`, { type: 'addFormEntries', error: serializeError(err) });
+                     }                     
                      break;
             case 76: //Drop box data type
                      params[18] = (typeof row.field_value === 'object') ? JSON.stringify(row.field_value) : row.field_value;    

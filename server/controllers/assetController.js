@@ -1093,5 +1093,32 @@ function AssetController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/asset/email/verify/request', async function (req, res) {
+        const [err, data] = await assetService.emailVerifyRequest(req.body);
+        if (err) {
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/asset/email/verification', async function (req, res) {
+        const [err, data] = await assetService.emailPasscodeVerification(req.body);
+        if (err) {
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/asset/account/mapped/list', async function (req, res) {
+        const [err, data] = await assetService.activityAssetMappingAssetCategorySelect(req.body);
+        if (err) {
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
+
 }
 module.exports = AssetController;
