@@ -157,6 +157,12 @@ const digitalEmailRoms = require("./email_web_security_caf/roms.json");
 const digitalEmailRomsActions = require("./email_web_security_caf/roms_actions.json");
 const digitalEmailBulkOrderMappings = require("./email_web_security_caf/bulk_order_to_origin_form_mappings.json");
 
+// GIPT CAF - 192513
+const digitalGIPTMappings = require("./digital_gipt_caf/mappings.json");
+const digitalGIPTLabels = require("./digital_gipt_caf/labels.json");
+const digitalGIPTRoms = require("./digital_gipt_caf/roms.json");
+const digitalGIPTRomsActions = require("./digital_gipt_caf/roms_actions.json");
+
 vodafoneConfig = {
     "860": {
         "NAME": "Vodafone Idea | Production | BETA",
@@ -588,5 +594,15 @@ vodafoneConfig = {
         "ROMS_ACTIONS": digitalEmailRomsActions,
         "ORIGIN_FORM_ID": 51030,
         "BULK_ORDER_ORIGIN_FORM_MAPPING_DATA": digitalEmailBulkOrderMappings
+    },
+    "192513": {
+        "REQUIRED_FORMS": [51065],
+        "TARGET_FORM_ID": 51070,
+        "TARGET_FORM_ACTIVITY_TYPE_ID": 192513,
+        "FORM_FIELD_MAPPING_DATA": digitalGIPTMappings,
+        "LABELS": digitalGIPTLabels,
+        "ROMS": digitalGIPTRoms,
+        "ROMS_ACTIONS": digitalGIPTRomsActions,
+        "ORIGIN_FORM_ID": 51065
     }
 };
