@@ -8004,6 +8004,88 @@ this.getQrBarcodeFeeback = async(request) => {
         return [error, responseData];
     };
 
+
+    //organizationListInsert
+    this.organization_List_Insert = async function (request) {
+        let responseData = [],
+            error = true;    
+        const paramsArr = new Array(
+            request.organization_name,
+            request.organization_domain,
+            request.organization_image_path,
+            request.organization_address,
+            request.organization_phone_country_code,
+            request.organization_phone_number,
+            request.organization_email,
+            request.organization_one_time_set_up_fee,
+            request.organization_monthly_subscription_charges,
+            request.organization_dotpe_transaction_fee,
+            request.organization_payment_service_charges,
+            request.contact_person,
+            request.contact_phone_country_code,
+            request.contact_phone_number,
+            request.contact_email,
+            request.org_enterprise_feature_data,
+            request.flag_email,
+            request.flag_doc_repo,
+            request.flag_ent_features,
+            request.flag_ai_bot,
+            request.flag_manager_proxy,
+            request.flag_enable_form_tag,
+            request.flag_enable_sip_module,
+            request.flag_enable_elasticsearch,
+            request.org_exchange_server_url,
+            request.org_exchange_server_domain,
+            request.flag_enable_calendar,
+            request.flag_enable_grouping,
+            request.organization_type_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_7_organization_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
+
+      //Organization list update
+      this.organizationListUpdateFees = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.organization_one_time_set_up_fee,
+            request.organization_monthly_subscription_charges,
+            request.organization_dotpe_transaction_fee,
+            request.organization_payment_service_charges,
+            request.organization_id,
+        );
+        const queryString = util.getQueryString('ds_p1_organization_list_update_fees', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
+
+
 }
 module.exports = AssetService;
 
