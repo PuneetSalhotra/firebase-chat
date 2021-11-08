@@ -542,6 +542,8 @@ function TasiService(objectCollection) {
             request.period_start_datetime,
             request.period_end_datetime, 
             request.customer_account_type_id,
+            request.commission_start_datetime,
+            request.commission_end_datetime,
             request.organization_id, 
             request.asset_id, 
           util.getCurrentUTCTime()
