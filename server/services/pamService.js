@@ -8,6 +8,7 @@ var makingRequest = require('request');
 const nodeUtil = require('util');
 let TinyURL = require('tinyurl');
 const XLSX = require('xlsx');
+const { connect } = require('http2');
 
 function PamService(objectCollection) {
 
@@ -5049,9 +5050,9 @@ this.getChildOfAParent = async (request) => {
                      break;
         }
         const header = [
-            [["Most Ordered Food", "Count"]],
-            [["Most Ordered Spirit:", "Count"]],
-            [["Most Ordered Cocktail:", "Count"]],
+            ["Most Ordered Food", "Count"],
+            ["Most Ordered Spirit:", "Count"],
+            ["Most Ordered Cocktail:", "Count"],
             [
                 [
                     "SNo",
@@ -5347,6 +5348,7 @@ this.getChildOfAParent = async (request) => {
                                     break;
                                     //RESERVATION WISE BILLING
                                 case 4:
+                                    console.log(responseData,'responseDataresponseData case-4')
                                     XLSX.utils.sheet_add_aoa(
                                         wb.Sheets["Reservation Wise Report"],
                                         header[3]
