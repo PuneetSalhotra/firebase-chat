@@ -5034,6 +5034,9 @@ this.getChildOfAParent = async (request) => {
         let responseData = [],
             error = true;
             let fileName = "";
+            let SaleReportType='';
+            let start_date='';
+            let end_date='';
         // //HANDLE THE PATHS in STAGING and PREPROD AND PRODUCTION
         switch(global.mode) {            
             case 'staging': fileName = '/apistaging-data/';
@@ -5046,9 +5049,9 @@ this.getChildOfAParent = async (request) => {
                      break;
         }
         const header = [
-            ["Most Ordered Food", "Count"],
-            ["Most Ordered Spirit:", "Count"],
-            ["Most Ordered Cocktail:", "Count"],
+            [["Most Ordered Food", "Count"]],
+            [["Most Ordered Spirit:", "Count"]],
+            [["Most Ordered Cocktail:", "Count"]],
             [
                 [
                     "SNo",
@@ -5168,10 +5171,11 @@ this.getChildOfAParent = async (request) => {
                 request.event_activity_id,
                 request.start_date,
                 request.end_date,
-                request.flag = i
+                request.flag = i,
+                request.type_flag
             );
             let queryString = util.getQueryString(
-                "pm_v1_pam_order_list_select_event_summary",
+                "pm_v2_pam_order_list_select_event_summary",
                 paramsArr
             );
             if (queryString != "") {
@@ -5183,12 +5187,24 @@ this.getChildOfAParent = async (request) => {
 
                         let responseDataValues = [];
 
+                        //monthly checks
+                        if(request.type_flag==1){
+                            SaleReportType="MonthlyReport";
+                            start_date=(request.start_date).split(" ")[0];
+                            end_date=(request.end_date).split(" ")[0];
+                        }
+                        else{
+                            SaleReportType="EventReport",
+                            start_date=Current_Date;
+                            end_date=(request.start_date).split(" ")[0]; 
+                        };
+
                         fs.stat(
-                            `${fileName}EventReport_${request.event_activity_id}_${Current_Date}.xlsx`,
+                            `${fileName}${SaleReportType}_${request.event_activity_id}_${start_date}_${end_date}.xlsx`,
                             function (err, stat) {
                                 if (err == null) {
                                     let wb = XLSX.readFile(
-                                        `${fileName}EventReport_${request.event_activity_id}_${Current_Date}.xlsx`, {
+                                        `${fileName}${SaleReportType}_${request.event_activity_id}_${start_date}_${end_date}.xlsx`, {
                                             cellText: false,
                                             cellDates: true,
                                             cellStyles: true,
@@ -5219,14 +5235,12 @@ this.getChildOfAParent = async (request) => {
                                     }
                                     XLSX.writeFile(
                                         nwb,
-                                        `${fileName}EventReport_${request.event_activity_id}_${
-                       Current_Date
-                    }.xlsx`, {
+                                        `${fileName}${SaleReportType}_${request.event_activity_id}_${start_date}_${end_date}.xlsx`, {
                                             cellStyles: true
                                         }
                                     );
                                     let wb = XLSX.readFile(
-                                        `${fileName}EventReport_${request.event_activity_id}_${Current_Date}.xlsx`, {
+                                        `${fileName}${SaleReportType}_${request.event_activity_id}_${start_date}_${end_date}.xlsx`, {
                                             cellText: false,
                                             cellDates: true,
                                             cellStyles: true,
@@ -5543,7 +5557,7 @@ this.getChildOfAParent = async (request) => {
                             }
                             XLSX.writeFile(
                                 wb,
-                                `${fileName}EventReport_${request.event_activity_id}_${Current_Date}.xlsx`, {
+                                `${fileName}${SaleReportType}_${request.event_activity_id}_${start_date}_${end_date}.xlsx`, {
                                     cellDates: true,
                                     cellStyles: true
                                 }
@@ -5556,7 +5570,7 @@ this.getChildOfAParent = async (request) => {
                     });
             }
         }
-        let path = `${fileName}EventReport_${request.event_activity_id}_${Current_Date}.xlsx`;
+        let path = `${fileName}${SaleReportType}_${request.event_activity_id}_${start_date}_${end_date}.xlsx`;
 
         request.attachment = path;
         request.sendRegularEmail = 1;
