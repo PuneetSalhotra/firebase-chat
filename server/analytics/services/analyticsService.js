@@ -7721,6 +7721,7 @@ function AnalyticsService(objectCollection)
         finalresponse.role_summary.sip_employees = responseData1;
         finalresponse.role_summary.sip_qualified_employees = responseData2;
         finalresponse.role_summary.sip_utilization_percent = responseData3;
+        finalresponse.role_summary.sip_overall_achieved_percent = responseData4;
         finalresponse.role_summary.sip_target_achieved_percent = responseData5;
         finalresponse.role_summary.sip_payout_percent = responseData6;
         finalresponse.role_summary.sip_qualifiers = responseData7;
@@ -7749,6 +7750,7 @@ function AnalyticsService(objectCollection)
             finalresponse.vertical_summary.sip_employees = vcresponseData1;
             finalresponse.vertical_summary.sip_qualified_employees = vcresponseData2;
             finalresponse.vertical_summary.sip_utilization_percent = vcresponseData3;
+            finalresponse.vertical_summary.sip_overall_achieved_percent = responseData4;
             finalresponse.vertical_summary.sip_target_achieved_percent = vcresponseData5;
             finalresponse.vertical_summary.sip_payout_percent = vcresponseData6;
             finalresponse.vertical_summary.sip_qualifiers = vcresponseData7;          
@@ -7776,6 +7778,7 @@ function AnalyticsService(objectCollection)
             finalresponse.circle_summary.sip_employees = vcresponseData1;
             finalresponse.circle_summary.sip_qualified_employees = vcresponseData2;
             finalresponse.circle_summary.sip_utilization_percent = vcresponseData3;
+            finalresponse.circle_summary.sip_overall_achieved_percent = responseData4;
             finalresponse.circle_summary.sip_target_achieved_percent = vcresponseData5;
             finalresponse.circle_summary.sip_payout_percent = vcresponseData6;
             finalresponse.circle_summary.sip_qualifiers = vcresponseData7;    
