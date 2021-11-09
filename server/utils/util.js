@@ -2715,16 +2715,16 @@ function Util(objectCollection) {
         return [error, responseData];
     };
 
-     this.sendEmailV4ewsV1 = async function (request,emails,subject,body,attachment){
+     this.sendEmailV4ewsV1 = async function (request,emails,subject,body,attachment,emailProviderDetails){
         let responseData = [];
         let error = false;
         try{
         let ewsPassword = await cacheWrapper.getKeyValueFromCache('omt.in1@vodafoneidea.com');
         let emailSQSQueueUrl = global.config.emailSQSQueueUrl;
         let ewsConfig = {
-            "ewsEmail":"CentralOmt.In @vodafoneidea.com",
-            "ewsUsername":"COR458207",
-            "ewsPassword":ewsPassword,
+            "ewsEmail":emailProviderDetails.email || "CentralOmt.In@vodafoneidea.com",
+            "ewsUsername":emailProviderDetails.username || "COR458207",
+            "ewsPassword":emailProviderDetails.password || ewsPassword,
             "ewsDomain":"inroot",
             "ewsEndpoint":"https://webmail.vodafoneidea.com/ews/exchange.asmx",
             "ewsMailReceiver":emails,
