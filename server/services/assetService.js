@@ -1022,7 +1022,9 @@ function AssetService(objectCollection) {
             "organization_flag_elasticsearch_enabled": util.replaceDefaultNumber(rowArray[0]['organization_flag_elasticsearch_enabled']),
             "asset_flag_export" : util.replaceDefaultNumber(rowArray[0]['asset_flag_export']),
             "organization_flag_calendar_enabled" : util.replaceDefaultNumber(rowArray[0]['organization_flag_calendar_enabled']),
-            "asset_flag_simulation" : util.replaceDefaultNumber(rowArray[0]['asset_flag_simulation'])
+            "asset_flag_simulation" : util.replaceDefaultNumber(rowArray[0]['asset_flag_simulation']),
+            "organization_flag_enable_timetracker" : util.replaceDefaultNumber(rowArray[0]['organization_flag_enable_timetracker']),
+            "organization_flag_timeline_access_mgmt" : util.replaceDefaultNumber(rowArray[0]['organization_flag_timeline_access_mgmt'])
         };
 
         callback(false, rowData);
