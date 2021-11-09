@@ -3352,7 +3352,9 @@ function AnalyticsService(objectCollection)
           request.account_id,
           request.organization_id,
           request.asset_id,
-          util.getCurrentUTCTime()
+          util.getCurrentUTCTime(),
+          request.non_product_id,
+          request.gate_condition_id
         );
         const queryString = util.getQueryString('ds_p3_widget_type_master_insert', paramsArr);
 

@@ -2452,6 +2452,19 @@ function BotService(objectCollection) {
                         });
                     }
                     break;
+
+                case 58: // Close All Business case's when reffered optty is closed 
+                    
+                    try{
+                        await closeRefferedOutActivities(request, botOperationsJson.bot_operations);
+                    } catch (error){
+                        logger.error("[Close Reffered Out Activities Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        i.bot_operation_status_id = 2;
+                        i.bot_operation_inline_data = JSON.stringify({
+                            "error": error
+                        });
+                    }
+                    break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -15906,7 +15919,8 @@ if(workflowActivityData.length==0){
           return [false,[]]
       }
       let activity_type_inline_data = typeof activityTypeConfig[0].activity_type_inline_data == 'string' ? JSON.parse(activityTypeConfig[0].activity_type_inline_data) : activityTypeConfig[0].activity_type_inline_data;
-      console.log(activity_type_inline_data)
+      console.log(activity_type_inline_data);
+    //   return [false,[]]
       //Getting Activity Details
       let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
 
@@ -16041,20 +16055,31 @@ if(workflowActivityData.length==0){
                 request.email_receiver_name = receiver_name;
                 let emailsToSend = [];
                 for (let i = 0; i < emailsToAdd.length; i++) {
+                    if(emailsToAdd[i].email == "shankar@gmail.com"){
+
+                    }
+                    else{
                     emailsToSend.push(emailsToAdd[i].email);
+                    }
                 }
                 let [s3err, s3Response] = await util.uploadICSFileToS3V1(
                     request,
                     fileName
                 );
                 util.logInfo(request,"Emails To Send" + emailsToSend);
-                console.log(s3Response)
+                let emailProviderDetails = {
+                    email:activity_type_inline_data.activity_type_email_id,
+                    password:activity_type_inline_data.activity_type_email_password,
+                    username:activity_type_inline_data.activity_type_email_username
+                }
+                // console.log(s3Response);
                 util.sendEmailV4ewsV1(
                     request,
                     emailsToSend,
                     subjectContent,
                     bodyContent,
-                    s3Response[0].location
+                    s3Response[0].location,
+                    emailProviderDetails
                 );
                 fs.unlink(fileName, function(err) {
                     if (err) return console.log(err);
@@ -16062,7 +16087,6 @@ if(workflowActivityData.length==0){
                 });
             })
         });
-
 
     }
 
@@ -16493,6 +16517,105 @@ if(workflowActivityData.length==0){
             console.log(e);
         }
     }
+    async function closeRefferedOutActivities(request,bot_inline){
+        const workflowActivityID = request.workflow_activity_id;
+
+        //get list of activities Reffered out
+        const [actListErr,referedOutActivities] = await activityListingService.getActActChildActivitiesV1(request);
+
+        if(referedOutActivities.length==0){
+            return [false,[]]
+        }
+
+        //continuing because there are activities to close
+        for(let i=0;i<referedOutActivities.length;i++){
+            await submitFormInternalV1(request,bot_inline,referedOutActivities[i].activity_id)
+        }
+        return [false,[]]
+
+    }
+
+    async function submitFormInternalV1(request,inlineData,workFlowActivityID){
+        let formData = inlineData.target_form_data;
+        let activityInlineData = formData.fields;
+// console.log(formData)
+        // for(let data of formData) {
+        //     activityInlineData.push({
+        //         "form_id": data.form_id,
+        //         "field_id": data.field_id,
+        //         "field_name": data.field_name,
+        //         "message_unique_id": data.message_unique_id,
+        //         "data_type_combo_id": data.data_type_combo_id,
+        //         "field_data_type_id": data.data_type_id,
+        //         "data_type_combo_value": data.data_type_combo_value,
+        //         "field_data_type_category_id": data.data_type_category_id
+        //     });
+        // }
+
+        console.log("activityInlineData", JSON.stringify(activityInlineData));
+
+
+        let formId = formData.form_id;
+
+        let createWorkflowRequest = Object.assign({}, request);
+        let targetFormctivityTypeID = formData.form_activity_type_id;
+       
+        createWorkflowRequest.activity_type_id          = targetFormctivityTypeID;
+        createWorkflowRequest.activity_inline_data      = JSON.stringify(activityInlineData);
+        createWorkflowRequest.workflow_activity_id      = Number(workFlowActivityID);
+        createWorkflowRequest.activity_type_category_id = 9;
+        createWorkflowRequest.activity_parent_id        = 0;
+        createWorkflowRequest.activity_form_id          = formId;
+        createWorkflowRequest.form_id                   = formId;
+        createWorkflowRequest.activity_datetime_start   = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+        createWorkflowRequest.activity_datetime_end     = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+        createWorkflowRequest.device_os_id              = 7;
+
+        const targetFormActivityID                = await cacheWrapper.getActivityIdPromise();
+        const targetFormTransactionID             = await cacheWrapper.getFormTransactionIdPromise();
+        createWorkflowRequest.activity_id         = targetFormActivityID;
+        createWorkflowRequest.form_transaction_id = targetFormTransactionID;
+        createWorkflowRequest.data_entity_inline  = createWorkflowRequest.activity_inline_data;
+        createWorkflowRequest.message_unique_id = util.getMessageUniqueId(100);
+        createWorkflowRequest.log_message_unique_id = util.getMessageUniqueId(100);
+
+        console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+        // request.debug_info.push('createWorkflowRequest: ' + createWorkflowRequest);
+        const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
+        let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
+
+        console.log("activityInsertedDetails---->", activityInsertedDetails);
+        // request.debug_info.push('activityInsertedDetails: ' + activityInsertedDetails);
+
+
+        let activityTimelineCollection =  JSON.stringify({
+            "content"            : `Form Submitted`,
+            "subject"            : `Form Submitted`,
+            "mail_body"          : `Form Submitted`,
+            "activity_reference" : [],
+            "form_id"            : formId,
+            "form_submitted"     : JSON.parse(createWorkflowRequest.data_entity_inline),
+            "asset_reference"    : [],
+            "attachments"        : [],
+            "form_approval_field_reference": []
+        });
+
+
+        let timelineReq = Object.assign({}, createWorkflowRequest);
+
+        timelineReq.activity_id                  = request.workflow_activity_id;
+        timelineReq.message_unique_id            = util.getMessageUniqueId(100);
+        timelineReq.track_gps_datetime           = util.getCurrentUTCTime();
+        timelineReq.activity_stream_type_id      = 705;
+        timelineReq.timeline_stream_type_id      = 705;
+        timelineReq.activity_type_category_id    = 48;
+        timelineReq.asset_id                     = 100;
+        timelineReq.activity_timeline_collection = activityTimelineCollection;
+        timelineReq.data_entity_inline           = timelineReq.activity_timeline_collection;
+
+        await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+    }
+
 }
 
 

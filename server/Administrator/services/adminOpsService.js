@@ -24,6 +24,7 @@ function AdminOpsService(objectCollection) {
 
     const util = objectCollection.util;
     const db = objectCollection.db;
+    const queueWrapper = objectCollection.queueWrapper;
     const activityCommonService = objectCollection.activityCommonService;
     const adminListingService = new AdminListingService(objectCollection);
     const assetService = new AssetService(objectCollection);
@@ -124,10 +125,12 @@ function AdminOpsService(objectCollection) {
             request.flag_enable_elasticsearch,
             request.flag_enable_calendar,
             request.flag_enable_grouping || 0,
+            request.organization_flag_enable_timetracker || 0,
+            request.organization_flag_timeline_access_mgmt || 0,
             request.asset_id,
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_4_organization_list_update_flags', paramsArr);
+        const queryString = util.getQueryString('ds_p1_5_organization_list_update_flags', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -959,11 +962,13 @@ function AdminOpsService(objectCollection) {
           request.org_exchange_server_domain || "",
           request.flag_enable_calendar || "",
           request.flag_enable_grouping || 0,
+          request.organization_flag_enable_timetracker || 0,
+          request.organization_flag_timeline_access_mgmt || 0,
           request.organization_type_id || 1,
           request.asset_id || 1,
           util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_6_organization_list_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_8_organization_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -1652,7 +1657,23 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         //Update Manager Details
         let newReq = Object.assign({}, request);
         newReq.asset_id = deskAssetID;
-        this.updateAssetsManagerDetails(newReq);
+        await this.updateAssetsManagerDetails(newReq);
+
+        const mode = global.mode;
+        if (request.organization_id === 868 && (mode === "preprod" || mode === "prod")) {
+
+            try {
+                await triggerESMSIntegrationsService({
+                    asset_id: operatingAssetID
+                }, {
+                    mode: mode,
+                    request_type: "CLMS_USER_SERVICE_ADD"
+                });
+            } catch (e) {
+                console.log(e);
+            }
+
+        }
 
         return [false, {
             desk_asset_id: deskAssetID,
@@ -11032,6 +11053,33 @@ console.log('new ActivityId321',newActivity_id)
         return [error, responseData];
     }
 
+    async function triggerESMSIntegrationsService(request = {}, options = {}) {
+        logger.silly("ESMS Integrations User service trigger request : %j", request);
+        let esmsIntegrationsTopicName = "";
+
+        const mode = options.mode || "";
+        switch (mode) {
+            case "preprod":
+                esmsIntegrationsTopicName = "staging-vil-esms-ibmmq-v3";
+                break;
+            case "prod":
+                esmsIntegrationsTopicName = "production-vil-esms-ibmmq-v1";
+                break;
+        }
+
+        esmsIntegrationsTopicName = "local-vil-esms-ibmmq-v4";
+        try {
+            if (esmsIntegrationsTopicName === "") { throw new Error("EsmsIntegrationsTopicNotDefinedForMode"); }
+
+            await queueWrapper.raiseActivityEventToTopicPromise({
+                type: "VIL_ESMS_IBMMQ_INTEGRATION",
+                trigger_form_id: options.request_type,
+                payload: request
+            }, esmsIntegrationsTopicName, 0);
+        } catch (error) {
+            logger.error("[ESMS Integrations User service trigger] Error ", { type: 'user_creation', error: serializeError(error), request_body: request });
+        }
+    }
 }
 
 module.exports = AdminOpsService;
