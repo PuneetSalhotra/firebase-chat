@@ -8945,7 +8945,8 @@ else{
             accountActivityId = request.account_activity_id;
         } else {
             util.logInfo(request, 'activityopportunityset No Account :: ' + request.account_activity_id);
-            let fieldValue = request.reference_data;
+            util.logInfo(request, 'activityopportunityset request.reference_data :: ' + request.reference_data);
+            let fieldValue = request.reference_data || '';
             if (fieldValue.includes('|')) {
                 accountActivityId = fieldValue.split('|')[0];
             }
