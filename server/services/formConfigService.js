@@ -1140,8 +1140,6 @@ function FormConfigService(objCollection) {
                             util.logError(request,`[alterFormActivity] Workflow trigger on form edit`, { type: 'alter_form', error: serializeError(error) });
                         }
                     }
-                }).catch((err1)=>{
-                 callback(true, err1, -9999);
                 })
             }
         })

@@ -6296,6 +6296,10 @@ this.getQrBarcodeFeeback = async(request) => {
                                 responseData[1] = data;
                                 resolve(responseData);
                             }
+                        } else if (request.flag == 27) {
+                            responseData[0] = "";
+                            responseData[1] = data;
+                            resolve(responseData);
                         } else {
                             responseData[0] = "";
                             responseData[1] = data;
@@ -7055,6 +7059,20 @@ this.getQrBarcodeFeeback = async(request) => {
             }
         });
     };    
+
+    function getOrganizationApplications(request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id
+            );
+            var queryString = util.getQueryString('ds_v1_application_master_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    };      
 
     this.assetSwipeIn = async function(request){
         let responseData = [],
