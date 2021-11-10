@@ -127,6 +127,7 @@ function AdminOpsService(objectCollection) {
             request.flag_enable_grouping || 0,
             request.organization_flag_enable_timetracker || 0,
             request.organization_flag_timeline_access_mgmt || 0,
+            request.flag_timeline_lead_mgmt || 0,
             request.asset_id,
             util.getCurrentUTCTime()
         );
@@ -964,6 +965,7 @@ function AdminOpsService(objectCollection) {
           request.flag_enable_grouping || 0,
           request.organization_flag_enable_timetracker || 0,
           request.organization_flag_timeline_access_mgmt || 0,
+          request.flag_lead_mgmt || 0,
           request.organization_type_id || 1,
           request.asset_id || 1,
           util.getCurrentUTCTime()
@@ -1122,7 +1124,7 @@ function AdminOpsService(objectCollection) {
 
     this.addNewDeskToWorkforce = async function (request) {
 
-
+        let assetTypeCategoryID = request.asset_type_category_id;
         if(request.asset_type_category_id == 3)
             request.activity_type_category_id = 5;
         else if(request.asset_type_category_id == 45)
@@ -1225,7 +1227,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             organization_id: organizationID,
             account_id: accountID,
             workforce_id: workforceID,
-            asset_type_category_id: request.asset_type_category_id
+            asset_type_category_id: assetTypeCategoryID
         });
         if (errTwo) {
             console.log("createAssetBundle | workforceAssetCountData | Error: ", err);

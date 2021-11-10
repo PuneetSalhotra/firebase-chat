@@ -15920,7 +15920,6 @@ if(workflowActivityData.length==0){
       }
       let activity_type_inline_data = typeof activityTypeConfig[0].activity_type_inline_data == 'string' ? JSON.parse(activityTypeConfig[0].activity_type_inline_data) : activityTypeConfig[0].activity_type_inline_data;
       console.log(activity_type_inline_data);
-    //   return [false,[]]
       //Getting Activity Details
       let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
 
@@ -16519,9 +16518,17 @@ if(workflowActivityData.length==0){
     }
     async function closeRefferedOutActivities(request,bot_inline){
         const workflowActivityID = request.workflow_activity_id;
-
+        let requestForChildActivities = {
+            ...request,
+            activity_type_id:bot_inline.target_form_data.form_activity_type_id,
+            activity_type_category_id:0,
+            tag_id:0,
+            tag_type_id:0,
+            flag:2,
+            page_limit:50
+        }
         //get list of activities Reffered out
-        const [actListErr,referedOutActivities] = await activityListingService.getActActChildActivitiesV1(request);
+        const [actListErr,referedOutActivities] = await activityListingService.getActActChildActivitiesV1(requestForChildActivities);
 
         if(referedOutActivities.length==0){
             return [false,[]]
@@ -16563,6 +16570,7 @@ if(workflowActivityData.length==0){
         createWorkflowRequest.activity_type_id          = targetFormctivityTypeID;
         createWorkflowRequest.activity_inline_data      = JSON.stringify(activityInlineData);
         createWorkflowRequest.workflow_activity_id      = Number(workFlowActivityID);
+        // createWorkflowRequest.channel_activity_id       = Number(workFlowActivityID);
         createWorkflowRequest.activity_type_category_id = 9;
         createWorkflowRequest.activity_parent_id        = 0;
         createWorkflowRequest.activity_form_id          = formId;
@@ -16603,7 +16611,7 @@ if(workflowActivityData.length==0){
 
         let timelineReq = Object.assign({}, createWorkflowRequest);
 
-        timelineReq.activity_id                  = request.workflow_activity_id;
+        timelineReq.activity_id                  = workFlowActivityID;
         timelineReq.message_unique_id            = util.getMessageUniqueId(100);
         timelineReq.track_gps_datetime           = util.getCurrentUTCTime();
         timelineReq.activity_stream_type_id      = 705;
