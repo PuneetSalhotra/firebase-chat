@@ -1664,7 +1664,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
 
             try {
                 await triggerESMSIntegrationsService({
-                    asset_id: operatingAssetID
+                    asset_id: deskAssetID
                 }, {
                     mode: mode,
                     request_type: "CLMS_USER_SERVICE_ADD"
@@ -2891,6 +2891,23 @@ console.log('new ActivityId321',newActivity_id)
             console.log("removeEmployeeMappedToDesk | queueAccessMappingUpdateLogState | Error: ", error);
         }
 
+        const mode = global.mode;
+        if (request.organization_id === 868 && (mode === "preprod" || mode === "prod")) {
+
+            try {
+                await triggerESMSIntegrationsService({
+                    asset_id: deskAssetID
+                }, {
+                    mode: mode,
+                    request_type: "CLMS_USER_SERVICE_DELETE"
+                });
+
+            } catch (e) {
+                console.log(e);
+            }
+
+        }
+        
         return [false, {
             operating_asset_id: operatingAssetID,
             id_card_activity_id: idCardActivityID,
@@ -5205,7 +5222,24 @@ console.log('new ActivityId321',newActivity_id)
         //Update Manager Details
         let newReq = Object.assign({}, request);
         newReq.asset_id = deskAssetID;
-        this.updateAssetsManagerDetails(newReq);
+        await this.updateAssetsManagerDetails(newReq);
+
+        const mode = global.mode;
+        if (request.organization_id === 868 && (mode === "preprod" || mode === "prod")) {
+
+            try {
+                await triggerESMSIntegrationsService({
+                    asset_id: deskAssetID
+                }, {
+                    mode: mode,
+                    request_type: "CLMS_USER_SERVICE_UPDATE"
+                });
+
+            } catch (e) {
+                console.log(e);
+            }
+
+        }
 
         return [false, []];
     }
