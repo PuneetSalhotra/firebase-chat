@@ -1050,6 +1050,9 @@ if(mode === 'preprod') {
     //Child Order Creation
     config.CHILD_ORDER_TOPIC_NAME = "preprod-desker-child-order-creation-v1";
 
+    //ESMS Integrations trigger topic
+    config.ESMS_INTEGRATIONS_TOPIC = "staging-vil-esms-ibmmq-v3";
+
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
     config.CONSUMER_FETCH_MAX_WAIT = 10;

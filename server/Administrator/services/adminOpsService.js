@@ -11089,19 +11089,8 @@ console.log('new ActivityId321',newActivity_id)
 
     async function triggerESMSIntegrationsService(request = {}, options = {}) {
         logger.silly("ESMS Integrations User service trigger request : %j", request);
-        let esmsIntegrationsTopicName = "";
+        let esmsIntegrationsTopicName = global.config.ESMS_INTEGRATIONS_TOPIC || "";
 
-        const mode = options.mode || "";
-        switch (mode) {
-            case "preprod":
-                esmsIntegrationsTopicName = "staging-vil-esms-ibmmq-v3";
-                break;
-            case "prod":
-                esmsIntegrationsTopicName = "production-vil-esms-ibmmq-v1";
-                break;
-        }
-
-        esmsIntegrationsTopicName = "local-vil-esms-ibmmq-v4";
         try {
             if (esmsIntegrationsTopicName === "") { throw new Error("EsmsIntegrationsTopicNotDefinedForMode"); }
 
