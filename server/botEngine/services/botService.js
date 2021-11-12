@@ -7085,7 +7085,8 @@ else{
         util.logInfo(request,"Exiting without creating Ics Event due to missing config settings");
         util.sendEmailV4ews(request, request.email_id, emailSubject, Template, 1);
       }
-      else{      
+      else{ 
+      let activity_type_inline_data = typeof activityTypeConfigData[0].activity_type_inline_data == 'string' ? JSON.parse(activityTypeConfigData[0].activity_type_inline_data) : activityTypeConfigData[0].activity_type_inline_data; 
       let emailProviderDetails = {
         email:activity_type_inline_data.activity_type_email_id,
         password:activity_type_inline_data.activity_type_email_password,
@@ -16562,7 +16563,7 @@ if(workflowActivityData.length==0){
         return [false,[]]
        
     }
-    async function createActivity(request, inlineData,workflowActivityID) {
+    async function createActivity(request, inlineData,workflowActivityID,sourceFieldValue) {
         let formData = inlineData.target_form_data;
         let activityInlineData = formData.fields;
         activityInlineData[0].field_value = sourceFieldValue;
