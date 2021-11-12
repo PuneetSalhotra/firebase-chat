@@ -1854,20 +1854,8 @@ function BotService(objectCollection) {
                     
                 case 26: // ESMS Integrations- Consume Part - Bot
                     logger.silly("[ESMS Integrations- Consume] Params received from Request: %j", request);
-                    let esmsIntegrationsTopicName = "";
-                    switch (global.mode) {
-                        case "staging":
-                            // Disabled for PreProd testing, because both staging and preprod
-                            // share the same topic for integrations communication
-                            // esmsIntegrationsTopicName = "staging-vil-esms-ibmmq-v2";
-                            break;
-                        case "preprod":
-                            esmsIntegrationsTopicName = "staging-vil-esms-ibmmq-v3";
-                            break;
-                        case "prod":
-                            esmsIntegrationsTopicName = "production-vil-esms-ibmmq-v1";
-                            break;
-                    }
+                    let esmsIntegrationsTopicName = global.config.ESMS_INTEGRATIONS_TOPIC || "";
+                    
                     try {
                         if (esmsIntegrationsTopicName === "") { throw new Error("EsmsIntegrationsTopicNotDefinedForMode"); }
                         if (request.hasOwnProperty("do_not_trigger_integrations_bot") && Number(request.do_not_trigger_integrations_bot) === 1) { throw new Error("DoNotTriggerIntegrationsBot"); }
