@@ -1854,20 +1854,8 @@ function BotService(objectCollection) {
                     
                 case 26: // ESMS Integrations- Consume Part - Bot
                     logger.silly("[ESMS Integrations- Consume] Params received from Request: %j", request);
-                    let esmsIntegrationsTopicName = "";
-                    switch (global.mode) {
-                        case "staging":
-                            // Disabled for PreProd testing, because both staging and preprod
-                            // share the same topic for integrations communication
-                            // esmsIntegrationsTopicName = "staging-vil-esms-ibmmq-v2";
-                            break;
-                        case "preprod":
-                            esmsIntegrationsTopicName = "staging-vil-esms-ibmmq-v3";
-                            break;
-                        case "prod":
-                            esmsIntegrationsTopicName = "production-vil-esms-ibmmq-v1";
-                            break;
-                    }
+                    let esmsIntegrationsTopicName = global.config.ESMS_INTEGRATIONS_TOPIC || "";
+                    
                     try {
                         if (esmsIntegrationsTopicName === "") { throw new Error("EsmsIntegrationsTopicNotDefinedForMode"); }
                         if (request.hasOwnProperty("do_not_trigger_integrations_bot") && Number(request.do_not_trigger_integrations_bot) === 1) { throw new Error("DoNotTriggerIntegrationsBot"); }
@@ -7073,8 +7061,8 @@ else{
         }
     }
 
-    function sendEmail(request, emailJson) {
-        return new Promise((resolve, reject) => {
+    async function sendEmail(request, emailJson) {
+        return new Promise(async (resolve, reject) => {
             global.logger.write('conLog', "\x1b[35m [Log] Inside SendEmail \x1b[0m", {}, {});
             const emailSubject = emailJson.subject;
             const Template = emailJson.body;
@@ -7090,8 +7078,30 @@ else{
                 //From ESMSMails@vodafoneidea.com
                 //util.sendEmailEWS(request, request.email_id, emailSubject, Template);  
 
-                //CentralOmt.In@vodafoneidea.com        
-                util.sendEmailV4ews(request, request.email_id, emailSubject, Template, 1);
+                //CentralOmt.In@vodafoneidea.com  
+                let [err123, activityTypeConfigData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request,request.activity_type_id);
+      
+      if(err123 || activityTypeConfigData.length == 0 || activityTypeConfigData[0].activity_type_inline_data == ""){
+        util.logInfo(request,"Exiting without creating Ics Event due to missing config settings");
+        util.sendEmailV4ews(request, request.email_id, emailSubject, Template, 1);
+      }
+      else{      
+      let emailProviderDetails = {
+        email:activity_type_inline_data.activity_type_email_id,
+        password:activity_type_inline_data.activity_type_email_password,
+        username:activity_type_inline_data.activity_type_email_username
+    }
+                // util.sendEmailV4ews(request, request.email_id, emailSubject, Template, 1);
+                util.sendEmailV4ewsV1(
+                    request,
+                    [request.email_id],
+                    emailSubject,
+                    Template,
+                    "",
+                    emailProviderDetails
+                );
+      }
+
             } else {
                 console.log('Its non-vodafone request');
                 util.sendEmailV3(request,
@@ -14772,8 +14782,7 @@ if(workflowActivityData.length==0){
         // console.log('formData - ', formData);
 
         for(const fieldData of formData) {
-            
-            if(Number(fieldData.field_id) === fieldID) {
+            if(Number(fieldData.field_id) === Number(fieldID)) {
                
                 console.log('fieldData.field_data_type_id : ',fieldData.field_data_type_id);
                 switch(Number(fieldData.field_data_type_id)) {
@@ -15920,7 +15929,6 @@ if(workflowActivityData.length==0){
       }
       let activity_type_inline_data = typeof activityTypeConfig[0].activity_type_inline_data == 'string' ? JSON.parse(activityTypeConfig[0].activity_type_inline_data) : activityTypeConfig[0].activity_type_inline_data;
       console.log(activity_type_inline_data);
-    //   return [false,[]]
       //Getting Activity Details
       let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
 
@@ -16520,100 +16528,134 @@ if(workflowActivityData.length==0){
     async function closeRefferedOutActivities(request,bot_inline){
         const workflowActivityID = request.workflow_activity_id;
 
+        let sourceFieldValue = await getFieldValueUsingFieldIdV1({...request,workflow_activity_id:0},bot_inline.source_form_data.form_id,bot_inline.source_form_data.field_id);
+        if(sourceFieldValue == ""){
+            return [false,[]]
+        }
+        let requestForChildActivities = {
+            ...request,
+            activity_type_id:bot_inline.target_form_data.form_activity_type_id,
+            activity_type_category_id:0,
+            tag_id:0,
+            tag_type_id:0,
+            flag:2,
+            page_limit:50
+        }
         //get list of activities Reffered out
-        const [actListErr,referedOutActivities] = await activityListingService.getActActChildActivitiesV1(request);
-
+        const [actListErr,referedOutActivities] = await activityListingService.getActActChildActivitiesV1(requestForChildActivities);
+// console.log(referedOutActivities)
         if(referedOutActivities.length==0){
             return [false,[]]
         }
-
+        // return [false,[]]
         //continuing because there are activities to close
         for(let i=0;i<referedOutActivities.length;i++){
-            await submitFormInternalV1(request,bot_inline,referedOutActivities[i].activity_id)
+            await submitFormInternalV1(request,bot_inline,referedOutActivities[i].activity_id,sourceFieldValue)
         }
         return [false,[]]
 
     }
 
-    async function submitFormInternalV1(request,inlineData,workFlowActivityID){
+    async function submitFormInternalV1(request,inlineData,workFlowActivityID,sourceFieldValue){
+        let sds = await createActivity(request,inlineData,workFlowActivityID,sourceFieldValue);
+        // console.log(sds)
+        return [false,[]]
+       
+    }
+    async function createActivity(request, inlineData,workflowActivityID) {
         let formData = inlineData.target_form_data;
         let activityInlineData = formData.fields;
-// console.log(formData)
-        // for(let data of formData) {
-        //     activityInlineData.push({
-        //         "form_id": data.form_id,
-        //         "field_id": data.field_id,
-        //         "field_name": data.field_name,
-        //         "message_unique_id": data.message_unique_id,
-        //         "data_type_combo_id": data.data_type_combo_id,
-        //         "field_data_type_id": data.data_type_id,
-        //         "data_type_combo_value": data.data_type_combo_value,
-        //         "field_data_type_category_id": data.data_type_category_id
-        //     });
-        // }
-
+        activityInlineData[0].field_value = sourceFieldValue;
         console.log("activityInlineData", JSON.stringify(activityInlineData));
-
-
         let formId = formData.form_id;
 
-        let createWorkflowRequest = Object.assign({}, request);
         let targetFormctivityTypeID = formData.form_activity_type_id;
-       
-        createWorkflowRequest.activity_type_id          = targetFormctivityTypeID;
-        createWorkflowRequest.activity_inline_data      = JSON.stringify(activityInlineData);
-        createWorkflowRequest.workflow_activity_id      = Number(workFlowActivityID);
-        createWorkflowRequest.activity_type_category_id = 9;
-        createWorkflowRequest.activity_parent_id        = 0;
-        createWorkflowRequest.activity_form_id          = formId;
-        createWorkflowRequest.form_id                   = formId;
-        createWorkflowRequest.activity_datetime_start   = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-        createWorkflowRequest.activity_datetime_end     = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-        createWorkflowRequest.device_os_id              = 7;
+        let targetActivityTypeID = formData.activity_type_id;
+        const addActivityRequest = {
+            ...request,
+            workflow_activity_id: Number(workflowActivityID),
+            activity_id : Number(workflowActivityID),
+            channel_activity_id: Number(workflowActivityID),
+            form_id:formId,
+            form_transaction_id : 0,
+            isOrigin :false,
+            is_mytony: 1,
+            form_api_activity_type_category_id: 48,
+            form_api_activity_type_id: targetFormctivityTypeID,
+            form_id: formId,
+            form_workflow_activity_type_id: targetFormctivityTypeID,
+            data_entity_inline: JSON.stringify(activityInlineData),
+            activity_inline_data: JSON.stringify(activityInlineData),
+            activity_datetime_start: util.getCurrentUTCTime(),
+            activity_datetime_end: util.getCurrentUTCTime(),
+            activity_type_category_id: 9,
+            activity_sub_type_id: 0,
+            activity_type_id: targetActivityTypeID,
+            asset_participant_access_id: 0,
+            activity_parent_id: 0,
+            flag_pin: 0,
+            flag_priority: 0,
+            activity_flag_file_enabled: -1,
+            activity_form_id: formId,
+            flag_offline: 0,
+            flag_retry: 0,
+            message_unique_id: util.getMessageUniqueId(31993),
+            activity_channel_id: workflowActivityID,
+            activity_channel_category_id: 0,
+            activity_flag_response_required: 0,
+            track_latitude: 0.0,
+            track_longitude: 0.0,
+            track_altitude: 0,
+            track_gps_datetime: util.getCurrentUTCTime(),
+            track_gps_accuracy: 0,
+            track_gps_status: 0,
+            service_version: "3.0",
+            app_version: "3.0.0",
+            device_os_id: 5
+        };
 
-        const targetFormActivityID                = await cacheWrapper.getActivityIdPromise();
-        const targetFormTransactionID             = await cacheWrapper.getFormTransactionIdPromise();
-        createWorkflowRequest.activity_id         = targetFormActivityID;
-        createWorkflowRequest.form_transaction_id = targetFormTransactionID;
-        createWorkflowRequest.data_entity_inline  = createWorkflowRequest.activity_inline_data;
-        createWorkflowRequest.message_unique_id = util.getMessageUniqueId(100);
-        createWorkflowRequest.log_message_unique_id = util.getMessageUniqueId(100);
-
-        console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
-        // request.debug_info.push('createWorkflowRequest: ' + createWorkflowRequest);
-        const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
-        let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
-
-        console.log("activityInsertedDetails---->", activityInsertedDetails);
-        // request.debug_info.push('activityInsertedDetails: ' + activityInsertedDetails);
-
-
-        let activityTimelineCollection =  JSON.stringify({
-            "content"            : `Form Submitted`,
-            "subject"            : `Form Submitted`,
-            "mail_body"          : `Form Submitted`,
-            "activity_reference" : [],
-            "form_id"            : formId,
-            "form_submitted"     : JSON.parse(createWorkflowRequest.data_entity_inline),
-            "asset_reference"    : [],
-            "attachments"        : [],
-            "form_approval_field_reference": []
-        });
-
-
-        let timelineReq = Object.assign({}, createWorkflowRequest);
-
-        timelineReq.activity_id                  = request.workflow_activity_id;
-        timelineReq.message_unique_id            = util.getMessageUniqueId(100);
-        timelineReq.track_gps_datetime           = util.getCurrentUTCTime();
-        timelineReq.activity_stream_type_id      = 705;
-        timelineReq.timeline_stream_type_id      = 705;
-        timelineReq.activity_type_category_id    = 48;
-        timelineReq.asset_id                     = 100;
-        timelineReq.activity_timeline_collection = activityTimelineCollection;
-        timelineReq.data_entity_inline           = timelineReq.activity_timeline_collection;
-
-        await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+        const addActivityAsync = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form: addActivityRequest
+        };
+        try {
+            // global.config.mobileBaseUrl + global.config.version
+            const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
+            const body = JSON.parse(response.body);
+            if (Number(body.status) === 200) {
+                console.log("createActivity | addActivityAsync | Body: ", body);
+                let activityTimelineCollection =  JSON.stringify({
+                    "content"            : `Form Submitted`,
+                    "subject"            : `Form Submitted`,
+                    "mail_body"          : `Form Submitted`,
+                    "activity_reference" : [],
+                    "form_id"            : formId,
+                    "form_submitted"     : JSON.parse(addActivityRequest.data_entity_inline),
+                    "asset_reference"    : [],
+                    "attachments"        : [],
+                    "form_approval_field_reference": []
+                });
+        
+                addActivityRequest.form_transaction_id = body.response.form_transaction_id;
+                let timelineReq = Object.assign({}, addActivityRequest);
+        
+                timelineReq.activity_id                  = workflowActivityID;
+                timelineReq.message_unique_id            = util.getMessageUniqueId(100);
+                timelineReq.track_gps_datetime           = util.getCurrentUTCTime();
+                timelineReq.activity_stream_type_id      = 705;
+                timelineReq.timeline_stream_type_id      = 705;
+                timelineReq.activity_type_category_id    = 48;
+                timelineReq.asset_id                     = 100;
+                timelineReq.activity_timeline_collection = activityTimelineCollection;
+                timelineReq.data_entity_inline           = timelineReq.activity_timeline_collection;
+        
+                await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+                return [false, body];
+            }
+        } catch (error) {
+            console.log("createActivity | addActivityAsync | Error: ", error);
+            return [true, {}];
+        }
     }
 
 }

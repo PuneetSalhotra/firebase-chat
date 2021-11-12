@@ -127,6 +127,7 @@ function AdminOpsService(objectCollection) {
             request.flag_enable_grouping || 0,
             request.organization_flag_enable_timetracker || 0,
             request.organization_flag_timeline_access_mgmt || 0,
+            request.flag_timeline_lead_mgmt || 0,
             request.asset_id,
             util.getCurrentUTCTime()
         );
@@ -964,6 +965,7 @@ function AdminOpsService(objectCollection) {
           request.flag_enable_grouping || 0,
           request.organization_flag_enable_timetracker || 0,
           request.organization_flag_timeline_access_mgmt || 0,
+          request.flag_lead_mgmt || 0,
           request.organization_type_id || 1,
           request.asset_id || 1,
           util.getCurrentUTCTime()
@@ -1122,7 +1124,7 @@ function AdminOpsService(objectCollection) {
 
     this.addNewDeskToWorkforce = async function (request) {
 
-
+        let assetTypeCategoryID = request.asset_type_category_id;
         if(request.asset_type_category_id == 3)
             request.activity_type_category_id = 5;
         else if(request.asset_type_category_id == 45)
@@ -1225,7 +1227,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             organization_id: organizationID,
             account_id: accountID,
             workforce_id: workforceID,
-            asset_type_category_id: request.asset_type_category_id
+            asset_type_category_id: assetTypeCategoryID
         });
         if (errTwo) {
             console.log("createAssetBundle | workforceAssetCountData | Error: ", err);
@@ -1664,7 +1666,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
 
             try {
                 await triggerESMSIntegrationsService({
-                    asset_id: operatingAssetID
+                    asset_id: deskAssetID
                 }, {
                     mode: mode,
                     request_type: "CLMS_USER_SERVICE_ADD"
@@ -2891,6 +2893,23 @@ console.log('new ActivityId321',newActivity_id)
             console.log("removeEmployeeMappedToDesk | queueAccessMappingUpdateLogState | Error: ", error);
         }
 
+        const mode = global.mode;
+        if (request.organization_id === 868 && (mode === "preprod" || mode === "prod")) {
+
+            try {
+                await triggerESMSIntegrationsService({
+                    asset_id: deskAssetID
+                }, {
+                    mode: mode,
+                    request_type: "CLMS_USER_SERVICE_DELETE"
+                });
+
+            } catch (e) {
+                console.log(e);
+            }
+
+        }
+        
         return [false, {
             operating_asset_id: operatingAssetID,
             id_card_activity_id: idCardActivityID,
@@ -5205,7 +5224,24 @@ console.log('new ActivityId321',newActivity_id)
         //Update Manager Details
         let newReq = Object.assign({}, request);
         newReq.asset_id = deskAssetID;
-        this.updateAssetsManagerDetails(newReq);
+        await this.updateAssetsManagerDetails(newReq);
+
+        const mode = global.mode;
+        if (request.organization_id === 868 && (mode === "preprod" || mode === "prod")) {
+
+            try {
+                await triggerESMSIntegrationsService({
+                    asset_id: deskAssetID
+                }, {
+                    mode: mode,
+                    request_type: "CLMS_USER_SERVICE_UPDATE"
+                });
+
+            } catch (e) {
+                console.log(e);
+            }
+
+        }
 
         return [false, []];
     }
@@ -11055,19 +11091,8 @@ console.log('new ActivityId321',newActivity_id)
 
     async function triggerESMSIntegrationsService(request = {}, options = {}) {
         logger.silly("ESMS Integrations User service trigger request : %j", request);
-        let esmsIntegrationsTopicName = "";
+        let esmsIntegrationsTopicName = global.config.ESMS_INTEGRATIONS_TOPIC || "";
 
-        const mode = options.mode || "";
-        switch (mode) {
-            case "preprod":
-                esmsIntegrationsTopicName = "staging-vil-esms-ibmmq-v3";
-                break;
-            case "prod":
-                esmsIntegrationsTopicName = "production-vil-esms-ibmmq-v1";
-                break;
-        }
-
-        esmsIntegrationsTopicName = "local-vil-esms-ibmmq-v4";
         try {
             if (esmsIntegrationsTopicName === "") { throw new Error("EsmsIntegrationsTopicNotDefinedForMode"); }
 

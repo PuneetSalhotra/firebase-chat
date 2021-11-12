@@ -1139,6 +1139,26 @@ function AssetController(objCollection) {
             res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/asset/list/unassigned/desk/search', async function (req, res) {
+        const [err, resData] = await assetService.assetListSearchUnassignedDesk(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/asset/list/unassigned/desk/search | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/asset/list/manager/search', async function (req, res) {
+        const [err, resData] = await assetService.assetListSearchManger(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/asset/list/manager/search | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
 	
 }
 module.exports = AssetController;
