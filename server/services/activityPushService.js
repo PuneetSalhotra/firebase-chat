@@ -452,7 +452,7 @@ function ActivityPushService(objectCollection) {
                                 //pushString.description = 'has sent a message';
                                 //pushString.subtitle = message;
                                 pushString.description = message;
-                                //pushString.body = activityTitle;
+                                pushString.body = `${senderName}`;
                                 pushString.desk_asset_id = request.asset_id;
                                 pushString.organization_id = request.organization_id;
                                 pushString.type = "activity_unread";
@@ -461,6 +461,7 @@ function ActivityPushService(objectCollection) {
                                 msg.activity_type_category_id = 16;
                                 msg.description = message;
                                 msg.type = 'activity_unread';
+
                                 break;
                         }
                         break;
@@ -495,7 +496,7 @@ function ActivityPushService(objectCollection) {
                                     const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
                                     attachments = activityTimelineCollection.attachments;
                                     content = activityTimelineCollection.content;
-
+                                    message = content;
                                 } catch (error) { }
 
                                 msg.activity_type_category_id = 27;
@@ -503,8 +504,8 @@ function ActivityPushService(objectCollection) {
                                 msg.description = `Added text in ${activityTitle}.`;
                                 pushString.description = `${content}`;
                                 pushString.title = `${activityTitle}`;
-                                pushString.subtitle = `${senderName}`;
-                                //pushString.body = `${senderName}`;
+                                pushString.subtitle = `${message}`;
+                                pushString.body = `${senderName}`;
                                 pushString.desk_asset_id = request.asset_id;
                                 pushString.organization_id = request.organization_id;
                                 pushString.type = "activity_unread";
@@ -995,7 +996,6 @@ function ActivityPushService(objectCollection) {
         //
 
         var proceedSendPush = function (pushReceivers, senderName) {
-            //console.log('pushReceivers.length : ', pushReceivers.length);
             global.logger.write('debug', 'pushReceivers.length : ' + pushReceivers.length, {}, {});
             if (pushReceivers.length > 0) {
                 getPushString(request, objectCollection, senderName, function (err, pushStringObj, pubnubMsg, smsString) {
