@@ -110,5 +110,16 @@ function MerchantPaymentController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/pam/payment/webhook/settlement/response', async (req, res) => {
+        logger.info("------- Settlement Response ---------");
+        const [err, data] = await merchantPaymentService.getSettlementResponse(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            logger.error("/pam/payment/webhook/settlement/response| Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 module.exports = MerchantPaymentController;
