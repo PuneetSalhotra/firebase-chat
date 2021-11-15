@@ -628,10 +628,11 @@ function Util(objectCollection) {
         return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     };
 
-    this.getCurrentUTCTime = function () {
-        var now = moment().utc().format("YYYY-MM-DD HH:mm:ss");
+    this.getCurrentUTCTime = function (format) {
+        var now = moment().utc().format(format || "YYYY-MM-DD HH:mm:ss");
         return now;
     };
+
 
     this.getCurrentISTTime = function () {
         var now = moment().tz('Asia/Kolkata').format("YYYY-MM-DD HH:mm:ss");
