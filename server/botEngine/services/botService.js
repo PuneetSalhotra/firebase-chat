@@ -6050,18 +6050,24 @@ async function removeAsOwner(request,data,addT=0)  {
                     formTransactionID = Number(formData[0].data_form_transaction_id);
                     formActivityID = Number(formData[0].data_activity_id);
                 }
-                request.debug_info.push('formTransactionID : '+formTransactionID+ "formActivityID : "+formActivityID);
+                util.logInfo(request,'formTransactionID : '+formTransactionID+ " formActivityID : "+formActivityID );
+                request.debug_info.push('formTransactionID : '+formTransactionID+ " formActivityID : "+formActivityID);
                 if (
                     Number(formTransactionID) > 0 //&&
                     //Number(formActivityID) > 0
                 ) {
                     // Fetch the field value
+                    try{
                     const fieldData = await getFieldValue({
                         form_transaction_id: formTransactionID,
                         form_id: formID,
                         field_id: fieldID,
                         organization_id: request.organization_id
                     });
+                    
+                    if(fieldData.length == 0){
+                        throw('err')
+                    }
                     newReq.desk_asset_id = fieldData[0].data_entity_bigint_1;
                     newReq.customer_name = fieldData[0].data_entity_text_1;
 
@@ -6069,6 +6075,60 @@ async function removeAsOwner(request,data,addT=0)  {
                     util.logInfo(request,`newReq.customer_name = fieldData[0].data_entity_text_1 -  ${fieldData[0].data_entity_text_1} `);
                     request.debug_info.push('newReq.desk_asset_id = fieldData[0].data_entity_bigint_1 : ' +  fieldData[0].data_entity_bigint_1);
                     request.debug_info.push('newReq.customer_name = fieldData[0].data_entity_text_1 : ' +  fieldData[0].data_entity_text_1);
+                }
+                catch (transactionerr){// got error while getting value from form transaction so getting value from inline
+                    util.logInfo(request,`got error in nrml flow came in catch -  `);
+                      const [erractivityFieldData,activityFieldData] = await activityListingService.getActivityFormList({
+                        form_transaction_id: formTransactionID,
+                        form_id: formID,
+                        field_id: fieldID,
+                        organization_id: request.organization_id,
+                        workflow_activity_id: request.workflow_activity_id,
+                        activity_id : formActivityID
+                      });
+                      
+                      if(!erractivityFieldData && activityFieldData.length>0){
+                           
+                      let activityFieldDataInline = typeof activityFieldData[0].activity_inline_data == 'string' ? JSON.parse(activityFieldData[0].activity_inline_data):activityFieldData[0].activity_inline_data;
+                    //   console.log(activityFieldData);
+
+                      util.logInfo(request,` activityFieldData.hasOwnProperty(_fieldID) : ${activityFieldDataInline.hasOwnProperty(`_${fieldID}`)}` );
+                      if(activityFieldDataInline.hasOwnProperty(`_${fieldID}`)){
+                          let leadAssetData = activityFieldDataInline[`_${fieldID}`].field_value;
+                          util.logInfo(request,` field value : ${leadAssetData}` );
+                          if(leadAssetData){
+                          let assetDetailsSplit = leadAssetData.split('|');
+                          
+                          newReq.desk_asset_id = assetDetailsSplit[0];
+                          newReq.customer_name = assetDetailsSplit[1];
+                          util.logInfo(request,`newReq.desk_asset_id = assetDetailsSplit[0] - ${assetDetailsSplit[0]} `);
+                          util.logInfo(request,`newReq.customer_name = assetDetailsSplit[1] -  ${assetDetailsSplit[1]} `);
+                          }
+                          else{
+                            util.logInfo(request,`asset data is empty in catch case `);
+                          }
+                      }
+                      util.logInfo(request,` activityFieldData is empty so exiting..` );
+                      }
+                }
+                util.logInfo(request,` desk_asset_id after try catch ${newReq.desk_asset_id}` );
+                if(!newReq.desk_asset_id){
+                    util.logInfo(request,`came inside checking inline data failing 2 cases `);
+                    let formSubmittedData = typeof formData[0].data_entity_inline  == 'string'? JSON.parse(formData[0].data_entity_inline) : formData[0].data_entity_inline;
+                    
+                    let fieldSubmittedDate = await getFieldValueUsingFieldIdV1({...request,activity_inline_data:formSubmittedData.form_submitted,workflow_activity_id:0},formID,fieldID);
+                    util.logInfo(request,` field value : ${fieldSubmittedDate}` );
+                    if(fieldSubmittedDate){
+                    let assetDetailsSplit = fieldSubmittedDate.split('|');
+                          newReq.desk_asset_id = assetDetailsSplit[0];
+                          newReq.customer_name = assetDetailsSplit[1];
+                          util.logInfo(request,`newReq.desk_asset_id = assetDetailsSplit[0] - ${assetDetailsSplit[0]} `);
+                          util.logInfo(request,`newReq.customer_name = assetDetailsSplit[1] -  ${assetDetailsSplit[1]} `);
+                    }
+                    else{
+                        util.logInfo(request,`asset data is empty in final case `);
+                    }
+                }
                 }else{
                     request.debug_info.push('formTransactionID is not valid : ' +  formTransactionID);
                 }
@@ -14609,6 +14669,16 @@ if(workflowActivityData.length==0){
         logger.info(request.workflow_activity_id+": arpBot: Bot Inline data: %j", inlineData);
         let key = "_0";
         let isEnd = false;
+
+        if(Number(request.is_cloned) == 1) {
+            request.target_asset_id = request.lead_asset_id;
+            request.target_asset_first_name = request.lead_asset_first_name;
+            request.asset_type_id = request.lead_asset_type_id;
+            rmBotService.TriggerRoundRobinV2(request);
+            logger.info(request.workflow_activity_id+": arpBot: is cloned so skipped : %j", key);
+            return;
+        }
+
         // logger.silly("arpBot: Bot Inline data Key1: %j", inlineData._1);
         // logger.silly("arpBot: Bot Inline data Key2: %j", inlineData[key]);
         // logger.silly("arpBot: Bot Inline data Key Operation_type : %j", inlineData[key].operation_type);

@@ -6474,6 +6474,12 @@ function VodafoneService(objectCollection) {
                                 query += ' (activity_type_tag_id = 120 OR activity_type_tag_id = 124) '
                             appendedAnd = true;
                         }
+                        if (request.tag_id && request.tag_id > 0 && request.tag_id==172) {
+                            if (appendedAnd)
+                                query += " AND ";
+                                query += ' (activity_type_tag_id = 91 OR activity_type_tag_id = 122) '
+                            appendedAnd = true;
+                        }
                         if (request.activity_status_type_id && request.activity_status_type_id > 0) {
                             if (appendedAnd)
                                 query += " AND ";
