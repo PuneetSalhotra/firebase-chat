@@ -331,6 +331,8 @@ if(mode === 'local') {
     config.user_pool_id = 'ap-south-1_b7x0MLSHi';
     config.user_web_pool_id = 'ap-south-1_9vPl6RcPo';
     config.customer_pool_id = 'ap-south-1_Bp2kNOKl8';
+    config.pam_user_pool_id = "ap-south-1_b7d7a47VM"; // pam mobile and web common login
+
 
     //Ports Config
     config.version = 'r1';
@@ -807,6 +809,8 @@ if(mode === 'staging') {
     config.user_web_pool_id = 'ap-south-1_9vPl6RcPo'; // email and phone number
     config.customer_pool_id = 'ap-south-1_Bp2kNOKl8';
 
+    config.pam_user_pool_id = "ap-south-1_b7d7a47VM";
+
     //Ports Config
     config.version = 'r0';
     config.servicePort = 4000;
@@ -969,6 +973,8 @@ if(mode === 'preprod') {
     config.user_pool_id = 'ap-south-1_Ccmp0pMyI';
     config.user_web_pool_id = 'ap-south-1_jeS0OISHP';
     config.customer_pool_id = 'ap-south-1_nk2Ek2BmZ';
+    config.pam_user_pool_id = ""; // pam mobile and web common login
+
 
 
     //Ports Config
