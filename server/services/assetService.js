@@ -16,6 +16,14 @@ let opentok = new OpenTok(global.config.opentok_apiKey, global.config.opentok_ap
 const RMBotService = require('../botEngine/services/rmbotService');
 const awesomePhoneNumber = require( 'awesome-phonenumber' );
 
+const AWS_Cognito = require('aws-sdk');
+AWS_Cognito.config.update({
+    "accessKeyId": global.config.access_key_id,
+    "secretAccessKey": global.config.secret_access_key,
+    "region": global.config.cognito_region
+});
+const cognitoidentityserviceprovider = new AWS_Cognito.CognitoIdentityServiceProvider();
+
 
 function AssetService(objectCollection) {
 
@@ -8070,6 +8078,9 @@ this.getQrBarcodeFeeback = async(request) => {
                 .then((data) => {
                     responseData = data;
                     error = false;
+                    
+                    addUser(request.organization_phone_country_code +''+request.organization_phone_number, global.config.pam_user_pool_id);
+                    
                 })
                 .catch((err) => {
                     error = err;
@@ -8161,6 +8172,82 @@ this.getQrBarcodeFeeback = async(request) => {
     };
 
 
+    async function addUser(username, pool_id) {
+        // console.log('Adding ', pool_id);
+         console.log('*******************');
+         console.log('Adding : ', username);
+ 
+         let userAttr = [];
+       
+         if(username.toString().indexOf('@') > -1) {
+             userAttr.push({
+                 Name: 'email', /* required */
+                 Value: username
+             },{
+                 Name : "email_verified",
+                 Value : "true"
+             });
+             
+         } else {
+             userAttr.push({
+                 Name: 'phone_number', /* required */
+                 Value: username
+               });
+         }
+ 
+ 
+         let params = {
+             UserPoolId: pool_id, //global.config.user_pool_id,
+             Username: username,
+             
+             //TemporaryPassword: 'STRING_VALUE',
+             UserAttributes: userAttr,
+             MessageAction : "SUPPRESS"          
+           };
+ 
+         await new Promise((resolve, reject)=>{
+             cognitoidentityserviceprovider.adminCreateUser(params, (err, data) => {
+                 if (err) {
+                     console.log(err, err.stack); // an error occurred
+                 } else {
+                 console.log(data);           // successful response
+                 }
+     
+                 //After 5 seconds get the added user from cognito and add it to the redis layer
+                 console.log('Beofre setTimeout 5 Seconds');
+                 setTimeout(()=>{ getUser(username, pool_id) }, 5000);
+                 resolve();
+             });
+         });
+     
+         return "success";	  
+     }
+     
+
+     async function getUser(username, pool_id) {
+        var params = {
+            UserPoolId: pool_id, //global.config.user_pool_id,
+            Username: username
+          };
+          cognitoidentityserviceprovider.adminGetUser(params, function(err, data) {
+            if (err) console.log(err, err.stack); // an error occurred
+            else {
+                console.log('data : ', data.Username);
+                let userAttributes = data.UserAttributes;
+                
+                for(const i_iterator of userAttributes) {
+                    console.log("i_iterator.Name", i_iterator.Name)
+                    if(i_iterator.Name === 'phone_number' || i_iterator.Name === 'email') {
+                        console.log('Phone Number: ', i_iterator.Value);
+
+                        cacheWrapper.setUserNameFromAccessToken(data.Username, i_iterator.Value);
+                    }
+                }
+            }
+          });
+
+        return "success";
+    }
 
 }
 module.exports = AssetService;
