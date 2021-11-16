@@ -2263,11 +2263,11 @@ function BotService(objectCollection) {
                     util.logInfo(request,` ${request.workflow_activity_id} : Widget drilldown additional fields: Request Params received from Request: %j`, request);
                     request.debug_info.push(request.workflow_activity_id+': Widget drilldown additional fields');
                     try {
-                        if(botOperationsJson.bot_operations.is_product == 1){
+                        //if(botOperationsJson.bot_operations.is_product == 1){
                             request.is_product = botOperationsJson.bot_operations.is_product;
                             request.is_cart = botOperationsJson.bot_operations.is_cart;
                             request.final_key = botOperationsJson.bot_operations.final_key;
-                        }
+                        //}
                         let fieldValue = await getFormFieldValue(request, botOperationsJson.bot_operations.field_id);    
                         await activitySearchListUpdateAddition(request, botOperationsJson.bot_operations.column_flag,fieldValue);
                     } catch (error) {
@@ -14788,13 +14788,16 @@ if(workflowActivityData.length==0){
                 util.logInfo(request,`final_key: %j`,request.final_key);
                 util.logInfo(request,`product_data: %j`,formInlineData[counter].field_value);
 
-                if(Number(formInlineData[counter].field_data_type_id) === 71){
-                    util.logInfo(request,`Field Matched: %j`,JSON.parse(formInlineData[counter].field_value).cart_items);
+                if([64,65,71,75].includes(Number(formInlineData[counter].field_data_type_id))){
                     if(request.is_cart == 0){
-                        fieldValue = JSON.parse(formInlineData[counter].field_value)[request.final_key];
+                        fieldValue = formInlineData[counter].field_value;
+                        fieldValue = typeof fieldValue === 'string' ? JSON.parse(fieldValue)[request.final_key] : fieldValue[request.final_key];
                     }else if(request.is_cart == 1) {
+                        //util.logInfo(request,`Field Matched: %j`,JSON.parse(formInlineData[counter].field_value).cart_items);
                         //logger.info(" "+JSON.parse(formInlineData[counter].field_value).cart_items[0][request.final_key]);
-                        fieldValue = JSON.parse(formInlineData[counter].field_value);
+                        fieldValue = formInlineData[counter].field_value;
+                        fieldValue = typeof fieldValue === 'string' ? JSON.parse(fieldValue) : fieldValue;
+                        //fieldValue = JSON.parse(formInlineData[counter].field_value);
                         fieldValue = typeof fieldValue.cart_items == 'string' ? JSON.parse(fieldValue.cart_items)[0][request.final_key] : fieldValue.cart_items[0][request.final_key];
                     }
                 }
