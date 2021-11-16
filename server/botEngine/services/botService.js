@@ -14610,7 +14610,7 @@ if(workflowActivityData.length==0){
         let key = "_0";
         let isEnd = false;
 
-        if(request.hasOwnProperty(request.is_cloned) && request.is_cloned == 1) {
+        if(Number(request.is_cloned) == 1) {
             request.target_asset_id = request.lead_asset_id;
             request.target_asset_first_name = request.lead_asset_first_name;
             request.asset_type_id = request.lead_asset_type_id;
