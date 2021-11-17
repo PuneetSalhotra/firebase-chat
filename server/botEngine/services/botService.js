@@ -1591,7 +1591,8 @@ function BotService(objectCollection) {
                     logger.silly('form_pdf | Request Params received by BOT ENGINE: %j', request);
                     request.debug_info.push('form_pdf');
                     try {
-                        await addPdfFromHtmlTemplate(request, botOperationsJson.bot_operations.form_pdf);
+                        request.debug_info.push('commented to remove hummus');
+                        //await addPdfFromHtmlTemplate(request, botOperationsJson.bot_operations.form_pdf);
                     } catch (err) {
                         logger.error("serverError | Error in executing form_pdf Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
@@ -3645,7 +3646,7 @@ async function removeAsOwner(request,data,addT=0)  {
 
         return;
     }
-
+/*
     async function addPdfFromHtmlTemplate(request, templateData) {
         // If the bot operation inline data does not contain the key 'html_template_url',
         // redirect operation to addFormAsPdf
@@ -3844,7 +3845,8 @@ async function removeAsOwner(request,data,addT=0)  {
         }
         return;
     }
-
+    */
+/*
     async function addFormAsPdf(request, formDetails) {
         // 
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
@@ -3955,7 +3957,7 @@ async function removeAsOwner(request,data,addT=0)  {
         }
         return;
     }
-
+*/
     async function getHTMLTemplateForFormData(request, formEntries) {
 
         let formDataHTML = '';
@@ -4618,6 +4620,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
         }
         return;
     }
+    
 /*
     async function generatePDFreadableStream(request, htmlTemplate, annexures = []) {
         const pdfOptions = {
