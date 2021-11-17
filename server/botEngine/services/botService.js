@@ -49,7 +49,7 @@ function BotService(objectCollection) {
     const moment = require('moment');
     const makeRequest = require('request');
     const TinyURL = require('tinyurl');
-    var hummus = require('hummus');
+    //var hummus = require('hummus');
 
     const cacheWrapper = objectCollection.cacheWrapper;
     const queueWrapper = objectCollection.queueWrapper;
@@ -2587,7 +2587,7 @@ function BotService(objectCollection) {
     // console.log('*************************');
     return fieldValue;
 }
-
+/*
   async function editPDF(request,bot_data){
     //   request.debug_info = [];
     request.debug_info.push("****ENTERED PDF EDIT BOT****");
@@ -2826,7 +2826,7 @@ let periodValue = 0;
     request.debug_info.push("****EXITED PDF EDIT BOT****");
     return [false,[]]
    }
-
+*/
    function pdfstrToByteArray(str) {
     var myBuffer = [];
     var buffer = Buffer.from(str);
@@ -2835,7 +2835,7 @@ let periodValue = 0;
     }
     return myBuffer;
   }
-  
+  /*
   function pdfreplaceText(sourceFile, targetFile, pageNumber, findText, replaceText) {  
     //   console.log("in",pageNumber,findText,replaceText)
       var writer = hummus.createWriterToModify(sourceFile, {
@@ -2878,7 +2878,7 @@ let periodValue = 0;
   
       writer.end();
   }
-
+*/
   async function activityUpdateCustomerData(request,bot_details) {
       let req_Json = bot_details.customer_data_set;
       let field_value = await getFieldValueUsingFieldIdV1(request,req_Json.form_id,req_Json.field_id)
