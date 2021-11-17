@@ -1558,7 +1558,9 @@ function BotService(objectCollection) {
                     request.debug_info.push('add_attachment_with_attestation ');
                     request.debug_info.push('add_attachment_with_attestation | Request Params received by BOT ENGINE'+ request);
                     try {
-                        await addAttachmentWithAttestation(request, botOperationsJson.bot_operations.add_attachment_with_attestation);
+                        console.log('try add_attachment_with_attestation');
+                        
+                         await addAttachmentWithAttestation(request, botOperationsJson.bot_operations.add_attachment_with_attestation);
                     } catch (err) {
                         console.log('add_attachment_with_attestation  | Error', err);
                         i.bot_operation_status_id = 2;
@@ -1591,8 +1593,9 @@ function BotService(objectCollection) {
                     logger.silly('form_pdf | Request Params received by BOT ENGINE: %j', request);
                     request.debug_info.push('form_pdf');
                     try {
-                        request.debug_info.push('commented to remove hummus');
-                        //await addPdfFromHtmlTemplate(request, botOperationsJson.bot_operations.form_pdf);
+                        console.log('form_pdf');
+                        // commenting to get hummus error
+                        // await addPdfFromHtmlTemplate(request, botOperationsJson.bot_operations.form_pdf);
                     } catch (err) {
                         logger.error("serverError | Error in executing form_pdf Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
@@ -2170,7 +2173,6 @@ function BotService(objectCollection) {
 
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
-
                 case 40: // Bulk Create SR Bot
                     logger.silly("Bulk Create SR Bot params received from request: %j", request);
                     try {
@@ -3646,6 +3648,7 @@ async function removeAsOwner(request,data,addT=0)  {
 
         return;
     }
+
 /*
     async function addPdfFromHtmlTemplate(request, templateData) {
         // If the bot operation inline data does not contain the key 'html_template_url',
@@ -3845,7 +3848,7 @@ async function removeAsOwner(request,data,addT=0)  {
         }
         return;
     }
-    */
+*/
 /*
     async function addFormAsPdf(request, formDetails) {
         // 
@@ -4620,7 +4623,6 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
         }
         return;
     }
-    
 /*
     async function generatePDFreadableStream(request, htmlTemplate, annexures = []) {
         const pdfOptions = {
@@ -4708,6 +4710,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
         });
     }
 */
+
     function getHTMLTemplateForAttestation(documentURL, attestationURL) {
         const template = `
         <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -6074,7 +6077,6 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
         } else if (type[0] === 'asset_reference') {
             util.logInfo(request,`Inside asset_reference`);
             request.debug_info.push('Inside asset_reference');
-
             const formID = Number(inlineData["asset_reference"].form_id),
                 fieldID = Number(inlineData["asset_reference"].field_id),
                 workflowActivityID = Number(request.workflow_activity_id);
@@ -6198,6 +6200,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             
 
             if (Number(newReq.desk_asset_id) > 0) {
+                request.debug_info.push('Inside newReq.desk_asset_id');
                 const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
                     organization_id: request.organization_id,
                     asset_id: newReq.desk_asset_id
@@ -8830,7 +8833,7 @@ else{
                 fieldValue = cuidValue;
             } else if(formInlineDataMap.has(Number(cuidValue.field_id))) {
                 const fieldData = formInlineDataMap.get(Number(cuidValue.field_id));
-
+                
                 console.log('fieldData : ', fieldData);
                 console.log('Number(fieldData.field_data_type_id) : ', Number(fieldData.field_data_type_id));
 
@@ -9027,6 +9030,15 @@ else{
                 .then((data) => {
                     responseData = data;
                     error = false;
+
+                    //Inserting into activity asset table for account search
+                    console.log('\nAccount Search - Updating the activity asset table');
+                    activityCommonService.actAssetSearchMappingUpdate({
+                        activity_id: request.activity_id,
+                        asset_id: request.asset_id,
+                        organization_id: request.organization_id
+                        //flag: 0
+                    });
                 })
                 .catch((err) => {
                     error = err;
@@ -9228,7 +9240,7 @@ else{
     }
 
     this.callSetDueDateOfWorkflow = async(request) => {
-
+        
         let botOperationsJson = {
             bot_operations: {
                 due_date_edit: {
@@ -12254,6 +12266,7 @@ if(workflowActivityData.length==0){
         return
 
     }
+    
 
     async function triggerArpForm(request) {
         try {
@@ -13836,8 +13849,6 @@ if(workflowActivityData.length==0){
         }catch(e) {
             console.log("Error while adding participant")
         }
-
-
 
         function checkValues(linkDetails, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash, capexValue, opexValue, linkId, inlineData, activationDataOfLinks, paybackValue) {
 
