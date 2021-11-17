@@ -4050,7 +4050,31 @@ function ActivityListingService(objCollection) {
 						}
 
 					}
-					await util.sendEmailV4ews(request, emailList, header, htmlString, "", 1);
+					let [err123, activityTypeConfigData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request,request.activity_type_id);
+      
+					if(err123 || activityTypeConfigData.length == 0 || activityTypeConfigData[0].activity_type_inline_data == ""){
+					  util.logInfo(request,"Exiting due to missing config settings");
+					  await util.sendEmailV4ews(request, emailList, header, htmlString, "", 1);
+					}
+					else{ 
+					let activity_type_inline_data = typeof activityTypeConfigData[0].activity_type_inline_data == 'string' ? JSON.parse(activityTypeConfigData[0].activity_type_inline_data) : activityTypeConfigData[0].activity_type_inline_data; 
+					let emailProviderDetails = {
+					  email:activity_type_inline_data.activity_type_email_id,
+					  password:activity_type_inline_data.activity_type_email_password,
+					  username:activity_type_inline_data.activity_type_email_username
+				  }
+				  util.logInfo(request,"came into config settings");
+							  // util.sendEmailV4ews(request, request.email_id, emailSubject, Template, 1);
+							  util.sendEmailV4ewsV1(
+								  request,
+								  emailList,
+								  header,
+								  htmlString,
+								  "",
+								  emailProviderDetails
+							  );
+					}
+					
 				}
 
 			}
