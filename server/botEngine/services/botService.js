@@ -39,6 +39,9 @@ AWS.config.update({
 const sqs = new AWS.SQS();
 
 const XLSX = require('xlsx');
+const {PDFDocument, rgb, StandardFonts,degrees } = require('pdf-lib');
+const fetch = require('node-fetch');
+var fontkit = require('@pdf-lib/fontkit');
 
 function isObject(obj) {
     return obj !== undefined && obj !== null && !Array.isArray(obj) && obj.constructor == Object;
@@ -4398,73 +4401,129 @@ async function removeAsOwner(request,data,addT=0)  {
                     logger.silly(`documentWithAttestationPath: ${documentWithAttestationPath}`, { type: 'document_with_attestation' });
 
                     await sleep(4000);
-                    const pdfDoc = new HummusRecipe(
-                        documentPath,
-                        documentWithAttestationPath,
-                        {
-                            fontSrcPath: `${__dirname}/../../../fonts`
-                        }
-                    );
-                    for (let i = 1; i <= pdfDoc.metadata.pages; i++) {
+                    // const pdfDoc = new HummusRecipe(
+                    //     documentPath,
+                    //     documentWithAttestationPath,
+                    //     {
+                    //         fontSrcPath: `${__dirname}/../../../fonts`
+                    //     }
+                    // );
+                    // for (let i = 1; i <= pdfDoc.metadata.pages; i++) {
+                    //     if (flagAttestationIsText) {
+                    //         pdfDoc
+                    //             .editPage(i)
+                    //             .text(attestationText, 400, 790, {
+                    //                 color: '#000000',
+                    //                 fontSize: 25,
+                    //                 // bold: true,
+                    //                 // underline: true,
+                    //                 // font: 'Audhistine',
+                    //                 font: 'HerrVonMuellerhoff',
+                    //                 opacity: 0.8,
+                    //                 rotation: 325,
+                    //                 textBox: {
+                    //                     width: 250,
+                    //                     height: 40,
+                    //                     wrap: 'trim',
+                    //                     style: {
+                    //                         lineWidth: 0,
+                    //                         fill: "#FFFFFF",
+                    //                         opacity: 1,
+                    //                     }
+                    //                 }
+                    //             })
+                    //             .endPage();
+                    //         // .endPDF();
+                    //     } else {
+                    //         pdfDoc
+                    //             .editPage(i)
+                    //             .image(attestationPath, 500, 640, { width: 100, keepAspectRatio: true })
+                    //             .endPage();
+                    //         // .endPDF();
+                    //     }
+                    // }
+                    // pdfDoc.endPDF();
+                    // console.log("hjyut trt",documentWithAttestationPath);
+                    const pdfdf = await PDFDocument.create();
+  let pdfLoadInitiation =await new Promise((resolve,reject)=>{fs.readFile(documentPath,(err,data)=>{
+   resolve(data)
+    })})
+                    const pdfDoc = await PDFDocument.load(pdfLoadInitiation);
+                    const pdfPages = pdfDoc.getPages();
+                    let fontLoadInitiation =await new Promise((resolve,reject)=>{fs.readFile(`${__dirname}/../../../fonts/HerrVonMuellerhoff.otf`,(err,data)=>{
+                        resolve(data)
+                         })})
+                   
+                    pdfDoc.registerFontkit(fontkit);
+                    const customFont = await pdfDoc.embedFont(fontLoadInitiation);
+                    for (let i = 0; i < pdfPages.length; i++) {
                         if (flagAttestationIsText) {
-                            pdfDoc
-                                .editPage(i)
-                                .text(attestationText, 400, 790, {
-                                    color: '#000000',
-                                    fontSize: 25,
-                                    // bold: true,
-                                    // underline: true,
-                                    // font: 'Audhistine',
-                                    font: 'HerrVonMuellerhoff',
-                                    opacity: 0.8,
-                                    rotation: 325,
-                                    textBox: {
-                                        width: 250,
-                                        height: 40,
-                                        wrap: 'trim',
-                                        style: {
-                                            lineWidth: 0,
-                                            fill: "#FFFFFF",
-                                            opacity: 1,
-                                        }
-                                    }
-                                })
-                                .endPage();
-                            // .endPDF();
-                        } else {
-                            pdfDoc
-                                .editPage(i)
-                                .image(attestationPath, 500, 640, { width: 100, keepAspectRatio: true })
-                                .endPage();
-                            // .endPDF();
+                            //text
+                            const firstPage = pdfPages[i];
+                            console.log("attestationText",attestationText + ' length : '+pdfPages.length);
+                            const { width, height } = firstPage.getSize()
+                            console.log('sizes','width : '+width+' height : '+height)
+                            firstPage.drawText(attestationText, {
+                                x: 400,
+                                y: 10,
+                                size:25,
+                                color: rgb(0, 0, 0),
+                                rotate: degrees(35),
+                                opacity:0.8,
+                                font:customFont
+                              })
+                        }
+                        else {
+                            //image
+
+                            let imageLoadInitiation =await new Promise((resolve,reject)=>{fs.readFile(attestationPath,(err,data)=>{
+                                resolve(data)
+                                 })});
+                                 let imageType = attestationPath.split('.');
+                                 let imageEmbed="";
+                                 if(imageType[imageType.length-1]=='png'){
+                                    imageEmbed = await pdfDoc.embedPng(imageLoadInitiation);
+                                 }
+                                 else{
+                                  imageEmbed = await pdfDoc.embedJpg(imageLoadInitiation);
+                                 }
+                            
+                            firstPage.drawImage(imageEmbed, {
+                                x: 500,
+                                y: 160,
+                                width:100
+                              })
                         }
                     }
-                    pdfDoc.endPDF();
-                    
+                    const pdfBytes = await pdfDoc.save();
+fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
+  if (err) return console.log(err);
+  console.log('created pdf');
+});
                     // Upload to S3
-                    const environment = global.mode;
-                    let bucketName = '';
-                    if (environment === 'prod') {
-                        bucketName = "worlddesk-" + util.getCurrentYear() + '-' + util.getCurrentMonth();
+                    // const environment = global.mode;
+                    // let bucketName = '';
+                    // if (environment === 'prod') {
+                    //     bucketName = "worlddesk-" + util.getCurrentYear() + '-' + util.getCurrentMonth();
 
-                    } else if (environment === 'staging' || environment === 'local') {
-                        bucketName = "worlddesk-staging-" + util.getCurrentYear() + '-' + util.getCurrentMonth();
+                    // } else if (environment === 'staging' || environment === 'local') {
+                    //     bucketName = "worlddesk-staging-" + util.getCurrentYear() + '-' + util.getCurrentMonth();
 
-                    } else {
+                    // } else {
 
-                        bucketName = "worlddesk-" + environment + "-" + util.getCurrentYear() + '-' + util.getCurrentMonth();
-                    }
+                    //     bucketName = "worlddesk-" + environment + "-" + util.getCurrentYear() + '-' + util.getCurrentMonth();
+                    // }
                     let prefixPath = request.organization_id + '/' +
                         request.account_id + '/' +
                         request.workforce_id + '/' +
                         request.asset_id + '/' +
                         util.getCurrentYear() + '/' + util.getCurrentMonth() + '/103' + '/' + util.getMessageUniqueId(request.asset_id);
 
-                    console.log("bucketName: ", bucketName);
-                    console.log("prefixPath: ", prefixPath);
-                    request.debug_info.push('bucketName: ' + bucketName);
-                    request.debug_info.push('prefixPath: ' + prefixPath);
-
+                    // console.log("bucketName: ", bucketName);
+                    // console.log("prefixPath: ", prefixPath);
+                    // request.debug_info.push('bucketName: ' + bucketName);
+                    // request.debug_info.push('prefixPath: ' + prefixPath);
+                    const bucketName = await util.getS3BucketNameV1();
                     const uploadDetails = await util.uploadReadableStreamToS3(request, {
                         Bucket: bucketName || "demotelcoinc",
                         Key: `${prefixPath}/${request.activity_id}` + '_with_signature.pdf',
@@ -4494,7 +4553,6 @@ async function removeAsOwner(request,data,addT=0)  {
         }
         console.log("attachmentsList: ", attachmentsList);
         request.debug_info.push('attachmentsList: ' + attachmentsList);
-
         // Do not do anything if no attachments are to be added
         if (
             Number(attachmentsList.length) === 0
@@ -7142,7 +7200,7 @@ else{
                 let [err123, activityTypeConfigData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request,request.activity_type_id);
       
       if(err123 || activityTypeConfigData.length == 0 || activityTypeConfigData[0].activity_type_inline_data == ""){
-        util.logInfo(request,"Exiting without creating Ics Event due to missing config settings");
+        util.logInfo(request,"Exiting due to missing config settings");
         util.sendEmailV4ews(request, request.email_id, emailSubject, Template, 1);
       }
       else{ 
