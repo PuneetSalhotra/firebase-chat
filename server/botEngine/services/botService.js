@@ -92,7 +92,7 @@ function BotService(objectCollection) {
     const path = require('path');
     const fs = require('fs');
 
-    const HummusRecipe = require('hummus-recipe');
+    // const HummusRecipe = require('hummus-recipe');
 
     const { serializeError } = require('serialize-error')
     /*
@@ -4618,7 +4618,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
         }
         return;
     }
-
+/*
     async function generatePDFreadableStream(request, htmlTemplate, annexures = []) {
         const pdfOptions = {
             "height": "10.5in", // allowed units: mm, cm, in, px
@@ -4704,7 +4704,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             }
         });
     }
-
+*/
     function getHTMLTemplateForAttestation(documentURL, attestationURL) {
         const template = `
         <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
