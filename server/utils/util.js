@@ -2082,13 +2082,13 @@ function Util(objectCollection) {
                              request.workforce_id + '/' + 
                              request.asset_id + '/' + 
                              this.getCurrentYear() + '/' + this.getCurrentMonth() + '/103' + '/' + this.getMessageUniqueId(request.asset_id);
-            console.log(bucketName[0].bucket_name);
+            console.log(bucketName);
             console.log(prefixPath);
 
             var s3 = new AWS.S3();
             let params = {
                 Body: fs.createReadStream(filePath + zipFile),
-                Bucket: bucketName[0].bucket_name,
+                Bucket: bucketName,
                 Key: prefixPath + "/" + zipFile,
                 ContentType: 'application/zip',
                 //ContentEncoding: 'base64',
@@ -2103,7 +2103,7 @@ function Util(objectCollection) {
                     console.log('ERROR', err);
                     console.log(data);
                    
-                    resolve(`https://${bucketName[0].bucket_name}.s3.ap-south-1.amazonaws.com/${params.Key}`);
+                    resolve(`https://${bucketName}.s3.ap-south-1.amazonaws.com/${params.Key}`);
                 });
             });
     };    
