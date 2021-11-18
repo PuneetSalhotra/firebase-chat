@@ -1160,5 +1160,14 @@ function AssetController(objCollection) {
         }
     });
 	
+    app.post('/' + global.config.version + '/asset/list/update/last_seen_date_time', async function (req, res) {
+        const [err, resData] = await assetService.assetListUpdateLastSeenDateTime(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/asset/list/manager/search | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
 }
 module.exports = AssetController;
