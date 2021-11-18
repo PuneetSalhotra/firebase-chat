@@ -666,6 +666,44 @@ function PamController(objCollection) {
             res.json(responseWrapper.getResponse(true, result, -9999, req.body));
         }
     });
+    app.post('/' + global.config.version + '/pam/get/module/master/', async function (req, res) { 
+        
+        let [err,result] = await pamService.getPamModuleMaster(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            console.log("/pam/get/module/master | Error: ", err);
+            res.json(responseWrapper.getResponse(true, result, -9999, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/pam/module/role/mapping/add', async function (req, res) { 
+        
+        let [err,result] = await pamService.addRoleModulMapping(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            console.log("/pam/module/role/mapping/add | Error: ", err);
+            res.json(responseWrapper.getResponse(true, result, -9999, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/pam/get/module/role/mapping', async function (req, res) { 
+        let [err,result] = await pamService.getPamRoleModuleMapping(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            console.log("/pam/get/module/role/mapping | Error: ", err);
+            res.json(responseWrapper.getResponse(true, result, -9999, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/pam/module/role/mapping/delete', async function (req, res) { 
+        let [err,result] = await pamService.removePamRoleModuleMapping(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            console.log("/pam/module/role/mapping/delete | Error: ", err);
+            res.json(responseWrapper.getResponse(true, result, -9999, req.body));
+        }
+    });
 
     
 };

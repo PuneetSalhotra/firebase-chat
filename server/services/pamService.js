@@ -8,7 +8,6 @@ var makingRequest = require('request');
 const nodeUtil = require('util');
 let TinyURL = require('tinyurl');
 const XLSX = require('xlsx');
-const { connect } = require('http2');
 
 function PamService(objectCollection) {
 
@@ -5614,10 +5613,7 @@ this.getChildOfAParent = async (request) => {
     
         return [error, []];
 
-    };
-
-
-    
+    };    
     //PAM Workforce Aseet Type Mapping Insert
     this.addPamWorkforceAssetTypeMapping = async (request) => {
         let responseData = [],
@@ -5663,7 +5659,7 @@ this.getChildOfAParent = async (request) => {
                 })
         }        
         return [error, responseData];
-    }
+    };
     //PAM workforce Asset Type Mapping Delete
     this.removePamWorkforceAssetTypeMapping = async (request) => {
         let responseData = [],
@@ -5688,7 +5684,7 @@ this.getChildOfAParent = async (request) => {
             })
     }
     return [error, responseData];
-    }
+    };
     //PAM WorkforceAssetTypeMapping updating
     this.updatePamWorkforceAssetTypeMapping = async function (request) {
         let responseData = [],
@@ -5733,13 +5729,104 @@ this.getChildOfAParent = async (request) => {
                 })
         }
         return [error, responseData];
+    };
+    //Get Pam Module Master Details
+    this.getPamModuleMaster = async (request) => {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.start_from,
+            request.limit_value 
+            );
+        let queryString = util.getQueryString('ds_p1_pam_module_master_select', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }        
+        return [error, responseData];
+    };
+    //PAM Module Role Mapping Insert
+    this.addRoleModulMapping = async (request) => {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.module_id ,
+            request.asset_type_id,
+            request.account_id,
+            request.organization_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+            );
+        let queryString = util.getQueryString('pm_pam_module_role_mapping_insert', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }        
+        return [error, responseData];
     }
-  
-
-
-
-
-
+     //Get PAM Role Module Mapping Details 
+     this.getPamRoleModuleMapping = async function (request) {
+        let responseData = [],
+        error = true;
+    let paramsArr = new Array(
+        request.module_id ,
+        request.asset_type_id,
+        request.asset_type_category_id,
+        request.account_id,
+        request.organization_id,
+        1,
+        1
+        );
+    let queryString = util.getQueryString('pm_pam_module_role_mapping_select', paramsArr);
+    if (queryString != '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+    }        
+    return [error, responseData];
+    }
+    //remove PAM Role Module Mapping Details
+    this.removePamRoleModuleMapping =async function (request) {
+        let responseData = [],
+        error = true;
+    let paramsArr = new Array(
+        request.module_id ,
+        request.asset_type_id,
+        request.organization_id,
+        request.log_asset_id,
+        util.getCurrentUTCTime()
+        );
+    let queryString = util.getQueryString('pm_pam_module_role_mapping_delete', paramsArr);
+    if (queryString != '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+    }        
+    return [error, responseData];
+    }
+    
 };
 
 module.exports = PamService;
