@@ -2590,7 +2590,7 @@ console.log('new ActivityId321',newActivity_id)
             asset_last_name: deskAssetDataFromDB[0].asset_last_name,
             asset_type_id: deskAssetDataFromDB[0].asset_type_id,
             operating_asset_id: 0, // operatingAssetID
-            manager_asset_id: 0,
+            manager_asset_id: deskAssetDataFromDB[0].manager_asset_id,
             log_asset_id: request.log_asset_id
         }, workforceID, organizationID, accountID);
 
