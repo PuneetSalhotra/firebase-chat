@@ -396,7 +396,7 @@ function UtilityController(objCollection) {
         }
     });
 
-    app.post('/' + global.config.version + '/send/email/v7', async (req, res) => {
+    app.post('/' + global.config.version + '/send/email/v8', async (req, res) => {
         let emailSubject = req.body.email_subject;
         let emailBody = req.body.email_body;
         let htmlTemplate = req.body.html_template;
