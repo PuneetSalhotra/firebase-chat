@@ -2590,7 +2590,7 @@ console.log('new ActivityId321',newActivity_id)
             asset_last_name: deskAssetDataFromDB[0].asset_last_name,
             asset_type_id: deskAssetDataFromDB[0].asset_type_id,
             operating_asset_id: 0, // operatingAssetID
-            manager_asset_id: 0,
+            manager_asset_id: deskAssetDataFromDB[0].manager_asset_id,
             log_asset_id: request.log_asset_id
         }, workforceID, organizationID, accountID);
 
@@ -11105,6 +11105,119 @@ console.log('new ActivityId321',newActivity_id)
             logger.error("[ESMS Integrations User service trigger] Error ", { type: 'user_creation', error: serializeError(error), request_body: request });
         }
     }
+
+    this.assetTypeAccessMappingInsert = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.asset_type_id,
+          request.access_level_id,
+          request.workforce_id,
+          request.account_id,
+          request.organization_id,
+          request.asset_id,
+          util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_type_access_mapping_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    assetTypeAccessHistoryInsert(request,3701)
+                })
+                .catch((err) => {
+                    error = err;
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    }  
+    
+    this.assetTypeAccessMappingSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_type_id,
+            request.access_level_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_type_access_mapping_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    } 
+
+    this.assetTypeAccessMappingDelete = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_type_id,
+            request.access_level_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_type_access_mapping_delete', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    assetTypeAccessHistoryInsert(request,3702)
+                })
+                .catch((err) => {
+                    error = err;
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    } 
+
+    async function assetTypeAccessHistoryInsert(request,update_id){
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.access_level_id,
+            update_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_type_access_mapping_history_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AdminOpsService;
+

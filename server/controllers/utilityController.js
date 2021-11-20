@@ -396,6 +396,33 @@ function UtilityController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/send/email/v8', async (req, res) => {
+        let emailSubject = req.body.email_subject;
+        let emailBody = req.body.email_body;
+        let htmlTemplate = req.body.html_template;
+        let emailReceiver = req.body.email_receiver;
+        const emailSender = req.body.email_sender;
+        const emailSenderUserName = req.body.email_sender_username;
+        let outlookEmailIntegrationFLag = req.body.outlook_email_integration;
+        
+        if(Number(outlookEmailIntegrationFLag)==1) {
+            //request,emails,subject,body,attachment,emailProviderDetails
+             await util.sendEmailV4ewsV1({...req.body,get_email_pasword:1}, [emailReceiver], emailSubject, emailBody, '', {email:emailSender,username:emailSenderUserName},htmlTemplate);
+             return res.json(responseWrapper.getResponse({}, {}, 200, req.body));
+        } else {//request, email, subject, filepath, htmlTemplate, htmlTemplateEncoding = "html",descrip
+            let requestBody = req.body;
+            requestBody.email_sender_name = req.body.email_sender_name || "";
+            requestBody.email_sender = req.body.email_sender || "";
+            requestBody.email_receiver_name = req.body.email_receiver_name || "";
+
+             await util.sendEmailMailgunV2(requestBody, emailReceiver, emailSubject,'',htmlTemplate, 'html',emailBody);
+             return res.json(responseWrapper.getResponse({}, {}, 200, req.body));
+            
+        }
+    });
+
+
+
 
     //ROMS email using ews web exchange server
     app.post('/' + global.config.version + '/send/email/v7', async (req, res) => {

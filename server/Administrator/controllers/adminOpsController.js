@@ -1018,6 +1018,33 @@ function AdminOpsController(objCollection) {
             res.json(responseWrapper.getResponse(err, flagData, -9999, req.body));
         }
     });
+    app.post('/' + global.config.version + '/admin/asset/access/mapping/insert', async function (req, res) {
+        const [err, flagData] = await adminOpsService.assetTypeAccessMappingInsert(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, flagData, 200, req.body));
+        } else {
+            console.log("/retrieve/workforce/tags | Error: ", err);
+            res.json(responseWrapper.getResponse(err, flagData, -9999, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/admin/asset/access/mapping/list', async function (req, res) {
+        const [err, flagData] = await adminOpsService.assetTypeAccessMappingSelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, flagData, 200, req.body));
+        } else {
+            console.log("/retrieve/workforce/tags | Error: ", err);
+            res.json(responseWrapper.getResponse(err, flagData, -9999, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/admin/asset/access/mapping/delete', async function (req, res) {
+        const [err, flagData] = await adminOpsService.assetTypeAccessMappingDelete(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, flagData, 200, req.body));
+        } else {
+            console.log("/retrieve/workforce/tags | Error: ", err);
+            res.json(responseWrapper.getResponse(err, flagData, -9999, req.body));
+        }
+    });
 
 }
 

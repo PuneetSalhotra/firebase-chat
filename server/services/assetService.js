@@ -8249,6 +8249,31 @@ this.getQrBarcodeFeeback = async(request) => {
         return "success";
     }
 
+    this.assetListUpdateLastSeenDateTime = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.asset_id, 
+            request.location_datetime, 
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_updated_last_seen_datetime', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
 }
 module.exports = AssetService;
 
