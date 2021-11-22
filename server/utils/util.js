@@ -1507,10 +1507,11 @@ function Util(objectCollection) {
 
     this.sendEmailMailgunV2=async (request, email, subject, filepath, htmlTemplate, htmlTemplateEncoding = "html",descrip) => {
         console.log("htmlTemplateEncoding: ", htmlTemplateEncoding);
-        // if (htmlTemplateEncoding === "base64") {
-        //     let buff = new Buffer(htmlTemplate, 'base64');
-        //     htmlTemplate = buff.toString('ascii');
-        // }
+        if (request.flag == 0) {
+            let buff = new Buffer.from(htmlTemplate, 'base64');
+            htmlTemplate = buff.toString('ascii');
+            // console.log(htmlTemplate)
+        }
 
         const mailOptions = {
             from: `${request.email_sender_name} <${request.email_sender}>`,
@@ -1522,8 +1523,10 @@ function Util(objectCollection) {
             html: htmlTemplate,
             attachment: filepath
         };
+        if(filepath==''){
+            delete mailOptions.attachment
+        }
 
-      
             // let attachments = [];
             // // attachments = request.bot_operation_email_attachment;
             // mailOptions.attachment = attachments.map(attachment => {
@@ -1541,8 +1544,11 @@ function Util(objectCollection) {
                     if (error) {
                         reject(error);
                     }
+                    console.log('succesfully sent to mailgun')
                     resolve(body);
-                   
+                   if(filepath==''){
+                       return
+                   }
                     fs.unlink(filepath,function(err){
                         if(err) return console.log(err);
                         console.log('file deleted successfully');
@@ -2082,13 +2088,13 @@ function Util(objectCollection) {
                              request.workforce_id + '/' + 
                              request.asset_id + '/' + 
                              this.getCurrentYear() + '/' + this.getCurrentMonth() + '/103' + '/' + this.getMessageUniqueId(request.asset_id);
-            console.log(bucketName[0].bucket_name);
+            console.log(bucketName);
             console.log(prefixPath);
 
             var s3 = new AWS.S3();
             let params = {
                 Body: fs.createReadStream(filePath + zipFile),
-                Bucket: bucketName[0].bucket_name,
+                Bucket: bucketName,
                 Key: prefixPath + "/" + zipFile,
                 ContentType: 'application/zip',
                 //ContentEncoding: 'base64',
@@ -2103,7 +2109,7 @@ function Util(objectCollection) {
                     console.log('ERROR', err);
                     console.log(data);
                    
-                    resolve(`https://${bucketName[0].bucket_name}.s3.ap-south-1.amazonaws.com/${params.Key}`);
+                    resolve(`https://${bucketName}.s3.ap-south-1.amazonaws.com/${params.Key}`);
                 });
             });
     };    
@@ -2716,12 +2722,29 @@ function Util(objectCollection) {
         return [error, responseData];
     };
 
-     this.sendEmailV4ewsV1 = async function (request,emails,subject,body,attachment,emailProviderDetails){
+     this.sendEmailV4ewsV1 = async function (request,emails,subject,body,attachment,emailProviderDetails,base64EncodedHtmlTemplate = ''){
         let responseData = [];
         let error = false;
+        let htmlTemplate = "";
         try{
         let ewsPassword = await cacheWrapper.getKeyValueFromCache('omt.in1@vodafoneidea.com');
         let emailSQSQueueUrl = global.config.emailSQSQueueUrl;
+        htmlTemplate = body;
+        if (request.flag == 0) {
+            buff = new Buffer.from(base64EncodedHtmlTemplate, 'base64');
+            htmlTemplate = buff.toString('ascii');
+            // console.log('html temp',htmlTemplate)
+        } else {
+            htmlTemplate = body;
+        }
+        if(request.get_email_pasword==1){
+            let [error1, assetDetails] = await this.getAssetDetails({...request,asset_id:request.email_sender_asset_id});
+                console.log("assetDetails[0].asset_email_password before decrypt", assetDetails[0].asset_email_password);
+                let email_sender_password_text = assetDetails[0].asset_email_password;
+                let decrypted = CryptoJS.AES.decrypt(email_sender_password_text.toString() || "", 'lp-n5^+8M@62').toString(CryptoJS.enc.Utf8);
+            console.log('decrypted PWD : ', decrypted);
+            emailProviderDetails.password = decrypted; 
+        } 
         let ewsConfig = {
             "ewsEmail":emailProviderDetails.email || "CentralOmt.In@vodafoneidea.com",
             "ewsUsername":emailProviderDetails.username || "COR458207",
@@ -2732,7 +2755,7 @@ function Util(objectCollection) {
             "ewsMailReceiverCc":[],
             "ewsMailReceiverBcc":[],
             "ewsMailSubject":subject,
-            "ewsMailBody":body,
+            "ewsMailBody":htmlTemplate,
             "ewsMailAttachment":attachment
          }
          console.log(JSON.stringify(ewsConfig))

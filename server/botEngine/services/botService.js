@@ -39,6 +39,9 @@ AWS.config.update({
 const sqs = new AWS.SQS();
 
 const XLSX = require('xlsx');
+const {PDFDocument, rgb, StandardFonts,degrees } = require('pdf-lib');
+const fetch = require('node-fetch');
+var fontkit = require('@pdf-lib/fontkit');
 
 function isObject(obj) {
     return obj !== undefined && obj !== null && !Array.isArray(obj) && obj.constructor == Object;
@@ -89,7 +92,7 @@ function BotService(objectCollection) {
     const path = require('path');
     const fs = require('fs');
 
-    const HummusRecipe = require('hummus-recipe');
+    // const HummusRecipe = require('hummus-recipe');
 
     const { serializeError } = require('serialize-error')
     /*
@@ -1555,7 +1558,9 @@ function BotService(objectCollection) {
                     request.debug_info.push('add_attachment_with_attestation ');
                     request.debug_info.push('add_attachment_with_attestation | Request Params received by BOT ENGINE'+ request);
                     try {
-                        await addAttachmentWithAttestation(request, botOperationsJson.bot_operations.add_attachment_with_attestation);
+                        console.log('try add_attachment_with_attestation');
+                        
+                         await addAttachmentWithAttestation(request, botOperationsJson.bot_operations.add_attachment_with_attestation);
                     } catch (err) {
                         console.log('add_attachment_with_attestation  | Error', err);
                         i.bot_operation_status_id = 2;
@@ -1588,7 +1593,9 @@ function BotService(objectCollection) {
                     logger.silly('form_pdf | Request Params received by BOT ENGINE: %j', request);
                     request.debug_info.push('form_pdf');
                     try {
-                        await addPdfFromHtmlTemplate(request, botOperationsJson.bot_operations.form_pdf);
+                        console.log('form_pdf');
+                        // commenting to get hummus error
+                        // await addPdfFromHtmlTemplate(request, botOperationsJson.bot_operations.form_pdf);
                     } catch (err) {
                         logger.error("serverError | Error in executing form_pdf Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
@@ -2166,7 +2173,6 @@ function BotService(objectCollection) {
 
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
-
                 case 40: // Bulk Create SR Bot
                     logger.silly("Bulk Create SR Bot params received from request: %j", request);
                     try {
@@ -3643,6 +3649,7 @@ async function removeAsOwner(request,data,addT=0)  {
         return;
     }
 
+/*
     async function addPdfFromHtmlTemplate(request, templateData) {
         // If the bot operation inline data does not contain the key 'html_template_url',
         // redirect operation to addFormAsPdf
@@ -3841,7 +3848,8 @@ async function removeAsOwner(request,data,addT=0)  {
         }
         return;
     }
-
+*/
+/*
     async function addFormAsPdf(request, formDetails) {
         // 
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
@@ -3952,7 +3960,7 @@ async function removeAsOwner(request,data,addT=0)  {
         }
         return;
     }
-
+*/
     async function getHTMLTemplateForFormData(request, formEntries) {
 
         let formDataHTML = '';
@@ -4398,73 +4406,129 @@ async function removeAsOwner(request,data,addT=0)  {
                     logger.silly(`documentWithAttestationPath: ${documentWithAttestationPath}`, { type: 'document_with_attestation' });
 
                     await sleep(4000);
-                    const pdfDoc = new HummusRecipe(
-                        documentPath,
-                        documentWithAttestationPath,
-                        {
-                            fontSrcPath: `${__dirname}/../../../fonts`
-                        }
-                    );
-                    for (let i = 1; i <= pdfDoc.metadata.pages; i++) {
+                    // const pdfDoc = new HummusRecipe(
+                    //     documentPath,
+                    //     documentWithAttestationPath,
+                    //     {
+                    //         fontSrcPath: `${__dirname}/../../../fonts`
+                    //     }
+                    // );
+                    // for (let i = 1; i <= pdfDoc.metadata.pages; i++) {
+                    //     if (flagAttestationIsText) {
+                    //         pdfDoc
+                    //             .editPage(i)
+                    //             .text(attestationText, 400, 790, {
+                    //                 color: '#000000',
+                    //                 fontSize: 25,
+                    //                 // bold: true,
+                    //                 // underline: true,
+                    //                 // font: 'Audhistine',
+                    //                 font: 'HerrVonMuellerhoff',
+                    //                 opacity: 0.8,
+                    //                 rotation: 325,
+                    //                 textBox: {
+                    //                     width: 250,
+                    //                     height: 40,
+                    //                     wrap: 'trim',
+                    //                     style: {
+                    //                         lineWidth: 0,
+                    //                         fill: "#FFFFFF",
+                    //                         opacity: 1,
+                    //                     }
+                    //                 }
+                    //             })
+                    //             .endPage();
+                    //         // .endPDF();
+                    //     } else {
+                    //         pdfDoc
+                    //             .editPage(i)
+                    //             .image(attestationPath, 500, 640, { width: 100, keepAspectRatio: true })
+                    //             .endPage();
+                    //         // .endPDF();
+                    //     }
+                    // }
+                    // pdfDoc.endPDF();
+                    // console.log("hjyut trt",documentWithAttestationPath);
+                    const pdfdf = await PDFDocument.create();
+  let pdfLoadInitiation =await new Promise((resolve,reject)=>{fs.readFile(documentPath,(err,data)=>{
+   resolve(data)
+    })})
+                    const pdfDoc = await PDFDocument.load(pdfLoadInitiation);
+                    const pdfPages = pdfDoc.getPages();
+                    let fontLoadInitiation =await new Promise((resolve,reject)=>{fs.readFile(`${__dirname}/../../../fonts/HerrVonMuellerhoff.otf`,(err,data)=>{
+                        resolve(data)
+                         })})
+                   
+                    pdfDoc.registerFontkit(fontkit);
+                    const customFont = await pdfDoc.embedFont(fontLoadInitiation);
+                    for (let i = 0; i < pdfPages.length; i++) {
                         if (flagAttestationIsText) {
-                            pdfDoc
-                                .editPage(i)
-                                .text(attestationText, 400, 790, {
-                                    color: '#000000',
-                                    fontSize: 25,
-                                    // bold: true,
-                                    // underline: true,
-                                    // font: 'Audhistine',
-                                    font: 'HerrVonMuellerhoff',
-                                    opacity: 0.8,
-                                    rotation: 325,
-                                    textBox: {
-                                        width: 250,
-                                        height: 40,
-                                        wrap: 'trim',
-                                        style: {
-                                            lineWidth: 0,
-                                            fill: "#FFFFFF",
-                                            opacity: 1,
-                                        }
-                                    }
-                                })
-                                .endPage();
-                            // .endPDF();
-                        } else {
-                            pdfDoc
-                                .editPage(i)
-                                .image(attestationPath, 500, 640, { width: 100, keepAspectRatio: true })
-                                .endPage();
-                            // .endPDF();
+                            //text
+                            const firstPage = pdfPages[i];
+                            console.log("attestationText",attestationText + ' length : '+pdfPages.length);
+                            const { width, height } = firstPage.getSize()
+                            console.log('sizes','width : '+width+' height : '+height)
+                            firstPage.drawText(attestationText, {
+                                x: 400,
+                                y: 10,
+                                size:25,
+                                color: rgb(0, 0, 0),
+                                rotate: degrees(35),
+                                opacity:0.8,
+                                font:customFont
+                              })
+                        }
+                        else {
+                            //image
+
+                            let imageLoadInitiation =await new Promise((resolve,reject)=>{fs.readFile(attestationPath,(err,data)=>{
+                                resolve(data)
+                                 })});
+                                 let imageType = attestationPath.split('.');
+                                 let imageEmbed="";
+                                 if(imageType[imageType.length-1]=='png'){
+                                    imageEmbed = await pdfDoc.embedPng(imageLoadInitiation);
+                                 }
+                                 else{
+                                  imageEmbed = await pdfDoc.embedJpg(imageLoadInitiation);
+                                 }
+                            
+                            firstPage.drawImage(imageEmbed, {
+                                x: 500,
+                                y: 160,
+                                width:100
+                              })
                         }
                     }
-                    pdfDoc.endPDF();
-                    
+                    const pdfBytes = await pdfDoc.save();
+fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
+  if (err) return console.log(err);
+  console.log('created pdf');
+});
                     // Upload to S3
-                    const environment = global.mode;
-                    let bucketName = '';
-                    if (environment === 'prod') {
-                        bucketName = "worlddesk-" + util.getCurrentYear() + '-' + util.getCurrentMonth();
+                    // const environment = global.mode;
+                    // let bucketName = '';
+                    // if (environment === 'prod') {
+                    //     bucketName = "worlddesk-" + util.getCurrentYear() + '-' + util.getCurrentMonth();
 
-                    } else if (environment === 'staging' || environment === 'local') {
-                        bucketName = "worlddesk-staging-" + util.getCurrentYear() + '-' + util.getCurrentMonth();
+                    // } else if (environment === 'staging' || environment === 'local') {
+                    //     bucketName = "worlddesk-staging-" + util.getCurrentYear() + '-' + util.getCurrentMonth();
 
-                    } else {
+                    // } else {
 
-                        bucketName = "worlddesk-" + environment + "-" + util.getCurrentYear() + '-' + util.getCurrentMonth();
-                    }
+                    //     bucketName = "worlddesk-" + environment + "-" + util.getCurrentYear() + '-' + util.getCurrentMonth();
+                    // }
                     let prefixPath = request.organization_id + '/' +
                         request.account_id + '/' +
                         request.workforce_id + '/' +
                         request.asset_id + '/' +
                         util.getCurrentYear() + '/' + util.getCurrentMonth() + '/103' + '/' + util.getMessageUniqueId(request.asset_id);
 
-                    console.log("bucketName: ", bucketName);
-                    console.log("prefixPath: ", prefixPath);
-                    request.debug_info.push('bucketName: ' + bucketName);
-                    request.debug_info.push('prefixPath: ' + prefixPath);
-
+                    // console.log("bucketName: ", bucketName);
+                    // console.log("prefixPath: ", prefixPath);
+                    // request.debug_info.push('bucketName: ' + bucketName);
+                    // request.debug_info.push('prefixPath: ' + prefixPath);
+                    const bucketName = await util.getS3BucketNameV1();
                     const uploadDetails = await util.uploadReadableStreamToS3(request, {
                         Bucket: bucketName || "demotelcoinc",
                         Key: `${prefixPath}/${request.activity_id}` + '_with_signature.pdf',
@@ -4494,7 +4558,6 @@ async function removeAsOwner(request,data,addT=0)  {
         }
         console.log("attachmentsList: ", attachmentsList);
         request.debug_info.push('attachmentsList: ' + attachmentsList);
-
         // Do not do anything if no attachments are to be added
         if (
             Number(attachmentsList.length) === 0
@@ -4560,7 +4623,7 @@ async function removeAsOwner(request,data,addT=0)  {
         }
         return;
     }
-
+/*
     async function generatePDFreadableStream(request, htmlTemplate, annexures = []) {
         const pdfOptions = {
             "height": "10.5in", // allowed units: mm, cm, in, px
@@ -4646,6 +4709,7 @@ async function removeAsOwner(request,data,addT=0)  {
             }
         });
     }
+*/
 
     function getHTMLTemplateForAttestation(documentURL, attestationURL) {
         const template = `
@@ -6013,7 +6077,6 @@ async function removeAsOwner(request,data,addT=0)  {
         } else if (type[0] === 'asset_reference') {
             util.logInfo(request,`Inside asset_reference`);
             request.debug_info.push('Inside asset_reference');
-
             const formID = Number(inlineData["asset_reference"].form_id),
                 fieldID = Number(inlineData["asset_reference"].field_id),
                 workflowActivityID = Number(request.workflow_activity_id);
@@ -6137,6 +6200,7 @@ async function removeAsOwner(request,data,addT=0)  {
             
 
             if (Number(newReq.desk_asset_id) > 0) {
+                request.debug_info.push('Inside newReq.desk_asset_id');
                 const [error, assetData] = await activityCommonService.getAssetDetailsAsync({
                     organization_id: request.organization_id,
                     asset_id: newReq.desk_asset_id
@@ -7142,7 +7206,7 @@ else{
                 let [err123, activityTypeConfigData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request,request.activity_type_id);
       
       if(err123 || activityTypeConfigData.length == 0 || activityTypeConfigData[0].activity_type_inline_data == ""){
-        util.logInfo(request,"Exiting without creating Ics Event due to missing config settings");
+        util.logInfo(request,"Exiting due to missing config settings");
         util.sendEmailV4ews(request, request.email_id, emailSubject, Template, 1);
       }
       else{ 
@@ -8769,7 +8833,7 @@ else{
                 fieldValue = cuidValue;
             } else if(formInlineDataMap.has(Number(cuidValue.field_id))) {
                 const fieldData = formInlineDataMap.get(Number(cuidValue.field_id));
-
+                
                 console.log('fieldData : ', fieldData);
                 console.log('Number(fieldData.field_data_type_id) : ', Number(fieldData.field_data_type_id));
 
@@ -8966,6 +9030,15 @@ else{
                 .then((data) => {
                     responseData = data;
                     error = false;
+
+                    //Inserting into activity asset table for account search
+                    console.log('\nAccount Search - Updating the activity asset table');
+                    activityCommonService.actAssetSearchMappingUpdate({
+                        activity_id: request.activity_id,
+                        asset_id: request.asset_id,
+                        organization_id: request.organization_id
+                        //flag: 0
+                    });
                 })
                 .catch((err) => {
                     error = err;
@@ -9167,7 +9240,7 @@ else{
     }
 
     this.callSetDueDateOfWorkflow = async(request) => {
-
+        
         let botOperationsJson = {
             bot_operations: {
                 due_date_edit: {
@@ -12193,6 +12266,7 @@ if(workflowActivityData.length==0){
         return
 
     }
+    
 
     async function triggerArpForm(request) {
         try {
@@ -13776,8 +13850,6 @@ if(workflowActivityData.length==0){
             console.log("Error while adding participant")
         }
 
-
-
         function checkValues(linkDetails, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash, capexValue, opexValue, linkId, inlineData, activationDataOfLinks, paybackValue) {
 
             let sheetSelected = [], phase1 = 0, phase2 = 0, checkActivationDateFlag = 0;
@@ -14669,15 +14741,6 @@ if(workflowActivityData.length==0){
         logger.info(request.workflow_activity_id+": arpBot: Bot Inline data: %j", inlineData);
         let key = "_0";
         let isEnd = false;
-
-        if(Number(request.is_cloned) == 1) {
-            request.target_asset_id = request.lead_asset_id;
-            request.target_asset_first_name = request.lead_asset_first_name;
-            request.asset_type_id = request.lead_asset_type_id;
-            rmBotService.TriggerRoundRobinV2(request);
-            logger.info(request.workflow_activity_id+": arpBot: is cloned so skipped : %j", key);
-            return;
-        }
 
         // logger.silly("arpBot: Bot Inline data Key1: %j", inlineData._1);
         // logger.silly("arpBot: Bot Inline data Key2: %j", inlineData[key]);

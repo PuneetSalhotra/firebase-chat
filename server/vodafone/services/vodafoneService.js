@@ -6213,9 +6213,9 @@ function VodafoneService(objectCollection) {
             pageStart = 0,
             query = "";
         let searchType = 0;
-        // if(request.hasOwnProperty('search_string') && request.search_string.length<2){
-        //     return [false,[]]
-        // }
+        if(!request.hasOwnProperty('search_string')){
+            request.search_string = ''
+        }
         var format = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
         if(format.test(request.search_string)){
             searchType = 1;
@@ -6362,7 +6362,12 @@ function VodafoneService(objectCollection) {
                         query += " AND ";
                     query += ' asset_flag_is_owner =  ' + 1;
                     appendedAnd = true;
-                
+                    if (request.tag_id && request.tag_id > 0 && request.tag_id==172) {
+                        if (appendedAnd)
+                            query += " AND ";
+                            query += ' (activity_type_tag_id = 91 OR activity_type_tag_id = 122) '
+                        appendedAnd = true;
+                    }
                     if (request.search_string && request.search_string != '') {
                             if(appendedAnd){
                                 query += " AND "; 
