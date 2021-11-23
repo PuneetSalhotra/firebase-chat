@@ -5751,19 +5751,64 @@ this.getChildOfAParent = async (request) => {
         }        
         return [error, responseData];
     };
+    this.getPamRoleMappingLogState=async (request)=>{
+        let responseData = [],
+        error = true;
+    let paramsArr = new Array(
+        request.organization_id
+    );
+    let queryString = util.getQueryString('pm_pam_module_role_mapping_get_log_state', paramsArr);
+    if (queryString != '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = data;
+                console.log(responseData,'responseData');
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+    }        
+    return [error, responseData];
+    };
+     this.updatePamRoleModuleMappingLogState=async (request)=>{
+        let responseData = [],
+        error = true;
+    let paramsArr = new Array(
+        request.module_id_asset_type_id,
+        request.organization_id,
+        util.getCurrentUTCTime()
+    );
+    let queryString = util.getQueryString('pm_pam_module_role_mapping_update_log_state', paramsArr);
+    if (queryString != '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = data;
+                console.log(responseData,'responseData');
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+    }        
+    return [error, responseData];
+    };
     //PAM Module Role Mapping Insert
     this.addRoleModulMapping = async (request) => {
         let responseData = [],
             error = true;
+            let [errr, LogState] = await self.getPamRoleMappingLogState(request);
+            if(LogState.length>0){
+             let [errrr, updatelogstate] = await self.updatePamRoleModuleMappingLogState(request);
+            }
         let paramsArr = new Array(
-            request.module_id ,
-            request.asset_type_id,
+            request.module_id_asset_type_id ,
             request.account_id,
             request.organization_id,
             request.log_asset_id,
             util.getCurrentUTCTime()
             );
-        let queryString = util.getQueryString('pm_pam_module_role_mapping_insert', paramsArr);
+        let queryString = util.getQueryString('pm_pam_module_role_mapping_multiple_insert', paramsArr);
         if (queryString != '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -5773,13 +5818,14 @@ this.getChildOfAParent = async (request) => {
                 .catch((err) => {
                     error = err;
                 })
-        }        
+        }     
+      
         return [error, responseData];
-    }
+    };
      //Get PAM Role Module Mapping Details 
      this.getPamRoleModuleMapping = async function (request) {
         let responseData = [],
-        error = true;
+        error = true;     
     let paramsArr = new Array(
         request.module_id ,
         request.asset_type_id,
@@ -5792,28 +5838,30 @@ this.getChildOfAParent = async (request) => {
     let queryString = util.getQueryString('pm_pam_module_role_mapping_select', paramsArr);
     if (queryString != '') {
         await db.executeQueryPromise(1, queryString, request)
-            .then((data) => {
+            .then(async(data) => {
                 responseData = data;
+                let [err, LogState] = await self.getPamRoleMappingLogState(request);
+                responseData.push(LogState);
                 error = false;
             })
             .catch((err) => {
                 error = err;
             })
     }        
-    return [error, responseData];
-    }
+    responseData=responseData.flat();
+    return [error,responseData];
+    };
     //remove PAM Role Module Mapping Details
     this.removePamRoleModuleMapping =async function (request) {
         let responseData = [],
         error = true;
     let paramsArr = new Array(
-        request.module_id ,
-        request.asset_type_id,
+        request.module_id_asset_type_id ,
         request.organization_id,
         request.log_asset_id,
         util.getCurrentUTCTime()
         );
-    let queryString = util.getQueryString('pm_pam_module_role_mapping_delete', paramsArr);
+    let queryString = util.getQueryString('pm_pam_module_role_mapping_multiple_delete', paramsArr);
     if (queryString != '') {
         await db.executeQueryPromise(1, queryString, request)
             .then((data) => {
@@ -5825,7 +5873,8 @@ this.getChildOfAParent = async (request) => {
             })
     }        
     return [error, responseData];
-    }
+    };
+    
     
 };
 
