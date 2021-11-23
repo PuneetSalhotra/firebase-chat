@@ -602,6 +602,14 @@ function ActivityService(objectCollection) {
                                                     await activityActivityMappingInsert(request, fieldData);
                                                 }
                                                 break;
+                                        case 34:  
+                                                let parsedFieldValue = fieldData.field_value;
+                                                let multiSelectionItems = parsedFieldValue.split("\|");
+                                                for(let counter = 0; counter < multiSelectionItems.length; counter ++)
+                                                  {  fieldData.field_value = multiSelectionItems[counter];
+                                                      await processFieldWidgetData(request, fieldData);
+                                                  }
+                                                break;
                                         case 68: //await activityActivityMappingInsert(request, fieldData);
                                                  for(let i_iterator = 0; i_iterator < 2; i_iterator++) {
                                                     let wf68Data = await activityActivityMappingInsertV1(request, fieldData, 0);
@@ -5622,7 +5630,7 @@ function ActivityService(objectCollection) {
             WidgetFieldRequest.field_value = fieldData.field_value;
             WidgetFieldRequest.mapping_activity_id = fieldData.field_value.split("\|")[0];
             WidgetFieldRequest.mapping_type_id = 1;
-        }else if(fieldData.field_data_type_id == 33){
+        }else if(fieldData.field_data_type_id == 33 || fieldData.field_data_type_id == 34){
             WidgetFieldRequest.field_value = fieldData.field_value;
             WidgetFieldRequest.mapping_type_id = 2;
             WidgetFieldRequest.mapping_activity_id = 0;
@@ -5636,7 +5644,8 @@ function ActivityService(objectCollection) {
         if(responseWidget.length > 0){
             util.logInfo(request,`FieldWidget exists for this Field :: ${fieldData.field_id}`);
 
-            if(activityTypeCategroyId === 48 || activityTypeCategroyId === 53 || activityTypeCategroyId === 54)
+            if(activityTypeCategroyId === 48 || activityTypeCategroyId === 53 || activityTypeCategroyId === 54
+                || activityTypeCategroyId === 63  || activityTypeCategroyId === 31)
             {
                 activtyReferenceFieldInsert(WidgetFieldRequest);
 
