@@ -2644,7 +2644,7 @@ function Util(objectCollection) {
     */
 
     //This is to support ews
-    this.sendEmailV4ews = async function (request, email, subject, text, base64EncodedHtmlTemplate, flag = 0, organisationFlag = 0, senderEmail) {
+    this.sendEmailV4ews = async function (request, email, subject, text, base64EncodedHtmlTemplate, flag = 0, organisationFlag = 0, senderEmail, attachment = "") {
         logger.info("sendEmailV4ews=>");
         let responseData = [],
             error = false;
@@ -2688,7 +2688,8 @@ function Util(objectCollection) {
                 "ewsEndpoint": "https://webmail.vodafoneidea.com/ews/exchange.asmx",
                 "ewsMailReceiver": email,
                 "ewsMailSubject": subject,
-                "ewsMailBody": htmlTemplate
+                "ewsMailBody": htmlTemplate,
+                "ewsMailAttachment": attachment
             };
             logger.info(JSON.stringify(emailMessageBody));
             let sqsMessage = {
@@ -2716,6 +2717,7 @@ function Util(objectCollection) {
                 }
             });
         } catch (err) {
+            console.log(err);
             logger.error("sendEmailV4ews : Error " + err);
             error = true;
         }
