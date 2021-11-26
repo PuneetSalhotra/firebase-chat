@@ -1169,6 +1169,8 @@ function ActivityService(objectCollection) {
         }
 
         new Promise((resolve, reject) => {
+            if(request.hasOwnProperty("is_cash_and_carry") && request.is_cash_and_carry == 1)
+                request.member_code = '';
             if (activityTypeCategoryId === 37 && !request.hasOwnProperty('member_code')) { //PAM
                 var reserveCode;
                 console.log(activityTypeCategoryId)
