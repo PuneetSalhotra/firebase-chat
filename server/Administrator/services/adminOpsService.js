@@ -11171,7 +11171,6 @@ console.log('new ActivityId321',newActivity_id)
             request.asset_type_id,
             request.access_level_id,
             request.workforce_id,
-            request.account_id,
             request.organization_id,
             request.asset_id,
             util.getCurrentUTCTime()
@@ -11217,6 +11216,152 @@ console.log('new ActivityId321',newActivity_id)
         }
         return [error, responseData];
     }
+    
+    this.organizationFilterTagTypeMappingInsert = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.tag_type_filter_label, 
+            request.tag_type_id,
+            request.filter_id ,
+            request.filter_sequence_id ,
+            request.filter_inline_data,
+            request.filter_access_flag,
+            request.filter_dynamic_enabled,
+            request.filter_dynamic_sequence_id,
+            request.target_activity_type_id, 
+            request.target_tag_type_id, 
+            request.target_activity_status_type_id,
+            request.target_asset_category_id,
+            request.target_asset_type_id,
+            request.organization_id, 
+            request.log_asset_id, 
+            request.log_datetime
+        );
+        const queryString = util.getQueryString('ds_p2_organization_filter_tag_type_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }; 
+    
+    this.organizationFilterTagTypeMappingDelete = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.tag_type_mapping_id ,
+            request.log_asset_id , 
+            request.log_datetime 
+        );
+        const queryString = util.getQueryString('ds_p1_organization_filter_tag_type_mapping_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };    
+
+    this.organizationFilterTagTypeMappingUpdate = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id , 
+            request.tag_type_mapping_id ,
+            request.tag_type_filter_label , 
+            request.filter_sequence_id ,
+            request.filter_dynamic_sequence_id ,
+            request.log_asset_id , 
+            request.log_datetime
+        );
+        const queryString = util.getQueryString('ds_p1_organization_filter_tag_type_mapping_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };    
+
+    this.getOrganizationFilterTagTypeMapping  = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.tag_type_id, 
+            request.is_export, 
+            request.report_type_id, 
+            request.start_from, 
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_v1_2_organization_filter_tag_type_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };    
+
+    this.applicationTagTypeMappingInsert  = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.application_id,
+            request.tag_type_id,
+            request.activity_type_category_id,
+            request.index_value,
+            request.is_export_enabled,
+            request.is_dashboard_enabled,
+            request.log_datetime         
+            );
+        const queryString = util.getQueryString('ds_v1_application_tag_type_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };   
 }
 
 module.exports = AdminOpsService;
