@@ -585,12 +585,12 @@ function ActivityService(objectCollection) {
                                     //     prepareARP(request, fieldData);
                                     // }                                  
                                    if (Object.keys(dashboardEntityFieldData).includes(fieldData.field_id) || Object.keys(dashboardEntityFieldData).includes(String(fieldData.field_id)) || Object.keys(dashboardEntityFieldData).includes(Number(fieldData.field_id))) {
-                                    util.logInfo(request,`Not a dashboard Entity Field ${fieldData.field_id}`);
-                                request.channel_activity_id = request.activity_id
-                               activityCommonService.updateEntityFieldsForDashboardEntity(request, dashboardEntityFieldData, fieldData, fieldData.field_value, fieldData.field_id)                                    
-                                }else{
-                                    util.logInfo(request,`Not a dashboard Entity Field ${fieldData.field_id}`);
-                                }
+                                        util.logInfo(request,`Not a dashboard Entity Field ${fieldData.field_id}`);
+                                        request.channel_activity_id = request.activity_id
+                                        activityCommonService.updateEntityFieldsForDashboardEntity(request, dashboardEntityFieldData, fieldData.field_value, '', fieldData.field_id)                                    
+                                    }else{
+                                        util.logInfo(request,`Not a dashboard Entity Field ${fieldData.field_id}`);
+                                    }
                                    
                                     
                                     switch(Number(fieldData.field_data_type_id)) {

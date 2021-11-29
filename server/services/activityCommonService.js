@@ -7015,7 +7015,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         let paramsArr = new Array(
             request.organization_id,
             request.channel_activity_id || request.workflow_activity_id,
-            request.field_data.field_value,
+            request.field_data,
             request.field_data_value,
             request.sequence_id
         );
