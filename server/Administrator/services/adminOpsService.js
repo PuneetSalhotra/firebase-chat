@@ -11171,7 +11171,6 @@ console.log('new ActivityId321',newActivity_id)
             request.asset_type_id,
             request.access_level_id,
             request.workforce_id,
-            request.account_id,
             request.organization_id,
             request.asset_id,
             util.getCurrentUTCTime()
