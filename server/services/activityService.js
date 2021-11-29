@@ -546,7 +546,22 @@ function ActivityService(objectCollection) {
                                     addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 1);
                             }else if(activityTypeCategroyId === 9){
                                 addValueToWidgetForAnalytics(request);
-                            }*/                             
+                            }*/    
+                            
+                            let errorWorkflowType = true, workflowTypeData = []
+                            let dashboardEntityFieldData = []
+                            util.logInfo(request, "before dashboardconfig entityfields check "+activityTypeCategroyId);
+                            if (activityTypeCategroyId != 9) {                           
+                                [errorWorkflowType, workflowTypeData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, request.activity_type_id);
+                                util.logInfo(request, "workflowtypedata ::", workflowTypeData);
+                               util.logInfo(request, "Dashboard config "+workflowTypeData[0].dashboard_config_fields+ " : "+workflowTypeData[0].dashboard_config_enabled);
+                                if(workflowTypeData[0].dashboard_config_fields !== null && workflowTypeData[0].dashboard_config_enabled === 1)
+                                    dashboardEntityFieldData = await activityCommonService.getDashboardEntityFieldData(request, workflowTypeData);
+                                  else
+                                    util.logInfo(request, workflowTypeData[0].dashboard_config_fields+ " : "+workflowTypeData[0].dashboard_config_enabled); 
+                                }else{
+                                    util.logInfo(request, "not a workflow "+activityTypeCategroyId);
+                                }
 
                             if(activityTypeCategroyId === 48 || 
                                activityTypeCategroyId === 9  || 
@@ -564,10 +579,17 @@ function ActivityService(objectCollection) {
                                 for(let i=0; i<formInlineData.length;i++){                                    
                                     fieldData = formInlineData[i]; 
 
-                                    if(Number(fieldData.field_data_type_id) === 5 || Number(fieldData.field_data_type_id) === 6){ // for widget
-                                        processFieldWidgetData(request, fieldData); // actiivty_widget_list
-                                    }else if(Number(fieldData.field_data_type_id) === 59 && fieldData.field_value == ""){ // for ECHS
-                                        prepareARP(request, fieldData);
+                                    // if(Number(fieldData.field_data_type_id) === 5 || Number(fieldData.field_data_type_id) === 6){ // for widget
+                                    //     processFieldWidgetData(request, fieldData); // actiivty_widget_list
+                                    // }else if(Number(fieldData.field_data_type_id) === 59 && fieldData.field_value == ""){ // for ECHS
+                                    //     prepareARP(request, fieldData);
+                                    // }                                  
+                                   if (Object.keys(dashboardEntityFieldData).includes(fieldData.field_id) || Object.keys(dashboardEntityFieldData).includes(String(fieldData.field_id)) || Object.keys(dashboardEntityFieldData).includes(Number(fieldData.field_id))) {
+                                        util.logInfo(request,`Not a dashboard Entity Field ${fieldData.field_id}`);
+                                        request.channel_activity_id = request.activity_id
+                                        activityCommonService.updateEntityFieldsForDashboardEntity(request, dashboardEntityFieldData, fieldData.field_value, '', fieldData.field_id)                                    
+                                    }else{
+                                        util.logInfo(request,`Not a dashboard Entity Field ${fieldData.field_id}`);
                                     }
                                    
                                     
