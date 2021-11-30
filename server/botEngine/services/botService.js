@@ -5606,20 +5606,20 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
     async function createTargetFormActivity(createTargetFormRequest) {
         let reqActivityId = createTargetFormRequest.activity_id
         // Get the activity_id and form_trasanction_id
-        const targetFormActivityID = await cacheWrapper.getActivityIdPromise();
-        const targetFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
+        // const targetFormActivityID = await cacheWrapper.getActivityIdPromise();
+        // const targetFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
 
-        if (
-            Number(targetFormActivityID) === 0 ||
-            Number(targetFormTransactionID) === 0
-        ) {
-            throw new Error("Error Fetching Activity ID or Form Transaction ID");
-        }
+        // if (
+        //     Number(targetFormActivityID) === 0 ||
+        //     Number(targetFormTransactionID) === 0
+        // ) {
+        //     throw new Error("Error Fetching Activity ID or Form Transaction ID");
+        // }
 
-        createTargetFormRequest.activity_id = targetFormActivityID;
-        if(!createTargetFormRequest.start_workflow_activity_parent_id) {
-            createTargetFormRequest.form_transaction_id = targetFormTransactionID;
-        }
+        // createTargetFormRequest.activity_id = targetFormActivityID;
+        // if(!createTargetFormRequest.start_workflow_activity_parent_id) {
+        //     createTargetFormRequest.form_transaction_id = targetFormTransactionID;
+        // }
 
         // Fetch the activity_type_id
         let targetFormctivityTypeID = 0;
@@ -5707,82 +5707,90 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
         createTargetFormRequest.flag_timeline_entry = 1;
         createTargetFormRequest.url = "/r1/activity/add/v1";
         createTargetFormRequest.create_workflow = 1;
+        const addActivityRequest = {
+            ...createTargetFormRequest,
+            workflow_activity_id: Number(createTargetFormRequest.workflow_activity_id),
+            activity_id : Number(createTargetFormRequest.workflow_activity_id),
+            channel_activity_id: Number(createTargetFormRequest.workflow_activity_id),
+            data_entity_inline:createTargetFormRequest.activity_inline_data,
+            form_transaction_id : 0,
+            isOrigin :false,
+            is_mytony: 1,
+            form_api_activity_type_category_id: 48,
+            form_api_activity_type_id: createTargetFormRequest.activity_type_id,
+            form_id: createTargetFormRequest.form_id,
+            form_workflow_activity_type_id: createTargetFormRequest.activity_type_id,
+            activity_type_category_id: 9,
+            activity_sub_type_id: 0,
+            activity_type_id: createTargetFormRequest.activity_type_id,
+            asset_participant_access_id: 0,
+            activity_parent_id: 0,
+            flag_pin: 0,
+            flag_priority: 0,
+            activity_flag_file_enabled: -1,
+            activity_form_id: createTargetFormRequest.form_id,
+            flag_offline: 0,
+            flag_retry: 0,
+            message_unique_id: util.getMessageUniqueId(31993),
+            activity_channel_id: Number(createTargetFormRequest.workflow_activity_id),
+            activity_channel_category_id: 0,
+            activity_flag_response_required: 0,
+            track_latitude: 0.0,
+            track_longitude: 0.0,
+            track_altitude: 0,
+            track_gps_datetime: util.getCurrentUTCTime(),
+            track_gps_accuracy: 0,
+            track_gps_status: 0,
+            service_version: "3.0",
+            app_version: "3.0.0",
+            device_os_id: 5
+        };
 
         util.logInfo(createTargetFormRequest,`createTargetFormRequest.isESMS : %j`,createTargetFormRequest.isESMS);
         util.logInfo(createTargetFormRequest,`createTargetFormRequest.isEsmsOriginFlag : %j`,createTargetFormRequest.isEsmsOriginFlag);
         util.logInfo(createTargetFormRequest,`createTargetFormRequest.activity_flag_created_by_bot :  %j`,createTargetFormRequest.activity_flag_created_by_bot);     
 
-        const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
+        const addActivityAsync = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form: addActivityRequest
+        };
         try {
-            await addActivityAsync(createTargetFormRequest);
-
-        } catch(e ) {
-
-        }
-
-        // Make a 705 timeline transaction entry in the workflow file
-        console.log("createTargetFormRequest.hasOwnProperty(workflow_activity_id", createTargetFormRequest.hasOwnProperty("workflow_activity_id"));
-        if (createTargetFormRequest.hasOwnProperty("workflow_activity_id")) {
-            let workflowFile705Request = Object.assign({}, createTargetFormRequest);
-            workflowFile705Request.activity_id = createTargetFormRequest.workflow_activity_id;
-            if(createTargetFormRequest.start_workflow_activity_parent_id) {
-                workflowFile705Request.activity_id = createTargetFormRequest.activity_id;
+            // global.config.mobileBaseUrl + global.config.version
+            const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
+            const body = JSON.parse(response.body);
+            if (Number(body.status) === 200) {
+                console.log("createActivity | addActivityAsync | Body: ", body);
+                let activityTimelineCollection =  JSON.stringify({
+                    "content"            : `Form Submitted`,
+                    "subject"            : `Form Submitted`,
+                    "mail_body"          : `Form Submitted`,
+                    "activity_reference" : [],
+                    "form_id"            : addActivityRequest.form_id,
+                    "form_submitted"     : JSON.parse(addActivityRequest.data_entity_inline),
+                    "asset_reference"    : [],
+                    "attachments"        : [],
+                    "form_approval_field_reference": []
+                });
+        
+                addActivityRequest.form_transaction_id = body.response.form_transaction_id;
+                let timelineReq = Object.assign({}, addActivityRequest);
+        
+                timelineReq.activity_id                  = addActivityRequest.workflow_activity_id;
+                timelineReq.message_unique_id            = util.getMessageUniqueId(100);
+                timelineReq.track_gps_datetime           = util.getCurrentUTCTime();
+                timelineReq.activity_stream_type_id      = 705;
+                timelineReq.timeline_stream_type_id      = 705;
+                timelineReq.activity_type_category_id    = 48;
+                timelineReq.asset_id                     = 100;
+                timelineReq.activity_timeline_collection = activityTimelineCollection;
+                timelineReq.data_entity_inline           = timelineReq.activity_timeline_collection;
+        
+                await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+                return [false, body];
             }
-            workflowFile705Request.data_activity_id = Number(createTargetFormRequest.activity_id);
-            workflowFile705Request.form_transaction_id = Number(createTargetFormRequest.form_transaction_id);
-            workflowFile705Request.activity_type_category_id = 48;
-            workflowFile705Request.activity_stream_type_id = 705;
-            workflowFile705Request.flag_timeline_entry = 0;
-            if(createTargetFormRequest.start_workflow_activity_parent_id) {
-                workflowFile705Request.flag_timeline_entry = 1;
-            }
-            workflowFile705Request.message_unique_id = util.getMessageUniqueId(Number(createTargetFormRequest.asset_id));
-            workflowFile705Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-            workflowFile705Request.device_os_id = 8;
-
-            workflowFile705Request.activity_timeline_collection = JSON.stringify({
-                "mail_body": `${targetFormName} Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                "subject": `${targetFormName}`,
-                "content": `${targetFormName}`,
-                "asset_reference": [],
-                "activity_reference": [],
-                "form_approval_field_reference": [],
-                "form_submitted": JSON.parse(createTargetFormRequest.activity_inline_data),
-                "attachments": []
-            });
-
-            console.log("workflowFile705Request", JSON.stringify(workflowFile705Request));
-            const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
-            try {
-                await addTimelineTransactionAsync(workflowFile705Request);
-                //Adding cuid 3 for child mom points
-                if (createTargetFormRequest.start_workflow_activity_parent_id) {
-                    let activityData = await activityCommonService.getActivityDetailsPromise({ organization_id: createTargetFormRequest.organization_id }, reqActivityId);
-                    if (activityData.length > 0) {
-                        let parentCUID3 = activityData[0].activity_cuid_3;
-                        let childCount = 1;
-                        const [errorZero, childWorkflowCount] = await activityListSelectChildOrderCount({
-                            organization_id: createTargetFormRequest.organization_id,
-                            activity_type_category_id: 63,
-                            activity_type_id: 190797,
-                            parent_activity_id: reqActivityId,
-                        });
-                        
-                        if (childWorkflowCount.length > 0) {
-                            childCount = Number(childWorkflowCount[0].count) + 1;
-                        }
-                        let childCUID2 = parentCUID3 + "-" + childCount;
-                        createTargetFormRequest.calendar_event_id_update = true;
-                        createTargetFormRequest.workflow_activity_id = targetFormActivityID;
-                        await updateCUIDBotOperation(createTargetFormRequest, {}, { "CUID2": childCUID2 });
-                        await updateCUIDBotOperation(createTargetFormRequest, {}, { "CUID3": parentCUID3 });
-                    }
-
-                }
-            } catch (error) {
-                util.logError(createTargetFormRequest,`createTargetFormActivity | workflowFile705Request | addTimelineTransactionAsync | Error: `, { type: "bot_engine", error: serializeError(error) });
-                throw new Error(error);
-            }
+        } catch (error) {
+            console.log("createActivity | addActivityAsync | Error: ", error);
+            return [true, {}];
         }
         return;
     }
