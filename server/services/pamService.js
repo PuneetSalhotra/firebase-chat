@@ -5874,6 +5874,30 @@ this.getChildOfAParent = async (request) => {
     }        
     return [error, responseData];
     };
+      this.getPamOrderReportSummary =async function (request) {
+        let responseData = [],
+        error = true;
+    let paramsArr = new Array(
+        request.start_date,
+        request.end_date,
+        request.flag,
+        request.type_flag
+        );
+    let queryString = util.getQueryString('pm_v1_pam_order_list_select_report_summary', paramsArr);
+    if (queryString != '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+    }        
+    return [error, responseData];
+    };
+
+    
     
     
 };
