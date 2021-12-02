@@ -1841,31 +1841,7 @@ function BotService(objectCollection) {
 
                         if (momPointsData.length === 1) {
                             request.calendar_event_id_update = true;
-
-                            let activityDataofMom = await activityCommonService.getActivityDetailsPromise({ organization_id: request.organization_id }, request.workflow_activity_id || request.activity_id);
-
-                            if (activityDataofMom.length > 0) {
-
-                                let activityData = await activityCommonService.getActivityDetailsPromise({ organization_id: request.organization_id }, activityDataofMom[0].parent_activity_id);
-
-                                if (activityData.length > 0) {
-                                    let parentActivityId = activityData[0].activity_id;
-                                    let parentCUID3 = activityData[0].activity_cuid_3;
-                                    let childCount = 1;
-                                    const [errorZero, childWorkflowCount] = await activityListSelectChildOrderCount({
-                                        organization_id: request.organization_id,
-                                        activity_type_category_id: 63,
-                                        activity_type_id: 190797,
-                                        parent_activity_id: parentActivityId,
-                                    });
-                                    if (childWorkflowCount.length > 0) {
-                                        childCount = Number(childWorkflowCount[0].count) + 1;
-                                    }
-                                    let childCUID2 = parentCUID3 + "-" + childCount;
-
-                                    updateCuids = { "CUID2": childCUID2, "CUID3": parentCUID3 };
-                                }
-                            }
+                            updateCuids = request.updateCuids;
                         }
                     }
 
