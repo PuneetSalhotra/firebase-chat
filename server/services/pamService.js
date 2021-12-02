@@ -325,7 +325,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         });    
     };
 
-     function getEventDatetime (request){
+     function getEventDatetime (request){ 
         return new Promise((resolve, reject)=>{
             var paramsArr1 = new Array(
                 request.organization_id || 351,
@@ -5896,9 +5896,280 @@ this.getChildOfAParent = async (request) => {
     }        
     return [error, responseData];
     };
+     this.PamAnalyticsReporteChecks = async (request) => {
+       util.logInfo(request, `PamAnalyticsReporteChecks::START:::::`);
+       if (!request.email) {
+         return [true, []];
+       }
+       const timeStamp = util.getTimestamp();
+       let responseData = [],
+         error = true;
+       let fileName = "";
+       let SaleReportType = "";
+       let start_date = "";
+       let end_date = "";
+       // //HANDLE THE PATHS in STAGING and PREPROD AND PRODUCTION
+       switch (global.mode) {
+         case "staging":
+           fileName = "/apistaging-data/";
+           break;
+         case "preprod":
+           fileName = "/data/";
+           break;
+         case "prod":
+           fileName = "/api-data/";
+           break;
+         default:
+           fileName = "/api-data/";
+           break;
+       }
+       for (let i = 1; i <= 8; i++) {
+         let paramsArr = new Array(
+           request.start_date,
+           request.end_date,
+           (request.flag = i),
+           request.type_flag
+         );
+         let queryString = util.getQueryString(
+           "pm_v1_pam_order_list_select_report_summary",
+           paramsArr
+         );
+         if (queryString != "") {
+           await db
+             .executeQueryPromise(1, queryString, request)
+             .then(async (data) => {
+               responseData = data;
+               error = false;
+               // monthly and daily checks
+               util.logInfo(
+                 request.type_flag,
+                 `DailyAnalyticsReport AND MonthlyAnalyticsReport CHECK:::`
+               );
+               if (request.type_flag == 1) {
+                 SaleReportType = "DailyAnalyticsReport";
+                 start_date = timeStamp;
+                 end_date = request.end_date.split(" ")[0];
+               } else {
+                 (SaleReportType = "MonthlyAnalyticsReport"),
+                   (start_date = timeStamp);
+                 end_date = request.start_date.split(" ")[0];
+               }
+               fs.stat(
+                 `${fileName}${SaleReportType}_${start_date}_${end_date}.xlsx`,
+                 function (err, stat) {
+                   if (err == null) {
+                     let wb = XLSX.readFile(
+                       `${fileName}${SaleReportType}_${start_date}_${end_date}.xlsx`,
+                       {
+                         cellText: false,
+                         cellDates: true,
+                         cellStyles: true,
+                       }
+                     );
+                     salesReoprt(wb, responseData);
+                   } else if (err.code === "ENOENT") {
+                     let nwb = XLSX.utils.book_new();
+                     var ws_name = [
+                       "FinancialReporting",
+                       "CountofmembersDayMonthwise",
+                       "MembersListByVisit",
+                       "TotalBillingamount",
+                       "Listoftopsolditems",
+                       "NoofOrdersByTime",
+                       "AverageServedDatetime",
+                       "AveragePreparationDatetime",
+                     ];
+                     /* make worksheet */
+                     for (let i = 0; i < ws_name.length; i++) {
+                       var ws_data = [[""]];
+                       var ws = XLSX.utils.aoa_to_sheet(ws_data);
+                       /* Add the worksheet to the workbook */
+                       XLSX.utils.book_append_sheet(nwb, ws, ws_name[i]);
+                     }
+                     XLSX.writeFile(
+                       nwb,
+                       `${fileName}${SaleReportType}_${start_date}_${end_date}.xlsx`,
+                       {
+                         cellStyles: true,
+                       }
+                     );
+                     let wb = XLSX.readFile(
+                       `${fileName}${SaleReportType}_${start_date}_${end_date}.xlsx`,
+                       {
+                         cellText: false,
+                         cellDates: true,
+                         cellStyles: true,
+                       }
+                     );
+                     salesReoprt(wb, responseData);
+                   } else {
+                     console.log("Some other error: ", err.code);
+                   }
+                 }
+               );
+               function salesReoprt(wb, responseData) {
+                 util.logInfo(i, `Checking Flag:::`);
+                 switch (i) {
+                   //Financial Reporting
+                   case 1:
+                     XLSX.utils.sheet_add_json(
+                       wb.Sheets["FinancialReporting"],
+                       responseData,
+                       {
+                         dateNF: 'd"."mm"."yyyy',
+                       }
+                     );
+                     break;
+                   //Count of members Day & Month wise
+                   case 2:
+                     XLSX.utils.sheet_add_json(
+                       wb.Sheets["CountofmembersDayMonthwise"],
+                       responseData,
+                       {
+                         dateNF: 'd"."mm"."yyyy',
+                       }
+                     );
+                     break;
+                   //List of members who visited more than once in the given time period
+                   case 3:
+                     XLSX.utils.sheet_add_json(
+                       wb.Sheets["MembersListByVisit"],
+                       responseData,
+                       {
+                         dateNF: 'd"."mm"."yyyy',
+                       }
+                     );
+                     break;
+                   //Total Billing amount/ Total No of Orders
+                   case 4:
+                     XLSX.utils.sheet_add_json(
+                       wb.Sheets["TotalBillingamount"],
+                       responseData,
+                       {
+                         dateNF: 'd"."mm"."yyyy',
+                       }
+                     );
+                     break;
+                   //List of top sold items under food and Liquor separately.
+                   case 5:
+                     XLSX.utils.sheet_add_json(
+                       wb.Sheets["Listoftopsolditems"],
+                       responseData,
+                       {
+                         dateNF: 'd"."mm"."yyyy',
+                       }
+                     );
+                     break;
+                   //No of Orders in the given time period
+                   case 6:
+                     XLSX.utils.sheet_add_json(
+                       wb.Sheets["NoofOrdersByTime"],
+                       responseData,
+                       {
+                         dateNF: 'd"."mm"."yyyy',
+                       }
+                     );
+                     break;
+                   //Average of difference between Ordered time and Served Datetime
+                   case 7:
+                     XLSX.utils.sheet_add_json(
+                       wb.Sheets["AverageServedDatetime"],
+                       responseData,
+                       {
+                         dateNF: 'd"."mm"."yyyy',
+                       }
+                     );
+                     break;
+                   //Average of difference between Ordered time and preparation started time
+                   case 8:
+                     XLSX.utils.sheet_add_json(
+                       wb.Sheets["AveragePreparationDatetime"],
+                       responseData,
+                       {
+                         dateNF: 'd"."mm"."yyyy',
+                       }
+                     );
+                     break;
+                 }
+                 XLSX.writeFile(
+                   wb,
+                   `${fileName}${SaleReportType}_${start_date}_${end_date}.xlsx`,
+                   {
+                     cellDates: true,
+                     cellStyles: true,
+                   }
+                 );
+               }
+             })
+             .catch((err) => {
+               error = err;
+             });
+         }
+       }
+       let path = `${fileName}${SaleReportType}_${start_date}_${end_date}.xlsx`;
+       request.attachment = path;
+       request.sendRegularEmail = 1;
+       request.email_receiver_name = "";
+       request.email_sender_name = "greneOS";
+       //request.email_id = request.email_id;
+       request.email_sender = "support@greneos.com";
 
-    
-    
+       util.sendEmailV3(
+         request,
+         request.email,
+         "Analytics Report",
+         "greneOS",
+         "<html></html>",
+         (err, data) => {
+           if (err) {
+             global.logger.write(
+               "conLog",
+               "[Send Email On Form Submission | Error]: ",
+               {},
+               {}
+             );
+             global.logger.write("conLog", err, {}, {});
+           } else {
+             global.logger.write(
+               "conLog",
+               "[Send Email On Form Submission | Response]: " + "Email Sent",
+               {},
+               {}
+             );
+             global.logger.write("conLog", data, {}, {});
+           }
+         }
+       );
+       if (process.env == "pamProd") {
+         util.sendEmailV3(
+           request,
+           "parameshwar@grenerobotics.com",
+           "Analytics Report",
+           "greneOS",
+           "<html></html>",
+           (err, data) => {
+             if (err) {
+               global.logger.write(
+                 "conLog",
+                 "[Send Email On Form Submission | Error]: ",
+                 {},
+                 {}
+               );
+               global.logger.write("conLog", err, {}, {});
+             } else {
+               global.logger.write(
+                 "conLog",
+                 "[Send Email On Form Submission | Response]: " + "Email Sent",
+                 {},
+                 {}
+               );
+               global.logger.write("conLog", data, {}, {});
+             }
+           }
+         );
+       }
+       return [error, []];
+     };      
     
 };
 
