@@ -1816,21 +1816,61 @@ function BotService(objectCollection) {
                     logger.silly("Update CUID Bot");
                     logger.silly("Update CUID Bot Request: %j", request);
                     let is_opportunity = false;
-                    if(request.activity_type_category_id == 48 && (request.activity_type_id == 150258
+                    let updateCuids = {};
+                    if (request.activity_type_category_id == 48 && (request.activity_type_id == 150258
                         || request.activity_type_id == 150229 || request.activity_type_id == 150192
                         || request.activity_type_id == 149818 || request.activity_type_id == 149752
                         || request.activity_type_id == 149058 || request.activity_type_id == 151728 || request.activity_type_id == 151727
-                        || request.activity_type_id == 151729 || request.activity_type_id == 151730)){
-                            console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_type_id);
-                            request.debug_info.push('activity_type_category_id: ' + request.activity_type_category_id);
-                            request.debug_info.push('activity_type_id: ' + request.activity_type_id);
+                        || request.activity_type_id == 151729 || request.activity_type_id == 151730)) {
+                        console.log("OPPORTUNITY :: " + request.activity_type_category_id + " :: " + request.activity_type_id);
+                        request.debug_info.push('activity_type_category_id: ' + request.activity_type_category_id);
+                        request.debug_info.push('activity_type_id: ' + request.activity_type_id);
 
-                            request.opportunity_update = true;
+                        request.opportunity_update = true;
+                        updateCuids = botOperationsJson.bot_operations.update_cuids;
+
+                    } else if (Number(request.activity_type_category_id) === 63 && Number(request.activity_type_id) === 190798) {
+
+                        let formID = request.form_id;
+                        let activityId = request.workflow_activity_id || request.activity_id;
+
+                        const momPointsData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                            organization_id: request.organization_id,
+                            account_id: request.account_id
+                        }, activityId, formID);
+
+                        if (momPointsData.length === 1) {
+                            request.calendar_event_id_update = true;
+
+                            let activityDataofMom = await activityCommonService.getActivityDetailsPromise({ organization_id: request.organization_id }, request.workflow_activity_id || request.activity_id);
+
+                            if (activityDataofMom.length > 0) {
+
+                                let activityData = await activityCommonService.getActivityDetailsPromise({ organization_id: request.organization_id }, activityDataofMom[0].parent_activity_id);
+
+                                if (activityData.length > 0) {
+                                    let parentActivityId = activityData[0].activity_id;
+                                    let parentCUID3 = activityData[0].activity_cuid_3;
+                                    let childCount = 1;
+                                    const [errorZero, childWorkflowCount] = await activityListSelectChildOrderCount({
+                                        organization_id: request.organization_id,
+                                        activity_type_category_id: 63,
+                                        activity_type_id: 190797,
+                                        parent_activity_id: parentActivityId,
+                                    });
+                                    if (childWorkflowCount.length > 0) {
+                                        childCount = Number(childWorkflowCount[0].count) + 1;
+                                    }
+                                    let childCUID2 = parentCUID3 + "-" + childCount;
+
+                                    updateCuids = { "CUID2": childCUID2, "CUID3": parentCUID3 };
+                                }
+                            }
+                        }
                     }
+
                     try {
-                        
-                        await updateCUIDBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.update_cuids);
-                        
+                        await updateCUIDBotOperation(request, formInlineDataMap, updateCuids);
                     } catch (error) {
                         logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                     }
