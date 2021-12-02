@@ -2745,8 +2745,11 @@ function Util(objectCollection) {
                 let email_sender_password_text = assetDetails[0].asset_email_password;
                 let decrypted = CryptoJS.AES.decrypt(email_sender_password_text.toString() || "", 'lp-n5^+8M@62').toString(CryptoJS.enc.Utf8);
             console.log('decrypted PWD : ', decrypted);
+            emailProviderDetails.email = assetDetails[0].asset_email_id;
+            emailProviderDetails.username = assetDetails[0].operating_asset_username
             emailProviderDetails.password = decrypted; 
         } 
+        // console.log('fg',emailProviderDetails)
         let ewsConfig = {
             "ewsEmail":emailProviderDetails.email || "CentralOmt.In@vodafoneidea.com",
             "ewsUsername":emailProviderDetails.username || "COR458207",
