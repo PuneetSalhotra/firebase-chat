@@ -5315,6 +5315,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                 request.debug_info.push('sourceFieldData[0]: ' + sourceFieldData[0]);
                 request.debug_info.push('sourceFieldDataTypeID: ' + sourceFieldDataTypeID);
                 request.debug_info.push('getFielDataValueColumnNameNew(sourceFieldDataTypeID): ' + getFielDataValueColumnNameNew(sourceFieldDataTypeID));
+                // console.log('sddd',`getFielDataValueColumnNameNew(sourceFieldDataTypeID) sourceFieldData[0][${getFielDataValueColumnNameNew(sourceFieldDataTypeID)}]`)
                 const sourceFieldValue = sourceFieldData[0][getFielDataValueColumnNameNew(sourceFieldDataTypeID)];
                 
                 activityInlineDataMap.set(sourceFieldID, {
@@ -5973,7 +5974,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
     function getFielDataValueColumnNameNew(fieldDataTypeID) {
         switch (fieldDataTypeID) {
             case 1: // Date
-                return 'data_entity_datetime_2';
+                return 'data_entity_date_1';
             case 2 : // date only
                 return 'data_entity_date_1';
             case 71: 
@@ -5984,6 +5985,8 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             case 19: // Short Text
             case 21: // Label
             case 22: // Email ID
+            case 23: // Phone Number
+                return 'data_entity_text_1';
             case 27: // General Signature with asset reference
             case 33: // Single Selection List
             case 57: // workflow reference            
@@ -9482,6 +9485,7 @@ else{
         newReq.asset_id = 100;
         newReq.creator_asset_id = Number(request.asset_id);
         newReq.activity_id = Number(request.workflow_activity_id);
+        
         const event = {
             name: "alterActivityCover",
             service: "activityUpdateService",
@@ -9490,6 +9494,16 @@ else{
         };
         console.log('request.workflow_activity_id : ', request.workflow_activity_id);
         request.debug_info.push('request.workflow_activity_id : '+ request.workflow_activity_id);
+        
+        if(inlineData && inlineData.hasOwnProperty('is_status_due_date') && inlineData.is_status_due_date == 1) {
+           let updateStatusDueDateParams = {...request};
+           updateStatusDueDateParams.activity_id = Number(request.workflow_activity_id);
+           updateStatusDueDateParams.status_due_datetime = newDate;
+            rmBotService.updateStatusDueDate(updateStatusDueDateParams)
+            
+            return [false,[]]
+        }
+
         await queueWrapper.raiseActivityEventPromise(event, request.workflow_activity_id);
 
         //Timeline /activity/timeline/entry/add
@@ -16284,7 +16298,7 @@ if(workflowActivityData.length==0){
 
       const paramsArr = new Array(request.organization_id, request.email);
       const queryString = util.getQueryString(
-        "ds_p1_asset_list_select_email_all",
+        "ds_v1_asset_list_select_email",
         paramsArr
       );
       if (queryString !== "") {

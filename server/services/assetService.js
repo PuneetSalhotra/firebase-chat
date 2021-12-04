@@ -1033,7 +1033,10 @@ function AssetService(objectCollection) {
             "asset_flag_simulation" : util.replaceDefaultNumber(rowArray[0]['asset_flag_simulation']),
             "organization_flag_enable_timetracker" : util.replaceDefaultNumber(rowArray[0]['organization_flag_enable_timetracker']),
             "organization_flag_timeline_access_mgmt" : util.replaceDefaultNumber(rowArray[0]['organization_flag_timeline_access_mgmt']),
-            "organization_flag_lead_mgmt" : util.replaceDefaultNumber(rowArray[0]['organization_flag_lead_mgmt']) 
+            "organization_flag_lead_mgmt" : util.replaceDefaultNumber(rowArray[0]['organization_flag_lead_mgmt']),
+            "asset_flag_line_manager" : util.replaceDefaultNumber(rowArray[0]['asset_flag_line_manager']),
+            "asset_flag_target_only" : util.replaceDefaultNumber(rowArray[0]['asset_flag_target_only']),
+            "asset_password_expiry_datetime": util.replaceDefaultDatetime(rowArray[0]['asset_password_expiry_datetime'])
        };
 
         callback(false, rowData);
