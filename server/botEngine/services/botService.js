@@ -5035,7 +5035,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             });
 
             newReq.activity_status_type_id = statusName[0].activity_status_type_id;
-
+            newReq.activity_status_duration = statusName[0].activity_status_duration;
             // Send push notification to mobile devices for live loading of the updates 
             newReq.activity_stream_type_id = 704;
             newReq.bot_operation_type = 'status_alter';
@@ -16701,7 +16701,10 @@ if(workflowActivityData.length==0){
     }
     async function closeRefferedOutActivities(request,bot_inline){
         const workflowActivityID = request.workflow_activity_id;
-
+        let [err1,activityDetails_1] = await getActivityDetailsAsync(request,workflowActivityID);
+        if(activityDetails_1.length>0 && activityDetails_1[0].activity_workflow_completion_percentage==100){
+            return [false,[]]
+        }
         let sourceFieldValue = await getFieldValueUsingFieldIdV1({...request,workflow_activity_id:0},bot_inline.source_form_data.form_id,bot_inline.source_form_data.field_id);
         if(sourceFieldValue == ""){
             return [false,[]]
