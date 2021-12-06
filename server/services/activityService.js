@@ -1981,6 +1981,34 @@ function ActivityService(objectCollection) {
             });
         }
     };
+    var activityListUpdateStatusDuration = function (request) {
+        let responseData = [],
+        error = true;
+        let current_date = moment();
+    let activity_status_duration = util.addMinutes(current_date,request.activity_status_duration || 0)
+        let paramsArr = new Array(                
+            request.organization_id, 
+            request.activity_id, 
+            activity_status_duration,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+    let queryString = util.getQueryString('ds_v1_activity_list_update_status_due_date',paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(0, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+                // request.global_array.push({"updateStatusDueDate ":queryString});
+            })
+            .catch((err) => {
+                error = err;
+            })
+    }
+    return [error, responseData];
+    };
+
+    
     var assetActivityListUpdateStatus = function (request, activityStatusId, activityStatusTypeId, callback) {
         var paramsArr = new Array();
         activityCommonService.getAllParticipants(request, function (err, participantsData) {
@@ -2396,7 +2424,7 @@ function ActivityService(objectCollection) {
         console.log('Before activityListUpdateStatus');
         activityListUpdateStatus(request, async (err, data) => {
             if (err === false) {
-
+                activityListUpdateStatusDuration(request)
                 console.log("*****STATUS CHANGE | activityTypeCategroyId: ", activityTypeCategroyId);
                 updateWidgetAggrStatus(request);               
                 
