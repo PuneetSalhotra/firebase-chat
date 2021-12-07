@@ -2398,14 +2398,13 @@ function BotService(objectCollection) {
                             form_field_copy: botOperationsJson.bot_operations.form_field_copy,
                             condition: botOperationsJson.bot_operations.condition
                         });
-                        
+
                         let formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data) : request.activity_inline_data;
 
                         for (const fieldData of formData) {
                             if (Number(fieldData.field_id) == 312766) {
                                 let requestParams = {
                                     meeting_activity_id: request.workflow_activity_id,
-                                    activity_id: request.workflow_activity_id,
                                     mom_excel_path: fieldData.field_value,
                                     status_id: 1,
                                     log_asset_id: request.asset_id,
@@ -16855,13 +16854,12 @@ if(workflowActivityData.length==0){
         return [error, responseDataMp];
     }
 
-    async function momBulkTransactionInsert(request, cuidUpdateFlag, activityCUID1, activityCUID2, activityCUID3) {
+    async function momBulkTransactionInsert(request) {
         let responseData = [],
             error = true;
 
         const paramsArr = new Array(
             request.meeting_activity_id,
-            request.activity_id,
             request.mom_excel_path,
             request.status_id,
             util.getCurrentUTCTime(),
