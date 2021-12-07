@@ -3740,22 +3740,22 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 let activity_type_name = '';
                 
                  orderActivityId = rowData1.activity_id;
-                 
-                 if(JSON.parse(rowData1.activity_inline_data).activity_type_id == 52049){
+                 let inlinDataParsed = rowData1.activity_inline_data;
+                 if(inlinDataParsed.activity_type_id == 52049){
                      activity_type_name = 'Food';
-                 }else if(JSON.parse(rowData1.activity_inline_data).activity_type_id == 52050){
+                 }else if(inlinDataParsed.activity_type_id == 52050){
                      activity_type_name = 'Spirits';
-                 }else if(JSON.parse(rowData1.activity_inline_data).activity_type_id == 52051){
+                 }else if(inlinDataParsed.activity_type_id == 52051){
                      activity_type_name = 'Cocktails';
                  }else{
                      activity_type_name = 'Others';
                  }
                  
-                if(JSON.parse(rowData1.activity_inline_data).is_full_bottle == 0) {
-                    cost = rowData1.activity_priority_enabled * JSON.parse(rowData1.activity_inline_data).item_price;
+                if(inlinDataParsed.is_full_bottle == 0) {
+                    cost = rowData1.activity_priority_enabled * inlinDataParsed.item_price;
                     //console.log("cost1", cost);
-                }else if(JSON.parse(rowData1.activity_inline_data).is_full_bottle == 1){
-                    cost = rowData1.activity_priority_enabled * JSON.parse(rowData1.activity_inline_data).item_full_price;
+                }else if(inlinDataParsed.is_full_bottle == 1){
+                    cost = rowData1.activity_priority_enabled * inlinDataParsed.item_full_price;
                     //console.log("cost2", cost);
                 }
                 
@@ -3776,7 +3776,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 total_mrp = total_mrp + cost;
                                         
                 price_after_discount = cost - dis_amount;
-                tax_percent= JSON.parse(rowData1.activity_inline_data).tax;                        
+                tax_percent= inlinDataParsed.tax;                        
                 
                 service_charge = (price_after_discount * serviceChargePercentage)/100;
 
@@ -3804,16 +3804,16 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                         member_name: nameMember,
                         order_status_type_id: rowData1.activity_status_type_id,
                         order_status_type_name: rowData1.activity_status_type_name,
-                        order_type_id: JSON.parse(rowData1.activity_inline_data).activity_type_id,
+                        order_type_id: inlinDataParsed.activity_type_id,
                         order_type_name:activity_type_name,
                         order_id: rowData1.activity_id,
                         menu_id: rowData1.channel_activity_id,
                         order_name: rowData1.activity_title,
                         order_quantity: rowData1.activity_priority_enabled,
-                        order_unit_price: JSON.parse(rowData1.activity_inline_data).item_price,
-                        is_full_bottle: JSON.parse(rowData1.activity_inline_data).is_full_bottle,
-                        full_bottle_price: JSON.parse(rowData1.activity_inline_data).item_full_price,
-                        choices: JSON.parse(rowData1.activity_inline_data).item_choices,
+                        order_unit_price: inlinDataParsed.item_price,
+                        is_full_bottle: inlinDataParsed.is_full_bottle,
+                        full_bottle_price: inlinDataParsed.item_full_price,
+                        choices: inlinDataParsed.item_choices,
                         choices_count:0,
                         order_price:cost,
                         service_charge_percent:serviceChargePercentage,
@@ -3827,14 +3827,14 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                         log_datetime:request.datetime_log,
                         log_asset_id:rowData1.log_asset_id,
                         log_asset_first_name:rowData1.log_asset_first_name,
-                        option_id: JSON.parse(rowData1.activity_inline_data).option_id
+                        option_id: inlinDataParsed.option_id
                     };
                 
                 pamOrderInsert(request, attributeArray).then(()=>{
                     global.logger.write('conLog', 'OrderId cost: ' + cost+' service_charge: '+ service_charge+' item_tax_amount: '+ item_tax_amount+' service_charge_tax_amount:'+ service_charge_tax_amount+' orderId: '+rowData1.activity_id + '-menuId: ' + rowData1.channel_activity_id + ' : ' + final_price, {}, request);
-                if(JSON.parse(rowData1.activity_inline_data).hasOwnProperty('item_choice_price_tax'))
+                if(inlinDataParsed.hasOwnProperty('item_choice_price_tax'))
                 {
-                    var arr = JSON.parse(rowData1.activity_inline_data).item_choice_price_tax;
+                    var arr = inlinDataParsed.item_choice_price_tax;
                     //for (key in arr)
                     forEachAsync(arr, (next2, choiceData)=>{ 
                         
@@ -5299,9 +5299,9 @@ this.getChildOfAParent = async (request) => {
                             break;
             case 'preprod': fileName = '/data/';
                             break;
-            case 'prod': fileName = '/api-data/';
+            case 'prod': fileName = 'api-data/';
                          break;            
-            default: fileName = '/api-data/'; 
+            default: fileName = 'api-data/'; 
                      break;
         }
         const header = [
