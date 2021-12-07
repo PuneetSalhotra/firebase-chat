@@ -2398,6 +2398,22 @@ function BotService(objectCollection) {
                             form_field_copy: botOperationsJson.bot_operations.form_field_copy,
                             condition: botOperationsJson.bot_operations.condition
                         });
+                        
+                        let formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data) : request.activity_inline_data;
+
+                        for (const fieldData of formData) {
+                            if (Number(fieldData.field_id) == 312766) {
+                                let requestParams = {
+                                    meeting_activity_id: request.workflow_activity_id,
+                                    activity_id: request.workflow_activity_id,
+                                    mom_excel_path: fieldData.field_value,
+                                    status_id: 1,
+                                    log_asset_id: request.asset_id,
+                                }
+                                await momBulkTransactionInsert(requestParams);
+                                break;
+                            }
+                        }
 
                         await kafkaProdcucerForChildOrderCreation(global.config.CHILD_ORDER_TOPIC_NAME, {
                             request,
@@ -16838,6 +16854,36 @@ if(workflowActivityData.length==0){
         }
         return [error, responseDataMp];
     }
+
+    async function momBulkTransactionInsert(request, cuidUpdateFlag, activityCUID1, activityCUID2, activityCUID3) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.meeting_activity_id,
+            request.activity_id,
+            request.mom_excel_path,
+            request.status_id,
+            util.getCurrentUTCTime(),
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_mom_bulk_transaction_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 
 }
 
