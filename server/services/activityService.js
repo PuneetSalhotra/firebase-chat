@@ -1981,7 +1981,7 @@ function ActivityService(objectCollection) {
             });
         }
     };
-    var activityListUpdateStatusDuration = function (request) {
+    var activityListUpdateStatusDuration = async function (request) {
         let responseData = [],
         error = true;
         let current_date = moment();
