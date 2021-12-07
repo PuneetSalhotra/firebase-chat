@@ -10707,7 +10707,7 @@ if(workflowActivityData.length==0){
         const formId = request.form_id || request.trigger_form_id || 0;
         const productTypeFromForm = vilBulkLOVs["product_fb_form_mapping"][String(formId)];
         const postingCircleFormMapping = vilBulkLOVs["posting_circle_mapping"];
-        logger.silly("product selected: %j",productTypeFromForm);
+        logger.silly("product selected: %j", productTypeFromForm);
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
             workflowActivityCategoryTypeID = 0,
             workflowActivityTypeID = 0,
@@ -10753,21 +10753,21 @@ if(workflowActivityData.length==0){
                 workflowActivityCreatorAssetID = workflowActivityData[0].activity_owner_asset_id;
             }
         } catch (error) {
-            util.logError(request,`No Workflow Data Found in DB`);
+            util.logError(request, `No Workflow Data Found in DB`);
             throw new Error("No Workflow Data Found in DB");
         }
 
         if (workflowActivityID === 0 || workflowActivityTypeID === 0 || opportunityID === "") {
-            util.logError(request,`Couldn't Fetch workflowActivityID or workflowActivityTypeID`);
+            util.logError(request, `Couldn't Fetch workflowActivityID or workflowActivityTypeID`);
             throw new Error("Couldn't Fetch workflowActivityID or workflowActivityTypeID");
         }
 
         if (bulkUploadFormID === 0 || bulkUploadFieldID === 0) {
-            util.logError(request,`Form ID and field ID not defined to fetch excel for bulk upload`);
+            util.logError(request, `Form ID and field ID not defined to fetch excel for bulk upload`);
             throw new Error("Form ID and field ID not defined to fetch excel for bulk upload");
         }
 
-        if(workflowActivityData[0].parent_activity_id !== 0 && workflowActivityData[0].parent_activity_id !== null) {
+        if (workflowActivityData[0].parent_activity_id !== 0 && workflowActivityData[0].parent_activity_id !== null) {
             await addTimelineMessage(
                 {
                     activity_timeline_text: "Error",
@@ -10780,7 +10780,7 @@ if(workflowActivityData.length==0){
                     attachments: []
                 }
             );
-            util.logError(request,`Your request is not processed. Child Opportunity cannot be created on a child Opportunity.`);
+            util.logError(request, `Your request is not processed. Child Opportunity cannot be created on a child Opportunity.`);
             return;
         }
 
@@ -10832,7 +10832,7 @@ if(workflowActivityData.length==0){
         }
 
         if (bulkUploadFormActivityID === 0 || bulkUploadFormTransactionID === 0) {
-            util.logError(request,`Form to bulk upload feasibility is not submitted`);
+            util.logError(request, `Form to bulk upload feasibility is not submitted`);
             throw new Error("Form to bulk upload feasibility is not submitted");
         }
 
@@ -10855,7 +10855,7 @@ if(workflowActivityData.length==0){
             organization_id: request.organization_id
         });
         if (bulkUploadFieldData.length === 0) {
-            util.logError(request,`Field to fetch the bulk upload excel file not submitted`);
+            util.logError(request, `Field to fetch the bulk upload excel file not submitted`);
             throw new Error("Field to fetch the bulk upload excel file not submitted");
         }
 
@@ -10877,7 +10877,7 @@ if(workflowActivityData.length==0){
         request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: " + bulkUploadFieldData[0].data_entity_text_1);
         const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
         if (xlsxDataBodyError) {
-            util.logError(request,`[BulkFeasibilityError]${xlsxDataBodyError}`);
+            util.logError(request, `[BulkFeasibilityError]${xlsxDataBodyError}`);
             throw new Error(xlsxDataBodyError);
         }
 
@@ -10961,7 +10961,7 @@ if(workflowActivityData.length==0){
         let invalidProductSelected = false;
         let invalidEmailIdFound = false;
 
-        
+
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
             // Non ASCII check
@@ -11028,7 +11028,7 @@ if(workflowActivityData.length==0){
             }
 
             //Mandatory checks for Existing Feasbility
-            if(childOpportunity.IsNewFeasibilityRequest === "Existing") {
+            if (childOpportunity.IsNewFeasibilityRequest === "Existing") {
                 mandatoryChecks = checksForBulkUpload["mandatory"]["Existing_Feasibility"] || [];
                 for (const field of mandatoryChecks) {
                     if (!isObject(field)) {
@@ -11067,7 +11067,7 @@ if(workflowActivityData.length==0){
                     errorMessageForInvalidEmailId += `Invalid Email ID found for ${fieldName} in ${i + 1}.\n`;
                 }
             }
-            
+
             // Invalid LastMileOffNetVendor check
             if (
                 LastMileOffNetVendor !== ""
@@ -11098,7 +11098,7 @@ if(workflowActivityData.length==0){
                 }
                 childOpportunitiesArray[i].VendorName = vendorName;
             }
-            
+
             // Invalid LastMile check
             if (
                 lastMileName !== ""
@@ -11157,7 +11157,7 @@ if(workflowActivityData.length==0){
                     attachments: []
                 }
             );
-            util.logError(request,`[BulkFeasibilityError] BulkExcelPreProcessingErrorFound`);
+            util.logError(request, `[BulkFeasibilityError] BulkExcelPreProcessingErrorFound`);
             throw new Error("BulkExcelPreProcessingErrorFound");
         }
 
@@ -11219,6 +11219,13 @@ if(workflowActivityData.length==0){
         // console.log("childOpportunityIDToDualFlagMap: ", childOpportunityIDToDualFlagMap);
         // console.log("groupedJobsMap: ", groupedJobsMap);
 
+        const [errorOne, allChildOpportunityDatamp] = await activityListSearchCUIDFromParentActivityID({
+            organization_id: request.organization_id,
+            activity_type_category_id: workflowActivityCategoryTypeID,
+            activity_type_id: workflowActivityTypeID,
+            parent_activity_id: workflowActivityID,
+        });
+
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
             console.log(`IsNewFeasibilityRequest: ${childOpportunity.IsNewFeasibilityRequest} | serialNum: ${childOpportunity.serialNum} | actionType: ${childOpportunity.actionType}`);
@@ -11255,21 +11262,16 @@ if(workflowActivityData.length==0){
             }
             // If actionType === correction, assert that the child opportunity exists
             if (childOpportunity.actionType === "correction" && childOpportunity.OppId !== "") {
-                const [errorOne, childOpportunityData] = await activityListSearchCUID({
-                    organization_id: request.organization_id,
-                    activity_type_category_id: workflowActivityCategoryTypeID,
-                    flag: 1,
-                    search_string: childOpportunity.OppId
-                });
+
                 // Primary
-                if (childOpportunityData.length === 0) {
+                if (!allChildOpportunityDatamp.has(childOpportunity.OppId)) {
                     // errorMessageJSON.errorExists = true;
                     // errorMessageJSON.action.correction.opportunity_ids.push(childOpportunity.OppId);
                     errorMessagesArray.push(`Child opportunity ${childOpportunity.OppId} in row #${i} doesn't exist in our DB.`)
                     continue;
                 }
                 // Secondary
-                const primaryFRID = childOpportunityData[0].activity_cuid_2 || "";
+                const primaryFRID = allChildOpportunityDatamp.get(childOpportunity.OppId).activity_cuid_2 || "";
                 if (
                     linkType === "secondary" &&
                     !String(primaryFRID).startsWith("FR")
@@ -11309,17 +11311,9 @@ if(workflowActivityData.length==0){
                     continue;
                 }
 
-                // Check if the child opportunity already exists
-                const [errorTwo, childOpportunityData] = await activityListSearchCUID({
-                    organization_id: request.organization_id,
-                    activity_type_category_id: workflowActivityCategoryTypeID,
-                    flag: 1,
-                    search_string: childOpportunityID
-                });
-
                 if (
                     linkType === "primary" &&
-                    childOpportunityData.length > 0
+                    allChildOpportunityDatamp.has(childOpportunityID)
                 ) {
                     errorMessageJSON.errorExists = true;
                     errorMessageJSON.action.new.opportunity_ids.push(childOpportunityID);
@@ -11328,8 +11322,8 @@ if(workflowActivityData.length==0){
 
                 if (
                     linkType === "secondary" &&
-                    childOpportunityData.length > 0 &&
-                    !String(childOpportunityData[0].activity_cuid_2).startsWith("FR")
+                    allChildOpportunityDatamp.has(childOpportunityID) &&
+                    !String(allChildOpportunityDatamp.get(childOpportunityID).activity_cuid_2).startsWith("FR")
                 ) {
                     errorMessageJSON.errorExists = true;
                     errorMessageJSON.action.new_secondary.opportunity_ids.push(childOpportunityID);
@@ -11338,7 +11332,7 @@ if(workflowActivityData.length==0){
 
                 if (
                     linkType === "mplsl2_second_primary" &&
-                    childOpportunityData.length === 0
+                    !allChildOpportunityDatamp.has(childOpportunityID)
                 ) {
                     errorMessagesArray.push(`Child opportunity ${childOpportunityID} in row #${i} doesn't exist in our DB.`)
                     continue;
@@ -11352,20 +11346,13 @@ if(workflowActivityData.length==0){
 
                 childOpportunityID = childOpportunity.OppId;
 
-                // Check if the child opportunity already exists
-                const [errorThree, childOpportunityData] = await activityListSearchCUID({
-                    organization_id: request.organization_id,
-                    activity_type_category_id: workflowActivityCategoryTypeID,
-                    flag: 1,
-                    search_string: childOpportunityID
-                });
-                if (!(childOpportunityData.length > 0)) {
+                if (!allChildOpportunityDatamp.has(childOpportunityID)) {
                     errorMessageJSON.errorExists = true;
                     errorMessageJSON.action.refeasibility_rejected_by_am.opportunity_ids.push(childOpportunityID);
                     continue;
                 }
-                const primaryFRID = childOpportunityData[0].activity_cuid_2 || "";
-                const secondaryFRID = childOpportunityData[0].activity_cuid_3 || "";
+                const primaryFRID = allChildOpportunityDatamp.get(childOpportunityID).activity_cuid_2 || "";
+                const secondaryFRID = allChildOpportunityDatamp.get(childOpportunityID).activity_cuid_3 || "";
 
                 if (
                     (linkType === "primary" && !String(primaryFRID).startsWith("FR")) ||
@@ -11382,20 +11369,13 @@ if(workflowActivityData.length==0){
 
                 childOpportunityID = childOpportunity.OppId;
 
-                // Check if the child opportunity already exists
-                const [errorFour, childOpportunityData] = await activityListSearchCUID({
-                    organization_id: request.organization_id,
-                    activity_type_category_id: workflowActivityCategoryTypeID,
-                    flag: 1,
-                    search_string: childOpportunityID
-                });
-                if (!(childOpportunityData.length > 0)) {
+                if (!(allChildOpportunityDatamp.has(childOpportunityID))) {
                     errorMessageJSON.errorExists = true;
                     errorMessageJSON.action.refeasibility_rejected_by_fes.opportunity_ids.push(childOpportunityID);
                     continue;
                 }
-                const primaryFRID = childOpportunityData[0].activity_cuid_2 || "";
-                const secondaryFRID = childOpportunityData[0].activity_cuid_3 || "";
+                const primaryFRID = allChildOpportunityDatamp.get(childOpportunityID).activity_cuid_2 || "";
+                const secondaryFRID = allChildOpportunityDatamp.get(childOpportunityID).activity_cuid_3 || "";
 
                 if (
                     (linkType === "primary" && !String(primaryFRID).startsWith("FR")) ||
@@ -11412,20 +11392,13 @@ if(workflowActivityData.length==0){
 
                 childOpportunityID = childOpportunity.OppId;
 
-                // Check if the child opportunity already exists
-                const [errorFive, childOpportunityData] = await activityListSearchCUID({
-                    organization_id: request.organization_id,
-                    activity_type_category_id: workflowActivityCategoryTypeID,
-                    flag: 1,
-                    search_string: childOpportunityID
-                });
-                if (!(childOpportunityData.length > 0)) {
+                if (!(allChildOpportunityDatamp.has(childOpportunityID))) {
                     errorMessageJSON.errorExists = true;
                     // errorMessageJSON.action.refeasibility_rejected_by_fes.opportunity_ids.push(childOpportunityID);
                     continue;
                 }
-                const primaryFRID = childOpportunityData[0].activity_cuid_2 || "";
-                const secondaryFRID = childOpportunityData[0].activity_cuid_3 || "";
+                const primaryFRID = allChildOpportunityDatamp.get(childOpportunityID).activity_cuid_2 || "";
+                const secondaryFRID = allChildOpportunityDatamp.get(childOpportunityID).activity_cuid_3 || "";
 
                 if (linkType === "primary" && !String(primaryFRID).startsWith("FR")) {
                     errorMessageJSON.errorExists = true;
@@ -11529,7 +11502,7 @@ if(workflowActivityData.length==0){
         }
         return;
     }
-    
+
     async function dualBulkJobTransactionUpdate(request) {
         try {
             const [errorOne, _] = await vodafoneActivityBulkFeasibilityMappingInsert(request);
@@ -16833,6 +16806,37 @@ if(workflowActivityData.length==0){
             console.log("createActivity | addActivityAsync | Error: ", error);
             return [true, {}];
         }
+    }
+
+    async function activityListSearchCUIDFromParentActivityID(request) {
+        let error = true,
+            responseDataMp = new Map();
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_category_id,
+            request.activity_type_id || 0,
+            request.parent_activity_id,
+            request.page_start || 0,
+            request.page_limit || 2000
+        );
+
+        const queryString = util.getQueryString('ds_v1_activity_list_select_parent', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+
+                    for (let childData of data) {
+                        responseDataMp.set(childData.activity_cuid_1, childData);
+                    }
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseDataMp];
     }
 
 }
