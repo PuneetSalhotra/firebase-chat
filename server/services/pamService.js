@@ -5299,9 +5299,9 @@ this.getChildOfAParent = async (request) => {
                             break;
             case 'preprod': fileName = '/data/';
                             break;
-            case 'prod': fileName = 'api-data/';
+            case 'prod': fileName = '/api-data/';
                          break;            
-            default: fileName = 'api-data/'; 
+            default: fileName = '/api-data/'; 
                      break;
         }
         const header = [
