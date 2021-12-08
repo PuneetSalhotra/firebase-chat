@@ -2392,12 +2392,6 @@ function BotService(objectCollection) {
                         // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
                         console.log('Child Order creation BOT | Request Params received by BOT ENGINE', request);
                         request.debug_info.push('Child Order creation BOT | Request Params received by BOT ENGINE' + request);
-                        util.logInfo(request, ` ${global.config.CHILD_ORDER_TOPIC_NAME} %j`, {
-                            request,
-                            requestType: "mom_child_orders",
-                            form_field_copy: botOperationsJson.bot_operations.form_field_copy,
-                            condition: botOperationsJson.bot_operations.condition
-                        });
 
                         let formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data) : request.activity_inline_data;
 
@@ -2407,12 +2401,25 @@ function BotService(objectCollection) {
                                     meeting_activity_id: request.workflow_activity_id,
                                     mom_excel_path: fieldData.field_value,
                                     status_id: 1,
+                                    organization_id: request.organization_id,
                                     log_asset_id: request.asset_id,
                                 }
-                                await momBulkTransactionInsert(requestParams);
+                                let [insertError, insertResponseData] = await momBulkTransactionInsert(requestParams);
+
+                                if(!insertError && insertResponseData.length > 0) {
+                                    request.meeting_transaction_id = insertResponseData[0].meeting_transaction_id
+                                }
+                                console.log(insertResponseData);
                                 break;
                             }
                         }
+
+                        util.logInfo(request, ` ${global.config.CHILD_ORDER_TOPIC_NAME} %j`, {
+                            request,
+                            requestType: "mom_child_orders",
+                            form_field_copy: botOperationsJson.bot_operations.form_field_copy,
+                            condition: botOperationsJson.bot_operations.condition
+                        });
 
                         await kafkaProdcucerForChildOrderCreation(global.config.CHILD_ORDER_TOPIC_NAME, {
                             request,
@@ -16863,6 +16870,7 @@ if(workflowActivityData.length==0){
             request.mom_excel_path,
             request.status_id,
             util.getCurrentUTCTime(),
+            request.organization_id,
             request.log_asset_id,
             util.getCurrentUTCTime()
         );
