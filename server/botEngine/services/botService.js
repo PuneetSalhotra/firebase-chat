@@ -8538,6 +8538,7 @@ else{
             }
         }
         // console.lo
+        
         let indutry_type_id = createCustomerInlineData['lov_type_id'];
         const [errInd,industryData] = await getIndustryIdByName({id:indutry_type_id,name:customerData.customer_industry})
         console.log('indData12',industryData)
@@ -8547,6 +8548,11 @@ else{
         } else if (customerData.customer_phone_number.includes('||')) {
             [countryCode, phoneNumber] = customerData.customer_phone_number.split('||')
         }
+        else {
+            countryCode = "91";
+            phoneNumber = customerData.customer_phone_number;
+        }
+
         logger.silly("countryCode: %j", countryCode);
         logger.silly("phoneNumber: %j", phoneNumber);
 
@@ -8596,6 +8602,7 @@ else{
             activity_stream_type_id: 11018,
             stream_type_id: 11018,
             asset_type_id: createCustomerInlineData.desk_asset_type_id,
+
             activity_inline_data: JSON.stringify({
                 "contact_profile_picture": "",
                 "contact_first_name": deskName,
@@ -8621,8 +8628,9 @@ else{
 
         const [errTwo, serviceDeskData] = await adminOpsService.addNewDeskToWorkforce(createCustomerServiceDeskRequest);
         logger.verbose(`Customer service desk created: %j`, serviceDeskData, { type: 'bot_engine' });
-       
+       if(industryData && industryData.length>0){
         const [errten,assetUpdateIndustry1]=await assetListUpdateIndustry({...request,asset_id:serviceDeskData.asset_id,industry_id:industryData[0].entity_id});
+       }
         // Fetch the Customer's asset_type_id
         // const [errThree, customerAssetTypeData] = await adminListingService.workforceAssetTypeMappingSelectCategory({
         //     organization_id: request.organization_id,
@@ -8657,8 +8665,9 @@ else{
         };
 
         const [errFour, customerAssetData] = await adminOpsService.addNewEmployeeToExistingDesk(createCustomerRequest);
-
+        if(industryData && industryData.length>0){
         const [err11,assetUpdateIndustry2]=await assetListUpdateIndustry({...request,asset_id:customerAssetData.operating_asset_id,industry_id:industryData[0].entity_id});
+        }
         logger.verbose(`Customer asset created: %j`, customerAssetData, { type: 'bot_engine' });
 
         return;
@@ -16739,7 +16748,7 @@ if(workflowActivityData.length==0){
     async function createActivity(request, inlineData,workflowActivityID,sourceFieldValue) {
         let formData = inlineData.target_form_data;
         let activityInlineData = formData.fields;
-        activityInlineData[0].field_value = sourceFieldValue;
+        activityInlineData[0].field_value = `Opportunity Closed - ${sourceFieldValue}`;
         console.log("activityInlineData", JSON.stringify(activityInlineData));
         let formId = formData.form_id;
 
