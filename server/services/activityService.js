@@ -585,6 +585,7 @@ function ActivityService(objectCollection) {
                                                         let opportunityRequest = Object.assign({}, request);
                                                         opportunityRequest.workflow_activity_id = request.activity_id;
                                                         opportunityRequest.reference_data = fieldData;
+                                                        opportunityRequest.account_activity_id = 0;
 
                                                         if(fieldData.field_value.includes('|')){
                                                             let parsedFieldValue = fieldData.field_value;
@@ -592,6 +593,8 @@ function ActivityService(objectCollection) {
                                                         }
 
                                                         opportunityRequest.generic_url = '/activity/opportunity/set';
+                                                        
+                                                        if(opportunityRequest.account_activity_id > 0)
                                                         activityCommonService.makeGenericRequest(opportunityRequest);
                                                 }                                                
                                                 break;

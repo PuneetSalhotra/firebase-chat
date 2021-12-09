@@ -9075,8 +9075,6 @@ else{
         }
         return [error, responseData];
     }
-
-    
     this.generateOppurtunity = async (request) => {
         let responseData = [],
             error = false,
@@ -9084,18 +9082,25 @@ else{
 
         //let activityInlineData = JSON.parse(request.activity_inline_data);
         let accountActivityId;
+        let accountDetails = [];
         util.logInfo(request, 'request.account_activity_id : ', request.account_activity_id);
         if (request.account_activity_id > 0) {
             accountActivityId = request.account_activity_id;
-        } else {
+            accountDetails = await activityCommonService.getActivityDetailsPromise(request, accountActivityId);
+        } /*else {
             util.logInfo(request, 'activityopportunityset No Account :: ' + request.account_activity_id);
             util.logInfo(request, 'activityopportunityset request.reference_data :: ' + request.reference_data);
+            util.logInfo(request, 'activityopportunityset request.reference_data stringify :: ' + JSON.stringify(request.reference_data));
             let fieldValue = request.reference_data || '';
-            if (fieldValue.includes('|')) {
+            util.logInfo(request, 'activityopportunityset request.reference_data.field_value :: ' + fieldValue.field_value);
+            //fieldValue = (typeof fieldValue === 'string')? fieldValue : JSON.stringify(fieldValue);
+            if (fieldValue.field_value.includes('|')) {
                 accountActivityId = fieldValue.split('|')[0];
+            }else{
+                util.logInfo(request, 'fieldValue doesnot include |');
             }
-        }
-        util.logInfo(request, 'AccountId : ', accountActivityId);
+        } */
+        util.logInfo(request, 'AccountId : ' + accountActivityId + " :: LENGTH :: " + accountDetails.length);
         //Call activity_activity_mapping retrieval service to get the segment
         /* let [err, segmentData] = await activityCommonService.activityActivityMappingSelect({
              activity_id: request.activity_id, //Workflow activity id
@@ -9105,9 +9110,6 @@ else{
              start_from: 0,
              limit_value: 50
          }); */
-
-        let accountDetails = await activityCommonService.getActivityDetailsPromise(request, accountActivityId);
-        util.logInfo(request, 'AccountData : ' + accountActivityId + " :: LENGTH :: " + accountDetails.length);
 
         //segmentName = segmentName.toLowerCase();
         if (accountDetails.length > 0) {
