@@ -4234,7 +4234,7 @@ async function addFormEntriesAsync(request) {
             console.log('Sending mentions email to : ', request.asset_email_id);
             // console.log('Template : ', Template);
             //request,emails,subject,body,attachment,emailProviderDetails,base64EncodedHtmlTemplate = ''
-            const err = await util.sendEmailV4ewsV1(request,[request.asset_email_id], emailSubject, Template,[],{},"");
+            const err = await util.sendEmailV4ewsV1(request,[request.asset_email_id], emailSubject, Template,"",{},"");
             if(err) {
                 return [true, 'Invalid Password'];
             } else {

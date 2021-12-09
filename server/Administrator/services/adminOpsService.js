@@ -2577,7 +2577,7 @@ console.log('new ActivityId321',newActivity_id)
         
         //archive asset data
         try{
-        const [erArchive,archiveDa]=await archiveAsset(request);
+        const [erArchive,archiveDa]=await archiveAsset(request,3801);
         }
         catch(e){
             console.log(e)
@@ -2918,11 +2918,11 @@ console.log('new ActivityId321',newActivity_id)
         }];
     }
 
-    async function archiveAsset (request){
+    async function archiveAsset (request,type){
         var paramsArr = new Array(
             request.desk_asset_id,
             request.organization_id,
-            3,
+            type,
             util.getCurrentUTCTime(),
             request.asset_id,
             util.getCurrentUTCTime()
@@ -3315,6 +3315,13 @@ console.log('new ActivityId321',newActivity_id)
                 message: "Error updating desk asset of the workforce"
             }];
         }
+
+        try{
+            const [erArchive,archiveDa]=await archiveAsset({...request,desk_asset_id:deskAssetID},3802);
+            }
+            catch(e){
+                console.log(e)
+            }
 
         // Desk Asset List History Insert
         try {

@@ -4207,6 +4207,23 @@ function FormConfigService(objCollection) {
                         // Do nothing if the history insert fails
                     }
                 }
+                if(fieldOptions.length==0){
+                    const [updateError, updateStatus] = await workforceFormFieldMappingDelete(request, {
+                        field_id: field.field_id,
+                        data_type_combo_id: field.dataTypeComboId || 0,
+                    });
+                    if (updateError !== false) {
+    
+                    }
+                    try {
+                        await workforceFormFieldMappingHistoryInsert(request, {
+                            field_id: field.field_id,
+                            data_type_combo_id: field.dataTypeComboId || 0
+                        });
+                    } catch (error) {
+                        // Do nothing if the history insert fails
+                    } 
+                }
             } else {
                 const [updateError, updateStatus] = await workforceFormFieldMappingDelete(request, {
                     field_id: field.field_id,
