@@ -615,11 +615,11 @@ function ActivityService(objectCollection) {
                                                         }
 
                                                         opportunityRequest.generic_url = '/activity/opportunity/set';
-                                                        util.logInfo(request, "Account Id before /activity/opportunity/set "+opportunityRequest.account_activity_id);
+                                                        util.logInfo(request, "Account Id before _activity_opportunity_set "+opportunityRequest.account_activity_id);
                                                         if(opportunityRequest.account_activity_id > 0)
                                                         activityCommonService.makeGenericRequest(opportunityRequest);
                                                         else 
-                                                        util.logInfo(request, "Account Id in else /activity/opportunity/set "+opportunityRequest.account_activity_id);
+                                                        util.logInfo(request, "Account Id in else _activity_opportunity_set "+opportunityRequest.account_activity_id);
 
                                                 }                                                
                                                 break;
