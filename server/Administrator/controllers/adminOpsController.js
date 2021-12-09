@@ -1046,6 +1046,123 @@ function AdminOpsController(objCollection) {
         }
     });
 
+
+        //  add new filter for organization
+        app.post("/" + global.config.version + "/organization/filter/tag/type/mapping/insert", async function (req, res) {
+            const [err, result] = await adminOpsService.organizationFilterTagTypeMappingInsert(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/organization/filter/tag/type/mapping/insert | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+    
+        //  delete filter for organization
+        app.post("/" + global.config.version + "/organization/filter/tag/type/mapping/delete", async function (req, res) {
+            const [err, result] = await adminOpsService.organizationFilterTagTypeMappingDelete(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/organization/filter/tag/type/mapping/delete | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+    
+        // update filter for organization
+        app.post("/" + global.config.version + "/organization/filter/tag/type/mapping/update", async function (req, res) {
+            const [err, result] = await adminOpsService.organizationFilterTagTypeMappingUpdate(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/organization/filter/tag/type/mapping/update | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+    
+        // get all filters for organization
+        app.post("/" + global.config.version + "/organization/filter/tag/type/mapping/get", async function (req, res) {
+            const [err, result] = await adminOpsService.getOrganizationFilterTagTypeMapping(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/organization/filter/tag/type/mapping/get | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+    
+        // add tag_type for application 
+        app.post("/" + global.config.version + "/application/tag/type/mapping/insert", async function (req, res) {
+            const [err, result] = await adminOpsService.applicationTagTypeMappingInsert(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/application/tag/type/mapping/insert | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
+        app.post("/" + global.config.version + "/application/master/insert", async function (req, res) {
+            const [err, result] = await adminOpsService.applicationMasterInsert(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/application/master/insert | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
+        app.post("/" + global.config.version + "/application/master/select", async function (req, res) {
+            const [err, result] = await adminOpsService.applicationMasterSelect(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/application/master/select | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
+        app.post("/" + global.config.version + "/application/master/delete", async function (req, res) {
+            const [err, result] = await adminOpsService.applicationMasterDelete(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/application/master/delete | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
+        app.post("/" + global.config.version + "/application/master/update", async function (req, res) {
+            const [err, result] = await adminOpsService.applicationMasterUpdate(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/application/master/update | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
+        app.post("/" + global.config.version + "/admin/asset/type/mapping/insert", async function (req, res) {
+            const [err, result] = await adminOpsService.assetTypeAccessMappingInsert(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/admin/asset/type/mapping/insert | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
+        app.post("/" + global.config.version + "/admin/asset/list/update/export/flag", async function (req, res) {
+            const [err, result] = await adminOpsService.assetListUpdateFlagExport(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/admin/asset/list/update/export/flag | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
+
 }
 
 module.exports = AdminOpsController;

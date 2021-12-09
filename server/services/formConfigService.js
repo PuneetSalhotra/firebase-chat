@@ -2212,6 +2212,31 @@ function FormConfigService(objCollection) {
                                 maxDataTypeComboID = index + 1;
                             }
 
+                            if(comboEntries.length==0){
+                                await workforceFormFieldMappingInsert(request, {
+                                    field_id: 0,
+                                    field_name: fieldName,
+                                    field_description: fieldDescription,
+                                    inline_data: inlineData,
+                                    field_sequence_id: fieldSequenceId,
+                                    field_mandatory_enabled: fieldMandatoryEnabled,
+                                    field_preview_enabled: fieldPreviewEnabled, // THIS NEEDS WORK
+                                    field_value_edit_enabled: fieldValueEditEnabled,
+                                    data_type_combo_id: 0,
+                                    data_type_combo_value: '',
+                                    data_type_id: Number(formField.datatypeid),
+                                    next_field_id: nextFieldId
+                                })
+                                .then(async (fieldData) => {
+                                    // console.log("someData: ", someData)
+                                    // History insert in the workforce_form_field_mapping_history_insert table
+                                    await workforceFormFieldMappingHistoryInsert(request, {
+                                        field_id: Number(fieldData[0].p_field_id),
+                                        data_type_combo_id: 0
+                                    });
+                                    fieldIdforBotCreation = Number(fieldData[0].p_field_id);
+                                });
+                            }
                             // Reset fieldId to 0, so it can be re-used by other fields
                             // in the subsequent iterations
                             fieldId = 0;
@@ -4181,6 +4206,23 @@ function FormConfigService(objCollection) {
                     } catch (error) {
                         // Do nothing if the history insert fails
                     }
+                }
+                if(fieldOptions.length==0){
+                    const [updateError, updateStatus] = await workforceFormFieldMappingDelete(request, {
+                        field_id: field.field_id,
+                        data_type_combo_id: field.dataTypeComboId || 0,
+                    });
+                    if (updateError !== false) {
+    
+                    }
+                    try {
+                        await workforceFormFieldMappingHistoryInsert(request, {
+                            field_id: field.field_id,
+                            data_type_combo_id: field.dataTypeComboId || 0
+                        });
+                    } catch (error) {
+                        // Do nothing if the history insert fails
+                    } 
                 }
             } else {
                 const [updateError, updateStatus] = await workforceFormFieldMappingDelete(request, {

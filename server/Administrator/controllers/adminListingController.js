@@ -423,6 +423,16 @@ function AdminListingController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/admin/asset/type/master/list', async (req, res) => {        
+        const [err, botsData] = await adminListingService.assetTypeCategoryMasterSelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, botsData, 200, req.body));
+        } else {
+            console.log("/admin/asset/type/master/list | Error: ", err);
+            res.json(responseWrapper.getResponse(err, botsData, -9999, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/admin/tag/entity/mapping/list', async (req, res) => {        
         const [err, botsData] = await adminListingService.getTagEntityMappingsBasedOnCategory(req.body);
         if (!err) {
@@ -582,6 +592,16 @@ function AdminListingController(objCollection) {
         } else {
             console.log("/admin/lov/type/list | Error: ", err);
             res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/admin/workflow/form/fields', async (req, res) => {        
+        const [err, botsData] = await adminListingService.getWorkflowFormFields(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, botsData, 200, req.body));
+        } else {
+            console.log("/admin/workflow/form/fields | Error: ", err);
+            res.json(responseWrapper.getResponse(err, botsData, -9999, req.body));
         }
     });
 

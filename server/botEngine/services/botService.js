@@ -1816,21 +1816,37 @@ function BotService(objectCollection) {
                     logger.silly("Update CUID Bot");
                     logger.silly("Update CUID Bot Request: %j", request);
                     let is_opportunity = false;
-                    if(request.activity_type_category_id == 48 && (request.activity_type_id == 150258
+                    let updateCuids = {};
+                    if (request.activity_type_category_id == 48 && (request.activity_type_id == 150258
                         || request.activity_type_id == 150229 || request.activity_type_id == 150192
                         || request.activity_type_id == 149818 || request.activity_type_id == 149752
                         || request.activity_type_id == 149058 || request.activity_type_id == 151728 || request.activity_type_id == 151727
-                        || request.activity_type_id == 151729 || request.activity_type_id == 151730)){
-                            console.log("OPPORTUNITY :: "+request.activity_type_category_id + " :: " +request.activity_type_id);
-                            request.debug_info.push('activity_type_category_id: ' + request.activity_type_category_id);
-                            request.debug_info.push('activity_type_id: ' + request.activity_type_id);
+                        || request.activity_type_id == 151729 || request.activity_type_id == 151730)) {
+                        console.log("OPPORTUNITY :: " + request.activity_type_category_id + " :: " + request.activity_type_id);
+                        request.debug_info.push('activity_type_category_id: ' + request.activity_type_category_id);
+                        request.debug_info.push('activity_type_id: ' + request.activity_type_id);
 
-                            request.opportunity_update = true;
+                        request.opportunity_update = true;
+                        updateCuids = botOperationsJson.bot_operations.update_cuids;
+
+                    } else if (Number(request.activity_type_category_id) === 63 && Number(request.activity_type_id) === 190798) {
+
+                        let formID = request.form_id;
+                        let activityId = request.workflow_activity_id || request.activity_id;
+
+                        const momPointsData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                            organization_id: request.organization_id,
+                            account_id: request.account_id
+                        }, activityId, formID);
+
+                        if (momPointsData.length === 1) {
+                            request.calendar_event_id_update = true;
+                            updateCuids = request.updateCuids;
+                        }
                     }
+
                     try {
-                        
-                        await updateCUIDBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.update_cuids);
-                        
+                        await updateCUIDBotOperation(request, formInlineDataMap, updateCuids);
                     } catch (error) {
                         logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                     }
@@ -2376,6 +2392,28 @@ function BotService(objectCollection) {
                         // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
                         console.log('Child Order creation BOT | Request Params received by BOT ENGINE', request);
                         request.debug_info.push('Child Order creation BOT | Request Params received by BOT ENGINE' + request);
+
+                        let formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data) : request.activity_inline_data;
+
+                        for (const fieldData of formData) {
+                            if (Number(fieldData.field_id) == 312766) {
+                                let requestParams = {
+                                    meeting_activity_id: request.workflow_activity_id,
+                                    mom_excel_path: fieldData.field_value,
+                                    status_id: 1,
+                                    organization_id: request.organization_id,
+                                    log_asset_id: request.asset_id,
+                                }
+                                let [insertError, insertResponseData] = await momBulkTransactionInsert(requestParams);
+
+                                if(!insertError && insertResponseData.length > 0) {
+                                    request.meeting_transaction_id = insertResponseData[0].meeting_transaction_id
+                                }
+                                console.log(insertResponseData);
+                                break;
+                            }
+                        }
+
                         util.logInfo(request, ` ${global.config.CHILD_ORDER_TOPIC_NAME} %j`, {
                             request,
                             requestType: "mom_child_orders",
@@ -5019,7 +5057,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             });
 
             newReq.activity_status_type_id = statusName[0].activity_status_type_id;
-
+            newReq.activity_status_duration = statusName[0].activity_status_duration;
             // Send push notification to mobile devices for live loading of the updates 
             newReq.activity_stream_type_id = 704;
             newReq.bot_operation_type = 'status_alter';
@@ -5299,6 +5337,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                 request.debug_info.push('sourceFieldData[0]: ' + sourceFieldData[0]);
                 request.debug_info.push('sourceFieldDataTypeID: ' + sourceFieldDataTypeID);
                 request.debug_info.push('getFielDataValueColumnNameNew(sourceFieldDataTypeID): ' + getFielDataValueColumnNameNew(sourceFieldDataTypeID));
+                // console.log('sddd',`getFielDataValueColumnNameNew(sourceFieldDataTypeID) sourceFieldData[0][${getFielDataValueColumnNameNew(sourceFieldDataTypeID)}]`)
                 const sourceFieldValue = sourceFieldData[0][getFielDataValueColumnNameNew(sourceFieldDataTypeID)];
                 
                 activityInlineDataMap.set(sourceFieldID, {
@@ -5606,20 +5645,20 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
     async function createTargetFormActivity(createTargetFormRequest) {
         let reqActivityId = createTargetFormRequest.activity_id
         // Get the activity_id and form_trasanction_id
-        const targetFormActivityID = await cacheWrapper.getActivityIdPromise();
-        const targetFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
+        // const targetFormActivityID = await cacheWrapper.getActivityIdPromise();
+        // const targetFormTransactionID = await cacheWrapper.getFormTransactionIdPromise();
 
-        if (
-            Number(targetFormActivityID) === 0 ||
-            Number(targetFormTransactionID) === 0
-        ) {
-            throw new Error("Error Fetching Activity ID or Form Transaction ID");
-        }
+        // if (
+        //     Number(targetFormActivityID) === 0 ||
+        //     Number(targetFormTransactionID) === 0
+        // ) {
+        //     throw new Error("Error Fetching Activity ID or Form Transaction ID");
+        // }
 
-        createTargetFormRequest.activity_id = targetFormActivityID;
-        if(!createTargetFormRequest.start_workflow_activity_parent_id) {
-            createTargetFormRequest.form_transaction_id = targetFormTransactionID;
-        }
+        // createTargetFormRequest.activity_id = targetFormActivityID;
+        // if(!createTargetFormRequest.start_workflow_activity_parent_id) {
+        //     createTargetFormRequest.form_transaction_id = targetFormTransactionID;
+        // }
 
         // Fetch the activity_type_id
         let targetFormctivityTypeID = 0;
@@ -5707,82 +5746,90 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
         createTargetFormRequest.flag_timeline_entry = 1;
         createTargetFormRequest.url = "/r1/activity/add/v1";
         createTargetFormRequest.create_workflow = 1;
+        const addActivityRequest = {
+            ...createTargetFormRequest,
+            workflow_activity_id: Number(createTargetFormRequest.workflow_activity_id),
+            activity_id : Number(createTargetFormRequest.workflow_activity_id),
+            channel_activity_id: Number(createTargetFormRequest.workflow_activity_id),
+            data_entity_inline:createTargetFormRequest.activity_inline_data,
+            form_transaction_id : 0,
+            isOrigin :false,
+            is_mytony: 1,
+            form_api_activity_type_category_id: 48,
+            form_api_activity_type_id: createTargetFormRequest.activity_type_id,
+            form_id: createTargetFormRequest.form_id,
+            form_workflow_activity_type_id: createTargetFormRequest.activity_type_id,
+            activity_type_category_id: 9,
+            activity_sub_type_id: 0,
+            activity_type_id: createTargetFormRequest.activity_type_id,
+            asset_participant_access_id: 0,
+            activity_parent_id: 0,
+            flag_pin: 0,
+            flag_priority: 0,
+            activity_flag_file_enabled: -1,
+            activity_form_id: createTargetFormRequest.form_id,
+            flag_offline: 0,
+            flag_retry: 0,
+            message_unique_id: util.getMessageUniqueId(31993),
+            activity_channel_id: Number(createTargetFormRequest.workflow_activity_id),
+            activity_channel_category_id: 0,
+            activity_flag_response_required: 0,
+            track_latitude: 0.0,
+            track_longitude: 0.0,
+            track_altitude: 0,
+            track_gps_datetime: util.getCurrentUTCTime(),
+            track_gps_accuracy: 0,
+            track_gps_status: 0,
+            service_version: "3.0",
+            app_version: "3.0.0",
+            device_os_id: 5
+        };
 
         util.logInfo(createTargetFormRequest,`createTargetFormRequest.isESMS : %j`,createTargetFormRequest.isESMS);
         util.logInfo(createTargetFormRequest,`createTargetFormRequest.isEsmsOriginFlag : %j`,createTargetFormRequest.isEsmsOriginFlag);
         util.logInfo(createTargetFormRequest,`createTargetFormRequest.activity_flag_created_by_bot :  %j`,createTargetFormRequest.activity_flag_created_by_bot);     
 
-        const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
+        const addActivityAsync = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form: addActivityRequest
+        };
         try {
-            await addActivityAsync(createTargetFormRequest);
-
-        } catch(e ) {
-
-        }
-
-        // Make a 705 timeline transaction entry in the workflow file
-        console.log("createTargetFormRequest.hasOwnProperty(workflow_activity_id", createTargetFormRequest.hasOwnProperty("workflow_activity_id"));
-        if (createTargetFormRequest.hasOwnProperty("workflow_activity_id")) {
-            let workflowFile705Request = Object.assign({}, createTargetFormRequest);
-            workflowFile705Request.activity_id = createTargetFormRequest.workflow_activity_id;
-            if(createTargetFormRequest.start_workflow_activity_parent_id) {
-                workflowFile705Request.activity_id = createTargetFormRequest.activity_id;
+            // global.config.mobileBaseUrl + global.config.version
+            const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
+            const body = JSON.parse(response.body);
+            if (Number(body.status) === 200) {
+                console.log("createActivity | addActivityAsync | Body: ", body);
+                let activityTimelineCollection =  JSON.stringify({
+                    "content"            : `Form Submitted`,
+                    "subject"            : `Form Submitted`,
+                    "mail_body"          : `Form Submitted`,
+                    "activity_reference" : [],
+                    "form_id"            : addActivityRequest.form_id,
+                    "form_submitted"     : JSON.parse(addActivityRequest.data_entity_inline),
+                    "asset_reference"    : [],
+                    "attachments"        : [],
+                    "form_approval_field_reference": []
+                });
+        
+                addActivityRequest.form_transaction_id = body.response.form_transaction_id;
+                let timelineReq = Object.assign({}, addActivityRequest);
+        
+                timelineReq.activity_id                  = addActivityRequest.workflow_activity_id;
+                timelineReq.message_unique_id            = util.getMessageUniqueId(100);
+                timelineReq.track_gps_datetime           = util.getCurrentUTCTime();
+                timelineReq.activity_stream_type_id      = 705;
+                timelineReq.timeline_stream_type_id      = 705;
+                timelineReq.activity_type_category_id    = 48;
+                timelineReq.asset_id                     = 100;
+                timelineReq.activity_timeline_collection = activityTimelineCollection;
+                timelineReq.data_entity_inline           = timelineReq.activity_timeline_collection;
+        
+                await activityTimelineService.addTimelineTransactionAsync(timelineReq);
+                return [false, body];
             }
-            workflowFile705Request.data_activity_id = Number(createTargetFormRequest.activity_id);
-            workflowFile705Request.form_transaction_id = Number(createTargetFormRequest.form_transaction_id);
-            workflowFile705Request.activity_type_category_id = 48;
-            workflowFile705Request.activity_stream_type_id = 705;
-            workflowFile705Request.flag_timeline_entry = 0;
-            if(createTargetFormRequest.start_workflow_activity_parent_id) {
-                workflowFile705Request.flag_timeline_entry = 1;
-            }
-            workflowFile705Request.message_unique_id = util.getMessageUniqueId(Number(createTargetFormRequest.asset_id));
-            workflowFile705Request.track_gps_datetime = moment().utc().format('YYYY-MM-DD HH:mm:ss');
-            workflowFile705Request.device_os_id = 8;
-
-            workflowFile705Request.activity_timeline_collection = JSON.stringify({
-                "mail_body": `${targetFormName} Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
-                "subject": `${targetFormName}`,
-                "content": `${targetFormName}`,
-                "asset_reference": [],
-                "activity_reference": [],
-                "form_approval_field_reference": [],
-                "form_submitted": JSON.parse(createTargetFormRequest.activity_inline_data),
-                "attachments": []
-            });
-
-            console.log("workflowFile705Request", JSON.stringify(workflowFile705Request));
-            const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
-            try {
-                await addTimelineTransactionAsync(workflowFile705Request);
-                //Adding cuid 3 for child mom points
-                if (createTargetFormRequest.start_workflow_activity_parent_id) {
-                    let activityData = await activityCommonService.getActivityDetailsPromise({ organization_id: createTargetFormRequest.organization_id }, reqActivityId);
-                    if (activityData.length > 0) {
-                        let parentCUID3 = activityData[0].activity_cuid_3;
-                        let childCount = 1;
-                        const [errorZero, childWorkflowCount] = await activityListSelectChildOrderCount({
-                            organization_id: createTargetFormRequest.organization_id,
-                            activity_type_category_id: 63,
-                            activity_type_id: 190797,
-                            parent_activity_id: reqActivityId,
-                        });
-                        
-                        if (childWorkflowCount.length > 0) {
-                            childCount = Number(childWorkflowCount[0].count) + 1;
-                        }
-                        let childCUID2 = parentCUID3 + "-" + childCount;
-                        createTargetFormRequest.calendar_event_id_update = true;
-                        createTargetFormRequest.workflow_activity_id = targetFormActivityID;
-                        await updateCUIDBotOperation(createTargetFormRequest, {}, { "CUID2": childCUID2 });
-                        await updateCUIDBotOperation(createTargetFormRequest, {}, { "CUID3": parentCUID3 });
-                    }
-
-                }
-            } catch (error) {
-                util.logError(createTargetFormRequest,`createTargetFormActivity | workflowFile705Request | addTimelineTransactionAsync | Error: `, { type: "bot_engine", error: serializeError(error) });
-                throw new Error(error);
-            }
+        } catch (error) {
+            console.log("createActivity | addActivityAsync | Error: ", error);
+            return [true, {}];
         }
         return;
     }
@@ -5949,7 +5996,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
     function getFielDataValueColumnNameNew(fieldDataTypeID) {
         switch (fieldDataTypeID) {
             case 1: // Date
-                return 'data_entity_datetime_2';
+                return 'data_entity_date_1';
             case 2 : // date only
                 return 'data_entity_date_1';
             case 71: 
@@ -5960,6 +6007,8 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             case 19: // Short Text
             case 21: // Label
             case 22: // Email ID
+            case 23: // Phone Number
+                return 'data_entity_text_1';
             case 27: // General Signature with asset reference
             case 33: // Single Selection List
             case 57: // workflow reference            
@@ -9460,6 +9509,7 @@ else{
         newReq.asset_id = 100;
         newReq.creator_asset_id = Number(request.asset_id);
         newReq.activity_id = Number(request.workflow_activity_id);
+        
         const event = {
             name: "alterActivityCover",
             service: "activityUpdateService",
@@ -9468,6 +9518,16 @@ else{
         };
         console.log('request.workflow_activity_id : ', request.workflow_activity_id);
         request.debug_info.push('request.workflow_activity_id : '+ request.workflow_activity_id);
+        
+        if(inlineData && inlineData.hasOwnProperty('is_status_due_date') && inlineData.is_status_due_date == 1) {
+           let updateStatusDueDateParams = {...request};
+           updateStatusDueDateParams.activity_id = Number(request.workflow_activity_id);
+           updateStatusDueDateParams.status_due_datetime = newDate;
+            rmBotService.updateStatusDueDate(updateStatusDueDateParams)
+            
+            return [false,[]]
+        }
+
         await queueWrapper.raiseActivityEventPromise(event, request.workflow_activity_id);
 
         //Timeline /activity/timeline/entry/add
@@ -10671,7 +10731,7 @@ if(workflowActivityData.length==0){
         const formId = request.form_id || request.trigger_form_id || 0;
         const productTypeFromForm = vilBulkLOVs["product_fb_form_mapping"][String(formId)];
         const postingCircleFormMapping = vilBulkLOVs["posting_circle_mapping"];
-        logger.silly("product selected: %j",productTypeFromForm);
+        logger.silly("product selected: %j", productTypeFromForm);
         let workflowActivityID = Number(request.workflow_activity_id) || 0,
             workflowActivityCategoryTypeID = 0,
             workflowActivityTypeID = 0,
@@ -10717,21 +10777,21 @@ if(workflowActivityData.length==0){
                 workflowActivityCreatorAssetID = workflowActivityData[0].activity_owner_asset_id;
             }
         } catch (error) {
-            util.logError(request,`No Workflow Data Found in DB`);
+            util.logError(request, `No Workflow Data Found in DB`);
             throw new Error("No Workflow Data Found in DB");
         }
 
         if (workflowActivityID === 0 || workflowActivityTypeID === 0 || opportunityID === "") {
-            util.logError(request,`Couldn't Fetch workflowActivityID or workflowActivityTypeID`);
+            util.logError(request, `Couldn't Fetch workflowActivityID or workflowActivityTypeID`);
             throw new Error("Couldn't Fetch workflowActivityID or workflowActivityTypeID");
         }
 
         if (bulkUploadFormID === 0 || bulkUploadFieldID === 0) {
-            util.logError(request,`Form ID and field ID not defined to fetch excel for bulk upload`);
+            util.logError(request, `Form ID and field ID not defined to fetch excel for bulk upload`);
             throw new Error("Form ID and field ID not defined to fetch excel for bulk upload");
         }
 
-        if(workflowActivityData[0].parent_activity_id !== 0 && workflowActivityData[0].parent_activity_id !== null) {
+        if (workflowActivityData[0].parent_activity_id !== 0 && workflowActivityData[0].parent_activity_id !== null) {
             await addTimelineMessage(
                 {
                     activity_timeline_text: "Error",
@@ -10744,7 +10804,7 @@ if(workflowActivityData.length==0){
                     attachments: []
                 }
             );
-            util.logError(request,`Your request is not processed. Child Opportunity cannot be created on a child Opportunity.`);
+            util.logError(request, `Your request is not processed. Child Opportunity cannot be created on a child Opportunity.`);
             return;
         }
 
@@ -10796,7 +10856,7 @@ if(workflowActivityData.length==0){
         }
 
         if (bulkUploadFormActivityID === 0 || bulkUploadFormTransactionID === 0) {
-            util.logError(request,`Form to bulk upload feasibility is not submitted`);
+            util.logError(request, `Form to bulk upload feasibility is not submitted`);
             throw new Error("Form to bulk upload feasibility is not submitted");
         }
 
@@ -10819,7 +10879,7 @@ if(workflowActivityData.length==0){
             organization_id: request.organization_id
         });
         if (bulkUploadFieldData.length === 0) {
-            util.logError(request,`Field to fetch the bulk upload excel file not submitted`);
+            util.logError(request, `Field to fetch the bulk upload excel file not submitted`);
             throw new Error("Field to fetch the bulk upload excel file not submitted");
         }
 
@@ -10841,7 +10901,7 @@ if(workflowActivityData.length==0){
         request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: " + bulkUploadFieldData[0].data_entity_text_1);
         const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
         if (xlsxDataBodyError) {
-            util.logError(request,`[BulkFeasibilityError]${xlsxDataBodyError}`);
+            util.logError(request, `[BulkFeasibilityError]${xlsxDataBodyError}`);
             throw new Error(xlsxDataBodyError);
         }
 
@@ -10863,7 +10923,7 @@ if(workflowActivityData.length==0){
             "MSBPOP", "IsLastMileOnNetWireline", "IsWirelessUBR", "IsWireless3G", "IsWireless4G", "IsCableAndWirelessCustomer", "A_Latitude", "A_Longitude",
             "B_Latitude", "B_Longitude", "LastMileName", "RejectionRemarks", "IsLastMileOffNet", "LastMileOffNetVendor", "ReSubmissionRemarksEndA", "ReSubmissionRemarksEndB",
             "SalesRemarks", "ReasonForCloning", "VendorName",
-            //  "IsSecureRemoteVPNConnect"
+            "IsSecureRemoteVPNConnect"
         ];
 
         const childOpportunitiesArray = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_names[0]], { header: headersArray });
@@ -10925,7 +10985,7 @@ if(workflowActivityData.length==0){
         let invalidProductSelected = false;
         let invalidEmailIdFound = false;
 
-        
+
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
             // Non ASCII check
@@ -10992,7 +11052,7 @@ if(workflowActivityData.length==0){
             }
 
             //Mandatory checks for Existing Feasbility
-            if(childOpportunity.IsNewFeasibilityRequest === "Existing") {
+            if (childOpportunity.IsNewFeasibilityRequest === "Existing") {
                 mandatoryChecks = checksForBulkUpload["mandatory"]["Existing_Feasibility"] || [];
                 for (const field of mandatoryChecks) {
                     if (!isObject(field)) {
@@ -11031,7 +11091,7 @@ if(workflowActivityData.length==0){
                     errorMessageForInvalidEmailId += `Invalid Email ID found for ${fieldName} in ${i + 1}.\n`;
                 }
             }
-            
+
             // Invalid LastMileOffNetVendor check
             if (
                 LastMileOffNetVendor !== ""
@@ -11062,7 +11122,7 @@ if(workflowActivityData.length==0){
                 }
                 childOpportunitiesArray[i].VendorName = vendorName;
             }
-            
+
             // Invalid LastMile check
             if (
                 lastMileName !== ""
@@ -11121,7 +11181,7 @@ if(workflowActivityData.length==0){
                     attachments: []
                 }
             );
-            util.logError(request,`[BulkFeasibilityError] BulkExcelPreProcessingErrorFound`);
+            util.logError(request, `[BulkFeasibilityError] BulkExcelPreProcessingErrorFound`);
             throw new Error("BulkExcelPreProcessingErrorFound");
         }
 
@@ -11183,6 +11243,13 @@ if(workflowActivityData.length==0){
         // console.log("childOpportunityIDToDualFlagMap: ", childOpportunityIDToDualFlagMap);
         // console.log("groupedJobsMap: ", groupedJobsMap);
 
+        const [errorOne, allChildOpportunityDatamp] = await activityListSearchCUIDFromParentActivityID({
+            organization_id: request.organization_id,
+            activity_type_category_id: workflowActivityCategoryTypeID,
+            activity_type_id: workflowActivityTypeID,
+            parent_activity_id: workflowActivityID,
+        });
+
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
             console.log(`IsNewFeasibilityRequest: ${childOpportunity.IsNewFeasibilityRequest} | serialNum: ${childOpportunity.serialNum} | actionType: ${childOpportunity.actionType}`);
@@ -11219,21 +11286,16 @@ if(workflowActivityData.length==0){
             }
             // If actionType === correction, assert that the child opportunity exists
             if (childOpportunity.actionType === "correction" && childOpportunity.OppId !== "") {
-                const [errorOne, childOpportunityData] = await activityListSearchCUID({
-                    organization_id: request.organization_id,
-                    activity_type_category_id: workflowActivityCategoryTypeID,
-                    flag: 1,
-                    search_string: childOpportunity.OppId
-                });
+
                 // Primary
-                if (childOpportunityData.length === 0) {
+                if (!allChildOpportunityDatamp.has(childOpportunity.OppId)) {
                     // errorMessageJSON.errorExists = true;
                     // errorMessageJSON.action.correction.opportunity_ids.push(childOpportunity.OppId);
                     errorMessagesArray.push(`Child opportunity ${childOpportunity.OppId} in row #${i} doesn't exist in our DB.`)
                     continue;
                 }
                 // Secondary
-                const primaryFRID = childOpportunityData[0].activity_cuid_2 || "";
+                const primaryFRID = allChildOpportunityDatamp.get(childOpportunity.OppId).activity_cuid_2 || "";
                 if (
                     linkType === "secondary" &&
                     !String(primaryFRID).startsWith("FR")
@@ -11273,17 +11335,9 @@ if(workflowActivityData.length==0){
                     continue;
                 }
 
-                // Check if the child opportunity already exists
-                const [errorTwo, childOpportunityData] = await activityListSearchCUID({
-                    organization_id: request.organization_id,
-                    activity_type_category_id: workflowActivityCategoryTypeID,
-                    flag: 1,
-                    search_string: childOpportunityID
-                });
-
                 if (
                     linkType === "primary" &&
-                    childOpportunityData.length > 0
+                    allChildOpportunityDatamp.has(childOpportunityID)
                 ) {
                     errorMessageJSON.errorExists = true;
                     errorMessageJSON.action.new.opportunity_ids.push(childOpportunityID);
@@ -11292,8 +11346,8 @@ if(workflowActivityData.length==0){
 
                 if (
                     linkType === "secondary" &&
-                    childOpportunityData.length > 0 &&
-                    !String(childOpportunityData[0].activity_cuid_2).startsWith("FR")
+                    allChildOpportunityDatamp.has(childOpportunityID) &&
+                    !String(allChildOpportunityDatamp.get(childOpportunityID).activity_cuid_2).startsWith("FR")
                 ) {
                     errorMessageJSON.errorExists = true;
                     errorMessageJSON.action.new_secondary.opportunity_ids.push(childOpportunityID);
@@ -11302,7 +11356,7 @@ if(workflowActivityData.length==0){
 
                 if (
                     linkType === "mplsl2_second_primary" &&
-                    childOpportunityData.length === 0
+                    !allChildOpportunityDatamp.has(childOpportunityID)
                 ) {
                     errorMessagesArray.push(`Child opportunity ${childOpportunityID} in row #${i} doesn't exist in our DB.`)
                     continue;
@@ -11316,20 +11370,13 @@ if(workflowActivityData.length==0){
 
                 childOpportunityID = childOpportunity.OppId;
 
-                // Check if the child opportunity already exists
-                const [errorThree, childOpportunityData] = await activityListSearchCUID({
-                    organization_id: request.organization_id,
-                    activity_type_category_id: workflowActivityCategoryTypeID,
-                    flag: 1,
-                    search_string: childOpportunityID
-                });
-                if (!(childOpportunityData.length > 0)) {
+                if (!allChildOpportunityDatamp.has(childOpportunityID)) {
                     errorMessageJSON.errorExists = true;
                     errorMessageJSON.action.refeasibility_rejected_by_am.opportunity_ids.push(childOpportunityID);
                     continue;
                 }
-                const primaryFRID = childOpportunityData[0].activity_cuid_2 || "";
-                const secondaryFRID = childOpportunityData[0].activity_cuid_3 || "";
+                const primaryFRID = allChildOpportunityDatamp.get(childOpportunityID).activity_cuid_2 || "";
+                const secondaryFRID = allChildOpportunityDatamp.get(childOpportunityID).activity_cuid_3 || "";
 
                 if (
                     (linkType === "primary" && !String(primaryFRID).startsWith("FR")) ||
@@ -11346,20 +11393,13 @@ if(workflowActivityData.length==0){
 
                 childOpportunityID = childOpportunity.OppId;
 
-                // Check if the child opportunity already exists
-                const [errorFour, childOpportunityData] = await activityListSearchCUID({
-                    organization_id: request.organization_id,
-                    activity_type_category_id: workflowActivityCategoryTypeID,
-                    flag: 1,
-                    search_string: childOpportunityID
-                });
-                if (!(childOpportunityData.length > 0)) {
+                if (!(allChildOpportunityDatamp.has(childOpportunityID))) {
                     errorMessageJSON.errorExists = true;
                     errorMessageJSON.action.refeasibility_rejected_by_fes.opportunity_ids.push(childOpportunityID);
                     continue;
                 }
-                const primaryFRID = childOpportunityData[0].activity_cuid_2 || "";
-                const secondaryFRID = childOpportunityData[0].activity_cuid_3 || "";
+                const primaryFRID = allChildOpportunityDatamp.get(childOpportunityID).activity_cuid_2 || "";
+                const secondaryFRID = allChildOpportunityDatamp.get(childOpportunityID).activity_cuid_3 || "";
 
                 if (
                     (linkType === "primary" && !String(primaryFRID).startsWith("FR")) ||
@@ -11376,20 +11416,13 @@ if(workflowActivityData.length==0){
 
                 childOpportunityID = childOpportunity.OppId;
 
-                // Check if the child opportunity already exists
-                const [errorFive, childOpportunityData] = await activityListSearchCUID({
-                    organization_id: request.organization_id,
-                    activity_type_category_id: workflowActivityCategoryTypeID,
-                    flag: 1,
-                    search_string: childOpportunityID
-                });
-                if (!(childOpportunityData.length > 0)) {
+                if (!(allChildOpportunityDatamp.has(childOpportunityID))) {
                     errorMessageJSON.errorExists = true;
                     // errorMessageJSON.action.refeasibility_rejected_by_fes.opportunity_ids.push(childOpportunityID);
                     continue;
                 }
-                const primaryFRID = childOpportunityData[0].activity_cuid_2 || "";
-                const secondaryFRID = childOpportunityData[0].activity_cuid_3 || "";
+                const primaryFRID = allChildOpportunityDatamp.get(childOpportunityID).activity_cuid_2 || "";
+                const secondaryFRID = allChildOpportunityDatamp.get(childOpportunityID).activity_cuid_3 || "";
 
                 if (linkType === "primary" && !String(primaryFRID).startsWith("FR")) {
                     errorMessageJSON.errorExists = true;
@@ -11493,7 +11526,7 @@ if(workflowActivityData.length==0){
         }
         return;
     }
-    
+
     async function dualBulkJobTransactionUpdate(request) {
         try {
             const [errorOne, _] = await vodafoneActivityBulkFeasibilityMappingInsert(request);
@@ -16262,7 +16295,7 @@ if(workflowActivityData.length==0){
 
       const paramsArr = new Array(request.organization_id, request.email);
       const queryString = util.getQueryString(
-        "ds_p1_asset_list_select_email_all",
+        "ds_v1_asset_list_select_email",
         paramsArr
       );
       if (queryString !== "") {
@@ -16665,7 +16698,10 @@ if(workflowActivityData.length==0){
     }
     async function closeRefferedOutActivities(request,bot_inline){
         const workflowActivityID = request.workflow_activity_id;
-
+        let [err1,activityDetails_1] = await getActivityDetailsAsync(request,workflowActivityID);
+        if(activityDetails_1.length>0 && activityDetails_1[0].activity_workflow_completion_percentage==100){
+            return [false,[]]
+        }
         let sourceFieldValue = await getFieldValueUsingFieldIdV1({...request,workflow_activity_id:0},bot_inline.source_form_data.form_id,bot_inline.source_form_data.field_id);
         if(sourceFieldValue == ""){
             return [false,[]]
@@ -16795,6 +16831,67 @@ if(workflowActivityData.length==0){
             return [true, {}];
         }
     }
+
+    async function activityListSearchCUIDFromParentActivityID(request) {
+        let error = true,
+            responseDataMp = new Map();
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_category_id,
+            request.activity_type_id || 0,
+            request.parent_activity_id,
+            request.page_start || 0,
+            request.page_limit || 2000
+        );
+
+        const queryString = util.getQueryString('ds_v1_activity_list_select_parent', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+
+                    for (let childData of data) {
+                        responseDataMp.set(childData.activity_cuid_1, childData);
+                    }
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseDataMp];
+    }
+
+    async function momBulkTransactionInsert(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.meeting_activity_id,
+            request.mom_excel_path,
+            request.status_id,
+            util.getCurrentUTCTime(),
+            request.organization_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_mom_bulk_transaction_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 
 }
 
