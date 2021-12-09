@@ -4035,7 +4035,7 @@ function ActivityListingService(objCollection) {
 					let participantReq = Object.assign({}, request);
 					participantReq.is_all_flag = isAllFlag;
 					let [err, participantsList] = await getParticipantsAsync(participantReq);
-					let htmlString = await generateMOMOrdersHtmlCode(request, participantsList, wfActivityDetails);
+					let [htmlString, attachmentPath] = await generateMOMOrdersHtmlCode(request, participantsList, wfActivityDetails);
 					console.log("htmlString ", htmlString);
 					
 					let emailList = [];
@@ -4050,31 +4050,32 @@ function ActivityListingService(objCollection) {
 						}
 
 					}
-					let [err123, activityTypeConfigData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request,request.activity_type_id);
-      
-					if(err123 || activityTypeConfigData.length == 0 || activityTypeConfigData[0].activity_type_inline_data == ""){
-					  util.logInfo(request,"Exiting due to missing config settings");
-					  await util.sendEmailV4ews(request, emailList, header, htmlString, "", 1);
+					let [err123, activityTypeConfigData] = await activityCommonService.getWorkflowFieldsBasedonActTypeId(request, request.activity_type_id);
+
+					if (err123 || activityTypeConfigData.length == 0 || activityTypeConfigData[0].activity_type_inline_data == "") {
+						util.logInfo(request, "Exiting due to missing config settings");
+						await util.sendEmailV4ews(request, emailList, header, htmlString, "", 1, 0, "", attachmentPath);
 					}
-					else{ 
-					let activity_type_inline_data = typeof activityTypeConfigData[0].activity_type_inline_data == 'string' ? JSON.parse(activityTypeConfigData[0].activity_type_inline_data) : activityTypeConfigData[0].activity_type_inline_data; 
-					let emailProviderDetails = {
-					  email:activity_type_inline_data.activity_type_email_id,
-					  password:activity_type_inline_data.activity_type_email_password,
-					  username:activity_type_inline_data.activity_type_email_username
-				  }
-				  util.logInfo(request,"came into config settings");
-							  // util.sendEmailV4ews(request, request.email_id, emailSubject, Template, 1);
-							  util.sendEmailV4ewsV1(
-								  request,
-								  emailList,
-								  header,
-								  htmlString,
-								  "",
-								  emailProviderDetails
-							  );
+					else {
+						let activity_type_inline_data = typeof activityTypeConfigData[0].activity_type_inline_data == 'string' ? JSON.parse(activityTypeConfigData[0].activity_type_inline_data) : activityTypeConfigData[0].activity_type_inline_data;
+						let emailProviderDetails = {
+							email: activity_type_inline_data.activity_type_email_id,
+							password: activity_type_inline_data.activity_type_email_password,
+							username: activity_type_inline_data.activity_type_email_username
+						}
+						util.logInfo(request, "came into config settings");
+						console.log(emailProviderDetails);
+						// util.sendEmailV4ews(request, request.email_id, emailSubject, Template, 1);
+						util.sendEmailV4ewsV1(
+							request,
+							emailList,
+							header,
+							htmlString,
+							attachmentPath,
+							emailProviderDetails
+						);
 					}
-					
+
 				}
 
 			}
@@ -4090,6 +4091,8 @@ function ActivityListingService(objCollection) {
 
 	let generateMOMOrdersHtmlCode = async (request, participantsList, wfActivityDetails) => {
 
+		let htmlString = "";
+		let attachmentPath = "";
 		const [errorZero, childMOM] = await this.activityListSelectChildOrders({
 			organization_id: request.organization_id,
 			parent_activity_id: request.activity_id,
@@ -4097,7 +4100,7 @@ function ActivityListingService(objCollection) {
 		});
 
 		if (errorZero || childMOM.length === 0) {
-			return "";
+			return [htmlString, attachmentPath];
 		}
 
 		const formTimelineDataOfMeeting = await activityCommonService.getActivityTimelineTransactionByFormId713({
@@ -4122,9 +4125,33 @@ function ActivityListingService(objCollection) {
 				organization_id: request.organization_id
 			});
 
+			let fieldDataOfAttachment = await getFieldValue({
+				form_transaction_id: formTransactionID,
+				form_id: 50816,
+				field_id: 316536,
+				organization_id: request.organization_id
+			});
 
-			if(fieldData.length > 0) {
-				let entityInlineJSON = JSON.parse(fieldData[0].data_entity_inline || "{}") ;
+			if (fieldDataOfAttachment.length > 0) {
+				attachmentPath = fieldDataOfAttachment[0].data_entity_text_1;
+			}
+
+			if (attachmentPath == null || attachmentPath == "") {
+				fieldDataOfAttachment = await getFieldValue({
+					form_transaction_id: formTransactionID,
+					form_id: 50816,
+					field_id: 316535,
+					organization_id: request.organization_id
+				});
+
+				if (fieldDataOfAttachment.length > 0) {
+					attachmentPath = fieldDataOfAttachment[0].data_entity_text_1;
+				}
+
+			}
+
+			if (fieldData.length > 0) {
+				let entityInlineJSON = JSON.parse(fieldData[0].data_entity_inline || "{}");
 				if (entityInlineJSON.hasOwnProperty("start_date_time")) {
 					meetingDate = entityInlineJSON.start_date_time;
 					if (meetingDate) {
@@ -4262,7 +4289,7 @@ function ActivityListingService(objCollection) {
 			finalSummaryData.push(data);
 		}
 
-		let htmlString = `<p>Hi,</p><p>Greetings from Vi&trade;</p><p>The mail is to inform you that Based on Meeting Id:${wfActivityDetails[0].activity_cuid_3} on ${meetingDate} with ${wfActivityDetails[0].activity_title}, the updated discussion points are the following point(s).</p><br><table width="100%" border="1" cellspacing="0"><thead><tr>`;
+		htmlString = `<p>Hi,</p><p>Greetings from Vi&trade;</p><p>The mail is to inform you that Based on Meeting Id:${wfActivityDetails[0].activity_cuid_3} on ${meetingDate} with ${wfActivityDetails[0].activity_title}, the updated discussion points are the following point(s).</p><br><table width="100%" border="1" cellspacing="0"><thead><tr>`;
 
 		for (const key of momFieldMappingsForSummary["field_order"]) {
 			htmlString += '<th>' + key + '</th>';
@@ -4278,7 +4305,7 @@ function ActivityListingService(objCollection) {
 		}
 
 		htmlString += '</tbody></table><br><br><p>Thanks,</p><p>Vi&trade; Business</p>';
-		return htmlString;
+		return [htmlString, attachmentPath];
 	}
 
 	async function getParticipantDetails(request) {

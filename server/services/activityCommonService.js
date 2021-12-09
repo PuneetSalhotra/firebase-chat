@@ -7019,7 +7019,6 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             request.field_data_value,
             request.sequence_id
         );
-
         const queryString = util.getQueryString('ds_v1_activity_search_list_update_entity_fields', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)

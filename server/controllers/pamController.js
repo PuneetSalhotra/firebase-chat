@@ -704,6 +704,24 @@ function PamController(objCollection) {
             res.json(responseWrapper.getResponse(true, result, -9999, req.body));
         }
     });
+    app.post('/' + global.config.version + '/pam/get/order/report/summary', async function (req, res) { 
+        let [err,result] = await pamService.getPamOrderReportSummary(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            console.log("/pam/get/order/report/summary | Error: ", err);
+            res.json(responseWrapper.getResponse(true, result, -9999, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/pam/get/Analytic/report', async function (req, res) { 
+        let [err,result] = await pamService.PamAnalyticsReporteChecks(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            console.log("/pam/get/Analytic/report | Error: ", err);
+            res.json(responseWrapper.getResponse(true, result, -9999, req.body));
+        }
+    });
 
     
 };
