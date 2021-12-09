@@ -607,14 +607,20 @@ function ActivityService(objectCollection) {
                                                         let opportunityRequest = Object.assign({}, request);
                                                         opportunityRequest.workflow_activity_id = request.activity_id;
                                                         opportunityRequest.reference_data = fieldData;
-
+                                                        opportunityRequest.account_activity_id = 0;
+                                                        util.logInfo(request, "Reference Field Value /activity/opportunity/set "+fieldData.field_value);
                                                         if(fieldData.field_value.includes('|')){
                                                             let parsedFieldValue = fieldData.field_value;
                                                             opportunityRequest.account_activity_id = parsedFieldValue.split('|')[0];
                                                         }
 
                                                         opportunityRequest.generic_url = '/activity/opportunity/set';
+                                                        util.logInfo(request, "Account Id before _activity_opportunity_set "+opportunityRequest.account_activity_id);
+                                                        if(opportunityRequest.account_activity_id > 0)
                                                         activityCommonService.makeGenericRequest(opportunityRequest);
+                                                        else 
+                                                        util.logInfo(request, "Account Id in else _activity_opportunity_set "+opportunityRequest.account_activity_id);
+
                                                 }                                                
                                                 break;
                                         case 33: //Fire the Bot                                                 
