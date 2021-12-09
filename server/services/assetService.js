@@ -8258,7 +8258,7 @@ this.getQrBarcodeFeeback = async(request) => {
         const paramsArr = new Array(
             request.organization_id, 
             request.asset_id, 
-            util.getCurrentUTCTime(), 
+            request.location_datetime, 
             request.asset_id,
             util.getCurrentUTCTime()
         );
