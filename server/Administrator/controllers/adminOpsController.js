@@ -1162,6 +1162,66 @@ function AdminOpsController(objCollection) {
             }
         });
 
+        app.post("/" + global.config.version + "/application/master/update", async function (req, res) {
+            const [err, result] = await adminOpsService.applicationMasterUpdate(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/application/master/update | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
+        app.post("/" + global.config.version + "/widget/drilldown/header/mapping/insert", async function (req, res) {
+            const [err, result] = await adminOpsService.widgetDrilldownHeaderMappingInsert(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/widget/drilldown/header/mapping/insert | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
+        app.post("/" + global.config.version + "/widget/drilldown/header/mapping/delete", async function (req, res) {
+            const [err, result] = await adminOpsService.widgetDrilldownHeaderMappingDelete(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/widget/drilldown/header/mapping/delete | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
+        app.post("/" + global.config.version + "/widget/drilldown/header/mapping/update", async function (req, res) {
+            const [err, result] = await adminOpsService.widgetDrilldownHeaderMappingUpdate(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/widget/drilldown/header/mapping/update | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
+        app.post("/" + global.config.version + "/widget/drilldown/header/mapping/select", async function (req, res) {
+            const [err, result] = await adminOpsService.widgetDrilldownHeaderMappingSelect(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/widget/drilldown/header/mapping/select | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
+        app.post("/" + global.config.version + "/widget/drilldown/header/master/select", async function (req, res) {
+            const [err, result] = await adminOpsService.widgetDrilldownHeaderMasterSelect(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/widget/drilldown/header/master/select | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
 
 }
 
