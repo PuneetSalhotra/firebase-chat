@@ -2000,18 +2000,35 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     function createActivityTypeForAllWorkforces(request, workforceId) {
         return new Promise((resolve, reject)=>{
            var paramsArr = new Array(
-                request.asset_first_name,
-                request.asset_description,
-                39, //request.activity_type_category_id,
-                workforceId,
-                request.account_id,
-                request.organization_id,
-                request.ingredient_asset_id,
-                41, //asset_type_category_id
-                request.asset_id,
-                request.datetime_log
+            request.activity_type_name,
+            request.activity_type_description,
+            request.activity_type_category_id,
+            request.level_id,
+            workforceId,
+            request.account_id,
+            request.organization_id,
+            request.log_asset_id,
+            request.log_datetime,
+            request.visibility_flag,
+            request.activity_type_default_duration_days,
+            request.activity_type_inline_data,
+            request.flag_customer_creation,
+            request.flag_enable_web_url,
+            request.web_url
+                // request.asset_first_name,
+                // request.asset_description,
+                // 39, //request.activity_type_category_id,
+                // workforceId,
+                // request.account_id,
+                // request.organization_id,
+                // request.ingredient_asset_id,
+                // 41, //asset_type_category_id
+                // request.asset_id,
+                // request.datetime_log
                 );
-            var queryString = util.getQueryString('ds_v1_workforce_activity_type_mapping_insert', paramsArr);
+            // var queryString = util.getQueryString('ds_v1_workforce_activity_type_mapping_insert', paramsArr);
+            var queryString = util.getQueryString('pm_v1_workforce_activity_type_mapping_insert', paramsArr);
+
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -6425,7 +6442,7 @@ this.getChildOfAParent = async (request) => {
          );
        }
        return [error, []];
-     };      
+     };    
     
 };
 
