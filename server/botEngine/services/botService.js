@@ -16708,9 +16708,7 @@ if(workflowActivityData.length==0){
     async function closeRefferedOutActivities(request,bot_inline){
         const workflowActivityID = request.workflow_activity_id;
         let [err1,activityDetails_1] = await getActivityDetailsAsync(request,workflowActivityID);
-        if(activityDetails_1.length>0 && activityDetails_1[0].activity_workflow_completion_percentage==100){
-            return [false,[]]
-        }
+        
         let sourceFieldValue = await getFieldValueUsingFieldIdV1({...request,workflow_activity_id:0},bot_inline.source_form_data.form_id,bot_inline.source_form_data.field_id);
         if(sourceFieldValue == ""){
             return [false,[]]
@@ -16732,7 +16730,12 @@ if(workflowActivityData.length==0){
         }
         // return [false,[]]
         //continuing because there are activities to close
+        
         for(let i=0;i<referedOutActivities.length;i++){
+            let [err12,activityDetails_12] = await getActivityDetailsAsync(request,referedOutActivities[i].activity_id);
+            if(Number(activityDetails_12[0].activity_workflow_completion_percentage)==100 || Number(activityDetails_12[0].activity_workflow_completion_percentage)==100.00){
+                continue;
+            }
             await submitFormInternalV1(request,bot_inline,referedOutActivities[i].activity_id,sourceFieldValue)
         }
         return [false,[]]

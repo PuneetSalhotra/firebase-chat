@@ -11528,6 +11528,169 @@ console.log('new ActivityId321',newActivity_id)
         return [error, responseData];
     }; 
 
+    this.applicationMasterUpdate = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.application_id,
+            request.application_label_name,
+            request.application_name,
+            request.tag_type_label_name,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_application_master_update', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.widgetDrilldownHeaderMappingInsert = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.tag_type_id,
+            request.header_id,
+            request.sequence_id,
+            request.conversion_format,
+            request.organization_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_widget_drilldown_header_mapping_insert', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.widgetDrilldownHeaderMappingDelete = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.header_id,
+            request.tag_type_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_widget_drilldown_header_mapping_delete', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.widgetDrilldownHeaderMappingUpdate = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.header_id,
+            request.tag_type_id,
+            request.sequence_id,
+            request.header_name,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_widget_drilldown_header_mapping_update', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.widgetDrilldownHeaderMappingSelect = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.tag_type_id, 
+            request.organization_id
+        );
+        const queryString = util.getQueryString('ds_v1_widget_drilldown_header_mapping_select', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.widgetDrilldownHeaderMasterSelect = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.start_from, 
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_widget_drilldown_header_master_select', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
 }
 
 module.exports = AdminOpsService;
