@@ -5846,13 +5846,22 @@ this.getChildOfAParent = async (request) => {
         }
         let path = `${fileName}${SaleReportType}_${request.event_activity_id}_${start_date}_${end_date}.xlsx`;
 
-        request.attachment = path;
-        request.sendRegularEmail = 1;
         request.email_receiver_name="";
         request.email_sender_name="greneOS";
         //request.email_id = request.email_id;
         request.email_sender="support@greneos.com";
         
+        const bucketName = await util.getS3BucketNameV1();
+        const prefixPath = await util.getS3PrefixPath(request);
+        const s3UploadUrlObj = await util.uploadReadableStreamToS3(request, {
+            Bucket: bucketName,
+            Key: `${prefixPath}/` + Date.now() + '.pdf',
+            Body: path,
+            ContentType: 'application/pdf',
+            ACL: 'public-read'
+        }, path);
+        request.attachment = s3UploadUrlObj.Location
+
         util.sendEmailV3(request,
             request.email,
             "Summary Report",
