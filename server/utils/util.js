@@ -21,6 +21,7 @@ const uuidv4 = require('uuid/v4');
 const db = require("./dbWrapper")
 let ipAddress = ip.address();
 ipAddress = ipAddress.replace(/\./g, '_');
+var axios=require('axios');
 
 AWS.config.loadFromPath(`${__dirname}/configS3.json`);
 
@@ -3583,6 +3584,37 @@ function Util(objectCollection) {
         }
 
         return [error, responseData];
+    }
+    this.WhatsappNotification=async(request,memberData,recipientData)=>{
+        let responseData = [];
+        let   error = true;   
+        var data = {
+            "channelId":global.config.gallaboxChannelId,
+            "channelType": "whatsapp",       
+            "recipient":recipientData,
+            "whatsapp": {
+            "type": "template",
+            "template": {
+            "templateName": request.templateName,
+            "bodyValues":memberData,
+            }
+            }
+            };
+            var config = {
+                method: 'post',
+                url:global.config.gallaboxurl,
+                headers:global.config.gallaboxApiCredentials,
+                data : data
+              };
+         await  axios(config)
+            .then((response)=> {
+                responseData.push(response.data)  
+                error = false;              
+                }).catch(err=>{
+                    console.log(err)
+                    error = err;
+                })
+                return [error, responseData];
     }
 
 }

@@ -1171,3 +1171,11 @@ config.opentok_apiSecret = "2ea5c758e3d625155f3cde7f42586111848b74c5";
 config.access_key_id = "AKIAWIPBVOFRSA6UUSRC";
 config.secret_access_key = "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";
 config.cognito_region = "ap-south-1";
+//Gallabox Whatsapp
+config.gallaboxApiCredentials = {
+    "apiSecret":'36b2de6f5af943acabda05cece696fb3',
+    "apiKey": '61af21eeef52e800049bf811',
+    "ContentType": 'application/json'
+};
+config.gallaboxurl='https://server.gallabox.com/devapi/messages/whatsapp';
+config.gallaboxChannelId="61a9b44216fc4c0004b14d13";
