@@ -9010,19 +9010,24 @@ console.log('new ActivityId321',newActivity_id)
         try{
             //console.log('Form ID List : ', request.form_id_list);
             let formList = JSON.parse(request.form_id_list);
-            //console.log('formList : ', formList);            
+            console.log('formList : ', formList);            
             //console.log('formList.lenght : ', formList.length);
 
             for(let counter = 0; counter < formList.length; counter++){
                 let formJson = {};
                 request.form_id = formList[counter];
-                formJson.form_id = request.form_id;                
+                formJson.form_id = request.form_id; 
+                if(request.flag==0){              
                 let [err, responseData] = await self.dependedFormCheck(request);                
                 if(!err){
                     formJson.isActive = true;
                 }else{               
                     formJson.isActive = false;
                 }
+            }
+            else{
+                formJson.isActive = true;
+            }
                 finalResponse.push(formJson);
             }
         }catch(e){
@@ -9341,7 +9346,9 @@ console.log('new ActivityId321',newActivity_id)
             
             let newReq = Object.assign({}, request);
                 newReq.form_id_list = JSON.stringify(form_id_list);
+            
             let [err1, dependencyFormsList] = await this.dependencyFormsCheck(newReq);
+            
             
             console.log('dependencyFormsList.length : ', dependencyFormsList.length);
             
