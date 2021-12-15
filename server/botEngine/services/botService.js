@@ -1717,6 +1717,15 @@ function BotService(objectCollection) {
                         flag = 0;
                     }
 
+                    let workflowActivityID = request.workflow_activity_id;
+                    let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
+
+                    if (wfActivityDetails.length > 0) {
+                        if (wfActivityDetails[0].parent_activity_id > 0) {
+                            break;
+                        }
+                    }
+
                     //For Workbook logs
                     request.activity_product_selection = (typeof activityProductSelection === 'object') ? JSON.stringify(activityProductSelection) : activityProductSelection;
                     let[err, response] = await activityCommonService.workbookTrxInsert(request);

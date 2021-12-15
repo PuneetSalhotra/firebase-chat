@@ -3255,7 +3255,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                             next();
                         }                       
                         
-                    }).then(() => {
+                    }).then(async() => {
                          //noOfGuests--;
                          var text;
                          console.log('memberName : ', memberName);
@@ -3276,8 +3276,33 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                             //text = `Dear ${memberName},Your ${memberName} guest(s) reservation request has been received for ${memberName} at ${memberName}. The Pudding & Mink team will contact you shortly to confirm your reservation  -GreneOS`;
                             //text = `Dear Sravan, Your 10 guest(s) reservation request has been received for Friday, 27th August at 05:30 AM. The Pudding & Mink team will contact you shortly to confirm your reservation.`
                             let reservationStartDatetimeIST = util.UTCtoIST(reservationStartDatetime);
-                            text = `Dear ${memberName},Your ${noOfGuests} guest(s) reservation request has been received for ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")}. The Pudding & Mink team will contact you shortly to confirm your reservation  -GreneOS`
-                         }else {
+                            text = `Dear ${memberName},Your ${noOfGuests} guest(s) reservation request has been received for ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")}. The Pudding & Mink team will contact you shortly to confirm your reservation  -GreneOS`;
+                            
+                                let recipientData = {
+                            name: memberName,
+                            phone: countryCode.toString() + phoneNumber,
+                            };
+                            let memberData = {
+                            memberName: memberName,
+                            reservationStartDatetime: `${util.convertDateFormat(
+                                reservationStartDatetimeIST,
+                                "dddd, Do MMMM"
+                            )}`,
+                            reservationtime: `${util.convertDateFormat(
+                                reservationStartDatetimeIST,
+                                "hh:mm A"
+                            )}`,
+                            noOfGuests: noOfGuests,
+                            reservationCode: reservationCode,
+                            supportContactNumber: supportContactNumber,
+                            };
+                            let [error, data] = await util.WhatsappNotification(
+                            request,
+                            memberData,
+                            recipientData
+                            );
+                        return[false,{}]
+    }else {
                             let reservationStartDatetimeIST = util.UTCtoIST(reservationStartDatetime);
                             text = `Dear ${memberName},Your reservation on ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")} for ${noOfGuests} is confirmed. Your reservation code is ${reservationCode}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${supportContactNumber}.`
                             //text = `Dear ${memberName},\nYour reservation on ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")} for ${noOfGuests} is confirmed. Your reservation code is ${reservationCode}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${supportContactNumber}. -GreneOS`;
@@ -5846,13 +5871,22 @@ this.getChildOfAParent = async (request) => {
         }
         let path = `${fileName}${SaleReportType}_${request.event_activity_id}_${start_date}_${end_date}.xlsx`;
 
-        request.attachment = path;
-        request.sendRegularEmail = 1;
         request.email_receiver_name="";
         request.email_sender_name="greneOS";
         //request.email_id = request.email_id;
         request.email_sender="support@greneos.com";
         
+        const bucketName = await util.getS3BucketNameV1();
+        const prefixPath = await util.getS3PrefixPath(request);
+        const s3UploadUrlObj = await util.uploadReadableStreamToS3(request, {
+            Bucket: bucketName,
+            Key: `${prefixPath}/` + Date.now() + '.pdf',
+            Body: path,
+            ContentType: 'application/pdf',
+            ACL: 'public-read'
+        }, path);
+        request.attachment = s3UploadUrlObj.Location
+
         util.sendEmailV3(request,
             request.email,
             "Summary Report",
