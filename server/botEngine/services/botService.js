@@ -2506,6 +2506,16 @@ function BotService(objectCollection) {
                         });
                     }
                     break;
+
+                case 59: // Due date remove Bot - ESMS
+                    logger.silly("Due date remove Bot - ESMS");
+                    logger.silly("Due date remove Bot - ESMS: %j", request);
+                    try {
+                        await this.removeDueDateOfWorkflow(request, botOperationsJson.bot_operations.due_date_edit);
+                    } catch (error) {
+                        logger.error("Error running the removeDueDateOfWorkflow", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                    }
+                    break;
             }
 
             //botOperationTxnInsert(request, i);
@@ -9595,6 +9605,77 @@ else{
             let assetName = (assetDetails.length > 0) ? assetDetails[0].operating_asset_first_name : 'Bot';
 
             let content = `Due date changed from ${moment(oldDate).format('Do MMMM YYYY, h:mm a')} to ${moment(newDate).format('Do MMMM YYYY, h:mm a')} by ${assetName}`;
+            let activityTimelineCollection = {
+                content: content,
+                subject: `Note - ${util.getCurrentDate()}`,
+                mail_body: content,
+                attachments: [],                
+                asset_reference: [],
+                activity_reference: [],
+                form_approval_field_reference: []
+            };
+
+            let timelineReq = Object.assign({}, request);
+                timelineReq.activity_type_category_id= 48;
+                timelineReq.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
+                timelineReq.data_entity_inline = JSON.stringify(activityTimelineCollection);
+                timelineReq.asset_id = 100;   
+                timelineReq.timeline_stream_type_id= 734;
+                timelineReq.activity_stream_type_id= 734;
+                timelineReq.timeline_transaction_datetime = util.getCurrentUTCTime();
+                timelineReq.track_gps_datetime = timelineReq.timeline_transaction_datetime;
+                timelineReq.datetime_log = timelineReq.timeline_transaction_datetime;
+                timelineReq.message_unique_id = util.getMessageUniqueId(100);
+                timelineReq.form_date = oldDate;
+                timelineReq.to_date = newDate;
+                //timelineReq.device_os_id = 10; //Do not trigger Bots
+
+            timelineReq.activity_id = Number(request.workflow_activity_id);
+            const event1 = {
+                name: "addTimelineTransaction",
+                service: "activityTimelineService",                
+                method: "addTimelineTransactionAsync",                
+                payload: timelineReq
+            };
+            await queueWrapper.raiseActivityEventPromise(event1, request.workflow_activity_id);
+
+        return [error, responseData];
+    }
+
+    this.removeDueDateOfWorkflow = async(request, dueDateEdit) => {
+
+        let responseData = [],
+            error = false,
+            oldDate,
+            newDate = null;
+
+        
+            let paramsArr = new Array(
+                request.workflow_activity_id,
+                request.organization_id,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+    
+            var queryString = util.getQueryString('ds_v1_activity_list_delete_deferred_datetime', paramsArr);
+            if (queryString !== '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+            let assetDetails = await getAssetDetails({
+                "organization_id": request.organization_id,
+                "asset_id": request.asset_id
+            });
+
+            let assetName = (assetDetails.length > 0) ? assetDetails[0].operating_asset_first_name : 'Bot';
+
+            let content = `Due date removed by ${assetName}`;
             let activityTimelineCollection = {
                 content: content,
                 subject: `Note - ${util.getCurrentDate()}`,
