@@ -1222,6 +1222,26 @@ function AdminOpsController(objCollection) {
             }
         });
 
+        app.post("/" + global.config.version + "/admin/asset_type/access/mapping/select/activity_type", async function (req, res) {
+            const [err, result] = await adminOpsService.assetTypeAccessMappingSelectActivityType(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/admin/asset_type/access/mapping/select/activity_type | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
+        app.post("/" + global.config.version + "/admin/asset_type/access/mapping/delete", async function (req, res) {
+            const [err, result] = await adminOpsService.assetTypeAccessMappingDeleteAdmin(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/admin/asset_type/access/mapping/delete | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
 
 }
 

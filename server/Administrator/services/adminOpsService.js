@@ -11231,8 +11231,8 @@ console.log('new ActivityId321',newActivity_id)
         const paramsArr = new Array(
             request.tag_type_filter_label, 
             request.tag_type_id,
-            request.filter_id ,
-            request.filter_sequence_id ,
+            request.filter_id,
+            request.filter_sequence_id,
             request.filter_inline_data,
             request.filter_access_flag,
             request.filter_dynamic_enabled,
@@ -11478,9 +11478,9 @@ console.log('new ActivityId321',newActivity_id)
 
         const paramsArr = new Array(
           request.asset_type_id,
-          request.access_level_id,
-          request.access_type_id,
-          request.activity_type_id,
+          request.access_level_id || 0,
+          request.access_type_id || 0,
+          request.activity_type_id || 0,
           request.workforce_id,
           request.account_id,
           request.organization_id,
@@ -11680,6 +11680,61 @@ console.log('new ActivityId321',newActivity_id)
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.assetTypeAccessMappingSelectActivityType = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.asset_type_id,
+          request.activity_type_id,
+          request.workforce_id,
+          request.account_id,
+          request.organization_id
+        );
+        const queryString = util.getQueryString('ds_p1_asset_type_access_mapping_select_activity_type', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.assetTypeAccessMappingDeleteAdmin = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.asset_type_id,
+          request.access_level_id,
+          request.activity_type_id,
+          request.organization_id,
+          request.asset_id,
+          util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p2_asset_type_access_mapping_delete', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
