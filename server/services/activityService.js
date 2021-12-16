@@ -654,6 +654,9 @@ function ActivityService(objectCollection) {
                                                      }
                                                  }                                                 
                                                  break;
+                                        case 19:     
+                                                processFieldWidgetData(request, fieldData);   
+                                                break;                                          
                                         default: break;
                                     }
                                 }
@@ -5688,7 +5691,7 @@ function ActivityService(objectCollection) {
             WidgetFieldRequest.field_value = fieldData.field_value;
             WidgetFieldRequest.mapping_activity_id = fieldData.field_value.split("\|")[0];
             WidgetFieldRequest.mapping_type_id = 1;
-        }else if(fieldData.field_data_type_id == 33 || fieldData.field_data_type_id == 34){
+        }else if(fieldData.field_data_type_id == 33 || fieldData.field_data_type_id == 34 || fieldData.field_data_type_id == 19){
             WidgetFieldRequest.field_value = fieldData.field_value;
             WidgetFieldRequest.mapping_type_id = 2;
             WidgetFieldRequest.mapping_activity_id = 0;
