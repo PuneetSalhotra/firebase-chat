@@ -157,12 +157,13 @@ function TasiService(objectCollection) {
             request.asset_type_flag_sip_enabled,
             request.asset_type_flag_enable_send_sms,
             request.asset_type_flag_sip_admin_access,
+            request.asset_type_flag_enable_dashboard || 0,
             request.organization_id,
             request.flag,
             util.getCurrentUTCTime(),
             request.asset_id
         );
-        const queryString = util.getQueryString('ds_p3_workforce_asset_type_mapping_update', paramsArr);
+        const queryString = util.getQueryString('ds_p7_workforce_asset_type_mapping_update', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
