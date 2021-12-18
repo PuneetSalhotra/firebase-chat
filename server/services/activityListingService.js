@@ -4401,26 +4401,62 @@ function ActivityListingService(objCollection) {
 
 	this.generateSummary = async (request) => {
 		try {
-			const kafka = new Kafka({
-				clientId: 'child-order-creation',
-				brokers: global.config.BROKER_HOST.split(",")
-			})
+			// const kafka = new Kafka({
+			// 	clientId: 'child-order-creation',
+			// 	brokers: global.config.BROKER_HOST.split(",")
+			// })
 
-			const producer = kafka.producer()
+			// const producer = kafka.producer()
 
-			await producer.connect()
-			await producer.send({
-				topic: global.config.CHILD_ORDER_TOPIC_NAME,
-				messages: [
-					{
-						value: JSON.stringify({
-							...request,
-							requestType: "summary_mom_child_orders"
-						})
+			// await producer.connect()
+			// await producer.send({
+			// 	topic: global.config.CHILD_ORDER_TOPIC_NAME,
+			// 	messages: [
+			// 		{
+			//			value: JSON.stringify({
+			//				...request,
+			//				requestType: "summary_mom_child_orders"
+			//			})
+			// 		},
+			// 	],
+			// })
+			// producer.disconnect();
+
+
+			const AWS = require('aws-sdk');
+			AWS.config.update({
+				"accessKeyId": "AKIAWIPBVOFRSFSVJZMF",
+				"secretAccessKey": "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",
+				"region": "ap-south-1"
+			});
+			const sqs = new AWS.SQS();
+			const uuidv4 = require('uuid/v4');
+			sqs.sendMessage({
+				// DelaySeconds: 5,
+				MessageBody: JSON.stringify({
+					...request,
+					requestType: "summary_mom_child_orders"
+				}),
+				QueueUrl: "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-child-orders-creation-v1.fifo",
+				MessageGroupId: `mom-creation-queue-v1`,
+				MessageDeduplicationId: uuidv4(),
+				MessageAttributes: {
+					"Environment": {
+						DataType: "String",
+						StringValue: global.mode
 					},
-				],
-			})
-			producer.disconnect();
+				}
+			}, (error, data) => {
+				if (error) {
+					logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error)});
+					console.log("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error)})
+				} else {
+					logger.info("Successfully sent excel job to SQS queue: %j", data);    
+					console.log("Successfully sent excel job to SQS queue: %j", data);                                    
+				}                                    
+			});
+
+
 		} catch (e) {
 			console.log(e)
 		}

@@ -2430,12 +2430,40 @@ function BotService(objectCollection) {
                             condition: botOperationsJson.bot_operations.condition
                         });
 
-                        await kafkaProdcucerForChildOrderCreation(global.config.CHILD_ORDER_TOPIC_NAME, {
-                            request,
-                            requestType: "mom_child_orders",
-                            form_field_copy: botOperationsJson.bot_operations.form_field_copy,
-                            condition: botOperationsJson.bot_operations.condition
-                        }).catch(global.logger.error);
+                        // await kafkaProdcucerForChildOrderCreation(global.config.CHILD_ORDER_TOPIC_NAME, {
+                        //     request,
+                        //     requestType: "mom_child_orders",
+                        //     form_field_copy: botOperationsJson.bot_operations.form_field_copy,
+                        //     condition: botOperationsJson.bot_operations.condition
+                        // }).catch(global.logger.error);
+
+
+                        sqs.sendMessage({
+                            // DelaySeconds: 5,
+                            MessageBody: JSON.stringify({
+                                request,
+                                requestType: "mom_child_orders",
+                                form_field_copy: botOperationsJson.bot_operations.form_field_copy,
+                                condition: botOperationsJson.bot_operations.condition
+                            }),
+                            QueueUrl: "https://sqs.ap-south-1.amazonaws.com/430506864995/local-child-orders-creation-v1.fifo",
+                            MessageGroupId: `mom-creation-queue-v1`,
+                            MessageDeduplicationId: uuidv4(),
+                            MessageAttributes: {
+                                "Environment": {
+                                    DataType: "String",
+                                    StringValue: global.mode
+                                },
+                            }
+                        }, (error, data) => {
+                            if (error) {
+                                logger.error(request.workflow_activity_id+": Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                                console.log(request.workflow_activity_id+": Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request })
+                            } else {
+                                logger.info(request.workflow_activity_id+": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });    
+                                console.log(request.workflow_activity_id+": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request })                                    
+                            }                                    
+                        });
 
                     } catch (err) {
                         global.logger.write('conLog', 'Error in executing Child Order creation BOT Step', {}, {});
