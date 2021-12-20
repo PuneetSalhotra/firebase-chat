@@ -14904,6 +14904,14 @@ if(workflowActivityData.length==0){
         let key = "_0";
         let isEnd = false;
 
+        if(Number(request.is_refill) == 1 && Number(request.lead_asset_id)) {
+            request.target_asset_id = request.lead_asset_id;
+            request.target_asset_first_name = request.lead_asset_first_name;
+            request.asset_type_id = request.lead_asset_type_id;
+            rmBotService.TriggerRoundRobinV2(request);
+            logger.info(request.workflow_activity_id+": arpBot: is cloned/is_refill  so skipped : %j", key);
+            return;
+        }
         // logger.silly("arpBot: Bot Inline data Key1: %j", inlineData._1);
         // logger.silly("arpBot: Bot Inline data Key2: %j", inlineData[key]);
         // logger.silly("arpBot: Bot Inline data Key Operation_type : %j", inlineData[key].operation_type);
