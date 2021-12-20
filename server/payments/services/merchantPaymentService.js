@@ -2,6 +2,7 @@
 
 const RazorPaymentGatewayService = require('./razorpayGatewayService');
 const PayUPaymentGatewayService = require('./payuGatewayService');
+const PayPhiPaymentGatewayService = require('./payPhiGatewayService');
 const PaymentUtil = require('../utils/paymentUtil');
 const logger = require('../../logger/winstonLogger');
 const moment = require('moment');
@@ -218,6 +219,10 @@ function MerchantPaymentService(objectCollection) {
         if (paymentUtil.isNotEmpty(request.mihpayid)) {
             //PayU Payment Gateway
             return [error, responseData] = await this.handlePayUPaymentResponse(request);
+        } else if(request.addlParam2 == "PayPhi") {
+
+            return [error, responseData] = await this.handlePayPhiPaymentResponse(request);
+
         } else {
             return [true, {
                 errormsg: 'Invaild parameter `mihpayid`'
@@ -234,6 +239,10 @@ function MerchantPaymentService(objectCollection) {
         if (paymentUtil.isNotEmpty(request.mihpayid)) {
             //PayU Payment Gateway
             return [error, responseData] = await this.handlePayUPaymentResponse(request);
+        } else if(request.addlParam2 == "PayPhi") {
+            
+            return [error, responseData] = await this.handlePayPhiPaymentResponse(request);
+
         } else {
             return [error, responseData] = await this.handleRazorPayPaymentResponse(request);
         }
@@ -282,6 +291,49 @@ function MerchantPaymentService(objectCollection) {
             logger.error('handlePayUPaymentResponse | Missing parameter `udf1`');
             return [true, {
                 errormsg: 'Missing parameter `udf1`'
+            }];
+        }
+    }
+
+    this.handlePayPhiPaymentResponse = async function (request) {
+        logger.info("MerchantPaymentService : handlePayPhiPaymentResponse : request : " + JSON.stringify(request));
+        request.current_date = util.getCurrentUTCTime();
+        let responseData = {},
+            error = false;
+
+        if (!paymentUtil.isNotEmpty(request.addlParam1)) {
+            logger.error('handlePayPhiPaymentResponse | Invaild parameter `addlParam1`');
+            return [true, {
+                errormsg: 'Invaild parameter `addlParam1`'
+            }];
+        }
+
+        if (!paymentUtil.isNotEmpty(request.merchantTxnNo)) {
+            logger.error('handlePayPhiPaymentResponse | Invaild parameter `merchantTxnNo`');
+            return [true, { 
+                errormsg: 'Invaild parameter `merchantTxnNo`'
+            }];
+        }
+
+        if (!paymentUtil.isNotEmpty(request.merchantId)) {
+            logger.error('handlePayPhiPaymentResponse | Invaild parameter `merchantId`');
+            return [true, { 
+                errormsg: 'Invaild parameter `merchantId`'
+            }];
+        }
+
+
+        if (paymentUtil.isNotEmpty(request.addlParam1)) {
+            request.merchant_id = request.addlParam1;
+            request.merchant_txn_ref_no = request.merchantTxnNo;
+            request.udf1 = request.addlParam1;
+            request.txnid = request.merchantTxnNo;
+            request.mihpayid = request.txnID;
+            return [error, responseData] = await this.handlePaymentGatewayResponse(request);
+        } else {
+            logger.error('handlePayPhiPaymentResponse | Missing parameter `addlParam1`');
+            return [true, {
+                errormsg: 'Missing parameter `addlParam1`'
             }];
         }
     }
@@ -375,8 +427,8 @@ function MerchantPaymentService(objectCollection) {
                                         }];
                                     } else {
                                         let isValidResponse = false;
-                                        if ("PayU" === context.gatewayData.protocol_type) {
-                                            if (!gatewayInstance.verifyResponseHash(request, context)) {
+                                        if ("PayU" === context.gatewayData.protocol_type || context.gatewayData.protocol_type == 'PayPhi') {
+                                            if (gatewayInstance.verifyResponseHash(request, context)) {
                                                 logger.info("handlePaymentGatewayResponse | payment gateway not attached to merchantId = " + request.udf1);
                                                 return [true, {
                                                     errormsg: "Invalid Hash : merchantId = " + request.udf1
@@ -389,8 +441,10 @@ function MerchantPaymentService(objectCollection) {
                                         }
 
                                         if (isValidResponse) {
+                                            console.log("isValidResponse final code ", isValidResponse);
                                             //Step 3: fetch the order details using orderId.
                                             let [err, paymentresponse] = await gatewayInstance.fetchPaymentByUsingPaymentId(request, context);
+                                            console.log("paymentresponse. ", JSON.stringify(paymentresponse));
                                             if (!err) {
                                                 if (paymentresponse.paymentTransactionData.payment_status === "REQ") {
                                                     //Pending status
@@ -415,6 +469,7 @@ function MerchantPaymentService(objectCollection) {
                                                         //handle payment SUC or FAI response.
                                                         let transaction_id = paymentresponse.paymentTransactionData.transaction_id;
                                                         logger.debug("transaction_id = " + transaction_id);
+                                                        
 
                                                         let [err, paymentTransaction] = await this.updatePaymentTransaction(request, request.merchant_id, request.merchant_txn_ref_no, paymentresponse.paymentTransactionData);
                                                         if (!err) {
@@ -1013,7 +1068,11 @@ function MerchantPaymentService(objectCollection) {
                                     refund.acquirer_data.arn,
                                     paymentTransactionData.auth_no,
                                     JSON.stringify(request_payload),
-                                    paymentTransactionData.transaction_id
+                                    paymentTransactionData.transaction_id,
+                                    paymentTransactionData.workforce_id,
+                                    paymentTransactionData.account_id,
+                                    paymentTransactionData.organization_id,
+                                    paymentTransactionData.reservation_activity_id
                                 );
 
                                 //Step 4: Add refund transaction.
@@ -1093,6 +1152,7 @@ function MerchantPaymentService(objectCollection) {
                         //Step 2: find payment_log_transaction using merchant_id and merchant_txn_ref_no
                         let [err, paymentTransactionData] = await this.getPaymentTransaction(request, request.merchant_id, request.merchant_txn_ref_no);
                         if (!err) {
+
                             if (paymentTransactionData.length !== 0) {
 
                                 paymentTransactionData = paymentTransactionData[0];
@@ -1102,6 +1162,7 @@ function MerchantPaymentService(objectCollection) {
                                 let razorpay_order_id = paymentTransactionData.auth_no;
 
                                 if (payment_status === 'SUC' || payment_status === 'FAI') {
+
                                     //Step 2: send duplicate response
                                     let finalResponse = {
                                         merchant_id: paymentTransactionData.merchant_id,
@@ -1122,6 +1183,7 @@ function MerchantPaymentService(objectCollection) {
                                     logger.info("sending back existing payment response = ");
                                     logger.info(JSON.stringify(finalResponse));
                                     return [false, finalResponse];
+
                                 } else {
 
                                     //Pending Status
@@ -1132,6 +1194,7 @@ function MerchantPaymentService(objectCollection) {
                                                 errormsg: 'Internal Server Error'
                                             }];
                                         } else {
+
                                             //Get Payment Gateway Instance
                                             let gatewayInstance = this.getPaymentGatewayInstance(context.gatewayData.protocol_type, objectCollection);
                                             if (gatewayInstance == null) {
@@ -1139,12 +1202,14 @@ function MerchantPaymentService(objectCollection) {
                                                     errormsg: "payment gateway not attached to organization = " + request.organization_id
                                                 }];
                                             } else {
+
                                                 //Step 3: fetch the order details using orderId.
                                                 let [err, paymentresponse] = await gatewayInstance.fetchPaymentsByUsingOrderId(request, context);
                                                 logger.debug("----------------------------------");
                                                 logger.error(err);
                                                 logger.debug("----------------------------------");
                                                 if (!err) {
+
                                                     if (paymentresponse.paymentTransactionData.payment_status === "REQ") {
                                                         //Pending status
                                                         let finalResponse = {
@@ -1164,6 +1229,7 @@ function MerchantPaymentService(objectCollection) {
                                                         logger.info(JSON.stringify(finalResponse));
                                                         return [false, finalResponse];
                                                     } else {
+
                                                         try {
                                                             //handle payment SUC or FAI response.
                                                             let transaction_id = paymentresponse.paymentTransactionData.transaction_id;
@@ -1221,6 +1287,9 @@ function MerchantPaymentService(objectCollection) {
                                                             }
                                                         } catch (error) {
                                                             logger.error(error);
+                                                            return [true, {
+                                                                errormsg: 'Internal Server Error'
+                                                            }];
                                                         }
                                                     }
                                                 } else {
@@ -1235,7 +1304,7 @@ function MerchantPaymentService(objectCollection) {
                             } else {
                                 logger.error("statusCheck | getPaymentTransactionUsingOrderId| Error: ", err);
                                 return [true, { 
-                                    errormsg : 'Invaild parameter `razorpay_order_id`'
+                                    errormsg: 'Invaild parameter `merchant_txn_ref_no`'
                                 }];
                             }
                         } else {
@@ -1260,6 +1329,141 @@ function MerchantPaymentService(objectCollection) {
             logger.error('statusCheck | Missing parameter `merchant_id`');
             return [true, { 
                 errormsg : 'Missing parameter `merchant_id`'
+            }];
+        }
+    }
+
+
+
+    //API 8 : Handle Settlement Response.
+    this.getSettlementResponse = async function (request) {
+        logger.info("MerchantPaymentService : getSettlementResponse : request : " + JSON.stringify(request));
+        let context = {};
+        let responseData = [],
+            error = true;
+        let acq_merchant_id = request.merchantId;
+        let merchant_id = request.addlParam1;
+        let merchant_txn_ref_no = request.merchantTxnNo;
+
+        if (!paymentUtil.isNotEmpty(request.merchantId)) {
+            logger.error('Invaild parameter `merchantId`');
+            return [true, {
+                errormsg: 'Invaild parameter `merchantId`'
+            }];
+        }
+
+        if (!paymentUtil.isNotEmpty(request.addlParam1)) {
+            logger.error('Invaild parameter `addlParam1`');
+            return [true, {
+                errormsg: 'Invaild parameter `addlParam1`'
+            }];
+        }
+
+        if (!paymentUtil.isNotEmpty(request.merchantTxnNo)) {
+            logger.error('Invaild parameter `merchantTxnNo`');
+            return [true, {
+                errormsg: 'Invaild parameter `merchantTxnNo`'
+            }];
+        }
+
+        if (paymentUtil.isNotEmpty(merchant_id)) {
+
+            let [err, responseData] = await this.getMerchant(request, merchant_id);
+            if (!err) {
+                context.merchantData = responseData;
+                request.merchant_id = merchant_id;
+
+                let [err1, paymentLogRes] = await this.getPaymentTransaction(request, merchant_id, merchant_txn_ref_no);
+                if (err1 || (paymentLogRes.length === 0)) {
+                    logger.error('Invaild request');
+                    return [true, {
+                        errormsg: 'Invaild request'
+                    }];
+                }
+
+                paymentLogRes = paymentLogRes[0];
+
+                let [e, responseData1] = await this.getAcquirerDetailsByUsingOrganization(request, context);
+                if (e) {
+                    logger.error('Invaild request');
+                    return [true, {
+                        errormsg: 'Invaild request'
+                    }];
+                }
+                let gatewayInstance = this.getPaymentGatewayInstance(context.gatewayData.protocol_type, objectCollection);
+                if (gatewayInstance == null) {
+                    logger.error('Internal server error');
+                    return [true, {
+                        errormsg: 'Internal server error'
+                    }];
+                }
+                context = responseData1;
+
+                if (paymentLogRes.payment_status !== 'SUC' && paymentLogRes.amount != paymentLogRes.remaining_amount) {
+                    logger.error('Invaild request');
+                    return [true, {
+                        errormsg: 'Invaild request'
+                    }];
+                }
+
+                if (acq_merchant_id !== paymentLogRes.acquirer_merchant_id) {
+                    logger.error('Invaild parameter `merchantId`');
+                    return [true, {
+                        errormsg: 'Invaild parameter `merchantId`'
+                    }];
+                }
+
+                let verifyHash = await gatewayInstance.verifySettlementResponseHash(request, context);
+
+                if (!verifyHash) {
+                    logger.error('Invaild parameter `secureHash`');
+                    return [true, {
+                        errormsg: 'Invaild parameter `secureHash`'
+                    }];
+                }
+
+                let settlement_status = "SUC";
+                let transaction_type = 'PAYMENT';
+
+                const paramsArr = [
+                    settlement_status,
+                    util.convertDateFormat(request.settlementDate, 'YYYY-MM-DD'),
+                    JSON.stringify(request),
+                    merchant_id,
+                    merchant_txn_ref_no,
+                    transaction_type
+                ];
+                logger.info(paramsArr);
+                const queryString = util.getQueryString('ds_v1_payment_log_transaction_update_settlement_details', paramsArr);
+                if (queryString !== '') {
+                    await db.executeQueryPromise(1, queryString, request)
+                        .then((data) => {
+                            responseData = data;
+                            logger.info("Settlement handled successfully");
+                            error = false;
+                        })
+                        .catch((err) => {
+                            error = err;
+                        })
+                }
+                error = false;
+                logger.debug("final settlement response = " + JSON.stringify({
+                    merchant_id: merchant_id,
+                    merchant_txn_ref_no: merchant_txn_ref_no
+                }));
+                return [error, {
+                    merchant_id: merchant_id,
+                    merchant_txn_ref_no: merchant_txn_ref_no
+                }];
+
+            } else {
+                logger.error("getSettlementResponse | getMerchant| Error: ", JSON.stringify(responseData));
+                return [true, responseData];
+            }
+        } else {
+            logger.error('getSettlementResponse | Missing parameter `merchant_id`');
+            return [true, {
+                errormsg: 'Missing parameter `merchant_id`'
             }];
         }
     }
@@ -1354,6 +1558,115 @@ function MerchantPaymentService(objectCollection) {
                                                                 logger.info("finalResponse = ");
                                                                 logger.info(JSON.stringify(finalResponse));
                                                                 return [false, finalResponse];
+                                                            } else {
+                                                                let paymentTransactionData = paymentContext.paymentTransactionData;
+
+                                                                let payment_status = paymentContext.paymentTransactionData.payment_status;
+                                                                if(payment_status === 'SUC' && paymentContext.paymentTransactionData.remaining_amount > 0) {
+                                                                    
+                                                                    let transaction_id = paymentContext.paymentTransactionData.transaction_id;
+                                                                    logger.debug("transaction_id = " + transaction_id);
+                                                                    
+                                                                    let refund_amount = paymentContext.paymentTransactionData.amount;
+                                                                    let refund_date_time = moment(new Date()).utc().format("YYYY-MM-DD HH:mm:ss");
+                                                                    
+                                                                    let refund_status = "FAI";
+                                                                    let refund_resp_code = "39";
+                                                                    let refund_resp_desc = "Refund Failed";
+                                    
+                                                                    if("SUC" === paymentContext.paymentTransactionData.payment_status) {
+                                                                        refund_status = "SUC";
+                                                                        refund_resp_code = "00";
+                                                                        refund_resp_desc = "Refund Processed";
+                                                                    }
+                                    
+                                                                    request.activity_id = paymentTransactionData.reservation_activity_id;
+                                                                    request.organization_id = paymentTransactionData.organization_id;
+                                                                    request.account_id = paymentTransactionData.account_id;
+                                                                    request.workforce_id = paymentTransactionData.workforce_id;
+                                                                    request.activity_type_category_id = 37;
+                                                                    request.asset_id = 11031;
+                                                                    if ("SUC" === paymentContext.paymentTransactionData.payment_status) {
+                                                                        refund_status = 'SUC';
+                                                                        refund_resp_code = "00";
+                                                                        refund_resp_desc = "Refund Processed";
+                                                                        request.activity_status_type_id = 192;  // paid                             
+                                                                    } else {
+                                                                        request.activity_status_type_id = 194; // payment failed
+                                                                    }
+                                                                    this.alterStatusMakeRequest(request);
+
+                                                                    let refund_txn_no = paymentUtil.generateUniqueID();
+                                                                    let refund_transaction_id = paymentUtil.generateUniqueID();
+                                                                    const refundArray = new Array(
+                                                                        refund_transaction_id,
+                                                                        paymentTransactionData.merchant_id,
+                                                                        refund_txn_no,
+                                                                        request.current_date,
+                                                                        refund_date_time,
+                                                                        "REFUND",
+                                                                        refund_amount,
+                                                                        0.00,
+                                                                        paymentTransactionData.currency_cd,
+                                                                        paymentTransactionData.country_cd,
+                                                                        paymentTransactionData.customer_name,
+                                                                        paymentTransactionData.customer_mob_no,
+                                                                        paymentTransactionData.payment_inst_type,
+                                                                        paymentTransactionData.payment_inst_sub_type,
+                                                                        paymentTransactionData.encrypted_payment_inst_id,
+                                                                        paymentTransactionData.masked_payment_inst_id,
+                                                                        paymentTransactionData.card_network,
+                                                                        paymentTransactionData.auth_no,
+                                                                        paymentTransactionData.auth_id,
+                                                                        paymentTransactionData.acquirer_response_code,
+                                                                        null,
+                                                                        refund_resp_code,
+                                                                        refund_resp_desc,
+                                                                        refund_status,
+                                                                        paymentTransactionData.acquirer_id,
+                                                                        paymentTransactionData.gateway_id,
+                                                                        paymentTransactionData.acquirer_merchant_id,
+                                                                        0.00,
+                                                                        0.00,
+                                                                        "Refund",
+                                                                        paymentContext.gatewayData.arn || null,
+                                                                        paymentTransactionData.auth_no,
+                                                                        JSON.stringify(paymentTransactionData.str_fld_4),
+                                                                        paymentTransactionData.transaction_id,
+                                                                        paymentTransactionData.workforce_id,
+                                                                        paymentTransactionData.account_id,
+                                                                        paymentTransactionData.organization_id,
+                                                                        paymentTransactionData.reservation_activity_id                                                       );
+                                    
+                                                                    //Step 4: Add refund transaction.
+                                                                    let [err, refundTransactionData1] = await this.addRefundTransaction(request, paymentTransactionData.merchant_id, refund_txn_no, refundArray);
+                                                                    if (!err) {
+                                    
+                                                                        //Step 5: Update parent payment transaction.
+                                                                        let [err, refundData] = await this.updatePaymentTransactionForRefund(request, transaction_id, refund_amount);
+                                                                        if (!err) {
+                                                                            logger.info(refund_resp_desc);
+                                                                            let finalResponse = {
+                                                                                merchant_id: request.merchant_id,
+                                                                                original_merchant_txn_ref_no: request.original_merchant_txn_ref_no,
+                                                                                pg_ref_no: paymentTransactionData.auth_no,
+                                                                                merchant_txn_ref_no: refund_txn_no,
+                                                                                transaction_id: refund_transaction_id,
+                                                                                response_code: paymentTransactionData.response_code,
+                                                                                response_desc: paymentTransactionData.response_desc
+                                                                            };
+                                                                            logger.info("Refund finalResponse = ");
+                                                                            logger.info(JSON.stringify(finalResponse));
+                                                                            return [false, finalResponse];
+                                                                        } else {
+                                                                            logger.error("handlePaymentResponse| updatePaymentTransactionForRefund | Error: ", err);
+                                                                            return [true, err];
+                                                                        }
+                                                                    } else {
+                                                                        logger.error("handlePaymentResponse| getPaymentTransactionUsingOrderId | Error: ", err);
+                                                                        return [true, err];
+                                                                    }
+                                                            }
                                                             }
                                                         } else {
                                                             logger.error(err);
@@ -1788,10 +2101,12 @@ function MerchantPaymentService(objectCollection) {
     this.addRefundTransaction = async function(request, merchant_id, merchant_txn_ref_no, refundArray) {
         logger.info("MerchantPaymentService : addRefundTransaction : merchant_id = " + merchant_id +
         " merchant_txn_ref_no = " + merchant_txn_ref_no);
+
+        console.log(", refundArray", JSON.stringify(refundArray));
         let responseData = {},
             error = true;
 
-        const queryString = util.getQueryString('ds_p1_payment_log_transaction_insert_refund', refundArray);
+        const queryString = util.getQueryString('ds_v1_payment_log_transaction_insert_refund', refundArray);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
@@ -2220,6 +2535,10 @@ function MerchantPaymentService(objectCollection) {
                 gatewayInstance = new RazorPaymentGatewayService(objectCollection);
             }
                 break;
+            case "PayPhi": {
+                gatewayInstance = new PayPhiPaymentGatewayService(objectCollection);
+            }
+                break;
             case "PayU":
             default: {
                 gatewayInstance = new PayUPaymentGatewayService(objectCollection);
@@ -2269,7 +2588,7 @@ function MerchantPaymentService(objectCollection) {
             request.account_id,
             request.workforce_id,
             request.activity_type_category_id,
-            request.activity_status_type_id
+            94
         )
         const queryString = util.getQueryString('pm_v1_workforce_activity_status_mapping_select_first_status', paramsArr);
         if (queryString !== '') {
@@ -2380,7 +2699,6 @@ function MerchantPaymentService(objectCollection) {
 
         return [error, responseData];
     }
-
 }
 
 module.exports = MerchantPaymentService;

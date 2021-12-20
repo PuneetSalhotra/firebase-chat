@@ -1605,7 +1605,28 @@ function PamListingService(objectCollection) {
           }
   
           return responseData;
-      };    
+      }; 
+    this.listSelectCashandcarry = async function (request) {
+        let responseData = [],
+        error = true;     
+    let paramsArr = new Array(
+        request.organization_id,
+        request.activity_id,
+        request.asset_id
+        );
+    let queryString = util.getQueryString('pm_p1_activity_list_select_cash_n_carry', paramsArr);
+    if (queryString != '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then(async(data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+    }        
+    return [error,responseData];
+    };
 };
 
 module.exports = PamListingService;

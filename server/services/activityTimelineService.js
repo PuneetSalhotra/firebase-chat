@@ -3698,7 +3698,19 @@ async function addFormEntriesAsync(request) {
                      params[18] = row.field_value;
                      break;
             case 74: //Composite Online List
-                     params[18] = row.field_value;
+                     let fieldValue = row.field_value;
+                     console.log("******fieldValue1****** "+fieldValue);
+                     console.log("******typeof fieldValue1****** "+typeof fieldValue);
+                     try {
+                         if (typeof fieldValue === 'string') {
+                             params[18] = fieldValue;
+                         }
+                         if (typeof fieldValue === 'object') {
+                             params[18] = JSON.stringify(fieldValue);
+                         }
+                     } catch (err) {
+                         util.logError(request,`[74] row.field_value ${row.field_value}`, { type: 'addFormEntries', error: serializeError(err) });
+                     }                     
                      break;
             case 76: //Drop box data type
                      params[18] = (typeof row.field_value === 'object') ? JSON.stringify(row.field_value) : row.field_value;    
@@ -4080,6 +4092,7 @@ async function addFormEntriesAsync(request) {
                     if(request.hasOwnProperty('is_version_v1') && request.is_version_v1 === 1) {
                         const senderEmail = (Number(request.organization_id) === 868) ? senderAssetData[0].operating_asset_email_id : request.email_sender;
                         const senderEmailPwd =  senderAssetData[0].asset_email_password;
+
                         const [err, resp] = await sendEmail({
                                             workflow_title: request.workflow_title,
                                             workflow_update: request.workflow_update,
@@ -4087,11 +4100,14 @@ async function addFormEntriesAsync(request) {
                                             asset_email_id: assetData[0].operating_asset_email_id,
                                             email_receiver_name: assetData[0].operating_asset_first_name,
                                             email_sender_name: senderAssetData[0].operating_asset_first_name,
+                                            email_sender_asset_id:senderAssetData[0].asset_id,
                                             email_sender_password: senderEmailPwd,
                                             email_sender: senderEmail,
                                             sender_asset_id: request.asset_id,
                                             receiver_asset_id: mentionedAssets[i],
                                             is_version_v1:1,
+                                            organization_id:request.organization_id,
+                                            get_email_pasword:senderAssetData[0].organization_flag_email_integration_enabled==1?1:0,
                                             receiver_asset_token_auth: assetData[0].asset_encryption_token_id,
                                             sender_asset_token_auth: senderAssetData[0].asset_encryption_token_id,
                                         }, request);
@@ -4214,10 +4230,11 @@ async function addFormEntriesAsync(request) {
 
         console.log('Number(requestObj.organization_id) : ', requestObj.organization_id);
 
-        if(Number(requestObj.organization_id) === 868) {
+        if(request.get_email_pasword==1) {
             console.log('Sending mentions email to : ', request.asset_email_id);
             // console.log('Template : ', Template);
-            const err = await util.sendEmailEWS(request, request.asset_email_id, emailSubject, Template);
+            //request,emails,subject,body,attachment,emailProviderDetails,base64EncodedHtmlTemplate = ''
+            const err = await util.sendEmailV4ewsV1(request,[request.asset_email_id], emailSubject, Template,"",{},"");
             if(err) {
                 return [true, 'Invalid Password'];
             } else {
@@ -4353,25 +4370,58 @@ async function addFormEntriesAsync(request) {
         return [error, responseData];
     };
 
-    async function kafkaProdcucerForChildOrderCreation(topicName,message) {
-        const kafka = new Kafka({
-            clientId: 'child-order-creation',
-            brokers: global.config.BROKER_HOST.split(",")
-        })
-        
-        const producer = kafka.producer()
+    async function kafkaProdcucerForChildOrderCreation(topicName, message) {
+        // const kafka = new Kafka({
+        //     clientId: 'child-order-creation',
+        //     brokers: global.config.BROKER_HOST.split(",")
+        // })
 
-        await producer.connect()
-        await producer.send({
-            topic: topicName,
-    
-            messages: [
-                {
-                    value: JSON.stringify(message)
+        // const producer = kafka.producer()
+
+        // await producer.connect()
+        // await producer.send({
+        //     topic: topicName,
+
+        //     messages: [
+        //         {
+        //             value: JSON.stringify(message)
+        //         },
+        //     ],
+        // })
+        // producer.disconnect();
+
+
+        const AWS = require('aws-sdk');
+        AWS.config.update({
+            "accessKeyId": "AKIAWIPBVOFRSFSVJZMF",
+            "secretAccessKey": "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",
+            "region": "ap-south-1"
+        });
+        const sqs = new AWS.SQS();
+        const uuidv4 = require('uuid/v4');
+        sqs.sendMessage({
+            // DelaySeconds: 5,
+            MessageBody: JSON.stringify(message),
+            QueueUrl: "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-child-orders-creation-v1.fifo",
+            MessageGroupId: `mom-creation-queue-v1`,
+            MessageDeduplicationId: uuidv4(),
+            MessageAttributes: {
+                "Environment": {
+                    DataType: "String",
+                    StringValue: global.mode
                 },
-            ],
-        })
-        producer.disconnect();
+            }
+        }, (error, data) => {
+            if (error) {
+                logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error)});
+                console.log("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error)})
+            } else {
+                logger.info("Successfully sent excel job to SQS queue: %j", data);    
+                console.log("Successfully sent excel job to SQS queue: %j", data);                                    
+            }
+        });
+
+
         return;
     }
 }

@@ -6213,9 +6213,13 @@ function VodafoneService(objectCollection) {
             pageStart = 0,
             query = "";
         let searchType = 0;
-        // if(request.hasOwnProperty('search_string') && request.search_string.length<2){
-        //     return [false,[]]
-        // }
+        if(!request.hasOwnProperty('search_string')){
+            request.search_string = ''
+        }
+        var format = /[ `!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+        if(format.test(request.search_string)){
+            searchType = 1;
+        }
         let splitCout = request.search_string.split(' ');
         if (splitCout.length > 1) {
             searchType = 1;
@@ -6239,6 +6243,7 @@ function VodafoneService(objectCollection) {
                 query += ' LIMIT ' + pageStart + ' , ' + pageLimit + ' ';
                 console.log('Query ', query);
                 if (searchType == 1) {
+                    let finalQuer = query;
                     let tableChoose = 0;
                     if (request.flag_participating == 4) {
 
@@ -6275,18 +6280,14 @@ function VodafoneService(objectCollection) {
                     })
                     // console.log(result)
                     // console.log(global.config.elastiSearchNode)
-                    responseData = setQueryResponseV1(result)
+                    responseData = setQueryResponseV1(result);
+                    if(responseData.length==0){
+                        responseData = await getSqlBasedElasticResult(request,finalQuer) 
+                    }
                 }
                 else {
-                    const result = await client.transport.request({
-                        method: "POST",
-                        path: "/_opendistro/_sql",
-                        body: {
-                            query: String(query)
-                        }
-                    })
                     // console.log(global.config.elastiSearchNode)
-                    responseData = setQueryResponse(result)
+                    responseData = await getSqlBasedElasticResult(request,query)
                 }
             }
             return [false, responseData];
@@ -6294,6 +6295,19 @@ function VodafoneService(objectCollection) {
             return [error, []];
         }
     };
+
+    async function getSqlBasedElasticResult(request,query){
+        const result = await client.transport.request({
+            method: "POST",
+            path: "/_opendistro/_sql",
+            body: {
+                query: String(query)
+            }
+        })
+        // console.log(global.config.elastiSearchNode)
+        let responseData = setQueryResponse(result);
+        return responseData
+    }
 
     function setQueryResponse(result) {
         let responseData = []
@@ -6348,7 +6362,12 @@ function VodafoneService(objectCollection) {
                         query += " AND ";
                     query += ' asset_flag_is_owner =  ' + 1;
                     appendedAnd = true;
-                
+                    if (request.tag_id && request.tag_id > 0 && request.tag_id==172) {
+                        if (appendedAnd)
+                            query += " AND ";
+                            query += ' (activity_type_tag_id = 91 OR activity_type_tag_id = 122) '
+                        appendedAnd = true;
+                    }
                     if (request.search_string && request.search_string != '') {
                             if(appendedAnd){
                                 query += " AND "; 
@@ -6458,6 +6477,12 @@ function VodafoneService(objectCollection) {
                             if (appendedAnd)
                                 query += " AND ";
                                 query += ' (activity_type_tag_id = 120 OR activity_type_tag_id = 124) '
+                            appendedAnd = true;
+                        }
+                        if (request.tag_id && request.tag_id > 0 && request.tag_id==172) {
+                            if (appendedAnd)
+                                query += " AND ";
+                                query += ' (activity_type_tag_id = 91 OR activity_type_tag_id = 122) '
                             appendedAnd = true;
                         }
                         if (request.activity_status_type_id && request.activity_status_type_id > 0) {

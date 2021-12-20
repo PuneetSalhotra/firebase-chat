@@ -508,6 +508,16 @@ function TasiController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/tasi/lov/non_product_list/select', async function (req, res) {
+        const [err, resData] = await tasiService.lovTasiNonProductList(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/lov/product_list/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/tasi/validation_list/update', async function (req, res) {
         const [err, resData] = await tasiService.validationListUpdateTarget(req.body);
         if (!err) {
@@ -769,6 +779,16 @@ function TasiController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/tasi/outlier/flag/update', async function (req, res) {
+        const [err, resData] = await tasiService.updateOutlierFlag(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/outlier/flag/update | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/tasi/account/target/setting/delete', async function (req, res) {
         const [err, resData] = await tasiService.accountTargetSettingDelete(req.body);
         if (!err) {
@@ -785,6 +805,76 @@ function TasiController(objCollection) {
             res.json(responseWrapper.getResponse({}, resData, 200, req.body));
         } else {
             console.log("/tasi/account/target/setting/list | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/account/coverage/insert', async function (req, res) {
+        const [err, resData] = await tasiService.accountCoverageListInsert(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/account/coverage/insert | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/productive/infra/insert', async function (req, res) {
+        const [err, resData] = await tasiService.productiveInfraListInsert(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/productive/infra/insert | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/account/coverage/delete', async function (req, res) {
+        const [err, resData] = await tasiService.accountCoverageListDelete(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/account/coverage/delete | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/productive/infra/delete', async function (req, res) {
+        const [err, resData] = await tasiService.productiveInfraListDelete(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/productive/infra/delete | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/account/coverage/list', async function (req, res) {
+        const [err, resData] = await tasiService.accountCoverageListSelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/account/coverage/list | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/productive/infra/list', async function (req, res) {
+        const [err, resData] = await tasiService.productiveInfraListSelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/productive/infra/list | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/widget/master/code/select', async function (req, res) {
+        const [err, resData] = await tasiService.widgetTypeMasterCodeSelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/productive/infra/list | Error: ", err);
             res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
         }
     });

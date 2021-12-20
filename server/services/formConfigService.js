@@ -635,8 +635,9 @@ function FormConfigService(objCollection) {
                     //console.log('oldFieldValue: ', oldFieldValue);
                     let content = '';
                     let simpleDataTypes = [1,2,3,7,8,9,10,14,15,19,21,22];
+                    let excludeDataTypeIds = [77,64]
                     util.logInfo(request,` /activity/form/alter data_type_category_id  ${newData.field_data_type_category_id} exists in simple categories : ${simpleDataTypes.includes(newData.field_data_type_category_id)}`);
-                    if(simpleDataTypes.includes(newData.field_data_type_category_id) && newData.field_data_type_id !=77){
+                    if(simpleDataTypes.includes(newData.field_data_type_category_id) && !excludeDataTypeIds.includes(newData.field_data_type_id)){
                         if (String(oldFieldValue).trim().length === 0) {
                             content = `In the ${newData.form_name}, the field ${newData.field_name} was updated to ${newFieldValue}`;
                         } else {
@@ -1139,8 +1140,6 @@ function FormConfigService(objCollection) {
                             util.logError(request,`[alterFormActivity] Workflow trigger on form edit`, { type: 'alter_form', error: serializeError(error) });
                         }
                     }
-                }).catch((err1)=>{
-                 callback(true, err1, -9999);
                 })
             }
         })
@@ -2213,6 +2212,31 @@ function FormConfigService(objCollection) {
                                 maxDataTypeComboID = index + 1;
                             }
 
+                            if(comboEntries.length==0){
+                                await workforceFormFieldMappingInsert(request, {
+                                    field_id: 0,
+                                    field_name: fieldName,
+                                    field_description: fieldDescription,
+                                    inline_data: inlineData,
+                                    field_sequence_id: fieldSequenceId,
+                                    field_mandatory_enabled: fieldMandatoryEnabled,
+                                    field_preview_enabled: fieldPreviewEnabled, // THIS NEEDS WORK
+                                    field_value_edit_enabled: fieldValueEditEnabled,
+                                    data_type_combo_id: 0,
+                                    data_type_combo_value: '',
+                                    data_type_id: Number(formField.datatypeid),
+                                    next_field_id: nextFieldId
+                                })
+                                .then(async (fieldData) => {
+                                    // console.log("someData: ", someData)
+                                    // History insert in the workforce_form_field_mapping_history_insert table
+                                    await workforceFormFieldMappingHistoryInsert(request, {
+                                        field_id: Number(fieldData[0].p_field_id),
+                                        data_type_combo_id: 0
+                                    });
+                                    fieldIdforBotCreation = Number(fieldData[0].p_field_id);
+                                });
+                            }
                             // Reset fieldId to 0, so it can be re-used by other fields
                             // in the subsequent iterations
                             fieldId = 0;
@@ -4183,6 +4207,23 @@ function FormConfigService(objCollection) {
                         // Do nothing if the history insert fails
                     }
                 }
+                if(fieldOptions.length==0){
+                    const [updateError, updateStatus] = await workforceFormFieldMappingDelete(request, {
+                        field_id: field.field_id,
+                        data_type_combo_id: field.dataTypeComboId || 0,
+                    });
+                    if (updateError !== false) {
+    
+                    }
+                    try {
+                        await workforceFormFieldMappingHistoryInsert(request, {
+                            field_id: field.field_id,
+                            data_type_combo_id: field.dataTypeComboId || 0
+                        });
+                    } catch (error) {
+                        // Do nothing if the history insert fails
+                    } 
+                }
             } else {
                 const [updateError, updateStatus] = await workforceFormFieldMappingDelete(request, {
                     field_id: field.field_id,
@@ -4793,6 +4834,7 @@ function FormConfigService(objCollection) {
                     let fieldName = fieldsNewValuesMap.get(fieldID).field_name;
                     // Update the activity inline data as well
                     let simpleDataTypes = [1,2,3,7,8,9,10,14,15,19,21,22];
+                    let excludeDataTypeIds = [77,64]
                     if (activityInlineDataMap.has(fieldID)) {
                         let oldFieldEntry = activityInlineDataMap.get(fieldID);
                         let newFieldEntry = Object.assign({}, oldFieldEntry);
@@ -6909,24 +6951,54 @@ function FormConfigService(objCollection) {
     }
     
     async function kafkaProdcucerForChildOrderCreation(topicName,message) {
-        const kafka = new Kafka({
-            clientId: 'child-order-creation',
-            brokers: global.config.BROKER_HOST.split(",")
-        })
+        // const kafka = new Kafka({
+        //     clientId: 'child-order-creation',
+        //     brokers: global.config.BROKER_HOST.split(",")
+        // })
         
-        const producer = kafka.producer()
+        // const producer = kafka.producer()
 
-        await producer.connect()
-        await producer.send({
-            topic: topicName,
+        // await producer.connect()
+        // await producer.send({
+        //     topic: topicName,
     
-            messages: [
-                {
-                    value: JSON.stringify(message)
+        //     messages: [
+        //         {
+        //             value: JSON.stringify(message)
+        //         },
+        //     ],
+        // })
+        // producer.disconnect();
+
+        const AWS = require('aws-sdk');
+        AWS.config.update({
+            "accessKeyId": "AKIAWIPBVOFRSFSVJZMF",
+            "secretAccessKey": "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",
+            "region": "ap-south-1"
+        });
+        const sqs = new AWS.SQS();
+        const uuidv4 = require('uuid/v4');
+        sqs.sendMessage({
+            // DelaySeconds: 5,
+            MessageBody: JSON.stringify(message),
+            QueueUrl: "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-child-orders-creation-v1.fifo",
+            MessageGroupId: `mom-creation-queue-v1`,
+            MessageDeduplicationId: uuidv4(),
+            MessageAttributes: {
+                "Environment": {
+                    DataType: "String",
+                    StringValue: global.mode
                 },
-            ],
-        })
-        producer.disconnect();
+            }
+        }, (error, data) => {
+            if (error) {
+                logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error)});
+                console.log("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error)})
+            } else {
+                logger.info("Successfully sent excel job to SQS queue: %j", data);    
+                console.log("Successfully sent excel job to SQS queue: %j", data);                                    
+            }
+        });
         return;
     }
 
