@@ -2446,7 +2446,7 @@ function BotService(objectCollection) {
                                 form_field_copy: botOperationsJson.bot_operations.form_field_copy,
                                 condition: botOperationsJson.bot_operations.condition
                             }),
-                            QueueUrl: "https://sqs.ap-south-1.amazonaws.com/430506864995/local-child-orders-creation-v1.fifo",
+                            QueueUrl: global.config.ChildOrdersSQSqueueUrl,
                             MessageGroupId: `mom-creation-queue-v1`,
                             MessageDeduplicationId: uuidv4(),
                             MessageAttributes: {

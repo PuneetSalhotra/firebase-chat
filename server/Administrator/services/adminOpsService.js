@@ -11753,7 +11753,35 @@ console.log('new ActivityId321',newActivity_id)
         return [error, responseData];
     };
 
+    this.applicationTagTypeMappingUpdate = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.application_id,
+            request.tag_type_id,
+            request.index_value,
+            request.is_export_enabled,
+            request.is_dashboard_enabled,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_application_tag_type_mapping_update', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
 }
 
 module.exports = AdminOpsService;
-
