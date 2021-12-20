@@ -325,7 +325,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         });    
     };
 
-     function getEventDatetime (request){
+     function getEventDatetime (request){ 
         return new Promise((resolve, reject)=>{
             var paramsArr1 = new Array(
                 request.organization_id || 351,
@@ -2000,18 +2000,35 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     function createActivityTypeForAllWorkforces(request, workforceId) {
         return new Promise((resolve, reject)=>{
            var paramsArr = new Array(
-                request.asset_first_name,
-                request.asset_description,
-                39, //request.activity_type_category_id,
-                workforceId,
-                request.account_id,
-                request.organization_id,
-                request.ingredient_asset_id,
-                41, //asset_type_category_id
-                request.asset_id,
-                request.datetime_log
+            request.activity_type_name,
+            request.activity_type_description,
+            request.activity_type_category_id,
+            request.level_id,
+            workforceId,
+            request.account_id,
+            request.organization_id,
+            request.log_asset_id,
+            request.log_datetime,
+            request.visibility_flag,
+            request.activity_type_default_duration_days,
+            request.activity_type_inline_data,
+            request.flag_customer_creation,
+            request.flag_enable_web_url,
+            request.web_url
+                // request.asset_first_name,
+                // request.asset_description,
+                // 39, //request.activity_type_category_id,
+                // workforceId,
+                // request.account_id,
+                // request.organization_id,
+                // request.ingredient_asset_id,
+                // 41, //asset_type_category_id
+                // request.asset_id,
+                // request.datetime_log
                 );
-            var queryString = util.getQueryString('ds_v1_workforce_activity_type_mapping_insert', paramsArr);
+            // var queryString = util.getQueryString('ds_v1_workforce_activity_type_mapping_insert', paramsArr);
+            var queryString = util.getQueryString('pm_v1_workforce_activity_type_mapping_insert', paramsArr);
+
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -3238,7 +3255,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                             next();
                         }                       
                         
-                    }).then(() => {
+                    }).then(async() => {
                          //noOfGuests--;
                          var text;
                          console.log('memberName : ', memberName);
@@ -3259,8 +3276,33 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                             //text = `Dear ${memberName},Your ${memberName} guest(s) reservation request has been received for ${memberName} at ${memberName}. The Pudding & Mink team will contact you shortly to confirm your reservation  -GreneOS`;
                             //text = `Dear Sravan, Your 10 guest(s) reservation request has been received for Friday, 27th August at 05:30 AM. The Pudding & Mink team will contact you shortly to confirm your reservation.`
                             let reservationStartDatetimeIST = util.UTCtoIST(reservationStartDatetime);
-                            text = `Dear ${memberName},Your ${noOfGuests} guest(s) reservation request has been received for ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")}. The Pudding & Mink team will contact you shortly to confirm your reservation  -GreneOS`
-                         }else {
+                            text = `Dear ${memberName},Your ${noOfGuests} guest(s) reservation request has been received for ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")}. The Pudding & Mink team will contact you shortly to confirm your reservation  -GreneOS`;
+                            
+                                let recipientData = {
+                            name: memberName,
+                            phone: countryCode.toString() + phoneNumber,
+                            };
+                            let memberData = {
+                            memberName: memberName,
+                            reservationStartDatetime: `${util.convertDateFormat(
+                                reservationStartDatetimeIST,
+                                "dddd, Do MMMM"
+                            )}`,
+                            reservationtime: `${util.convertDateFormat(
+                                reservationStartDatetimeIST,
+                                "hh:mm A"
+                            )}`,
+                            noOfGuests: noOfGuests,
+                            reservationCode: reservationCode,
+                            supportContactNumber: supportContactNumber,
+                            };
+                            let [error, data] = await util.WhatsappNotification(
+                            request,
+                            memberData,
+                            recipientData
+                            );
+                        return[false,{}]
+    }else {
                             let reservationStartDatetimeIST = util.UTCtoIST(reservationStartDatetime);
                             text = `Dear ${memberName},Your reservation on ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")} for ${noOfGuests} is confirmed. Your reservation code is ${reservationCode}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${supportContactNumber}.`
                             //text = `Dear ${memberName},\nYour reservation on ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")} for ${noOfGuests} is confirmed. Your reservation code is ${reservationCode}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${supportContactNumber}. -GreneOS`;
@@ -3384,7 +3426,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 	    		var limit_value = 50;
 	    		var row_count = 0;
 				getReservationMemberDiscount(request, idReservation).then((data)=>{
-						//console.log(data[0].memberDiscount); 
+						console.log(data[0].memberDiscount); 
 					global.logger.write('debug','Discount '+ JSON.stringify(data), {},request);
 					
 					getReservationBilling(request, idReservation, data[0].nameReservation, data[0].idMember, data[0].nameMember, data[0].memberDiscount, data[0].serviceChargePercentage, data[0].memberEnabled).then((resevationBillAmount)=>{
@@ -3400,7 +3442,31 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 						
 				});
 				
-	    	}else{    
+	    	}
+           else if(request.hasOwnProperty('is_cash_and_carry')){
+	    		//get the member of the reservation
+	    		//get the discount of the member
+	    		var start_from = 0;
+	    		var limit_value = 50;
+	    		var row_count = 0;
+				getReservationMemberDiscount(request, idReservation).then((data)=>{
+						//console.log(data[0].memberDiscount); 
+					global.logger.write('debug','Discount '+ JSON.stringify(data), {},request);
+					getCashAndCarryBilling(request, idReservation, data[0].nameReservation, data[0].idMember, data[0].nameMember, data[0].memberDiscount, data[0].serviceChargePercentage, data[0].memberEnabled).then((resevationBillAmount)=>{
+						
+						global.logger.write('conLog', 'resevationBill ' + resevationBillAmount.total_price, {}, request);
+						
+						if(request.hasOwnProperty('is_insert')){
+							pamEventBillingInsert(request, data[0].idEvent, data[0].titleEvent, idReservation, data[0].nameReservation, data[0].idActivityStatusType, data[0].nameActivityStatusType, data[0].idMember, data[0].nameMember, resevationBillAmount.total_price);
+						}
+						resolve(resevationBillAmount);
+						
+					});
+						
+				});
+				
+	    	}
+            else{    
 	    		if(request.hasOwnProperty('is_room_posting'))
 	    		pamEventBillingInsert(request, 0, '', idReservation, '', 0, '', 0, '', 0);
 	    		resolve(true);
@@ -3442,7 +3508,6 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 	        var queryString = 'pm_v1_activity_list_select_reservation_orders';
 	        if (queryString != '') {
 	            db.executeRecursiveQuery(1, 0, 50, queryString, paramsArr, function (err, data) {
-	            	console.log("err "+err);
 	               if(err === false) {
 	               		resolve(data);        				        			      			  
                     } else {
@@ -3464,16 +3529,16 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 			 var item_discount = 0;
 			 var orderActivityId = 0;
 			 let gst_percent = 18;
-             console.log("memberEnabled", memberEnabled);
+             console.log('memberEnabled', memberEnabled);
              let is_nc = memberEnabled == 4 ? 1 : 0;
 			 getReservationOrders(request, idReservation).then((orderData)=>{
-					console.log(orderData.length);
+					// console.log(orderData,'orderData');
 					
 				forEachAsync(orderData, (next, rowData)=>{  
-					//console.log(rowData.length);
+					// console.log(rowData,'*********************************rowData..................');
 					forEachAsync(rowData, (next1, rowData1)=>{ 
-						//console.log(JSON.parse(rowData1.activity_inline_data).activity_type_id);
-						//
+						// console.log(JSON.parse(rowData1.activity_inline_data).activity_type_id,'activity_type_id');
+						//reservation_id create
 						let cost = 0;
                         let tax_percent = 0;
                         let dis_amount = 0;
@@ -3675,13 +3740,246 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 						next();
 					})
 				}).then(()=>{
-					//console.log("Reservation "+idReservation+" is done");
+					// console.log("Reservation "+idReservation+" is done");
 					global.logger.write('conLog', 'Reservation ' + idReservation + ' is done', {}, request);
 					resolve({total_price, total_discount, total_tax, gst_percent, total_mrp, total_service_charge});
 				});
 			 
 			 }); 
     	});
+    };
+
+    function getCashAndCarryBilling(request, idReservation, nameReservation, idMember, nameMember, discount, serviceChargePercentage, memberEnabled) {
+        return new Promise((resolve, reject) => {
+            var total_mrp = 0;
+            var total_discount = 0;
+            var total_tax = 0;
+            let total_service_charge = 0;
+            let total_item_tax = 0;
+            var total_price = 0;
+            var item_discount = 0;
+            var orderActivityId = 0;
+            let gst_percent = 18;
+            console.log("memberEnabled", memberEnabled);
+            let is_nc = memberEnabled == 4 ? 1 : 0;
+            // console.log("req1",typeof request.activity_inline_data);
+
+            let inline_data = typeof request.activity_inline_data == 'string' ? JSON.parse(request.activity_inline_data) : request.activity_inline_data;
+            // console.log('inl',inline_data)
+            forEachAsync(inline_data, (next1, rowData1)=>{ 
+                // console.log(JSON.parse(rowData1.activity_inline_data).activity_type_id,'activity_type_id');
+                //reservation_id create
+                let cost = 0;
+                let tax_percent = 0;
+                let dis_amount = 0;
+                let tax_amount = 0;
+                let item_tax_amount = 0;
+                let service_charge_tax_amount = 0;
+                let price_after_discount = 0;
+                let final_price = 0;
+                let service_charge = 0;
+                let price_after_service_charge = 0;
+                let activity_type_name = '';
+                
+                 orderActivityId = rowData1.activity_id;
+                 let inlinDataParsed = rowData1.activity_inline_data;
+                 if(inlinDataParsed.activity_type_id == 52049){
+                     activity_type_name = 'Food';
+                 }else if(inlinDataParsed.activity_type_id == 52050){
+                     activity_type_name = 'Spirits';
+                 }else if(inlinDataParsed.activity_type_id == 52051){
+                     activity_type_name = 'Cocktails';
+                 }else{
+                     activity_type_name = 'Others';
+                 }
+                 
+                if(inlinDataParsed.is_full_bottle == 0) {
+                    cost = rowData1.activity_priority_enabled * inlinDataParsed.item_price;
+                    //console.log("cost1", cost);
+                }else if(inlinDataParsed.is_full_bottle == 1){
+                    cost = rowData1.activity_priority_enabled * inlinDataParsed.item_full_price;
+                    //console.log("cost2", cost);
+                }
+                
+                if(is_nc) {
+                    cost = 0;
+                }
+
+                if(rowData1.activity_status_type_id == 126 || rowData1.activity_status_type_id == 139 || rowData1.activity_status_type_id == 104){
+                    cost = 0;
+                }
+                
+                item_discount = discount;
+                
+                if(rowData1.form_id == 1)
+                    item_discount = 0;
+                
+                dis_amount =  (cost * item_discount)/100;
+                total_mrp = total_mrp + cost;
+                                        
+                price_after_discount = cost - dis_amount;
+                tax_percent= inlinDataParsed.tax;                        
+                
+                service_charge = (price_after_discount * serviceChargePercentage)/100;
+
+                item_tax_amount = (cost * tax_percent)/100;
+                service_charge_tax_amount = (service_charge * gst_percent)/100
+                
+                total_service_charge = service_charge + total_service_charge;
+                total_item_tax = total_item_tax + item_tax_amount;
+
+                price_after_service_charge = cost + service_charge;
+                tax_amount = item_tax_amount + service_charge_tax_amount;
+                final_price = price_after_service_charge + tax_amount;
+
+                total_price = total_price + final_price;
+                //console.log('total price '+total_price);
+                total_tax = total_tax + tax_amount;
+                total_discount = total_discount + dis_amount;
+                
+                //pam_order_list insert
+                var attributeArray = {
+                        event_id: request.activity_id,
+                        reservation_id: idReservation,
+                        reservation_name: nameReservation,
+                        member_id: idMember,
+                        member_name: nameMember,
+                        order_status_type_id: rowData1.activity_status_type_id,
+                        order_status_type_name: rowData1.activity_status_type_name,
+                        order_type_id: inlinDataParsed.activity_type_id,
+                        order_type_name:activity_type_name,
+                        order_id: rowData1.activity_id,
+                        menu_id: rowData1.channel_activity_id,
+                        order_name: rowData1.activity_title,
+                        order_quantity: rowData1.activity_priority_enabled,
+                        order_unit_price: inlinDataParsed.item_price,
+                        is_full_bottle: inlinDataParsed.is_full_bottle,
+                        full_bottle_price: inlinDataParsed.item_full_price,
+                        choices: inlinDataParsed.item_choices,
+                        choices_count:0,
+                        order_price:cost,
+                        service_charge_percent:serviceChargePercentage,
+                        service_charge:service_charge,                                
+                        discount_percent:item_discount,
+                        discount:dis_amount,
+                        price_after_discount:price_after_discount,
+                        tax_percent:tax_percent,
+                        tax:tax_amount,
+                        final_price:final_price,
+                        log_datetime:request.datetime_log,
+                        log_asset_id:rowData1.log_asset_id,
+                        log_asset_first_name:rowData1.log_asset_first_name,
+                        option_id: inlinDataParsed.option_id
+                    };
+                
+                pamOrderInsert(request, attributeArray).then(()=>{
+                    global.logger.write('conLog', 'OrderId cost: ' + cost+' service_charge: '+ service_charge+' item_tax_amount: '+ item_tax_amount+' service_charge_tax_amount:'+ service_charge_tax_amount+' orderId: '+rowData1.activity_id + '-menuId: ' + rowData1.channel_activity_id + ' : ' + final_price, {}, request);
+                if(inlinDataParsed.hasOwnProperty('item_choice_price_tax'))
+                {
+                    var arr = inlinDataParsed.item_choice_price_tax;
+                    //for (key in arr)
+                    forEachAsync(arr, (next2, choiceData)=>{ 
+                        
+                        let choice_cost = 0;
+                        let dis_amount = 0;
+                        let choice_tax_percent = 0;
+                        let choice_tax_amount = 0;
+                        let choice_item_tax_amount = 0;
+                        let choice_service_charge_tax_amount = 0;                                
+                        let choice_service_charge = 0;
+                         let choice_price_after_discount = 0;
+                         let choice_final_price = 0;
+                        let choice_price_after_service_charge = 0;
+
+                        choice_cost = choiceData.quantity * choiceData.price;
+
+                        if(is_nc) {
+                            choice_cost = 0;
+                        }
+                        
+                        total_mrp = total_mrp + choice_cost;
+                        
+                        if(rowData1.activity_status_type_id == 126 || rowData1.activity_status_type_id == 139 || rowData1.activity_status_type_id == 104){
+                            choice_cost = 0;
+                        }
+
+                        item_discount = discount;
+                        
+                        if(choiceData.hasOwnProperty('form_id')){
+                            if(choiceData.form_id == 1)
+                                item_discount = 0;
+                        }
+
+                        dis_amount =  (choice_cost * item_discount)/100;
+                        choice_price_after_discount = choice_cost - dis_amount;								
+                        
+                        choice_tax_percent= choiceData.tax;	
+                        choice_service_charge = (choice_price_after_discount * serviceChargePercentage)/100;
+                        choice_item_tax_amount = (choice_cost * choice_tax_percent)/100;
+                        choice_service_charge_tax_amount = (choice_service_charge * gst_percent)/100;                                           
+                        
+                        total_service_charge = total_service_charge + choice_service_charge;
+                        
+                        choice_price_after_service_charge = choice_cost + choice_service_charge;
+                        choice_tax_amount = choice_item_tax_amount + choice_service_charge_tax_amount;
+                        choice_final_price = choice_price_after_service_charge + choice_tax_amount;
+
+                        total_price = total_price + choice_final_price;
+                        //console.log('IN Choice total price '+total_price);
+                        total_tax = total_tax + choice_tax_amount;
+                        total_discount = total_discount + dis_amount;
+                        
+                        attributeArray.order_type_id=54536;
+                        attributeArray.order_type_name='Others';
+                        attributeArray.order_id=rowData1.activity_id;
+                        attributeArray.menu_id=choiceData.activity_id;
+                        attributeArray.order_name= choiceData.name;
+                        attributeArray.order_quantity= choiceData.quantity;
+                        attributeArray.order_unit_price= choiceData.price;
+                        attributeArray.is_full_bottle= 0;
+                        attributeArray.full_bottle_price= 0;
+                        attributeArray.choices= '';
+                        attributeArray.choices_count=0;
+                        attributeArray.order_price=choice_cost;
+                        attributeArray.service_charge_percent=serviceChargePercentage;
+                        attributeArray.service_charge=choice_service_charge;                               
+                        attributeArray.discount_percent=item_discount;
+                        attributeArray.discount=dis_amount;
+                        attributeArray.price_after_discount=choice_price_after_discount;
+                        attributeArray.tax_percent=choice_tax_percent;
+                        attributeArray.tax=choice_tax_amount;
+                        attributeArray.final_price=choice_final_price;
+                        attributeArray.option_id=1;
+                        pamOrderInsert(request, attributeArray).then(()=>{
+                            global.logger.write('conLog', 'OrderId choice_cost: ' + choice_cost+' choice_service_charge: '+ choice_service_charge+' choice_item_tax_amount: '+ choice_item_tax_amount+' choice_service_charge_tax_amount: '+ choice_service_charge_tax_amount+' orderId: '+rowData1.activity_id + '-menuId: ' + choiceData.activity_id + ' : ' + choice_final_price, {}, request);
+                            next2();
+                            });
+                    }).then(()=>{
+                        next1();
+                    })							
+                    
+                }else{							//console.log(request.activity_id+'-'+final_price);
+                    
+                    next1();
+                }	
+                
+                });
+                
+            }).then(() => {
+                //console.log("Reservation "+idReservation+" is done");
+                global.logger.write('conLog', 'Reservation ' + idReservation + ' is done', {}, request);
+                resolve({
+                    total_price,
+                    total_discount,
+                    total_tax,
+                    gst_percent,
+                    total_mrp,
+                    total_service_charge
+                });
+            });
+
+
+        });
     };
         
     function pamEventBillingInsert(request, idEvent, nameEvent, idReservation, nameReservation, idStatusType, nameStatusType, idMember, nameMember, billingAmount) {
@@ -4413,7 +4711,7 @@ this.whatsappAccessToken = async() =>{
 				console.log("Error ", body);
 				return [true, {}];
 			}
-		} catch (error) {
+		} catch (error) { 
 			console.log("Activity Add | Error: ", error);
 			return [true, {}];
 		}
@@ -5034,6 +5332,9 @@ this.getChildOfAParent = async (request) => {
         let responseData = [],
             error = true;
             let fileName = "";
+            let SaleReportType='';
+            let start_date='';
+            let end_date='';
         // //HANDLE THE PATHS in STAGING and PREPROD AND PRODUCTION
         switch(global.mode) {            
             case 'staging': fileName = '/apistaging-data/';
@@ -5168,10 +5469,11 @@ this.getChildOfAParent = async (request) => {
                 request.event_activity_id,
                 request.start_date,
                 request.end_date,
-                request.flag = i
+                request.flag = i,
+                request.type_flag
             );
             let queryString = util.getQueryString(
-                "pm_v1_pam_order_list_select_event_summary",
+                "pm_v2_pam_order_list_select_event_summary",
                 paramsArr
             );
             if (queryString != "") {
@@ -5183,12 +5485,24 @@ this.getChildOfAParent = async (request) => {
 
                         let responseDataValues = [];
 
+                        //monthly checks
+                        if(request.type_flag==1){
+                            SaleReportType="MonthlyReport";
+                            start_date=(request.start_date).split(" ")[0];
+                            end_date=(request.end_date).split(" ")[0];
+                        }
+                        else{
+                            SaleReportType="EventReport",
+                            start_date=Current_Date;
+                            end_date=(request.start_date).split(" ")[0]; 
+                        };
+
                         fs.stat(
-                            `${fileName}EventReport_${request.event_activity_id}_${Current_Date}.xlsx`,
+                            `${fileName}${SaleReportType}_${request.event_activity_id}_${start_date}_${end_date}.xlsx`,
                             function (err, stat) {
                                 if (err == null) {
                                     let wb = XLSX.readFile(
-                                        `${fileName}EventReport_${request.event_activity_id}_${Current_Date}.xlsx`, {
+                                        `${fileName}${SaleReportType}_${request.event_activity_id}_${start_date}_${end_date}.xlsx`, {
                                             cellText: false,
                                             cellDates: true,
                                             cellStyles: true,
@@ -5219,14 +5533,12 @@ this.getChildOfAParent = async (request) => {
                                     }
                                     XLSX.writeFile(
                                         nwb,
-                                        `${fileName}EventReport_${request.event_activity_id}_${
-                       Current_Date
-                    }.xlsx`, {
+                                        `${fileName}${SaleReportType}_${request.event_activity_id}_${start_date}_${end_date}.xlsx`, {
                                             cellStyles: true
                                         }
                                     );
                                     let wb = XLSX.readFile(
-                                        `${fileName}EventReport_${request.event_activity_id}_${Current_Date}.xlsx`, {
+                                        `${fileName}${SaleReportType}_${request.event_activity_id}_${start_date}_${end_date}.xlsx`, {
                                             cellText: false,
                                             cellDates: true,
                                             cellStyles: true,
@@ -5333,6 +5645,7 @@ this.getChildOfAParent = async (request) => {
                                     break;
                                     //RESERVATION WISE BILLING
                                 case 4:
+                                    console.log(responseData,'responseDataresponseData case-4')
                                     XLSX.utils.sheet_add_aoa(
                                         wb.Sheets["Reservation Wise Report"],
                                         header[3]
@@ -5543,7 +5856,7 @@ this.getChildOfAParent = async (request) => {
                             }
                             XLSX.writeFile(
                                 wb,
-                                `${fileName}EventReport_${request.event_activity_id}_${Current_Date}.xlsx`, {
+                                `${fileName}${SaleReportType}_${request.event_activity_id}_${start_date}_${end_date}.xlsx`, {
                                     cellDates: true,
                                     cellStyles: true
                                 }
@@ -5556,15 +5869,24 @@ this.getChildOfAParent = async (request) => {
                     });
             }
         }
-        let path = `${fileName}EventReport_${request.event_activity_id}_${Current_Date}.xlsx`;
+        let path = `${fileName}${SaleReportType}_${request.event_activity_id}_${start_date}_${end_date}.xlsx`;
 
-        request.attachment = path;
-        request.sendRegularEmail = 1;
         request.email_receiver_name="";
         request.email_sender_name="greneOS";
         //request.email_id = request.email_id;
         request.email_sender="support@greneos.com";
         
+        const bucketName = await util.getS3BucketNameV1();
+        const prefixPath = await util.getS3PrefixPath(request);
+        const s3UploadUrlObj = await util.uploadReadableStreamToS3(request, {
+            Bucket: bucketName,
+            Key: `${prefixPath}/` + Date.now() + '.pdf',
+            Body: path,
+            ContentType: 'application/pdf',
+            ACL: 'public-read'
+        }, path);
+        request.attachment = s3UploadUrlObj.Location
+
         util.sendEmailV3(request,
             request.email,
             "Summary Report",
@@ -5598,7 +5920,601 @@ this.getChildOfAParent = async (request) => {
     
         return [error, []];
 
+    };    
+    //PAM Workforce Aseet Type Mapping Insert
+    this.addPamWorkforceAssetTypeMapping = async (request) => {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.asset_type_name,
+            request.asset_type_description,
+            request.asset_type_category_id,
+            request.asset_type_level_id,
+            request.asset_type_flag_organization_specific,
+            request.asset_type_flag_enable_approval,
+            request.asset_type_approval_max_levels,
+            request.asset_type_approval_wait_duration,
+            request.asset_type_approval_activity_type_id,
+            request.asset_type_approval_activity_type_name,
+            request.asset_type_approval_origin_form_id,
+            request.asset_type_approval_field_id,
+            request.asset_type_attendance_type_id,
+            request.asset_type_attendance_type_name,
+            request.asset_type_flag_enable_suspension,
+            request.asset_type_suspension_activity_type_id,
+            request.asset_type_suspension_activity_type_name,
+            request.asset_type_suspension_wait_duration,
+            request.asset_type_flag_hide_organization_details,
+            request.asset_type_flag_enable_send_sms,
+            request.asset_type_flag_form_access,
+            request.asset_type_flag_email_login,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+            );
+        let queryString = util.getQueryString('ds_p1_3_workforce_asset_type_mapping_insert', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }        
+        return [error, responseData];
     };
+    //PAM workforce Asset Type Mapping Delete
+    this.removePamWorkforceAssetTypeMapping = async (request) => {
+        let responseData = [],
+        error = true;
+    const paramsArr = new Array(
+        request.asset_type_id,
+        request.workforce_id,
+        request.account_id,
+        request.organization_id,
+        util.getCurrentUTCTime(),
+        request.log_asset_id
+    );
+    const queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_delete', paramsArr);
+    if (queryString !== '') {
+        await db.executeQueryPromise(0, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+    }
+    return [error, responseData];
+    };
+    //PAM WorkforceAssetTypeMapping updating
+    this.updatePamWorkforceAssetTypeMapping = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.asset_type_id,
+            request.asset_type_name,
+            request.asset_type_flag_enable_approval,
+            request.asset_type_approval_max_levels,
+            request.asset_type_approval_wait_duration,
+            request.asset_type_approval_activity_type_id,
+            request.asset_type_approval_activity_type_name,
+            request.asset_type_approval_origin_form_id,
+            request.asset_type_approval_field_id,
+            request.asset_type_attendance_type_id,
+            request.asset_type_attendance_type_name,
+            request.asset_type_flag_enable_suspension,
+            request.asset_type_suspension_activity_type_id,
+            request.asset_type_suspension_activity_type_name,
+            request.asset_type_suspension_wait_duration,
+            request.asset_type_flag_hide_organization_details,
+            request.asset_type_flag_sip_enabled,
+            request.asset_type_flag_enable_send_sms,
+            request.asset_type_flag_sip_admin_access,
+            request.asset_type_flag_frontline,
+            request.asset_type_flag_email_login ,
+            request.asset_type_flag_form_access,
+            request.organization_id,
+            request.flag,
+            util.getCurrentUTCTime(),
+            request.log_asset_id,
+        );
+        const queryString = util.getQueryString('ds_p5_workforce_asset_type_mapping_update', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+    //Get Pam Module Master Details
+    this.getPamModuleMaster = async (request) => {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.start_from,
+            request.limit_value 
+            );
+        let queryString = util.getQueryString('ds_p1_pam_module_master_select', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }        
+        return [error, responseData];
+    };
+    this.getPamRoleMappingLogState=async (request)=>{
+        let responseData = [],
+        error = true;
+    let paramsArr = new Array(
+        request.organization_id
+    );
+    let queryString = util.getQueryString('pm_pam_module_role_mapping_get_log_state', paramsArr);
+    if (queryString != '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = data;
+                console.log(responseData,'responseData');
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+    }        
+    return [error, responseData];
+    };
+     this.updatePamRoleModuleMappingLogState=async (request)=>{
+        let responseData = [],
+        error = true;
+    let paramsArr = new Array(
+        request.module_id_asset_type_id,
+        request.organization_id,
+        util.getCurrentUTCTime()
+    );
+    let queryString = util.getQueryString('pm_pam_module_role_mapping_update_log_state', paramsArr);
+    if (queryString != '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = data;
+                console.log(responseData,'responseData');
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+    }        
+    return [error, responseData];
+    };
+    //PAM Module Role Mapping Insert
+    this.addRoleModulMapping = async (request) => {
+        let responseData = [],
+            error = true;
+            let [errr, LogState] = await self.getPamRoleMappingLogState(request);
+            if(LogState.length>0){
+             let [errrr, updatelogstate] = await self.updatePamRoleModuleMappingLogState(request);
+            }
+        let paramsArr = new Array(
+            request.module_id_asset_type_id ,
+            request.account_id,
+            request.organization_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+            );
+        let queryString = util.getQueryString('pm_pam_module_role_mapping_multiple_insert', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }     
+      
+        return [error, responseData];
+    };
+     //Get PAM Role Module Mapping Details 
+     this.getPamRoleModuleMapping = async function (request) {
+        let responseData = [],
+        error = true;     
+    let paramsArr = new Array(
+        request.module_id ,
+        request.asset_type_id,
+        request.asset_type_category_id,
+        request.account_id,
+        request.organization_id,
+        1,
+        1
+        );
+    let queryString = util.getQueryString('pm_pam_module_role_mapping_select', paramsArr);
+    if (queryString != '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then(async(data) => {
+                responseData = data;
+                let [err, LogState] = await self.getPamRoleMappingLogState(request);
+                responseData.push(LogState);
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+    }        
+    responseData=responseData.flat();
+    return [error,responseData];
+    };
+    //remove PAM Role Module Mapping Details
+    this.removePamRoleModuleMapping =async function (request) {
+        let responseData = [],
+        error = true;
+    let paramsArr = new Array(
+        request.module_id_asset_type_id ,
+        request.organization_id,
+        request.log_asset_id,
+        util.getCurrentUTCTime()
+        );
+    let queryString = util.getQueryString('pm_pam_module_role_mapping_multiple_delete', paramsArr);
+    if (queryString != '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+    }        
+    return [error, responseData];
+    };
+      this.getPamOrderReportSummary =async function (request) {
+        let responseData = [],
+        error = true;
+    let paramsArr = new Array(
+        request.start_date,
+        request.end_date,
+        request.flag,
+        request.type_flag
+        );
+    let queryString = util.getQueryString('pm_v1_pam_order_list_select_report_summary', paramsArr);
+    if (queryString != '') {
+        await db.executeQueryPromise(1, queryString, request)
+            .then((data) => {
+               if(request.type_flag==2 && request.flag!=3){
+                    let MonthBetweenDates = [];
+                    let monthNames = [
+                    "January",
+                    "February",
+                    "March",
+                    "April",
+                    "May",
+                    "June",
+                    "July",
+                    "August",
+                    "September",
+                    "October",
+                    "November",
+                    "December",
+                    ];
+                    function diff(from, to) {
+                    let arr = [];
+                    let datFrom = new Date(Date.parse(from));
+                    let datTo = new Date(Date.parse(to));
+                    let fromYear = datFrom.getFullYear();
+                    let toYear = datTo.getFullYear();
+                    let diffYear = 12 * (toYear - fromYear) + datTo.getMonth();
+                    for (var i = datFrom.getMonth(); i <= diffYear; i++) {
+                        arr.push(monthNames[i % 12] + " " + Math.floor(fromYear + i / 12));
+                    }
+                    return arr;
+                    }
+                    MonthBetweenDates = diff(request.start_date, request.end_date);
+                    let responseMonthscheck = [];
+                    data.map((i) => responseMonthscheck.push(i.month));
+                    const intersection = MonthBetweenDates.filter((element) => !responseMonthscheck.includes(element));
+                    intersection.map((i) =>
+                    data.push({ month: i,value: 0,
+                    })
+                    );
+                }
+                responseData = data;
+                error = false;
+            })
+            .catch((err) => {
+                error = err;
+            })
+    }        
+    return [error, responseData];
+    };
+     this.PamAnalyticsReporteChecks = async (request) => {
+       util.logInfo(request, `PamAnalyticsReporteChecks::START:::::`);
+       if (!request.email) {
+         return [true, []];
+       }
+       const timeStamp = util.getTimestamp();
+       let responseData = [],
+         error = true;
+       let fileName = "";
+       let SaleReportType = "";
+       let start_date = "";
+       let end_date = "";
+       // //HANDLE THE PATHS in STAGING and PREPROD AND PRODUCTION
+       switch (global.mode) {
+         case "staging":
+           fileName = "/apistaging-data/";
+           break;
+         case "preprod":
+           fileName = "/data/";
+           break;
+         case "prod":
+           fileName = "/api-data/";
+           break;
+         default:
+           fileName = "/api-data/";
+           break;
+       }
+       for (let i = 1; i <= 8; i++) {
+         let paramsArr = new Array(
+           request.start_date,
+           request.end_date,
+           (request.flag = i),
+           request.type_flag
+         );
+         let queryString = util.getQueryString(
+           "pm_v1_pam_order_list_select_report_summary",
+           paramsArr
+         );
+         if (queryString != "") {
+           await db
+             .executeQueryPromise(1, queryString, request)
+             .then(async (data) => {
+               responseData = data;
+               error = false;
+               // monthly and daily checks
+               util.logInfo(
+                 request.type_flag,
+                 `DailyAnalyticsReport AND MonthlyAnalyticsReport CHECK:::`
+               );
+               if (request.type_flag == 1) {
+                 SaleReportType = "DailyAnalyticsReport";
+                 start_date = timeStamp;
+                 end_date = request.end_date.split(" ")[0];
+               } else {
+                 (SaleReportType = "MonthlyAnalyticsReport"),
+                   (start_date = timeStamp);
+                 end_date = request.start_date.split(" ")[0];
+               }
+               fs.stat(
+                 `${fileName}${SaleReportType}_${start_date}_${end_date}.xlsx`,
+                 function (err, stat) {
+                   if (err == null) {
+                     let wb = XLSX.readFile(
+                       `${fileName}${SaleReportType}_${start_date}_${end_date}.xlsx`,
+                       {
+                         cellText: false,
+                         cellDates: true,
+                         cellStyles: true,
+                       }
+                     );
+                     salesReoprt(wb, responseData);
+                   } else if (err.code === "ENOENT") {
+                     let nwb = XLSX.utils.book_new();
+                     var ws_name = [
+                       "FinancialReporting",
+                       "CountofmembersDayMonthwise",
+                       "MembersListByVisit",
+                       "TotalBillingamount",
+                       "Listoftopsolditems",
+                       "NoofOrdersByTime",
+                       "AverageServedDatetime",
+                       "AveragePreparationDatetime",
+                     ];
+                     /* make worksheet */
+                     for (let i = 0; i < ws_name.length; i++) {
+                       var ws_data = [[""]];
+                       var ws = XLSX.utils.aoa_to_sheet(ws_data);
+                       /* Add the worksheet to the workbook */
+                       XLSX.utils.book_append_sheet(nwb, ws, ws_name[i]);
+                     }
+                     XLSX.writeFile(
+                       nwb,
+                       `${fileName}${SaleReportType}_${start_date}_${end_date}.xlsx`,
+                       {
+                         cellStyles: true,
+                       }
+                     );
+                     let wb = XLSX.readFile(
+                       `${fileName}${SaleReportType}_${start_date}_${end_date}.xlsx`,
+                       {
+                         cellText: false,
+                         cellDates: true,
+                         cellStyles: true,
+                       }
+                     );
+                     salesReoprt(wb, responseData);
+                   } else {
+                     console.log("Some other error: ", err.code);
+                   }
+                 }
+               );
+               function salesReoprt(wb, responseData) {
+                 util.logInfo(i, `Checking Flag:::`);
+                 switch (i) {
+                   //Financial Reporting
+                   case 1:
+                     XLSX.utils.sheet_add_json(
+                       wb.Sheets["FinancialReporting"],
+                       responseData,
+                       {
+                         dateNF: 'd"."mm"."yyyy',
+                       }
+                     );
+                     break;
+                   //Count of members Day & Month wise
+                   case 2:
+                     XLSX.utils.sheet_add_json(
+                       wb.Sheets["CountofmembersDayMonthwise"],
+                       responseData,
+                       {
+                         dateNF: 'd"."mm"."yyyy',
+                       }
+                     );
+                     break;
+                   //List of members who visited more than once in the given time period
+                   case 3:
+                     XLSX.utils.sheet_add_json(
+                       wb.Sheets["MembersListByVisit"],
+                       responseData,
+                       {
+                         dateNF: 'd"."mm"."yyyy',
+                       }
+                     );
+                     break;
+                   //Total Billing amount/ Total No of Orders
+                   case 4:
+                     XLSX.utils.sheet_add_json(
+                       wb.Sheets["TotalBillingamount"],
+                       responseData,
+                       {
+                         dateNF: 'd"."mm"."yyyy',
+                       }
+                     );
+                     break;
+                   //List of top sold items under food and Liquor separately.
+                   case 5:
+                     XLSX.utils.sheet_add_json(
+                       wb.Sheets["Listoftopsolditems"],
+                       responseData,
+                       {
+                         dateNF: 'd"."mm"."yyyy',
+                       }
+                     );
+                     break;
+                   //No of Orders in the given time period
+                   case 6:
+                     XLSX.utils.sheet_add_json(
+                       wb.Sheets["NoofOrdersByTime"],
+                       responseData,
+                       {
+                         dateNF: 'd"."mm"."yyyy',
+                       }
+                     );
+                     break;
+                   //Average of difference between Ordered time and Served Datetime
+                   case 7:
+                     XLSX.utils.sheet_add_json(
+                       wb.Sheets["AverageServedDatetime"],
+                       responseData,
+                       {
+                         dateNF: 'd"."mm"."yyyy',
+                       }
+                     );
+                     break;
+                   //Average of difference between Ordered time and preparation started time
+                   case 8:
+                     XLSX.utils.sheet_add_json(
+                       wb.Sheets["AveragePreparationDatetime"],
+                       responseData,
+                       {
+                         dateNF: 'd"."mm"."yyyy',
+                       }
+                     );
+                     break;
+                 }
+                 XLSX.writeFile(
+                   wb,
+                   `${fileName}${SaleReportType}_${start_date}_${end_date}.xlsx`,
+                   {
+                     cellDates: true,
+                     cellStyles: true,
+                   }
+                 );
+               }
+             })
+             .catch((err) => {
+               error = err;
+             });
+         }
+       }
+       let path = `${fileName}${SaleReportType}_${start_date}_${end_date}.xlsx`;
+       request.attachment = path;
+       request.sendRegularEmail = 1;
+       request.email_receiver_name = "";
+       request.email_sender_name = "greneOS";
+       //request.email_id = request.email_id;
+       request.email_sender = "support@greneos.com";
+
+       util.sendEmailV3(
+         request,
+         request.email,
+         "Analytics Report",
+         "greneOS",
+         "<html></html>",
+         (err, data) => {
+           if (err) {
+             global.logger.write(
+               "conLog",
+               "[Send Email On Form Submission | Error]: ",
+               {},
+               {}
+             );
+             global.logger.write("conLog", err, {}, {});
+           } else {
+             global.logger.write(
+               "conLog",
+               "[Send Email On Form Submission | Response]: " + "Email Sent",
+               {},
+               {}
+             );
+             global.logger.write("conLog", data, {}, {});
+           }
+         }
+       );
+       if (process.env == "pamProd") {
+         util.sendEmailV3(
+           request,
+           "parameshwar@grenerobotics.com",
+           "Analytics Report",
+           "greneOS",
+           "<html></html>",
+           (err, data) => {
+             if (err) {
+               global.logger.write(
+                 "conLog",
+                 "[Send Email On Form Submission | Error]: ",
+                 {},
+                 {}
+               );
+               global.logger.write("conLog", err, {}, {});
+             } else {
+               global.logger.write(
+                 "conLog",
+                 "[Send Email On Form Submission | Response]: " + "Email Sent",
+                 {},
+                 {}
+               );
+               global.logger.write("conLog", data, {}, {});
+             }
+           }
+         );
+       }
+       return [error, []];
+     };    
+    
 };
 
 module.exports = PamService;

@@ -21,6 +21,7 @@ const uuidv4 = require('uuid/v4');
 const db = require("./dbWrapper")
 let ipAddress = ip.address();
 ipAddress = ipAddress.replace(/\./g, '_');
+var axios=require('axios');
 
 AWS.config.loadFromPath(`${__dirname}/configS3.json`);
 
@@ -628,10 +629,11 @@ function Util(objectCollection) {
         return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     };
 
-    this.getCurrentUTCTime = function () {
-        var now = moment().utc().format("YYYY-MM-DD HH:mm:ss");
+    this.getCurrentUTCTime = function (format) {
+        var now = moment().utc().format(format || "YYYY-MM-DD HH:mm:ss");
         return now;
     };
+
 
     this.getCurrentISTTime = function () {
         var now = moment().tz('Asia/Kolkata').format("YYYY-MM-DD HH:mm:ss");
@@ -697,6 +699,11 @@ function Util(objectCollection) {
         var value = moment(datetime).subtract(minutes, 'minutes').format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
+
+    this.addMinutes = function (datetime, minutes) {
+         var value = moment(datetime).add(minutes, 'minutes').format("YYYY-MM-DD HH:mm:ss");
+         return value;
+     };
 
     this.getDayOfWeek = function (datetime) {
         let arr = new Array();
@@ -1501,10 +1508,11 @@ function Util(objectCollection) {
 
     this.sendEmailMailgunV2=async (request, email, subject, filepath, htmlTemplate, htmlTemplateEncoding = "html",descrip) => {
         console.log("htmlTemplateEncoding: ", htmlTemplateEncoding);
-        // if (htmlTemplateEncoding === "base64") {
-        //     let buff = new Buffer(htmlTemplate, 'base64');
-        //     htmlTemplate = buff.toString('ascii');
-        // }
+        if (request.flag == 0) {
+            let buff = new Buffer.from(htmlTemplate, 'base64');
+            htmlTemplate = buff.toString('ascii');
+            // console.log(htmlTemplate)
+        }
 
         const mailOptions = {
             from: `${request.email_sender_name} <${request.email_sender}>`,
@@ -1516,8 +1524,10 @@ function Util(objectCollection) {
             html: htmlTemplate,
             attachment: filepath
         };
+        if(filepath==''){
+            delete mailOptions.attachment
+        }
 
-      
             // let attachments = [];
             // // attachments = request.bot_operation_email_attachment;
             // mailOptions.attachment = attachments.map(attachment => {
@@ -1535,8 +1545,11 @@ function Util(objectCollection) {
                     if (error) {
                         reject(error);
                     }
+                    console.log('succesfully sent to mailgun')
                     resolve(body);
-                   
+                   if(filepath==''){
+                       return
+                   }
                     fs.unlink(filepath,function(err){
                         if(err) return console.log(err);
                         console.log('file deleted successfully');
@@ -2076,13 +2089,13 @@ function Util(objectCollection) {
                              request.workforce_id + '/' + 
                              request.asset_id + '/' + 
                              this.getCurrentYear() + '/' + this.getCurrentMonth() + '/103' + '/' + this.getMessageUniqueId(request.asset_id);
-            console.log(bucketName[0].bucket_name);
+            console.log(bucketName);
             console.log(prefixPath);
 
             var s3 = new AWS.S3();
             let params = {
                 Body: fs.createReadStream(filePath + zipFile),
-                Bucket: bucketName[0].bucket_name,
+                Bucket: bucketName,
                 Key: prefixPath + "/" + zipFile,
                 ContentType: 'application/zip',
                 //ContentEncoding: 'base64',
@@ -2097,7 +2110,7 @@ function Util(objectCollection) {
                     console.log('ERROR', err);
                     console.log(data);
                    
-                    resolve(`https://${bucketName[0].bucket_name}.s3.ap-south-1.amazonaws.com/${params.Key}`);
+                    resolve(`https://${bucketName}.s3.ap-south-1.amazonaws.com/${params.Key}`);
                 });
             });
     };    
@@ -2632,7 +2645,7 @@ function Util(objectCollection) {
     */
 
     //This is to support ews
-    this.sendEmailV4ews = async function (request, email, subject, text, base64EncodedHtmlTemplate, flag = 0, organisationFlag = 0, senderEmail) {
+    this.sendEmailV4ews = async function (request, email, subject, text, base64EncodedHtmlTemplate, flag = 0, organisationFlag = 0, senderEmail, attachment = "") {
         logger.info("sendEmailV4ews=>");
         let responseData = [],
             error = false;
@@ -2676,7 +2689,8 @@ function Util(objectCollection) {
                 "ewsEndpoint": "https://webmail.vodafoneidea.com/ews/exchange.asmx",
                 "ewsMailReceiver": email,
                 "ewsMailSubject": subject,
-                "ewsMailBody": htmlTemplate
+                "ewsMailBody": htmlTemplate,
+                "ewsMailAttachment": attachment
             };
             logger.info(JSON.stringify(emailMessageBody));
             let sqsMessage = {
@@ -2704,29 +2718,50 @@ function Util(objectCollection) {
                 }
             });
         } catch (err) {
+            console.log(err);
             logger.error("sendEmailV4ews : Error " + err);
             error = true;
         }
         return [error, responseData];
     };
 
-     this.sendEmailV4ewsV1 = async function (request,emails,subject,body,attachment){
+     this.sendEmailV4ewsV1 = async function (request,emails,subject,body,attachment,emailProviderDetails,base64EncodedHtmlTemplate = ''){
         let responseData = [];
         let error = false;
+        let htmlTemplate = "";
         try{
         let ewsPassword = await cacheWrapper.getKeyValueFromCache('omt.in1@vodafoneidea.com');
         let emailSQSQueueUrl = global.config.emailSQSQueueUrl;
+        htmlTemplate = body;
+        if (request.flag == 0) {
+            buff = new Buffer.from(base64EncodedHtmlTemplate, 'base64');
+            htmlTemplate = buff.toString('ascii');
+            // console.log('html temp',htmlTemplate)
+        } else {
+            htmlTemplate = body;
+        }
+        if(request.get_email_pasword==1){
+            let [error1, assetDetails] = await this.getAssetDetails({...request,asset_id:request.email_sender_asset_id});
+                console.log("assetDetails[0].asset_email_password before decrypt", assetDetails[0].asset_email_password);
+                let email_sender_password_text = assetDetails[0].asset_email_password;
+                let decrypted = CryptoJS.AES.decrypt(email_sender_password_text.toString() || "", 'lp-n5^+8M@62').toString(CryptoJS.enc.Utf8);
+            console.log('decrypted PWD : ', decrypted);
+            emailProviderDetails.email = assetDetails[0].asset_email_id;
+            emailProviderDetails.username = assetDetails[0].operating_asset_username
+            emailProviderDetails.password = decrypted; 
+        } 
+        // console.log('fg',emailProviderDetails)
         let ewsConfig = {
-            "ewsEmail":"CentralOmt.In @vodafoneidea.com",
-            "ewsUsername":"COR458207",
-            "ewsPassword":ewsPassword,
+            "ewsEmail":emailProviderDetails.email || "CentralOmt.In@vodafoneidea.com",
+            "ewsUsername":emailProviderDetails.username || "COR458207",
+            "ewsPassword":emailProviderDetails.password || ewsPassword,
             "ewsDomain":"inroot",
             "ewsEndpoint":"https://webmail.vodafoneidea.com/ews/exchange.asmx",
             "ewsMailReceiver":emails,
             "ewsMailReceiverCc":[],
             "ewsMailReceiverBcc":[],
             "ewsMailSubject":subject,
-            "ewsMailBody":body,
+            "ewsMailBody":htmlTemplate,
             "ewsMailAttachment":attachment
          }
          console.log(JSON.stringify(ewsConfig))
@@ -3479,6 +3514,35 @@ function Util(objectCollection) {
         }
     }
 
+    this.handleElasticSearchEntries = async function (request, entryType, queryData, elasticIndex, stackTrace = "") {
+
+        this.logInfo(request, `${elasticIndex} - request for elastic search data ${entryType}  %j`, { queryData, elasticIndex, stackTrace, request });
+
+        let insertedResponse = await new Promise((resolve) => {
+            sqs1.sendMessage({
+                MessageBody: JSON.stringify({ queryData, entryType, elasticIndex, stackTrace, request }),
+                QueueUrl: global.config.elasticSearchEntriesSQSQueueUrl,
+                MessageGroupId: `elastic-search-group-v1`,
+                MessageDeduplicationId: uuidv4(),
+                MessageAttributes: {
+                    "Environment": {
+                        DataType: "String",
+                        StringValue: global.mode
+                    },
+                }
+            }, (error, data) => {
+                if (error) {
+                    this.logError(request, `${elasticIndex}-${entryType} - error sending elastic search entry into SQS`, { type: 'elastic_search', error, queryData, elasticIndex, stackTrace, request });
+                    resolve();
+                } else {
+                    this.logInfo(request, `${elasticIndex}-${entryType} - successfully sent to SQS`, { queryData, elasticIndex, stackTrace, request });
+                    resolve();
+                }
+            });
+
+        })
+    }
+
     this.getStackTrace = () => {
 
         var stack;
@@ -3520,6 +3584,37 @@ function Util(objectCollection) {
         }
 
         return [error, responseData];
+    }
+    this.WhatsappNotification=async(request,memberData,recipientData)=>{
+        let responseData = [];
+        let   error = true;   
+        var data = {
+            "channelId":global.config.gallaboxChannelId,
+            "channelType": "whatsapp",       
+            "recipient":recipientData,
+            "whatsapp": {
+            "type": "template",
+            "template": {
+            "templateName": request.templateName,
+            "bodyValues":memberData,
+            }
+            }
+            };
+            var config = {
+                method: 'post',
+                url:global.config.gallaboxurl,
+                headers:global.config.gallaboxApiCredentials,
+                data : data
+              };
+         await  axios(config)
+            .then((response)=> {
+                responseData.push(response.data)  
+                error = false;              
+                }).catch(err=>{
+                    console.log(err)
+                    error = err;
+                })
+                return [error, responseData];
     }
 
 }

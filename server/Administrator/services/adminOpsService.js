@@ -24,6 +24,7 @@ function AdminOpsService(objectCollection) {
 
     const util = objectCollection.util;
     const db = objectCollection.db;
+    const queueWrapper = objectCollection.queueWrapper;
     const activityCommonService = objectCollection.activityCommonService;
     const adminListingService = new AdminListingService(objectCollection);
     const assetService = new AssetService(objectCollection);
@@ -124,10 +125,13 @@ function AdminOpsService(objectCollection) {
             request.flag_enable_elasticsearch,
             request.flag_enable_calendar,
             request.flag_enable_grouping || 0,
+            request.organization_flag_enable_timetracker || 0,
+            request.organization_flag_timeline_access_mgmt || 0,
+            request.flag_timeline_lead_mgmt || 0,
             request.asset_id,
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_4_organization_list_update_flags', paramsArr);
+        const queryString = util.getQueryString('ds_p1_5_organization_list_update_flags', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -959,11 +963,14 @@ function AdminOpsService(objectCollection) {
           request.org_exchange_server_domain || "",
           request.flag_enable_calendar || "",
           request.flag_enable_grouping || 0,
+          request.organization_flag_enable_timetracker || 0,
+          request.organization_flag_timeline_access_mgmt || 0,
+          request.flag_lead_mgmt || 0,
           request.organization_type_id || 1,
           request.asset_id || 1,
           util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_6_organization_list_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_8_organization_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -1117,7 +1124,7 @@ function AdminOpsService(objectCollection) {
 
     this.addNewDeskToWorkforce = async function (request) {
 
-
+        let assetTypeCategoryID = request.asset_type_category_id;
         if(request.asset_type_category_id == 3)
             request.activity_type_category_id = 5;
         else if(request.asset_type_category_id == 45)
@@ -1220,7 +1227,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             organization_id: organizationID,
             account_id: accountID,
             workforce_id: workforceID,
-            asset_type_category_id: request.asset_type_category_id
+            asset_type_category_id: assetTypeCategoryID
         });
         if (errTwo) {
             console.log("createAssetBundle | workforceAssetCountData | Error: ", err);
@@ -1652,7 +1659,23 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         //Update Manager Details
         let newReq = Object.assign({}, request);
         newReq.asset_id = deskAssetID;
-        this.updateAssetsManagerDetails(newReq);
+        await this.updateAssetsManagerDetails(newReq);
+
+        const mode = global.mode;
+        if (request.organization_id === 868 && (mode === "preprod" || mode === "prod")) {
+
+            try {
+                await triggerESMSIntegrationsService({
+                    asset_id: deskAssetID
+                }, {
+                    mode: mode,
+                    request_type: "CLMS_USER_SERVICE_ADD"
+                });
+            } catch (e) {
+                console.log(e);
+            }
+
+        }
 
         return [false, {
             desk_asset_id: deskAssetID,
@@ -2554,7 +2577,7 @@ console.log('new ActivityId321',newActivity_id)
         
         //archive asset data
         try{
-        const [erArchive,archiveDa]=await archiveAsset(request);
+        const [erArchive,archiveDa]=await archiveAsset(request,3801);
         }
         catch(e){
             console.log(e)
@@ -2567,7 +2590,7 @@ console.log('new ActivityId321',newActivity_id)
             asset_last_name: deskAssetDataFromDB[0].asset_last_name,
             asset_type_id: deskAssetDataFromDB[0].asset_type_id,
             operating_asset_id: 0, // operatingAssetID
-            manager_asset_id: 0,
+            manager_asset_id: deskAssetDataFromDB[0].manager_asset_id,
             log_asset_id: request.log_asset_id
         }, workforceID, organizationID, accountID);
 
@@ -2870,6 +2893,23 @@ console.log('new ActivityId321',newActivity_id)
             console.log("removeEmployeeMappedToDesk | queueAccessMappingUpdateLogState | Error: ", error);
         }
 
+        const mode = global.mode;
+        if (request.organization_id === 868 && (mode === "preprod" || mode === "prod")) {
+
+            try {
+                await triggerESMSIntegrationsService({
+                    asset_id: deskAssetID
+                }, {
+                    mode: mode,
+                    request_type: "CLMS_USER_SERVICE_DELETE"
+                });
+
+            } catch (e) {
+                console.log(e);
+            }
+
+        }
+        
         return [false, {
             operating_asset_id: operatingAssetID,
             id_card_activity_id: idCardActivityID,
@@ -2878,11 +2918,11 @@ console.log('new ActivityId321',newActivity_id)
         }];
     }
 
-    async function archiveAsset (request){
+    async function archiveAsset (request,type){
         var paramsArr = new Array(
             request.desk_asset_id,
             request.organization_id,
-            3,
+            type,
             util.getCurrentUTCTime(),
             request.asset_id,
             util.getCurrentUTCTime()
@@ -3275,6 +3315,13 @@ console.log('new ActivityId321',newActivity_id)
                 message: "Error updating desk asset of the workforce"
             }];
         }
+
+        try{
+            const [erArchive,archiveDa]=await archiveAsset({...request,desk_asset_id:deskAssetID},3802);
+            }
+            catch(e){
+                console.log(e)
+            }
 
         // Desk Asset List History Insert
         try {
@@ -5184,7 +5231,24 @@ console.log('new ActivityId321',newActivity_id)
         //Update Manager Details
         let newReq = Object.assign({}, request);
         newReq.asset_id = deskAssetID;
-        this.updateAssetsManagerDetails(newReq);
+        await this.updateAssetsManagerDetails(newReq);
+
+        const mode = global.mode;
+        if (request.organization_id === 868 && (mode === "preprod" || mode === "prod")) {
+
+            try {
+                await triggerESMSIntegrationsService({
+                    asset_id: deskAssetID
+                }, {
+                    mode: mode,
+                    request_type: "CLMS_USER_SERVICE_UPDATE"
+                });
+
+            } catch (e) {
+                console.log(e);
+            }
+
+        }
 
         return [false, []];
     }
@@ -8946,19 +9010,24 @@ console.log('new ActivityId321',newActivity_id)
         try{
             //console.log('Form ID List : ', request.form_id_list);
             let formList = JSON.parse(request.form_id_list);
-            //console.log('formList : ', formList);            
+            console.log('formList : ', formList);            
             //console.log('formList.lenght : ', formList.length);
 
             for(let counter = 0; counter < formList.length; counter++){
                 let formJson = {};
                 request.form_id = formList[counter];
-                formJson.form_id = request.form_id;                
+                formJson.form_id = request.form_id; 
+                if(request.flag==0){              
                 let [err, responseData] = await self.dependedFormCheck(request);                
                 if(!err){
                     formJson.isActive = true;
                 }else{               
                     formJson.isActive = false;
                 }
+            }
+            else{
+                formJson.isActive = true;
+            }
                 finalResponse.push(formJson);
             }
         }catch(e){
@@ -9277,7 +9346,9 @@ console.log('new ActivityId321',newActivity_id)
             
             let newReq = Object.assign({}, request);
                 newReq.form_id_list = JSON.stringify(form_id_list);
+            
             let [err1, dependencyFormsList] = await this.dependencyFormsCheck(newReq);
+            
             
             console.log('dependencyFormsList.length : ', dependencyFormsList.length);
             
@@ -11032,6 +11103,657 @@ console.log('new ActivityId321',newActivity_id)
         return [error, responseData];
     }
 
+    async function triggerESMSIntegrationsService(request = {}, options = {}) {
+        logger.silly("ESMS Integrations User service trigger request : %j", request);
+        let esmsIntegrationsTopicName = global.config.ESMS_INTEGRATIONS_TOPIC || "";
+
+        try {
+            if (esmsIntegrationsTopicName === "") { throw new Error("EsmsIntegrationsTopicNotDefinedForMode"); }
+
+            await queueWrapper.raiseActivityEventToTopicPromise({
+                type: "VIL_ESMS_IBMMQ_INTEGRATION",
+                trigger_form_id: options.request_type,
+                payload: request
+            }, esmsIntegrationsTopicName, 0);
+        } catch (error) {
+            logger.error("[ESMS Integrations User service trigger] Error ", { type: 'user_creation', error: serializeError(error), request_body: request });
+        }
+    }
+
+    this.assetTypeAccessMappingInsert = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.asset_type_id,
+          request.access_level_id,
+          request.workforce_id,
+          request.account_id,
+          request.organization_id,
+          request.asset_id,
+          util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_type_access_mapping_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    assetTypeAccessHistoryInsert(request,3701)
+                })
+                .catch((err) => {
+                    error = err;
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    }  
+    
+    this.assetTypeAccessMappingSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_type_id,
+            request.access_level_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_type_access_mapping_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    } 
+
+    this.assetTypeAccessMappingDelete = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_type_id,
+            request.access_level_id,
+            request.workforce_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_type_access_mapping_delete', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    assetTypeAccessHistoryInsert(request,3702)
+                })
+                .catch((err) => {
+                    error = err;
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    } 
+
+    async function assetTypeAccessHistoryInsert(request,update_id){
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.access_level_id,
+            update_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_asset_type_access_mapping_history_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                    return [error, responseData];
+                })
+        }
+        return [error, responseData];
+    }
+    
+    this.organizationFilterTagTypeMappingInsert = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.tag_type_filter_label, 
+            request.tag_type_id,
+            request.filter_id,
+            request.filter_sequence_id,
+            request.filter_inline_data,
+            request.filter_access_flag,
+            request.filter_dynamic_enabled,
+            request.filter_dynamic_sequence_id,
+            request.target_activity_type_id, 
+            request.target_tag_type_id, 
+            request.target_activity_status_type_id,
+            request.target_asset_category_id,
+            request.target_asset_type_id,
+            request.organization_id, 
+            request.log_asset_id, 
+            request.log_datetime
+        );
+        const queryString = util.getQueryString('ds_p2_organization_filter_tag_type_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }; 
+    
+    this.organizationFilterTagTypeMappingDelete = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.tag_type_mapping_id ,
+            request.log_asset_id , 
+            request.log_datetime 
+        );
+        const queryString = util.getQueryString('ds_p1_organization_filter_tag_type_mapping_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };    
+
+    this.organizationFilterTagTypeMappingUpdate = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id , 
+            request.tag_type_mapping_id ,
+            request.tag_type_filter_label , 
+            request.filter_sequence_id ,
+            request.filter_dynamic_sequence_id ,
+            request.log_asset_id , 
+            request.log_datetime
+        );
+        const queryString = util.getQueryString('ds_p1_organization_filter_tag_type_mapping_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };    
+
+    this.getOrganizationFilterTagTypeMapping  = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.tag_type_id, 
+            request.is_export, 
+            request.report_type_id, 
+            request.start_from, 
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_v1_2_organization_filter_tag_type_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };    
+
+    this.applicationTagTypeMappingInsert  = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.application_id,
+            request.tag_type_id,
+            request.activity_type_category_id,
+            request.index_value,
+            request.is_export_enabled,
+            request.is_dashboard_enabled,
+            request.log_datetime         
+            );
+        const queryString = util.getQueryString('ds_v1_application_tag_type_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };  
+    
+    this.applicationMasterInsert  = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.application_name,
+          request.application_visibility_enabled,
+          request.application_label_name,
+          request.tag_type_label_name,
+          request.organization_id,
+          util.getCurrentUTCTime(),
+          request.sequence_id
+        );
+        const queryString = util.getQueryString('ds_p1_application_master_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };  
+    
+
+    this.applicationMasterSelect  = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id        
+            );
+        const queryString = util.getQueryString('ds_v1_application_master_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };  
+
+    this.applicationMasterDelete  = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.application_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()      
+            );
+        const queryString = util.getQueryString('ds_v1_application_master_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };  
+
+    this.applicationMasterUpdate  = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.application_id, 
+            request.asset_id,
+            request.application_name,
+            util.getCurrentUTCTime()         
+            );
+        const queryString = util.getQueryString('ds_v1_application_master_update', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };  
+
+    this.assetTypeAccessMappingInsert  = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.asset_type_id,
+          request.access_level_id || 0,
+          request.access_type_id || 0,
+          request.activity_type_id || 0,
+          request.workforce_id,
+          request.account_id,
+          request.organization_id,
+          request.asset_id,
+          util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p2_asset_type_access_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+    
+    this.assetListUpdateFlagExport  = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.account_id,
+          request.workforce_id,
+          request.asset_id,
+          request.asset_flag_export
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_update_flag_export', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }; 
+
+    this.applicationMasterUpdate = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.application_id,
+            request.application_label_name,
+            request.application_name,
+            request.tag_type_label_name,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_application_master_update', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.widgetDrilldownHeaderMappingInsert = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.tag_type_id,
+            request.header_id,
+            request.sequence_id,
+            request.conversion_format,
+            request.organization_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_widget_drilldown_header_mapping_insert', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.widgetDrilldownHeaderMappingDelete = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.header_id,
+            request.tag_type_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_widget_drilldown_header_mapping_delete', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.widgetDrilldownHeaderMappingUpdate = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.header_id,
+            request.tag_type_id,
+            request.sequence_id,
+            request.header_name,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_widget_drilldown_header_mapping_update', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.widgetDrilldownHeaderMappingSelect = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.tag_type_id, 
+            request.organization_id
+        );
+        const queryString = util.getQueryString('ds_v1_widget_drilldown_header_mapping_select', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.widgetDrilldownHeaderMasterSelect = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.start_from, 
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_widget_drilldown_header_master_select', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.assetTypeAccessMappingSelectActivityType = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.asset_type_id,
+          request.activity_type_id,
+          request.workforce_id,
+          request.account_id,
+          request.organization_id
+        );
+        const queryString = util.getQueryString('ds_p1_asset_type_access_mapping_select_activity_type', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.assetTypeAccessMappingDeleteAdmin = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.asset_type_id,
+          request.access_level_id,
+          request.activity_type_id,
+          request.organization_id,
+          request.asset_id,
+          util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p2_asset_type_access_mapping_delete', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
 }
 
 module.exports = AdminOpsService;
+

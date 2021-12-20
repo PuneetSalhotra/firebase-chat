@@ -685,6 +685,28 @@ function AnalyticsController(objCollection)
         }
     });    
 
+    app.post('/' + global.config.version + '/get/sip/enabled/roles', async (req, res) => {
+        try {
+            const [err, result] = await analyticsService.getSipEnabledRoles(req.body);
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch (err) {
+            console.log(err)
+            console.log("/get/sip/enabled/roles | Error: ", err);
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    }); 
+
+    app.post('/' + global.config.version + '/get/sip/periodic/summary', async (req, res) => {
+        try {
+            const [err, result] = await analyticsService.getSipPeriodicSummary(req.body);
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch (err) {
+            console.log(err)
+            console.log("/get/sip/periodic/summary | Error: ", err);
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });     
+
     }
 
 module.exports = AnalyticsController;

@@ -462,6 +462,15 @@ function PamListingController(objCollection) {
             console.log("Error: ", err)
             res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
-    });	    
+    });	
+    app.post('/' + global.config.version + '/pam/get/cashandcaryy/order', async function (req, res) {
+        const [err, data] = await pamListingService.listSelectCashandcarry(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });	
 };
 module.exports = PamListingController;

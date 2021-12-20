@@ -16,6 +16,13 @@ let opentok = new OpenTok(global.config.opentok_apiKey, global.config.opentok_ap
 const RMBotService = require('../botEngine/services/rmbotService');
 const awesomePhoneNumber = require( 'awesome-phonenumber' );
 
+const AWS_Cognito = require('aws-sdk');
+AWS_Cognito.config.update({
+    "accessKeyId": global.config.access_key_id,
+    "secretAccessKey": global.config.secret_access_key,
+    "region": global.config.cognito_region
+});
+const cognitoidentityserviceprovider = new AWS_Cognito.CognitoIdentityServiceProvider();
 
 
 function AssetService(objectCollection) {
@@ -1023,8 +1030,14 @@ function AssetService(objectCollection) {
             "organization_flag_elasticsearch_enabled": util.replaceDefaultNumber(rowArray[0]['organization_flag_elasticsearch_enabled']),
             "asset_flag_export" : util.replaceDefaultNumber(rowArray[0]['asset_flag_export']),
             "organization_flag_calendar_enabled" : util.replaceDefaultNumber(rowArray[0]['organization_flag_calendar_enabled']),
-            "asset_flag_simulation" : util.replaceDefaultNumber(rowArray[0]['asset_flag_simulation'])
-        };
+            "asset_flag_simulation" : util.replaceDefaultNumber(rowArray[0]['asset_flag_simulation']),
+            "organization_flag_enable_timetracker" : util.replaceDefaultNumber(rowArray[0]['organization_flag_enable_timetracker']),
+            "organization_flag_timeline_access_mgmt" : util.replaceDefaultNumber(rowArray[0]['organization_flag_timeline_access_mgmt']),
+            "organization_flag_lead_mgmt" : util.replaceDefaultNumber(rowArray[0]['organization_flag_lead_mgmt']),
+            "asset_flag_line_manager" : util.replaceDefaultNumber(rowArray[0]['asset_flag_line_manager']),
+            "asset_flag_target_only" : util.replaceDefaultNumber(rowArray[0]['asset_flag_target_only']),
+            "asset_password_expiry_datetime": util.replaceDefaultDatetime(rowArray[0]['asset_password_expiry_datetime'])
+       };
 
         callback(false, rowData);
     };
@@ -2037,7 +2050,7 @@ function AssetService(objectCollection) {
         }
     };
 
-    var archiveAsset = async function (request){
+    var archiveAsset = async function (request,type){
 
         let error= true,
          responseData = [];
@@ -2045,7 +2058,7 @@ function AssetService(objectCollection) {
         var paramsArr = new Array(
             request.target_asset_id,
             request.organization_id,
-            3,
+            type,
             util.getCurrentUTCTime(),
             request.asset_id,
             request.datetime_log
@@ -2591,7 +2604,7 @@ function AssetService(objectCollection) {
               .then((data) => {
                   responseData = data;
                   error = false;
-                  archiveAsset(request);
+                  archiveAsset(request,3803);
                   assetListHistoryInsert(request, request.target_asset_id, request.organization_id, 204, util.getCurrentUTCTime(), function (err, data) { });
 
               })
@@ -6297,6 +6310,10 @@ this.getQrBarcodeFeeback = async(request) => {
                                 responseData[1] = data;
                                 resolve(responseData);
                             }
+                        } else if (request.flag == 27) {
+                            responseData[0] = "";
+                            responseData[1] = data;
+                            resolve(responseData);
                         } else {
                             responseData[0] = "";
                             responseData[1] = data;
@@ -7057,6 +7074,20 @@ this.getQrBarcodeFeeback = async(request) => {
         });
     };    
 
+    function getOrganizationApplications(request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id
+            );
+            var queryString = util.getQueryString('ds_v1_application_master_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    };      
+
     this.assetSwipeIn = async function(request){
         let responseData = [],
         error = true;        
@@ -7798,6 +7829,455 @@ this.getQrBarcodeFeeback = async(request) => {
 
         return [error, responseData];
     };
+
+    this.emailVerifyRequest = async function(request) {
+        try {
+
+            let [error, assetDetails] = await this.assetDetailsByEmail(request);
+
+            if(assetDetails.length == 0) {
+                return [true, {}];
+            }
+            let [err, rateLimit] = await this.checkIfEmailOTPRateLimitExceeded(request);
+           
+            if(rateLimit.length > 0 && rateLimit[0].passcode_count >= 5){
+                return [false, { message: `OTP rate limit exceeded!`}];
+                
+            }
+
+
+            let verificationCode = util.getVerificationCode();
+
+            sendCallOrSms(3, '', '', verificationCode, request);
+
+            request.email_passcode = verificationCode;
+
+            this.updatePasscodeBasedOnEmail(request);;
+
+            this.insertEmailTransaction(request);
+
+            return [false, {}];
+
+        } catch(e) {
+            console.log("emailVerifyRequest error", e, e.stack);
+            return [true, {}];
+        }
+    }
+
+    this.emailPasscodeVerification = async function(request) {
+        try {
+            let [err,assetDetails] = await this.assetDetailsByEmail(request);
+
+            console.log("assetDetails[0].asset_email_passcode", assetDetails[0].asset_email_passcode);
+            if(Number(request.verification_code) !== Number(assetDetails[0].asset_email_passcode)) {
+                return [true, {}];
+            }
+            
+
+            this.emailVerifyFlagUpdate(request);
+
+            return [false, {}];
+
+        } catch(e) {
+            console.log("emailPasscodeVerification", e, e.stack);
+            return [true, {}];
+        }
+    }
+
+    this.assetDetailsByEmail = async function (request) {
+        let responseData = [],
+            error = true;
+
+       let paramsArr = new Array(
+            request.organization_id,
+            request.email
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_select_email_all', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+    this.updatePasscodeBasedOnEmail = async function (request) {
+        let responseData = [],
+            error = true;
+            
+       let paramsArr = new Array(
+            request.asset_id, 
+            request.organization_id, 
+            request.email_passcode, 
+            util.addMinutes(util.getCurrentUTCTime(), 10), 
+            request.log_asset_id || request.asset_id, 
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_update_email_passcode', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = {};
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+    this.insertEmailTransaction = async function (request) {
+        let responseData = [],
+            error = true;
+            
+       let paramsArr = new Array(
+            request.email,
+            request.email_passcode,
+            util.getCurrentUTCTime(),
+            util.addMinutes(util.getCurrentUTCTime(), 10),
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_email_passcode_transaction_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = {};
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+    this.emailVerifyFlagUpdate = async function (request) {
+        let responseData = [],
+            error = true;
+            
+       let paramsArr = new Array(
+            request.email,
+            request.workforce_id, 
+            request.account_id, 
+            request.organization_id,  
+            1
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_update_email_verified', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = {};
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+    this.checkIfEmailOTPRateLimitExceeded=async function(request) {
+  
+        let responseData = [],
+            error = true;           
+        let paramsArr = new Array(
+            request.email,
+            util.substractMinutes(util.getCurrentUTCTime(), 60),
+            util.getCurrentUTCTime()
+
+        );
+        const queryString = util.getQueryString('ds_p1_email_passcode_transaction_select_passcode_count', paramsArr);
+        if (queryString !== '') {
+
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+    this.activityAssetMappingAssetCategorySelect = async function (request) {
+        let responseData = [],
+            error = true;
+            
+       let paramsArr = new Array(
+        request.asset_id,
+        request.organization_id,
+        request.account_id,
+        request.activity_type_category_id,
+        request.start_from,
+        request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_1_activity_asset_mapping_select_asset_category', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = {};
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+
+    //organizationListInsert
+    this.organization_List_Insert = async function (request) {
+        let responseData = [],
+            error = true;    
+        const paramsArr = new Array(
+            request.organization_name,
+            request.organization_domain,
+            request.organization_image_path,
+            request.organization_address,
+            request.organization_phone_country_code,
+            request.organization_phone_number,
+            request.organization_email,
+            request.organization_one_time_set_up_fee,
+            request.organization_monthly_subscription_charges,
+            request.organization_dotpe_transaction_fee,
+            request.organization_payment_service_charges,
+            request.contact_person,
+            request.contact_phone_country_code,
+            request.contact_phone_number,
+            request.contact_email,
+            request.org_enterprise_feature_data,
+            request.flag_email,
+            request.flag_doc_repo,
+            request.flag_ent_features,
+            request.flag_ai_bot,
+            request.flag_manager_proxy,
+            request.flag_enable_form_tag,
+            request.flag_enable_sip_module,
+            request.flag_enable_elasticsearch,
+            request.org_exchange_server_url,
+            request.org_exchange_server_domain,
+            request.flag_enable_calendar,
+            request.flag_enable_grouping,
+            request.organization_type_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_7_organization_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                    
+                    addUser(request.organization_phone_country_code +''+request.organization_phone_number, global.config.pam_user_pool_id);
+                    
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
+
+      //Organization list update
+      this.organizationListUpdateFees = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.organization_one_time_set_up_fee,
+            request.organization_monthly_subscription_charges,
+            request.organization_dotpe_transaction_fee,
+            request.organization_payment_service_charges,
+            request.organization_id,
+        );
+        const queryString = util.getQueryString('ds_p1_organization_list_update_fees', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
+    this.assetListSearchUnassignedDesk = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+          request.organization_id,
+          request.account_id,
+          request.workforce_id,
+          request.asset_type_category_id,
+          request.search_string,
+          request.start_from,
+          request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_search_previous', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
+    this.assetListSearchManger = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+          request.organization_id,
+          request.account_id,
+          request.workforce_id,
+          request.asset_id,
+          request.asset_type_category_id,
+          request.search_string,
+          request.start_from,
+          request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_search_manager', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
+
+    async function addUser(username, pool_id) {
+        // console.log('Adding ', pool_id);
+         console.log('*******************');
+         console.log('Adding : ', username);
+ 
+         let userAttr = [];
+       
+         if(username.toString().indexOf('@') > -1) {
+             userAttr.push({
+                 Name: 'email', /* required */
+                 Value: username
+             },{
+                 Name : "email_verified",
+                 Value : "true"
+             });
+             
+         } else {
+             userAttr.push({
+                 Name: 'phone_number', /* required */
+                 Value: username
+               });
+         }
+ 
+ 
+         let params = {
+             UserPoolId: pool_id, //global.config.user_pool_id,
+             Username: username,
+             
+             //TemporaryPassword: 'STRING_VALUE',
+             UserAttributes: userAttr,
+             MessageAction : "SUPPRESS"          
+           };
+ 
+         await new Promise((resolve, reject)=>{
+             cognitoidentityserviceprovider.adminCreateUser(params, (err, data) => {
+                 if (err) {
+                     console.log(err, err.stack); // an error occurred
+                 } else {
+                 console.log(data);           // successful response
+                 }
+     
+                 //After 5 seconds get the added user from cognito and add it to the redis layer
+                 console.log('Beofre setTimeout 5 Seconds');
+                 setTimeout(()=>{ getUser(username, pool_id) }, 5000);
+                 resolve();
+             });
+         });
+     
+         return "success";	  
+     }
+     
+
+     async function getUser(username, pool_id) {
+        var params = {
+            UserPoolId: pool_id, //global.config.user_pool_id,
+            Username: username
+          };
+          cognitoidentityserviceprovider.adminGetUser(params, function(err, data) {
+            if (err) console.log(err, err.stack); // an error occurred
+            else {
+                console.log('data : ', data.Username);
+                let userAttributes = data.UserAttributes;
+                
+                for(const i_iterator of userAttributes) {
+                    console.log("i_iterator.Name", i_iterator.Name)
+                    if(i_iterator.Name === 'phone_number' || i_iterator.Name === 'email') {
+                        console.log('Phone Number: ', i_iterator.Value);
+
+                        cacheWrapper.setUserNameFromAccessToken(data.Username, i_iterator.Value);
+                    }
+                }
+            }
+          });
+
+        return "success";
+    }
+
+    this.assetListUpdateLastSeenDateTime = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.asset_id, 
+            request.location_datetime, 
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_updated_last_seen_datetime', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
 }
 module.exports = AssetService;
+
 

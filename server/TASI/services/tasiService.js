@@ -183,33 +183,35 @@ function TasiService(objectCollection) {
 
         const paramsArr = new Array(
             request.asset_type_id,
-            request.asset_type_name,
-            request.asset_type_flag_enable_approval,
-            request.asset_type_approval_max_levels,
-            request.asset_type_approval_wait_duration,
-            request.asset_type_approval_activity_type_id,
-            request.asset_type_approval_activity_type_name,
-            request.asset_type_approval_origin_form_id,
-            request.asset_type_approval_field_id,
-            request.asset_type_attendance_type_id,
-            request.asset_type_attendance_type_name,
-            request.asset_type_flag_enable_suspension,
-            request.asset_type_suspension_activity_type_id,
-            request.asset_type_suspension_activity_type_name,
-            request.asset_type_suspension_wait_duration,
-            request.asset_type_flag_hide_organization_details,
-            request.asset_type_flag_sip_enabled,
-            request.asset_type_flag_enable_send_sms,
-            request.asset_type_flag_sip_admin_access,
-            request.asset_type_flag_frontline,
+            request.asset_type_name || "",
+            request.asset_type_flag_enable_approval || 0,
+            request.asset_type_approval_max_levels || 0,
+            request.asset_type_approval_wait_duration || "0",
+            request.asset_type_approval_activity_type_id || "",
+            request.asset_type_approval_activity_type_name || "",
+            request.asset_type_approval_origin_form_id || 0,
+            request.asset_type_approval_field_id || 0,
+            request.asset_type_attendance_type_id || 0,
+            request.asset_type_attendance_type_name || "",
+            request.asset_type_flag_enable_suspension || 0,
+            request.asset_type_suspension_activity_type_id || 0,
+            request.asset_type_suspension_activity_type_name || "",
+            request.asset_type_suspension_wait_duration || "0",
+            request.asset_type_flag_hide_organization_details || 0,
+            request.asset_type_flag_sip_enabled || 0,
+            request.asset_type_flag_enable_send_sms || 0,
+            request.asset_type_flag_sip_admin_access || 0,
+            request.asset_type_flag_frontline || 0,
             request.asset_type_flag_email_login || 0,
             request.asset_type_flag_form_access || 0,
+            request.asset_type_flag_line_manager || 0,
+            request.asset_type_flag_target_only || 0,
             request.organization_id,
             request.flag,
             util.getCurrentUTCTime(),
             request.log_asset_id,
         );
-        const queryString = util.getQueryString('ds_p5_workforce_asset_type_mapping_update', paramsArr);
+        const queryString = util.getQueryString('ds_p6_workforce_asset_type_mapping_update', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -351,32 +353,7 @@ function TasiService(objectCollection) {
           request.organization_id,
           request.customer_account_type_id,
           request.account_type_inline_json,
-          request.asset_id,
-          util.getCurrentUTCTime()
-        );
-        const queryString = util.getQueryString('ds_p1_customer_account_type_list_update_inline', paramsArr);
-
-        if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                     customerAccountTypeHistoryInsert(request,2503)
-                })
-                .catch((err) => {
-                    error = err;
-                })
-        }
-        return [error, responseData];
-    }
-
-    this.customerAccountTypeEntityMappingUpdate = async function (request) {
-        let responseData = [],
-            error = true;
-        const paramsArr = new Array(
-          request.organization_id,
-          request.customer_account_type_id,
-          request.account_type_inline_json,
+          request.description,
           request.asset_id,
           util.getCurrentUTCTime()
         );
@@ -567,6 +544,8 @@ function TasiService(objectCollection) {
             request.period_start_datetime,
             request.period_end_datetime, 
             request.customer_account_type_id,
+            request.commission_start_datetime,
+            request.commission_end_datetime,
             request.organization_id, 
             request.asset_id, 
           util.getCurrentUTCTime()
@@ -2775,6 +2754,237 @@ function TasiService(objectCollection) {
         );
 
         const queryString = util.getQueryString('ds_p1_account_target_setting_select_filter', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.accountCoverageListInsert = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.account_coverage_name,
+            request.account_coverage_description,
+            request.account_coverage_inline,
+            request.policy_1_url,
+            request.policy_2_url,
+            request.timeline_id,
+            request.period_type_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.product_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()  
+        );
+
+        const queryString = util.getQueryString('ds_p1_account_coverage_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.productiveInfraListInsert = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.productive_infra_name,
+          request.productive_infra_description,
+          request.productive_infra_inline,
+          request.policy_1_url,
+          request.policy_2_url,
+          request.timeline_id,
+          request.period_type_id,
+          request.period_start_datetime,
+          request.period_end_datetime,
+          request.product_id,
+          request.organization_id,
+          request.asset_id,
+          util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_productive_infra_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.accountCoverageListDelete = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.account_coverage_id,
+          request.asset_id,
+          util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_account_coverage_list_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.productiveInfraListDelete = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.productive_infra_id,
+          request.asset_id,
+          util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_productive_infra_list_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.accountCoverageListSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.flag,
+            request.timeline_id,
+            request.period_type_id,
+            request.period_start_datetime, 
+            request.period_end_datetime,
+            request.start_from, 
+            request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p1_account_coverage_list_select_filter', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.productiveInfraListSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.flag,
+          request.timeline_id,
+          request.period_type_id,
+          request.period_start_datetime,
+          request.period_end_datetime,
+          request.start_from,
+          request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p1_productive_infra_list_select_filter', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.widgetTypeMasterCodeSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.widget_type_code
+        );
+
+        const queryString = util.getQueryString('ds_p1_widget_type_master_select_code', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.lovTasiNonProductList = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.start_from,
+          request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p1_lov_tasi_non_product_list_select', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)

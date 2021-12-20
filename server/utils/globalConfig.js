@@ -331,6 +331,8 @@ if(mode === 'local') {
     config.user_pool_id = 'ap-south-1_b7x0MLSHi';
     config.user_web_pool_id = 'ap-south-1_9vPl6RcPo';
     config.customer_pool_id = 'ap-south-1_Bp2kNOKl8';
+    config.pam_user_pool_id = "ap-south-1_b7d7a47VM"; // pam mobile and web common login
+
 
     //Ports Config
     config.version = 'r1';
@@ -380,6 +382,7 @@ if(mode === 'local') {
     //SQS Queue
     config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-staging"; //Staging SQS QUEUE
     config.elasticSearchFailedEntriesSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-elastic-search-failed-entries-v1.fifo";
+    config.elasticSearchEntriesSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-elastic-search-entries-v1.fifo";
     
     //Portal Service URL & Mobile Service URL
     config.portalBaseUrl = "http://localhost:7001/";
@@ -806,6 +809,8 @@ if(mode === 'staging') {
     config.user_web_pool_id = 'ap-south-1_9vPl6RcPo'; // email and phone number
     config.customer_pool_id = 'ap-south-1_Bp2kNOKl8';
 
+    config.pam_user_pool_id = "ap-south-1_b7d7a47VM";
+
     //Ports Config
     config.version = 'r0';
     config.servicePort = 4000;
@@ -840,6 +845,7 @@ if(mode === 'staging') {
     //SQS Queue
     config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-staging"; //Staging SQS QUEUE
     config.elasticSearchFailedEntriesSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-elastic-search-failed-entries-v1.fifo";
+    config.elasticSearchEntriesSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-elastic-search-entries-v1.fifo";
     
     //Portal Service URL & Mobile Service URL
     config.portalBaseUrl = "https://stagingportal.worlddesk.cloud/";
@@ -919,7 +925,7 @@ if(mode === 'staging') {
     config.esmsMentionsEmail = "https://stagingweb.greneos.com";
 
     config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
-    config.docusignWebApp = "https://stagingweb.greneos.com";
+    config.docusignWebApp = "https://stagingweb2.greneos.com";
     config.docusignHookBaseUrl = 'https://stagingapi.worlddesk.cloud';
 
     config.excelBotSQSQueue = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
@@ -967,6 +973,8 @@ if(mode === 'preprod') {
     config.user_pool_id = 'ap-south-1_Ccmp0pMyI';
     config.user_web_pool_id = 'ap-south-1_jeS0OISHP';
     config.customer_pool_id = 'ap-south-1_nk2Ek2BmZ';
+    config.pam_user_pool_id = ""; // pam mobile and web common login
+
 
 
     //Ports Config
@@ -998,6 +1006,7 @@ if(mode === 'preprod') {
     config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-production";
     
     config.elasticSearchFailedEntriesSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-elastic-search-failed-entries-v1.fifo";
+    config.elasticSearchEntriesSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-elastic-search-entries-v1.fifo";
     
     //Portal Service URL & Mobile Service URL
     config.portalBaseUrl = "https://preprodportal.worlddesk.cloud/";
@@ -1047,6 +1056,9 @@ if(mode === 'preprod') {
     //Child Order Creation
     config.CHILD_ORDER_TOPIC_NAME = "preprod-desker-child-order-creation-v1";
 
+    //ESMS Integrations trigger topic
+    config.ESMS_INTEGRATIONS_TOPIC = "staging-vil-esms-ibmmq-v3";
+
     config.CONSUMER_AUTO_COMMIT = true;
     config.CONSUMER_AUTO_COMMIT_INTERVAL = 1000;
     config.CONSUMER_FETCH_MAX_WAIT = 10;
@@ -1063,7 +1075,7 @@ if(mode === 'preprod') {
     config.esmsMentionsEmail = "https://preprodweb.greneos.com";
 
     config.elastiSearchNode = 'https://vpc-worlddesk-staging-wkc45fyoo6x2hjp2dppwfbdaxa.ap-south-1.es.amazonaws.com';
-    config.docusignWebApp = "https://preprodweb.greneos.com";
+    config.docusignWebApp = "https://preprodweb2.greneos.com";
 
     config.excelBotSQSQueue = 'https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-vil-excel-job-queue.fifo';
     config.whitelist = [
@@ -1159,3 +1171,11 @@ config.opentok_apiSecret = "2ea5c758e3d625155f3cde7f42586111848b74c5";
 config.access_key_id = "AKIAWIPBVOFRSA6UUSRC";
 config.secret_access_key = "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";
 config.cognito_region = "ap-south-1";
+//Gallabox Whatsapp
+config.gallaboxApiCredentials = {
+    "apiSecret":'36b2de6f5af943acabda05cece696fb3',
+    "apiKey": '61af21eeef52e800049bf811',
+    "ContentType": 'application/json'
+};
+config.gallaboxurl='https://server.gallabox.com/devapi/messages/whatsapp';
+config.gallaboxChannelId="61a9b44216fc4c0004b14d13";

@@ -1093,5 +1093,81 @@ function AssetController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/asset/email/verify/request', async function (req, res) {
+        const [err, data] = await assetService.emailVerifyRequest(req.body);
+        if (err) {
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/asset/email/verification', async function (req, res) {
+        const [err, data] = await assetService.emailPasscodeVerification(req.body);
+        if (err) {
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/asset/account/mapped/list', async function (req, res) {
+        const [err, data] = await assetService.activityAssetMappingAssetCategorySelect(req.body);
+        if (err) {
+            return res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        } else {
+            return res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/organization/list/insert', async function (req, res) {
+        const [err, resData] = await assetService.organization_List_Insert(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/organization/list/insert | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/organization/list/update/fees', async function (req, res) {
+        const [err, resData] = await assetService.organizationListUpdateFees(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/organization/list/update/fees | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/asset/list/unassigned/desk/search', async function (req, res) {
+        const [err, resData] = await assetService.assetListSearchUnassignedDesk(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/asset/list/unassigned/desk/search | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/asset/list/manager/search', async function (req, res) {
+        const [err, resData] = await assetService.assetListSearchManger(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/asset/list/manager/search | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+	
+    app.post('/' + global.config.version + '/asset/list/update/last_seen_date_time', async function (req, res) {
+        const [err, resData] = await assetService.assetListUpdateLastSeenDateTime(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/asset/list/manager/search | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
 }
 module.exports = AssetController;
