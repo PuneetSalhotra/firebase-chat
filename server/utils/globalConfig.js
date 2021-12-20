@@ -381,6 +381,7 @@ if(mode === 'local') {
 
     //SQS Queue
     config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-staging"; //Staging SQS QUEUE
+    config.ChildOrdersSQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/local-child-orders-creation-v1.fifo";
     config.elasticSearchFailedEntriesSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-elastic-search-failed-entries-v1.fifo";
     config.elasticSearchEntriesSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-elastic-search-entries-v1.fifo";
     
@@ -844,6 +845,7 @@ if(mode === 'staging') {
 
     //SQS Queue
     config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-staging"; //Staging SQS QUEUE
+    config.ChildOrdersSQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-child-orders-creation-v1.fifo";
     config.elasticSearchFailedEntriesSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-elastic-search-failed-entries-v1.fifo";
     config.elasticSearchEntriesSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-elastic-search-entries-v1.fifo";
     
@@ -1004,7 +1006,7 @@ if(mode === 'preprod') {
 
     //SQS Queue
     config.SQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/logs-production";
-    
+    config.ChildOrdersSQSqueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-child-orders-creation-v1.fifo";
     config.elasticSearchFailedEntriesSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-elastic-search-failed-entries-v1.fifo";
     config.elasticSearchEntriesSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-elastic-search-entries-v1.fifo";
     

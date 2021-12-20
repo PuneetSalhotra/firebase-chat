@@ -5,9 +5,17 @@ const pubnubWrapper = new(require('../utils/pubnubWrapper'))(); //BETA
 //const pusherWrapper = new(require('../utils/pusherWrapper'))();
 //var PDFDocument = require('pdfkit');
 //var AwsSss = require('../utils/s3Wrapper');
-const { Kafka } = require('kafkajs');
 const logger = require("../logger/winstonLogger");
 const { serializeError } = require('serialize-error');
+
+const AWS = require('aws-sdk');
+AWS.config.update({
+    "accessKeyId": "AKIAWIPBVOFRSFSVJZMF",
+    "secretAccessKey": "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",
+    "region": "ap-south-1"
+});
+const sqs = new AWS.SQS();
+const uuidv4 = require('uuid/v4');
 
 function ActivityTimelineService(objectCollection) {
 
@@ -4390,19 +4398,10 @@ async function addFormEntriesAsync(request) {
         // })
         // producer.disconnect();
 
-
-        const AWS = require('aws-sdk');
-        AWS.config.update({
-            "accessKeyId": "AKIAWIPBVOFRSFSVJZMF",
-            "secretAccessKey": "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",
-            "region": "ap-south-1"
-        });
-        const sqs = new AWS.SQS();
-        const uuidv4 = require('uuid/v4');
         sqs.sendMessage({
             // DelaySeconds: 5,
             MessageBody: JSON.stringify(message),
-            QueueUrl: "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-child-orders-creation-v1.fifo",
+            QueueUrl: global.config.ChildOrdersSQSqueueUrl,
             MessageGroupId: `mom-creation-queue-v1`,
             MessageDeduplicationId: uuidv4(),
             MessageAttributes: {
