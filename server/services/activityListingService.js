@@ -2221,7 +2221,7 @@ function ActivityListingService(objCollection) {
 				request.page_limit
 			);
 			//const queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_select_myqueue', paramsArr);
-			const queryString = util.getQueryString('ds_v1_2_activity_asset_mapping_select_myqueue', paramsArr);
+			const queryString = util.getQueryString('ds_v1_4_activity_asset_mapping_select_myqueue', paramsArr);
 			if (queryString !== '') {
 				db.executeQuery(1, queryString, request, async function (err, data) {
 					if (err === false) {
