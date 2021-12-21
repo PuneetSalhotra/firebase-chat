@@ -3296,10 +3296,12 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                             reservationCode: reservationCode,
                             supportContactNumber: supportContactNumber,
                             };
+                            let templateName=request.templateName;
                             let [error, data] = await util.WhatsappNotification(
                             request,
                             memberData,
-                            recipientData
+                            recipientData,
+                            templateName
                             );
                         return[false,{}]
     }else {

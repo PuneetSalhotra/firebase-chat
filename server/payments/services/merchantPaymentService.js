@@ -8,6 +8,7 @@ const logger = require('../../logger/winstonLogger');
 const moment = require('moment');
 var makingRequest = require('request');
 const nodeUtil = require('util');
+let TinyURL = require('tinyurl');
 function MerchantPaymentService(objectCollection) {
 
     var db = objectCollection.db;
@@ -505,9 +506,46 @@ function MerchantPaymentService(objectCollection) {
                                                                 request.account_id = paymentresponse.paymentTransactionData.account_id;
                                                                 request.workforce_id = paymentresponse.paymentTransactionData.workforce_id;
                                                                 request.activity_type_category_id = 37;
-                                                                request.asset_id = 11031;
+                                                                request.asset_id = 11031
                                                                 if ("SUC" === paymentresponse.paymentTransactionData.payment_status) {
-                                                                    request.activity_status_type_id = 99;  // paid                             
+                                                                    request.activity_status_type_id = 99;  // paid  
+                                                                    let AssetDetails = await this.pamGetAssetDetails(request, request.organization_id, request.asset_id);
+                                                                    console.log(AssetDetails[0].asset_encryption_token_id, 'AssetDetailsAssetDetailsAssetDetails');
+                                                                    let orderlink = {
+                                                                        organizationId: request.organization_id,
+                                                                        activity_type_category_id: 38,
+                                                                        parent_activity_id: request.activity_id,
+                                                                        asset_id: request.asset_id,
+                                                                        asset_token_auth: AssetDetails[0].asset_encryption_token_id
+                                                                    }
+                                                                    orderlink = Buffer.from(JSON.stringify(orderlink)).toString('base64');
+                                                                    let link = "https://staging.thepamapp.com/track-order/" + orderlink;
+                                                                    if (process.env == 'pamProd') {
+                                                                        let link = "https://puddingandmink.thepamapp.com/track-order/" + orderlink;
+                                                                    }
+                                                                    request.long_url = link;
+                                                                    TinyURL.shorten(request.long_url, async function (res, err) {
+                                                                        if (err) {
+                                                                            console.log("getShortFirebaseURL " + err)
+                                                                        } else {
+                                                                            console.log("getShortFirebaseURL " + res);
+                                                                            let PhoneNumber = paymentresponse.paymentTransactionData.customer_mob_no;
+                                                                            let CountryCode = 91;
+                                                                            let recipientData = {
+                                                                                name: CountryCode.toString() + PhoneNumber,
+                                                                                phone: CountryCode.toString() + PhoneNumber,
+
+                                                                            };
+                                                                            let memberData = {
+                                                                                member_name: CountryCode.toString() + PhoneNumber,
+                                                                                link: res
+                                                                            };
+                                                                            let templateName = "order_track";
+                                                                            let [error, data] = await util.WhatsappNotification(request, memberData, recipientData, templateName);
+                                                                            return [false, {}]
+                                                                        }
+                                                                    });
+
                                                                 } else {
                                                                     request.activity_status_type_id = 191; // payment failed
                                                                 }
@@ -2699,6 +2737,20 @@ function MerchantPaymentService(objectCollection) {
 
         return [error, responseData];
     }
+    this.pamGetAssetDetails = (request, organization_id, asset_id) => {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                organization_id || 351, //,
+                asset_id
+            );
+            var queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    };
 }
 
 module.exports = MerchantPaymentService;
