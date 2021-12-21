@@ -8,7 +8,7 @@ const logger = require('../../logger/winstonLogger');
 const moment = require('moment');
 var makingRequest = require('request');
 const nodeUtil = require('util');
-let TinyURL = require('tinyurl');
+const tinyURL = require('tinyurl');
 function MerchantPaymentService(objectCollection) {
 
     var db = objectCollection.db;
@@ -519,12 +519,9 @@ function MerchantPaymentService(objectCollection) {
                                                                         asset_token_auth: AssetDetails[0].asset_encryption_token_id
                                                                     }
                                                                     orderlink = Buffer.from(JSON.stringify(orderlink)).toString('base64');
-                                                                    let link = "https://staging.thepamapp.com/track-order/" + orderlink;
-                                                                    if (process.env == 'pamProd') {
-                                                                        let link = "https://puddingandmink.thepamapp.com/track-order/" + orderlink;
-                                                                    }
+                                                                    let link = global.config.ordertracklink + orderlink;                                                            
                                                                     request.long_url = link;
-                                                                    TinyURL.shorten(request.long_url, async function (res, err) {
+                                                                    tinyURL.shorten(request.long_url, async function (res, err) {
                                                                         if (err) {
                                                                             console.log("getShortFirebaseURL " + err)
                                                                         } else {
@@ -542,7 +539,7 @@ function MerchantPaymentService(objectCollection) {
                                                                             };
                                                                             let templateName = "order_track";
                                                                             let [error, data] = await util.WhatsappNotification(request, memberData, recipientData, templateName);
-                                                                            return [false, {}]
+                                                                            return [true, {}]
                                                                         }
                                                                     });
 
