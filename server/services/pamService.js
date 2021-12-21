@@ -6194,43 +6194,6 @@ this.getChildOfAParent = async (request) => {
     if (queryString != '') {
         await db.executeQueryPromise(1, queryString, request)
             .then((data) => {
-               if(request.type_flag==2 && request.flag!=3){
-                    let MonthBetweenDates = [];
-                    let monthNames = [
-                    "January",
-                    "February",
-                    "March",
-                    "April",
-                    "May",
-                    "June",
-                    "July",
-                    "August",
-                    "September",
-                    "October",
-                    "November",
-                    "December",
-                    ];
-                    function diff(from, to) {
-                    let arr = [];
-                    let datFrom = new Date(Date.parse(from));
-                    let datTo = new Date(Date.parse(to));
-                    let fromYear = datFrom.getFullYear();
-                    let toYear = datTo.getFullYear();
-                    let diffYear = 12 * (toYear - fromYear) + datTo.getMonth();
-                    for (var i = datFrom.getMonth(); i <= diffYear; i++) {
-                        arr.push(monthNames[i % 12] + " " + Math.floor(fromYear + i / 12));
-                    }
-                    return arr;
-                    }
-                    MonthBetweenDates = diff(request.start_date, request.end_date);
-                    let responseMonthscheck = [];
-                    data.map((i) => responseMonthscheck.push(i.month));
-                    const intersection = MonthBetweenDates.filter((element) => !responseMonthscheck.includes(element));
-                    intersection.map((i) =>
-                    data.push({ month: i,value: 0,
-                    })
-                    );
-                }
                 responseData = data;
                 error = false;
             })
