@@ -10,6 +10,7 @@ const RMBotService = require('../../botEngine/services/rmbotService');
 var ActivityTimelineService = require('../../services/activityTimelineService.js');
 var ActivityService = require('../../services/activityService.js');
 var ActivityParticipantService = require('../../services/activityParticipantService.js');
+var AnalyticsService = require('../../analytics/services/analyticsService');
 
 
 const AWS_Cognito = require('aws-sdk');
@@ -32,6 +33,7 @@ function AdminOpsService(objectCollection) {
     const activityService = new ActivityService(objectCollection)
     const activityTimelineService = new ActivityTimelineService(objectCollection);
     const activityParticipantService = new ActivityParticipantService(objectCollection);
+    const analyticsService = new AnalyticsService(objectCollection);
     const moment = require('moment');
     const makeRequest = require('request');
     const nodeUtil = require('util');
@@ -7627,7 +7629,7 @@ console.log('new ActivityId321',newActivity_id)
                 .then((data) => {
                     responseData = data;
                     error = false;
-
+                    createDefaultWidgets(request,data[0].tag_type_id)
                     //History Insert
                     tagEntityMappingHistoryInsert(request, 0);
                 })
@@ -7638,6 +7640,76 @@ console.log('new ActivityId321',newActivity_id)
         }
         return [error, responseData];
     }
+
+    async function createDefaultWidgets(request,tag_type_id){
+        let responseData = [],
+        error = true;
+    const paramsArr = new Array(
+        request.organization_id,
+        request.widget_type_category_id || 3,
+        tag_type_id,
+        request.workforce_id,
+        0,
+        50
+    );
+
+    const queryString = util.getQueryString('ds_p1_widget_type_master_select_tag_type', paramsArr);
+
+    if (queryString !== '') {
+        await db.executeQueryPromise(0, queryString, request)
+            .then((data1) => {
+               let widgetData = require('../../utils/defaultWidgetMappings.json');
+            //    console.log(widgetData)
+               for(let i=0;i<widgetData.length;i++){
+                  let checkExistingWidgets = data1.findIndex((item)=>item.widget_type_id==widgetData[i].widget_type_id);
+                  if(checkExistingWidgets!=-1){
+                      continue
+                  }
+                  
+                  let widgetDataToSend = {
+                    "filter_account_id": 0,
+                    "filter_activity_status_id": 0,
+                    "filter_activity_status_tag_id": 0,
+                    "filter_activity_status_type_id": 0,
+                    "filter_activity_type_id": 0,
+                    "filter_asset_id": 0,
+                    "filter_circle_id": 0,
+                    "filter_field_id": 0,
+                    "filter_form_id": 0,
+                    "filter_is_datetime_considered": 1,
+                    "filter_is_value_considered": 0,
+                    "filter_reporting_manager_id": 0,
+                    "filter_segment_id": 0,
+                    "filter_tag_id": 0,
+                    "filter_tag_type_id": `[{\"tag_type_id\":${tag_type_id}}]`,
+                    "filter_timeline_name": -1,
+                    "filter_workforce_id": 0,
+                    "filter_workforce_type_id": 0,
+                    "widget_aggregate_id": 1,
+                    "widget_enabled_statuses": [
+                        0,
+                        1,
+                        2
+                    ],
+                    "widget_id": -1,
+                    "widget_target_value": "",
+                    "widget_type_category_id": 3,
+                  }
+                  widgetDataToSend = {...widgetDataToSend,...widgetData[i]};
+                  let requestToSend = {...request,...widgetDataToSend};
+                //   console.log(requestToSend)
+                  analyticsService.analyticsWidgetAddV1(requestToSend)
+               }
+              
+
+            })
+            .catch((err)=>{
+                error = err;
+                console.log('error :: ' + error);
+            })
+
+    }
+}
 
 
     this.tagEntityMappingDelete = async (request) => {
