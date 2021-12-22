@@ -1457,16 +1457,15 @@ function MerchantPaymentService(objectCollection) {
                     }];
                 }
 
-                let settlement_status = "SUC";
                 let transaction_type = 'PAYMENT';
 
                 const paramsArr = [
-                    settlement_status,
+                    1,
                     util.convertDateFormat(request.settlementDate, 'YYYY-MM-DD'),
-                    JSON.stringify(request),
                     merchant_id,
                     merchant_txn_ref_no,
-                    transaction_type
+                    transaction_type,
+                    JSON.stringify(request)
                 ];
                 logger.info(paramsArr);
                 const queryString = util.getQueryString('ds_v1_payment_log_transaction_update_settlement_details', paramsArr);
