@@ -2478,7 +2478,7 @@ function BotService(objectCollection) {
                                 console.log(data.Attributes.ApproximateNumberOfMessages);
 
                                 if (Number(data.Attributes.ApproximateNumberOfMessages) >= 20) {
-                                    await addTimelineMessage(
+                                    addTimelineMessage(
                                         {
                                             activity_timeline_text: "Info",
                                             organization_id: request.organization_id
