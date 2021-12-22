@@ -286,6 +286,7 @@ function AnalyticsService(objectCollection)
             global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
             return [true, {message: "Error creating activity"}];
         }
+        return [false,[]]
         //global.logger.write('conLog', "createAssetBundle | createActivity | activityData: " + activityData, {}, {});
         //console.log("createAssetBundle | createActivity | activityData: ", activityData);
         request.activity_id = activityData.response.activity_id;
