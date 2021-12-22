@@ -5125,7 +5125,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             return [true, "unknown Error"];
         }
 
-        let resp = await getQueueActivity(newReq, request.workflow_activity_id);
+        let resp = await getQueueActivity(newReq, request.workflow_activity_id,request.activity_type_category_id);
         util.logInfo(request,` getQueueActivity | resp: %j`, resp);
 
         if (resp.length > 0) {
@@ -8271,14 +8271,21 @@ else{
         return {};
     }
 
-    async function getQueueActivity(request, idActivity) {
+    async function getQueueActivity(request, idActivity,activityTypeCategoryId) {
+        let queryString='';
+        if(Number(activityTypeCategoryId)===59){
+            let paramsArr = [idActivity];
+             queryString = util.getQueryString('ds_v2_queue_activity_mapping_select_activity', paramsArr);
+        }
+        else{
         let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
             idActivity
         );
-        let queryString = util.getQueryString('ds_v1_queue_activity_mapping_select_activity', paramsArr);
+         queryString = util.getQueryString('ds_v1_queue_activity_mapping_select_activity', paramsArr);
+        }
         if (queryString != '') {
             return await db.executeQueryPromise(1, queryString, request);
         }
@@ -8321,11 +8328,18 @@ else{
     }
 
     async function getAllQueuesBasedOnActId(request, activityId) {
+        let queryString="";
+        if(request.activity_type_category_id==59){
+            let paramsArr =[activityId]
+             queryString = util.getQueryString('ds_p1_3_queue_activity_mapping_select_activity', paramsArr);
+        }
+        else{
         let paramsArr = new Array(
             request.organization_id,
             activityId
         );
-        let queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select_activity', paramsArr);
+         queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select_activity', paramsArr);
+        }
         if (queryString != '') {
             return await db.executeQueryPromise(1, queryString, request);
         }
