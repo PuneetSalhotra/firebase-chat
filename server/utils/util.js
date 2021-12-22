@@ -3585,7 +3585,7 @@ function Util(objectCollection) {
 
         return [error, responseData];
     }
-    this.WhatsappNotification=async(request,memberData,recipientData)=>{
+    this.WhatsappNotification=async(request,memberData,recipientData,templateName)=>{
         let responseData = [];
         let   error = true;   
         var data = {
@@ -3595,7 +3595,7 @@ function Util(objectCollection) {
             "whatsapp": {
             "type": "template",
             "template": {
-            "templateName": request.templateName,
+            "templateName": templateName,
             "bodyValues":memberData,
             }
             }

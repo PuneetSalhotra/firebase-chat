@@ -1181,3 +1181,5 @@ config.gallaboxApiCredentials = {
 };
 config.gallaboxurl='https://server.gallabox.com/devapi/messages/whatsapp';
 config.gallaboxChannelId="61a9b44216fc4c0004b14d13";
+//pam order track link
+config.ordertracklink="https://staging.thepamapp.com/track-order/";

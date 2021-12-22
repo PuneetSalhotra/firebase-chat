@@ -4253,9 +4253,9 @@ function ActivityService(objectCollection) {
                 let req = Object.assign({}, request);
                 req.flag = 4;
                 let queueMap1 = await activityListingService.getEntityQueueMapping(req);
-                let queueMap2 = await activityListingService.getEntityQueueMapping(request);
+                // let queueMap2 = await activityListingService.getEntityQueueMapping(request);
 
-                queueMap = [...queueMap1, ...queueMap2];
+                queueMap = [...queueMap1];
             } else {
                 queueMap = await activityListingService.getEntityQueueMapping(request);
             }
@@ -4412,11 +4412,18 @@ function ActivityService(objectCollection) {
         return responseObject;
     }
     async function getAllQueuesBasedOnActId(request, activityId) {
+        let queryString="";
+        if(request.activity_type_category_id==59){
+            let paramsArr =[activityId]
+             queryString = util.getQueryString('ds_p1_3_queue_activity_mapping_select_activity', paramsArr);
+        }
+        else{
         let paramsArr = new Array(
             request.organization_id,
             activityId
         );
-        let queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select_activity', paramsArr);
+         queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select_activity', paramsArr);
+        }
         if (queryString != '') {
             return await db.executeQueryPromise(1, queryString, request);
         }
