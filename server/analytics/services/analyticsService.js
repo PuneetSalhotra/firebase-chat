@@ -286,9 +286,12 @@ function AnalyticsService(objectCollection)
             global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
             return [true, {message: "Error creating activity"}];
         }
+        
         //global.logger.write('conLog', "createAssetBundle | createActivity | activityData: " + activityData, {}, {});
         //console.log("createAssetBundle | createActivity | activityData: ", activityData);
         request.activity_id = activityData.response.activity_id;
+        await updateWidgetDetailsInActListV1(request);
+        return [false,[]]
         // return [false,[]]
         let [widgetErr, widgetResponse] = await this.widgetListInsert(request);
         if(widgetErr) {
@@ -403,7 +406,7 @@ function AnalyticsService(objectCollection)
             activity_inline_data: JSON.stringify(activityInlineData),
             activity_datetime_start: util.getCurrentUTCTime(),
             activity_datetime_end: util.getCurrentUTCTime(),
-            activity_type_category_id: 52, //Widget
+            activity_type_category_id: request.activity_type_category_id || 52, //Widget
             activity_sub_type_id: 0,
             activity_type_id: request.activity_type_id || 0,
             activity_access_role_id: request.activity_access_role_id || 0,
@@ -431,7 +434,6 @@ function AnalyticsService(objectCollection)
             activity_timeline_collection : JSON.stringify(activityTimelineCollectionFor26004)
         };
 
-        
         const addActivityAsync = nodeUtil.promisify(makeRequest.post);
         const makeRequestOptions = {
             form: addActivityRequest
@@ -440,6 +442,7 @@ function AnalyticsService(objectCollection)
         try {
             // global.config.mobileBaseUrl + global.config.version
             const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
+            // console.log(response)
             const body = JSON.parse(response.body);
             // console.log(body)
             if (Number(body.status) === 200) {
@@ -538,6 +541,32 @@ function AnalyticsService(objectCollection)
         );
 
         let queryString = util.getQueryString('ds_p1_activity_list_update_widget_details', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }
+
+    async function updateWidgetDetailsInActListV1 (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.activity_id,
+            request.activity_widget_id,
+            request.widget_type_id,
+            request.organization_id,
+            request.datetime_log
+        );
+
+        let queryString = util.getQueryString('ds_p1_1_activity_list_update_widget_details', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
