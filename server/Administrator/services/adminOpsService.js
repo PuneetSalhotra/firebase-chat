@@ -131,6 +131,7 @@ function AdminOpsService(objectCollection) {
             request.organization_flag_timeline_access_mgmt || 0,
             request.flag_timeline_lead_mgmt || 0,
             request.flag_dashboard_onhold || 0,
+            request.flag_enable_tag || 0,
             request.asset_id,
             util.getCurrentUTCTime()
         );
@@ -970,6 +971,7 @@ function AdminOpsService(objectCollection) {
           request.organization_flag_timeline_access_mgmt || 0,
           request.flag_lead_mgmt || 0,
           request.flag_dashboard_onhold || 0,
+            request.flag_enable_tag || 0,
           request.organization_type_id || 1,
           request.asset_id || 1,
           util.getCurrentUTCTime()

@@ -6321,8 +6321,25 @@ function AnalyticsService(objectCollection)
                 resourceValueFlgArrayTotal[i] = {};
                 resourceValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArray[i]);
             }
-            console.log("manager_asset_id ",finalResourceMap)
-            console.log("results ",results.length);
+
+            if (results.length == 1 && finalResourceMap.size == 0) {
+                let newMap = new Map();
+                for (let i = 0; i < widgetFlags.length; i++) {
+                    newMap.set("flag_" + (i + 1), 0);
+                }
+                request.asset_id = request.filter_asset_id;
+                let [err, assetData] = await activityCommonService.getAssetDetailsAsync(request);
+                newMap.set(request.filter_asset_id, assetData[0].operating_asset_first_name);
+                finalResourceMap.set(request.filter_asset_id, newMap);
+                for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                    let newMap = finalResourceMap.get(request.filter_asset_id) || new Map();
+                    newMap.set("flag_" + (iteratorM + 1) + "_count", 0);
+                    newMap.set("flag_" + (iteratorM + 1) + "_quantity", 0);
+                    newMap.set("flag_" + (iteratorM + 1) + "_value", 0);
+                    finalResourceMap.set(request.filter_asset_id, newMap);
+                }
+            }
+            console.log("finalResourceMap ", JSON.stringify(finalResourceMap));
             
             for (let [key, value] of finalResourceMap) {
                 console.log("key:"+key+" value:"+JSON.stringify(value))
@@ -6565,6 +6582,25 @@ function AnalyticsService(objectCollection)
                 resourceValueFlgArrayTotal[i] = {};
                 resourceValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArray[i]);
             }
+
+            if (results.length == 1 && finalResourceMap.size == 0) {
+                let newMap = new Map();
+                for (let i = 0; i < widgetFlags.length; i++) {
+                    newMap.set("flag_" + (i + 1), 0);
+                }
+                request.asset_id = request.filter_asset_id;
+                let [err, assetData] = await activityCommonService.getAssetDetailsAsync(request);
+                newMap.set(request.filter_asset_id, assetData[0].operating_asset_first_name);
+                finalResourceMap.set(request.filter_asset_id, newMap);
+                for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                    let newMap = finalResourceMap.get(request.filter_asset_id) || new Map();
+                    newMap.set("flag_" + (iteratorM + 1) + "_count", 0);
+                    newMap.set("flag_" + (iteratorM + 1) + "_quantity", 0);
+                    newMap.set("flag_" + (iteratorM + 1) + "_value", 0);
+                    finalResourceMap.set(request.filter_asset_id, newMap);
+                }
+            }
+            console.log("finalResourceMap ", JSON.stringify(finalResourceMap));
 
             for (let [key, value] of finalResourceMap) {
                 let newMap = value;
@@ -6845,7 +6881,26 @@ function AnalyticsService(objectCollection)
                 resourceValueFlgArrayTotal[i] = {};
                 resourceValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArray[i]);
             }
+
+            if (results.length == 1 && finalResourceMap.size == 0) {
+                let newMap = new Map();
+                for (let i = 0; i < widgetFlags.length; i++) {
+                    newMap.set("flag_" + (i + 1), 0);
+                }
+                request.asset_id = request.filter_asset_id;
+                let [err, assetData] = await activityCommonService.getAssetDetailsAsync(request);
+                newMap.set(request.filter_asset_id, assetData[0].operating_asset_first_name);
+                finalResourceMap.set(request.filter_asset_id, newMap);
+                for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                    let newMap = finalResourceMap.get(request.filter_asset_id) || new Map();
+                    newMap.set("flag_" + (iteratorM + 1) + "_count", 0);
+                    newMap.set("flag_" + (iteratorM + 1) + "_quantity", 0);
+                    newMap.set("flag_" + (iteratorM + 1) + "_value", 0);
+                    finalResourceMap.set(request.filter_asset_id, newMap);
+                }
+            }
             console.log("finalResourceMap ",JSON.stringify(finalResourceMap));
+
             for (let [key, value] of finalResourceMap) {
                 console.log("key:"+key+" value:"+JSON.stringify(value))
                 let newMap = value;
