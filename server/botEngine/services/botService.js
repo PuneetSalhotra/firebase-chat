@@ -2465,6 +2465,35 @@ function BotService(objectCollection) {
                             }                                    
                         });
 
+                        let params = {
+                            QueueUrl: global.config.ChildOrdersSQSqueueUrl,
+                            AttributeNames: ['ApproximateNumberOfMessages'],
+                        };
+
+                        sqs.getQueueAttributes(params, function (err, data) {
+                            if (err) {
+                                console.log("Error", err);
+                            } else {
+                                console.log(data);
+                                console.log(data.Attributes.ApproximateNumberOfMessages);
+
+                                if (Number(data.Attributes.ApproximateNumberOfMessages) >= 20) {
+                                    addTimelineMessage(
+                                        {
+                                            activity_timeline_text: "Info",
+                                            organization_id: request.organization_id
+                                        }, request.workflow_activity_id || 0,
+                                        {
+                                            subject: 'Info: More Requests in queue',
+                                            content: "There will be delay in processing your request as we have received multiple requests at time.\nPlease wait for sometime while we are processing your request.",
+                                            mail_body: "There will be delay in processing your request as we have received multiple requests at time.\nPlease wait for sometime while we are processing your request.",
+                                            attachments: []
+                                        }
+                                    );
+                                }
+                            }
+                        });
+
                     } catch (err) {
                         global.logger.write('conLog', 'Error in executing Child Order creation BOT Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
