@@ -209,6 +209,7 @@ function ActivityService(objectCollection) {
 
                             let activityTitle = "Form Submitted";
 
+                            
                             if (activityTypeCategroyId === 9) {
 
                                 if (Number(request.organization_id) === 860 || Number(request.organization_id) === 858 ||
@@ -312,7 +313,7 @@ function ActivityService(objectCollection) {
                             }
 
                             // do the timeline transactions here..                    
-                            if (activityTypeCategroyId === 38) {
+                            if (activityTypeCategroyId === 38) { // pam order
                                 addIngredients(request);
                             }
                             
@@ -320,9 +321,15 @@ function ActivityService(objectCollection) {
                                 activityCommonService.sendPushOnReservationAdd(request);
                             }
 
-                            if (activityTypeCategroyId === 40) {
+                            if (activityTypeCategroyId === 40) { // pam payment
                                 //if(request.hasOwnProperty('is_room_posting'))
                                 activityCommonService.processReservationBilling(request, request.activity_parent_id).then(() => {});
+
+                                let inlineData = JSON.parse(request.activity_inline_data);
+                                activityCommonService.updateAmountInInlineData({
+                                    ...request,
+                                    amount : (inlineData.card || 0) + (inlineData.cash || 0)
+                                });
                             }
 
                             //Submitted Rollback Form
