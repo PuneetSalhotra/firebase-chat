@@ -7717,6 +7717,48 @@ console.log('new ActivityId321',newActivity_id)
     }
 }
 
+this.createWidgetsV1 = async (request)=>{
+    //check entity mapping with activity_type_id 
+    let responseData = [],
+    error = true;
+const paramsArr = new Array(
+    request.organization_id,
+    request.activity_type_id,
+    request.flag ||0,
+    0,
+    50
+);
+
+const queryString = util.getQueryString('ds_v1_tag_entity_mapping_select_activity_type', paramsArr);
+
+if (queryString !== '') {
+    await db.executeQueryPromise(1, queryString, request)
+        .then(async (data1) => {
+            let [actError,activity_type] = await adminListingService.workforceActivityTypeMappingSelectCategory({...request,activity_type_category_id:58});
+          if(data1.length>0){
+            let tag_type_id = data1[0].tag_type_id;
+            request.filter_tag_type_id = `[{\"tag_type_id\":${tag_type_id}}]`;
+            request.activity_type_category_id = 58;
+            request.activity_type_id = activity_type[0].activity_type_id;
+            console.log(request)
+            await analyticsService.analyticsWidgetAddV1(request)
+          }
+          else{
+            let [err1,tagData] = await this.tagEntityMappingInsertDBCall({...request});
+            request.filter_tag_type_id = `[{\"tag_type_id\":${tagData[0].tag_type_id}}]`;
+            request.activity_type_category_id = 58;
+            request.activity_type_id = activity_type[0].activity_type_id;
+            await analyticsService.analyticsWidgetAddV1(request)
+
+          }
+        }).catch(err=>{
+        return [true,[]] 
+        })
+    }
+    return [false,[]]
+    
+}
+
 
     this.tagEntityMappingDelete = async (request) => {
         let responseData = [],
