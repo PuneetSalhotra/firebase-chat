@@ -232,6 +232,16 @@ app.post('/' + global.config.version + '/widget/type/master/select', async funct
     }
 });
 
+//Delete Activity List
+app.post('/' + global.config.version + '/activity/list/delete', async function (req, res) {
+    const [err, resData] = await analyticsOpsService.DeleteActivityList(req.body);
+    if (!err) {
+        res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+    } else {
+        console.log("/activity/list/delete | Error: ", err);
+        res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+    }
+});
 }
 
 module.exports = AnalyticsOpsController;
