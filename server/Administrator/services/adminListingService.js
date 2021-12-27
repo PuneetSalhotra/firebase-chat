@@ -2199,6 +2199,29 @@ function AdminListingService(objectCollection) {
        }
        return [error, responseData];
     }
+
+    this.getAllOrganization = async (request) =>{
+        let responseData = [],
+            error = true;
+ 
+        const paramsArr = new Array(
+            request.is_search || 0,
+            request.organization_name || ""
+        );
+        const queryString = util.getQueryString('ds_p1_organization_list_select_search_name', paramsArr);
+ 
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+     }
 }
 
 module.exports = AdminListingService;

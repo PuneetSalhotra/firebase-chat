@@ -176,6 +176,25 @@ function AnalyticsController(objCollection)
             } 
     });
 
+    app.post('/' + global.config.version + '/analytics/widget/add/v1', async (req, res) => {        
+        try {
+            
+            //try {
+            //    JSON.parse(req.body.widget_inline_data);
+            //} catch (exeption) {
+            //    res.json(responseWrapper.getResponse(false, 'Invalid Inline JSON', -3308, req.body));
+            //    return;
+            //}
+
+            let [err,result] = await analyticsService.analyticsWidgetAddV1(req.body);
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch(err) {
+            //global.logger('conLog', 'Error : ', err, {});
+            console.log('Error : ', err);
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+            } 
+    });
+
     app.post('/' + global.config.version + '/analytics/widget/alter', async (req, res) => {        
         try {
             let result = await analyticsService.analyticsWidgetAlter(req.body);
@@ -692,6 +711,17 @@ function AnalyticsController(objCollection)
         } catch (err) {
             console.log(err)
             console.log("/get/sip/enabled/roles | Error: ", err);
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    }); 
+
+    app.post('/' + global.config.version + '/widget/update/inline/data', async (req, res) => {
+        try {
+            const [err, result] = await analyticsService.updateWidgetInline(req.body);
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch (err) {
+            console.log(err)
+            console.log("/widget/update/inline/data | Error: ", err);
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     }); 
