@@ -341,34 +341,34 @@ function AnalyticsService(objectCollection)
         let activityInlineData = {};
         let widgetInfo = {};        
         widgetInfo.widget_id = util.replaceDefaultNumber(request.widget_id);
-        widgetInfo.widget_name = util.replaceDefaultString(request.widget_name);
+      //  widgetInfo.widget_name = util.replaceDefaultString(request.widget_name);
         widgetInfo.widget_target_value = request.widget_target_value;
         widgetInfo.widget_type_id = util.replaceDefaultString(request.widget_type_id);
         widgetInfo.widget_type_category_id = 3; //util.replaceDefaultString(request.widget_type_category_id);
         widgetInfo.widget_chart_id = util.replaceDefaultNumber(request.widget_chart_id);       
-        widgetInfo.widget_aggregate_id = util.replaceDefaultNumber(request.widget_aggregate_id);      
+       // widgetInfo.widget_aggregate_id = util.replaceDefaultNumber(request.widget_aggregate_id);      
         widgetInfo.filter_tag_type_id = request.filter_tag_type_id;        
-        widgetInfo.filter_tag_id = util.replaceDefaultNumber(request.filter_tag_id);
+        //widgetInfo.filter_tag_id = util.replaceDefaultNumber(request.filter_tag_id);
         widgetInfo.filter_activity_type_id = util.replaceDefaultNumber(request.filter_activity_type_id);       
-        widgetInfo.filter_activity_status_type_id = request.filter_activity_status_type_id;
-        widgetInfo.filter_activity_status_tag_id = util.replaceDefaultNumber(request.filter_activity_status_tag_id);
+        //widgetInfo.filter_activity_status_type_id = request.filter_activity_status_type_id;
+        //widgetInfo.filter_activity_status_tag_id = util.replaceDefaultNumber(request.filter_activity_status_tag_id);
         widgetInfo.filter_activity_status_id = util.replaceDefaultNumber(request.filter_activity_status_id);
         widgetInfo.activity_status_id = request.activity_status_id;
-        widgetInfo.filter_account_id = util.replaceDefaultNumber(request.filter_account_id);
-        widgetInfo.filter_workforce_type_id = util.replaceDefaultNumber(request.filter_workforce_type_id);
-        widgetInfo.filter_workforce_id = util.replaceDefaultNumber(request.filter_workforce_id);
-        widgetInfo.filter_asset_id = util.replaceDefaultNumber(request.filter_asset_id);
-        widgetInfo.filter_date_type_id = util.replaceDefaultNumber(request.filter_date_type_id);
+        //widgetInfo.filter_account_id = util.replaceDefaultNumber(request.filter_account_id);
+        //widgetInfo.filter_workforce_type_id = util.replaceDefaultNumber(request.filter_workforce_type_id);
+        //widgetInfo.filter_workforce_id = util.replaceDefaultNumber(request.filter_workforce_id);
+        //widgetInfo.filter_asset_id = util.replaceDefaultNumber(request.filter_asset_id);
+        //widgetInfo.filter_date_type_id = util.replaceDefaultNumber(request.filter_date_type_id);
         widgetInfo.filter_timeline_id = util.replaceDefaultNumber(request.filter_timeline_id);
-        widgetInfo.filter_timeline_name = util.replaceDefaultNumber(request.filter_timeline_name); 
+        //widgetInfo.filter_timeline_name = util.replaceDefaultNumber(request.filter_timeline_name); 
         widgetInfo.filter_form_id = util.replaceDefaultNumber(request.filter_form_id);
         widgetInfo.filter_field_id = util.replaceDefaultNumber(request.filter_field_id);
 
-        request.widget_detailed_info = request.widget_detailed_info || {};
-        let widgetDetailedInfo = typeof request.widget_detailed_info == 'string' ? JSON.parse(request.widget_detailed_info):request.widget_detailed_info;
+      //  request.widget_detailed_info = request.widget_detailed_info || {};
+      //  let widgetDetailedInfo = typeof request.widget_detailed_info == 'string' ? JSON.parse(request.widget_detailed_info):request.widget_detailed_info;
                
         activityInlineData.widget_info = widgetInfo;
-        activityInlineData.widget_detailed_info = widgetDetailedInfo;
+       // activityInlineData.widget_detailed_info = widgetDetailedInfo;
 
         const addActivityRequest = {
             organization_id: request.organization_id,
