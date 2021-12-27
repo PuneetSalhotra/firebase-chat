@@ -4475,19 +4475,20 @@ function ActivityListingService(objCollection) {
 		}
 	}
 
-	// Update Widget Name
-	this.UpdateWidgetName = async function (request) {
+	// Update Widget Details
+	this.UpdateWidgetDetails = async function (request) {
 		let responseData = [],
 			error = true;
 
 		const paramsArr = new Array(
-			request.organization_id,
 			request.activity_id,
-			request.widget_id,
+			request.sequence_id,
 			request.widget_name,
+			request.flag,
+			request.organization_id,
 			util.getCurrentUTCTime()
 		);
-		const queryString = util.getQueryString('ds_p2_activity_list_update_widget_name', paramsArr);
+		const queryString = util.getQueryString('ds_p2_activity_list_update_widget_details', paramsArr);
 
 		if (queryString !== '') {
 			await db.executeQueryPromise(0, queryString, request)
