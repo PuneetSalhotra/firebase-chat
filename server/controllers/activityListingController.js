@@ -1184,7 +1184,18 @@ function ActivityListingController(objCollection) {
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
-    
+
+    app.post('/' + global.config.version + '/activity/update/widget_name', async (req, res) => {
+        const [err, responseData] = await activityListingService.UpdateWidgetName(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/update/widget_name | Error: ", err);
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
+
 }
 
 module.exports = ActivityListingController;

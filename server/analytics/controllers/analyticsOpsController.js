@@ -186,7 +186,62 @@ function AnalyticsOpsController (objCollection) {
         }
     });
 
+//Delete Reports Tag Type Mapping
+app.post('/' + global.config.version + '/report/filter/tag_type/mapping/delete', async function (req, res) {
+    const [err, resData] = await analyticsOpsService.DeleteReportsTagTypeMapping(req.body);
+    if (!err) {
+        res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+    } else {
+        console.log("/report/filter/tag_type/mapping/delete | Error: ", err);
+        res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+    }
+});
 
+
+//Insert Reports Tag Type Mapping
+app.post('/' + global.config.version + '/report/filter/tag_type/mapping/insert', async function (req, res) {
+    const [err, resData] = await analyticsOpsService.InsertReportsTagTypeMapping(req.body);
+    if (!err) {
+        res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+    } else {
+        console.log("/report/filter/tag_type/mapping/insert | Error: ", err);
+        res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+    }
+});
+
+
+//Select Widget Chart Master
+app.post('/' + global.config.version + '/widget/chart/master/select', async function (req, res) {
+    const [err, resData] = await analyticsOpsService.SelectWidgetChartMaster(req.body);
+    if (!err) {
+        res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+    } else {
+        console.log("/widget/chart/master/select | Error: ", err);
+        res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+    }
+});
+
+//Select Widget Type Master
+app.post('/' + global.config.version + '/widget/type/master/select', async function (req, res) {
+    const [err, resData] = await analyticsOpsService.SelectWidgetTypeMaster(req.body);
+    if (!err) {
+        res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+    } else {
+        console.log("/widget/type/master/select | Error: ", err);
+        res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+    }
+});
+
+//Delete Activity List
+app.post('/' + global.config.version + '/activity/list/delete', async function (req, res) {
+    const [err, resData] = await analyticsOpsService.DeleteActivityList(req.body);
+    if (!err) {
+        res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+    } else {
+        console.log("/activity/list/delete | Error: ", err);
+        res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+    }
+});
 }
 
 module.exports = AnalyticsOpsController;
