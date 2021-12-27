@@ -167,6 +167,7 @@ function AnalyticsService(objectCollection)
         request.widget_chart_id = staticValues[0].widget_type_chart_id;
         request.flag_app = staticValues[0].flag_mobile_enabled;
         request.widget_aggregate_id = 1;
+
         //********************************************************/
 
         //Get Asset Name
@@ -246,7 +247,7 @@ function AnalyticsService(objectCollection)
 
     this.analyticsWidgetAddV1 = async function(request) {
         // console.log(request);
-        console.log(request.widget_type_id)
+        // console.log(request.widget_type_id)
         request.datetime_log = util.getCurrentUTCTime();
         let widgetId;
         
@@ -290,61 +291,37 @@ function AnalyticsService(objectCollection)
         //global.logger.write('conLog', "createAssetBundle | createActivity | activityData: " + activityData, {}, {});
         //console.log("createAssetBundle | createActivity | activityData: ", activityData);
         request.activity_id = activityData.response.activity_id;
+        if(Number(request.form_id)>0){
+            let [widgetErr, widgetResponse] = await this.widgetListInsert(request);
+            if(widgetErr) {
+                global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
+                return [true, {message: "Error creating Widget"}];
+            }            
+
+            widgetId = widgetResponse[0].widget_id;
+            request.widget_id = widgetId;
+                
+            await new Promise((resolve)=>{
+                setTimeout(()=>{
+                    return resolve();
+                }, 2500);
+            });
+            
+            await updateWidgetDetailsInActList(request);
+            await updateWidgetDetailsInActAssetList(request);
+    
+            let response = {};
+            response.widget_id = widgetId;
+            response.widget_activity_id = request.activity_id;
+            response.message_unique_id = request.message_unique_id;
+            response.activity_internal_id = request.activity_internal_id;
+            return [false,response];
+        }
+        else {
+
         await updateWidgetDetailsInActListV1(request);
         return [false,[]]
-        // return [false,[]]
-        let [widgetErr, widgetResponse] = await this.widgetListInsert(request);
-        if(widgetErr) {
-            global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
-            return [true, {message: "Error creating Widget"}];
-        }            
-        //console.log('widgetResponse : ', widgetResponse);
-        //console.log('Widget ID : ', widgetResponse[0].widget_id);
-        widgetId = widgetResponse[0].widget_id;
-        request.widget_id = widgetId;
-            
-        await new Promise((resolve)=>{
-            setTimeout(()=>{
-                return resolve();
-            }, 2500);
-        });
-
-        //let timelineReqParams = Object.assign({}, request);        
-
-        //Add timeline Entry
-        //let activityTimelineCollectionFor26004 = {
-        //    "content": 'New Widget ' + request.widget_name + ' has been added by ' + request.widget_owner_asset_id,
-        //    "subject": 'New Widget ' + request.widget_name + ' has been added.',
-        //    "mail_body": 'New Widget ' + request.widget_name + ' has been added by ' + request.widget_owner_asset_id,
-        //    "attachments": [],
-        //    "activity_reference": [],
-        //    "asset_reference": [],            
-        //    "form_approval_field_reference": [],                        
-        //};
-//
-        //timelineReqParams.activity_timeline_collection = JSON.stringify(activityTimelineCollectionFor26004);
-        //timelineReqParams.activity_stream_type_id = 26001;
-        //timelineReqParams.flag_timeline_entry = 1;
-        //timelineReqParams.device_os_id = 7;        
-//
-        //let displayFileEvent = {
-        //    name: "addTimelineTransaction",
-        //    service: "activityTimelineService",
-        //    method: "addTimelineTransaction",
-        //    payload: timelineReqParams
-        //};
-//
-        //await queueWrapper.raiseActivityEventPromise(displayFileEvent, request.activity_id);
-        
-        await updateWidgetDetailsInActList(request);
-        await updateWidgetDetailsInActAssetList(request);
-
-        let response = {};
-        response.widget_id = widgetId;
-        response.widget_activity_id = request.activity_id;
-        response.message_unique_id = request.message_unique_id;
-        response.activity_internal_id = request.activity_internal_id;
-        return response;
+        }
     };
 
     async function createActivity(request) {
@@ -578,6 +555,30 @@ function AnalyticsService(objectCollection)
                 });
         }
         return [error, responseData];
+    }
+
+    this.updateWidgetInline = async (request)=>{
+
+            var paramsArr = new Array(
+                request.activity_id,
+                request.organization_id,
+                request.activity_inline_data
+            );
+    
+            var queryString = util.getQueryString('ds_v1_activity_list_update_inline_data', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    if (err === false) {
+                        
+                        return [false,[]];
+                    } else {
+                        // some thing is wrong and have to be dealt
+                        
+                        //console.log(err);
+                        return [true,[]];
+                    }
+                });
+            }
     }
 
     //Updating Widget Details in Activity Asset Table

@@ -148,7 +148,7 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
-
+    
     // Create Asset Bundle
     async function createAssetBundle(request, workforceID, organizationID, accountID) {
         // Performs multiple steps
@@ -990,7 +990,7 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
-
+    
     // Organization List History Insert
     async function organizationListHistoryInsert(request) {
         let responseData = [],
@@ -7645,13 +7645,12 @@ console.log('new ActivityId321',newActivity_id)
         return [error, responseData];
     }
 
-    async function createDefaultWidgets(request,tag_type_id){
+    async function createDefaultWidgets (request,tag_type_id){
         let responseData = [],
         error = true;
     const paramsArr = new Array(
         request.organization_id,
         request.widget_type_category_id || 3,
-        tag_type_id,
         request.workforce_id,
         0,
         50
@@ -7661,8 +7660,9 @@ console.log('new ActivityId321',newActivity_id)
 
     if (queryString !== '') {
         await db.executeQueryPromise(0, queryString, request)
-            .then((data1) => {
+            .then(async (data1) => {
                let widgetData = require('../../utils/defaultWidgetMappings.json');
+               let [actError,activity_type] = await adminListingService.workforceActivityTypeMappingSelectCategory({...request,activity_type_category_id:58})
             //    console.log(widgetData)
                for(let i=0;i<widgetData.length;i++){
                   let checkExistingWidgets = data1.findIndex((item)=>item.widget_type_id==widgetData[i].widget_type_id);
@@ -7698,6 +7698,8 @@ console.log('new ActivityId321',newActivity_id)
                     "widget_id": -1,
                     "widget_target_value": "",
                     "widget_type_category_id": 3,
+                    activity_type_category_id:58,
+                    activity_type_id:activity_type[0].activity_type_id
                   }
                   widgetDataToSend = {...widgetDataToSend,...widgetData[i]};
                   let requestToSend = {...request,...widgetDataToSend};
@@ -7713,6 +7715,48 @@ console.log('new ActivityId321',newActivity_id)
             })
 
     }
+}
+
+this.createWidgetsV1 = async (request)=>{
+    //check entity mapping with activity_type_id 
+    let responseData = [],
+    error = true;
+const paramsArr = new Array(
+    request.organization_id,
+    request.activity_type_id,
+    request.flag ||0,
+    0,
+    50
+);
+
+const queryString = util.getQueryString('ds_v1_tag_entity_mapping_select_activity_type', paramsArr);
+
+if (queryString !== '') {
+    await db.executeQueryPromise(1, queryString, request)
+        .then(async (data1) => {
+            let [actError,activity_type] = await adminListingService.workforceActivityTypeMappingSelectCategory({...request,activity_type_category_id:58});
+          if(data1.length>0){
+            let tag_type_id = data1[0].tag_type_id;
+            request.filter_tag_type_id = `[{\"tag_type_id\":${tag_type_id}}]`;
+            request.activity_type_category_id = 58;
+            request.activity_type_id = activity_type[0].activity_type_id;
+            console.log(request)
+            await analyticsService.analyticsWidgetAddV1(request)
+          }
+          else{
+            let [err1,tagData] = await this.tagEntityMappingInsertDBCall({...request});
+            request.filter_tag_type_id = `[{\"tag_type_id\":${tagData[0].tag_type_id}}]`;
+            request.activity_type_category_id = 58;
+            request.activity_type_id = activity_type[0].activity_type_id;
+            await analyticsService.analyticsWidgetAddV1(request)
+
+          }
+        }).catch(err=>{
+        return [true,[]] 
+        })
+    }
+    return [false,[]]
+    
 }
 
 
