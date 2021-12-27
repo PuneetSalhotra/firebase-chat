@@ -164,6 +164,29 @@ function AnalyticsOpsController (objCollection) {
         }
     });
 
+    //Get Reports Tag Type Mapping
+    app.post('/' + global.config.version + '/report/filter/tag_type/mapping/select', async function (req, res) {
+        const [err, resData] = await analyticsOpsService.getReportsTagTypeMapping(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/report/filter/tag_type/mapping/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    //Update Reports Tag Type Mapping
+    app.post('/' + global.config.version + '/report/filter/tag_type/mapping/update', async function (req, res) {
+        const [err, resData] = await analyticsOpsService.UpdateReportsTagTypeMapping(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/report/filter/tag_type/mapping/update | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+
 }
 
 module.exports = AnalyticsOpsController;
