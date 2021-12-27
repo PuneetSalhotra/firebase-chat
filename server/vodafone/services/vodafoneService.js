@@ -3881,7 +3881,7 @@ function VodafoneService(objectCollection) {
             !(request.hasOwnProperty("non_dedicated_file") && Number(request.non_dedicated_file) === 1)
         ) {
             util.logInfo(request,`buildAndSubmitCafFormV1 | DuplicateTargetFormGenerationRequestFromGeneratedTargetForm`);
-            return [new Error("DuplicateTargetFormGenerationRequestFromGeneratedTargetForm"), []];
+            return;// [new Error("DuplicateTargetFormGenerationRequestFromGeneratedTargetForm"), []];
         }
 
         let targetFormExists = false;
@@ -3913,7 +3913,7 @@ function VodafoneService(objectCollection) {
         console.log("buildAndSubmitCafFormV1 | requiredForms: ", requiredForms);
         if (!requiredForms.includes(Number(request.form_id))) {
             logger.error("CAF/CRF generation/re-generation request is not from a required form, origin form.", { type: "vodafone", request_body: request, error: new Error("[MISSION ABORT] Call to build the target forms is not from one of the required forms.") });
-            return [new Error("[MISSION ABORT] Call to build the target forms is not from one of the required forms."), []];
+            return;// [new Error("[MISSION ABORT] Call to build the target forms is not from one of the required forms."), []];
         }
 
         // Check whether all the mandatory forms have been submitted or not
@@ -3952,7 +3952,7 @@ function VodafoneService(objectCollection) {
                 requiredForms,
                 `Couldn't fetch origin form data at ${originFormDataRequestDatetime} for generating CAF/CRF`
             );
-            return [new Error("allFormsExist is false, all requried forms have not been submitted."), []];
+            return ;// [new Error("allFormsExist is false, all requried forms have not been submitted."), []];
         }
 
         // If all the mandatory forms exist, proceed with the buildign the form
