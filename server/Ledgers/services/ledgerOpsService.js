@@ -438,6 +438,8 @@ function LedgerOpsService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
+                    if(data.length > 0)
+                    util.logInfo(request, "3.Timeline Transaction Id : "+data[0].id);
                 })
                 .catch((err) => {
                     error = err;

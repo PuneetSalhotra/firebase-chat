@@ -870,6 +870,10 @@ this.getAllParticipantsAsync = async (request) => {
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
+
+                        if(data.length > 0)
+                        util.logInfo(request, "2.Timeline Transaction Id : "+data[0].id);
+
                         callback(false, true);
                         return;
                     } else {
@@ -4721,6 +4725,8 @@ case 729: // Report form BC Edit
                     .then((data) => {
                         responseData = data;
                         error = false;
+                        if(data.length > 0)
+                        util.logInfo(request, "1.Timeline Transaction Id : "+data[0].id);
                     })
                     .catch((err) => {
                         error = true;
