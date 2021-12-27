@@ -363,6 +363,143 @@ function AnalyticsOpsService(objectCollection)
         return [error, responseData];
     }
 
+     //Delete report filter tag type mapping
+     this.DeleteReportsTagTypeMapping = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.tag_type_mapping_id,
+            request.report_type_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_report_filter_tag_type_mapping_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+
+
+    //Insert report filter tag type mapping
+    this.InsertReportsTagTypeMapping = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.report_type_id,
+            request.tag_type_filter_label,
+            request.tag_type_id,
+            request.filter_id,
+            request.filter_sequence_id,
+            request.filter_inline_data,
+            request.filter_access_flag,
+            request.organization_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_report_filter_tag_type_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    //Select Widget Chart Master
+    this.SelectWidgetChartMaster = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_widget_chart_master_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+
+    //Select Widget Type Master
+    this.SelectWidgetTypeMaster = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.widget_type_category_id,
+            request.flag,
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p2_widget_type_master_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+     //Delete Activity List
+     this.DeleteActivityList = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_id,
+            request.organization_id ,
+            request.log_asset_id ,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = AnalyticsOpsService;

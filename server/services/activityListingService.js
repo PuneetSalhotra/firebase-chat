@@ -4483,7 +4483,7 @@ function ActivityListingService(objCollection) {
 		const paramsArr = new Array(
 			request.organization_id,
 			request.activity_id,
-			request.widget_id,
+			request.sequence_id,
 			request.widget_name,
 			util.getCurrentUTCTime()
 		);
