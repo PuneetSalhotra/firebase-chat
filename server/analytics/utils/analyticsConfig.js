@@ -29,9 +29,9 @@ analyticsConfig.vertical = {
 		"flag_1": "Open Oppty Count",
 		"flag_2": "Open Oppty Qty",
 		"flag_3": "Open Oppty AOV",
-		"flag_4": "Closed own Count",
-		"flag_5": "Closed own Qty",
-		"flag_6": "Closed own AOV"
+		"flag_4": "Closed Won Count",
+		"flag_5": "Closed Won Qty",
+		"flag_6": "Closed Won AOV"
 	},
 	"129": {
 		"vertical_name": "Vertical",
@@ -112,9 +112,9 @@ analyticsConfig.resource = {
 		"flag_1": "Open Oppty Count",
 		"flag_2": "Open Oppty Qty",
 		"flag_3": "Open Oppty AOV",
-		"flag_4": "Closed own Count",
-		"flag_5": "Closed own Qty",
-		"flag_6": "Closed own AOV"
+		"flag_4": "Closed Won Count",
+		"flag_5": "Closed Won Qty",
+		"flag_6": "Closed Won AOV"
 	},
 	"129": {
 		"resource_name": "Resource",
