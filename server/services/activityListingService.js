@@ -4,7 +4,15 @@
 
 const { serializeError } = require("serialize-error");
 const logger = require("../logger/winstonLogger");
-const { Kafka } = require('kafkajs');
+
+const AWS = require('aws-sdk');
+AWS.config.update({
+	"accessKeyId": "AKIAWIPBVOFRSFSVJZMF",
+	"secretAccessKey": "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",
+	"region": "ap-south-1"
+});
+const sqs = new AWS.SQS();
+const uuidv4 = require('uuid/v4');
 
 function ActivityListingService(objCollection) {
 
@@ -2221,7 +2229,7 @@ function ActivityListingService(objCollection) {
 				request.page_limit
 			);
 			//const queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_select_myqueue', paramsArr);
-			const queryString = util.getQueryString('ds_v1_2_activity_asset_mapping_select_myqueue', paramsArr);
+			const queryString = util.getQueryString('ds_v1_4_activity_asset_mapping_select_myqueue', paramsArr);
 			if (queryString !== '') {
 				db.executeQuery(1, queryString, request, async function (err, data) {
 					if (err === false) {
@@ -2381,7 +2389,7 @@ function ActivityListingService(objCollection) {
 						// Formatting date time to YYYY-MM-DD HH:mm:ss format
 						// console.log("activity.activity_datetime_created: ", activity.activity_datetime_created);
 						activity.activity_datetime_created = moment(activity.activity_datetime_created).format("YYYY-MM-DD HH:mm:ss");
-						activity.activity_datetime_end_deferred = moment(activity.activity_datetime_end_deferred).format("YYYY-MM-DD HH:mm:ss");
+						activity.activity_datetime_end_deferred = activity.activity_datetime_end_deferred == null ? null : moment(activity.activity_datetime_end_deferred).format("YYYY-MM-DD HH:mm:ss");
 						activity.activity_datetime_end_expected = moment(activity.activity_datetime_end_expected).format("YYYY-MM-DD HH:mm:ss");
 						activity.activity_datetime_start_expected = moment(activity.activity_datetime_start_expected).format("YYYY-MM-DD HH:mm:ss");
 						activity.log_datetime = moment(activity.log_datetime).format("YYYY-MM-DD HH:mm:ss");
@@ -4401,26 +4409,53 @@ function ActivityListingService(objCollection) {
 
 	this.generateSummary = async (request) => {
 		try {
-			const kafka = new Kafka({
-				clientId: 'child-order-creation',
-				brokers: global.config.BROKER_HOST.split(",")
-			})
+			// const kafka = new Kafka({
+			// 	clientId: 'child-order-creation',
+			// 	brokers: global.config.BROKER_HOST.split(",")
+			// })
 
-			const producer = kafka.producer()
+			// const producer = kafka.producer()
 
-			await producer.connect()
-			await producer.send({
-				topic: global.config.CHILD_ORDER_TOPIC_NAME,
-				messages: [
-					{
-						value: JSON.stringify({
-							...request,
-							requestType: "summary_mom_child_orders"
-						})
+			// await producer.connect()
+			// await producer.send({
+			// 	topic: global.config.CHILD_ORDER_TOPIC_NAME,
+			// 	messages: [
+			// 		{
+			//			value: JSON.stringify({
+			//				...request,
+			//				requestType: "summary_mom_child_orders"
+			//			})
+			// 		},
+			// 	],
+			// })
+			// producer.disconnect();
+
+			sqs.sendMessage({
+				// DelaySeconds: 5,
+				MessageBody: JSON.stringify({
+					...request,
+					requestType: "summary_mom_child_orders"
+				}),
+				QueueUrl: global.config.ChildOrdersSQSqueueUrl,
+				MessageGroupId: `mom-creation-queue-v1`,
+				MessageDeduplicationId: uuidv4(),
+				MessageAttributes: {
+					"Environment": {
+						DataType: "String",
+						StringValue: global.mode
 					},
-				],
-			})
-			producer.disconnect();
+				}
+			}, (error, data) => {
+				if (error) {
+					logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error)});
+					console.log("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error)})
+				} else {
+					logger.info("Successfully sent excel job to SQS queue: %j", data);    
+					console.log("Successfully sent excel job to SQS queue: %j", data);                                    
+				}                                    
+			});
+
+
 		} catch (e) {
 			console.log(e)
 		}

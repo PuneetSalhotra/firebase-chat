@@ -209,6 +209,7 @@ function ActivityService(objectCollection) {
 
                             let activityTitle = "Form Submitted";
 
+                            
                             if (activityTypeCategroyId === 9) {
 
                                 if (Number(request.organization_id) === 860 || Number(request.organization_id) === 858 ||
@@ -312,7 +313,7 @@ function ActivityService(objectCollection) {
                             }
 
                             // do the timeline transactions here..                    
-                            if (activityTypeCategroyId === 38) {
+                            if (activityTypeCategroyId === 38) { // pam order
                                 addIngredients(request);
                             }
                             
@@ -320,9 +321,15 @@ function ActivityService(objectCollection) {
                                 activityCommonService.sendPushOnReservationAdd(request);
                             }
 
-                            if (activityTypeCategroyId === 40) {
+                            if (activityTypeCategroyId === 40) { // pam payment
                                 //if(request.hasOwnProperty('is_room_posting'))
                                 activityCommonService.processReservationBilling(request, request.activity_parent_id).then(() => {});
+
+                                let inlineData = JSON.parse(request.activity_inline_data);
+                                activityCommonService.updateAmountInInlineData({
+                                    ...request,
+                                    amount : (inlineData.card || 0) + (inlineData.cash || 0)
+                                });
                             }
 
                             //Submitted Rollback Form
@@ -4253,9 +4260,9 @@ function ActivityService(objectCollection) {
                 let req = Object.assign({}, request);
                 req.flag = 4;
                 let queueMap1 = await activityListingService.getEntityQueueMapping(req);
-                let queueMap2 = await activityListingService.getEntityQueueMapping(request);
+                // let queueMap2 = await activityListingService.getEntityQueueMapping(request);
 
-                queueMap = [...queueMap1, ...queueMap2];
+                queueMap = [...queueMap1];
             } else {
                 queueMap = await activityListingService.getEntityQueueMapping(request);
             }
@@ -4412,11 +4419,18 @@ function ActivityService(objectCollection) {
         return responseObject;
     }
     async function getAllQueuesBasedOnActId(request, activityId) {
+        let queryString="";
+        if(request.activity_type_category_id==59){
+            let paramsArr =[activityId]
+             queryString = util.getQueryString('ds_p1_3_queue_activity_mapping_select_activity', paramsArr);
+        }
+        else{
         let paramsArr = new Array(
             request.organization_id,
             activityId
         );
-        let queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select_activity', paramsArr);
+         queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select_activity', paramsArr);
+        }
         if (queryString != '') {
             return await db.executeQueryPromise(1, queryString, request);
         }

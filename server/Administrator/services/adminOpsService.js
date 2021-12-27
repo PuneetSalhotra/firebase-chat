@@ -10,6 +10,7 @@ const RMBotService = require('../../botEngine/services/rmbotService');
 var ActivityTimelineService = require('../../services/activityTimelineService.js');
 var ActivityService = require('../../services/activityService.js');
 var ActivityParticipantService = require('../../services/activityParticipantService.js');
+var AnalyticsService = require('../../analytics/services/analyticsService');
 
 
 const AWS_Cognito = require('aws-sdk');
@@ -32,6 +33,7 @@ function AdminOpsService(objectCollection) {
     const activityService = new ActivityService(objectCollection)
     const activityTimelineService = new ActivityTimelineService(objectCollection);
     const activityParticipantService = new ActivityParticipantService(objectCollection);
+    const analyticsService = new AnalyticsService(objectCollection);
     const moment = require('moment');
     const makeRequest = require('request');
     const nodeUtil = require('util');
@@ -128,10 +130,12 @@ function AdminOpsService(objectCollection) {
             request.organization_flag_enable_timetracker || 0,
             request.organization_flag_timeline_access_mgmt || 0,
             request.flag_timeline_lead_mgmt || 0,
+            request.flag_dashboard_onhold || 0,
+            request.flag_enable_tag || 0,
             request.asset_id,
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_5_organization_list_update_flags', paramsArr);
+        const queryString = util.getQueryString('ds_p1_6_organization_list_update_flags', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -144,7 +148,7 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
-
+    
     // Create Asset Bundle
     async function createAssetBundle(request, workforceID, organizationID, accountID) {
         // Performs multiple steps
@@ -966,11 +970,13 @@ function AdminOpsService(objectCollection) {
           request.organization_flag_enable_timetracker || 0,
           request.organization_flag_timeline_access_mgmt || 0,
           request.flag_lead_mgmt || 0,
+          request.flag_dashboard_onhold || 0,
+            request.flag_enable_tag || 0,
           request.organization_type_id || 1,
           request.asset_id || 1,
           util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_8_organization_list_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_9_organization_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -984,7 +990,7 @@ function AdminOpsService(objectCollection) {
         }
         return [error, responseData];
     }
-
+    
     // Organization List History Insert
     async function organizationListHistoryInsert(request) {
         let responseData = [],
@@ -7627,7 +7633,7 @@ console.log('new ActivityId321',newActivity_id)
                 .then((data) => {
                     responseData = data;
                     error = false;
-
+                    createDefaultWidgets(request,data[0].tag_type_id)
                     //History Insert
                     tagEntityMappingHistoryInsert(request, 0);
                 })
@@ -7638,6 +7644,120 @@ console.log('new ActivityId321',newActivity_id)
         }
         return [error, responseData];
     }
+
+    async function createDefaultWidgets (request,tag_type_id){
+        let responseData = [],
+        error = true;
+    const paramsArr = new Array(
+        request.organization_id,
+        request.widget_type_category_id || 3,
+        request.workforce_id,
+        0,
+        50
+    );
+
+    const queryString = util.getQueryString('ds_p1_widget_type_master_select_tag_type', paramsArr);
+
+    if (queryString !== '') {
+        await db.executeQueryPromise(0, queryString, request)
+            .then(async (data1) => {
+               let widgetData = require('../../utils/defaultWidgetMappings.json');
+               let [actError,activity_type] = await adminListingService.workforceActivityTypeMappingSelectCategory({...request,activity_type_category_id:58})
+            //    console.log(widgetData)
+               for(let i=0;i<widgetData.length;i++){
+                  let checkExistingWidgets = data1.findIndex((item)=>item.widget_type_id==widgetData[i].widget_type_id);
+                  if(checkExistingWidgets!=-1){
+                      continue
+                  }
+                  
+                  let widgetDataToSend = {
+                    "filter_account_id": 0,
+                    "filter_activity_status_id": 0,
+                    "filter_activity_status_tag_id": 0,
+                    "filter_activity_status_type_id": 0,
+                    "filter_activity_type_id": 0,
+                    "filter_asset_id": 0,
+                    "filter_circle_id": 0,
+                    "filter_field_id": 0,
+                    "filter_form_id": 0,
+                    "filter_is_datetime_considered": 1,
+                    "filter_is_value_considered": 0,
+                    "filter_reporting_manager_id": 0,
+                    "filter_segment_id": 0,
+                    "filter_tag_id": 0,
+                    "filter_tag_type_id": `[{\"tag_type_id\":${tag_type_id}}]`,
+                    "filter_timeline_name": -1,
+                    "filter_workforce_id": 0,
+                    "filter_workforce_type_id": 0,
+                    "widget_aggregate_id": 1,
+                    "widget_enabled_statuses": [
+                        0,
+                        1,
+                        2
+                    ],
+                    "widget_id": -1,
+                    "widget_target_value": "",
+                    "widget_type_category_id": 3,
+                    activity_type_category_id:58,
+                    activity_type_id:activity_type[0].activity_type_id
+                  }
+                  widgetDataToSend = {...widgetDataToSend,...widgetData[i]};
+                  let requestToSend = {...request,...widgetDataToSend};
+                //   console.log(requestToSend)
+                  analyticsService.analyticsWidgetAddV1(requestToSend)
+               }
+              
+
+            })
+            .catch((err)=>{
+                error = err;
+                console.log('error :: ' + error);
+            })
+
+    }
+}
+
+this.createWidgetsV1 = async (request)=>{
+    //check entity mapping with activity_type_id 
+    let responseData = [],
+    error = true;
+const paramsArr = new Array(
+    request.organization_id,
+    request.activity_type_id,
+    request.flag ||0,
+    0,
+    50
+);
+
+const queryString = util.getQueryString('ds_v1_tag_entity_mapping_select_activity_type', paramsArr);
+
+if (queryString !== '') {
+    await db.executeQueryPromise(1, queryString, request)
+        .then(async (data1) => {
+            let [actError,activity_type] = await adminListingService.workforceActivityTypeMappingSelectCategory({...request,activity_type_category_id:58});
+          if(data1.length>0){
+            let tag_type_id = data1[0].tag_type_id;
+            request.filter_tag_type_id = `[{\"tag_type_id\":${tag_type_id}}]`;
+            request.activity_type_category_id = 58;
+            request.activity_type_id = activity_type[0].activity_type_id;
+            console.log(request)
+            await analyticsService.analyticsWidgetAddV1(request)
+          }
+          else{
+            let [err1,tagData] = await this.tagEntityMappingInsertDBCall({...request});
+            request.filter_tag_type_id = `[{\"tag_type_id\":${tagData[0].tag_type_id}}]`;
+            request.activity_type_category_id = 58;
+            request.activity_type_id = activity_type[0].activity_type_id;
+            await analyticsService.analyticsWidgetAddV1(request)
+
+          }
+        }).catch(err=>{
+        return [true,[]] 
+        })
+    }
+    return [false,[]]
+    
+}
 
 
     this.tagEntityMappingDelete = async (request) => {
@@ -11753,7 +11873,35 @@ console.log('new ActivityId321',newActivity_id)
         return [error, responseData];
     };
 
+    this.applicationTagTypeMappingUpdate = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.application_id,
+            request.tag_type_id,
+            request.index_value,
+            request.is_export_enabled,
+            request.is_dashboard_enabled,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_application_tag_type_mapping_update', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
 }
 
 module.exports = AdminOpsService;
-

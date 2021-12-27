@@ -2999,12 +2999,20 @@ this.getAllParticipantsAsync = async (request) => {
         return new Promise((resolve, reject) => {
             // IN p_queue_id BIGINT(20), IN p_activity_id BIGINT(20), 
             // IN p_organization_id BIGINT(20)
+            let queryString = '';
+            if(request.activity_type_category_id==59){
+                let paramsArr = new Array(
+                    queueId,
+                    request.activity_id
+                );
+                 queryString = util.getQueryString('ds_p2_1_queue_activity_mapping_select', paramsArr);
+            }
             let paramsArr = new Array(
                 queueId,
                 request.activity_id,
                 request.organization_id
             );
-            const queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select', paramsArr);
+             queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
@@ -7094,8 +7102,33 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         }
         return [error,responseData];
     };
-
     
+    this.updateAmountInInlineData = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            request.activity_type_category_id,
+            request.amount,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('pm_v1_activity_list_update_inline_amount', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    console.log(responseData,'responseDataresponseData');
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 

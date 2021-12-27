@@ -1,0 +1,398 @@
+[
+    {
+        "widget_name": "Total Volume",
+        "widget_type_id": 18,
+        "widget_chart_id": 7,
+        "filter_date_type_id": 1,
+        "filter_hierarchy": 1,
+        "filter_timeline_id": 6,
+        "activity_widget_id":1,
+        "widget_detailed_info":[
+            {
+               "label":"Widget",
+               "value":"Volume (Count)",
+               "Widget":"Volume (Count)"
+            },
+            {
+               "label":"Product Type",
+               "value":"Oportunity",
+               "Product Type":"Oportunity"
+            },
+            {
+               "label":"Product",
+               "value":"ALL",
+               "Product":"ALL"
+            },
+            {
+               "label":"Circle",
+               "value":"ALL",
+               "Circle":"ALL"
+            },
+            {
+               "label":"Segment",
+               "value":"ALL",
+               "Segment":"ALL"
+            },
+            {
+               "label":"Account Manager",
+               "value":"ALL",
+               "Account Manager":"ALL"
+            },
+            {
+               "label":"Status Category",
+               "value":"Initiated, InProgress, onHold",
+               "Status Category":"Initiated, InProgress, onHold"
+            },
+            {
+               "label":"Date Type",
+               "value":"Created Date",
+               "Date Type":"Created Date"
+            },
+            {
+               "label":"Timeline",
+               "value":"Year to Date",
+               "Timeline":"Year to Date"
+            },
+            {
+               "Form":null,
+               "label":"Form",
+               "value":null
+            },
+            {
+               "Field":null,
+               "label":"Field",
+               "value":null
+            }
+         ]
+    },
+    {
+        "widget_name": "Total Value",
+        "widget_type_id": 19,
+        "widget_chart_id": 7,
+        "filter_date_type_id": 1,
+        "filter_hierarchy": 1,
+        "filter_timeline_id": 6,
+        "activity_widget_id":2,
+        "widget_detailed_info":[
+            {
+               "label":"Widget",
+               "value":"Volume (Count)",
+               "Widget":"Volume (Count)"
+            },
+            {
+               "label":"Product Type",
+               "value":"Oportunity",
+               "Product Type":"Oportunity"
+            },
+            {
+               "label":"Product",
+               "value":"ALL",
+               "Product":"ALL"
+            },
+            {
+               "label":"Circle",
+               "value":"ALL",
+               "Circle":"ALL"
+            },
+            {
+               "label":"Segment",
+               "value":"ALL",
+               "Segment":"ALL"
+            },
+            {
+               "label":"Account Manager",
+               "value":"ALL",
+               "Account Manager":"ALL"
+            },
+            {
+               "label":"Status Category",
+               "value":"Initiated, InProgress, onHold",
+               "Status Category":"Initiated, InProgress, onHold"
+            },
+            {
+               "label":"Date Type",
+               "value":"Created Date",
+               "Date Type":"Created Date"
+            },
+            {
+               "label":"Timeline",
+               "value":"Year to Date",
+               "Timeline":"Year to Date"
+            },
+            {
+               "Form":null,
+               "label":"Form",
+               "value":null
+            },
+            {
+               "Field":null,
+               "label":"Field",
+               "value":null
+            }
+         ]
+    },
+    {
+        "widget_name": "Status-wise Distribution - Volume",
+        "widget_type_id": 37,
+        "widget_chart_id": 5,
+        "filter_date_type_id": 1,
+        "filter_hierarchy": 1,
+        "filter_timeline_id": 6,
+        "activity_widget_id":3,
+        "widget_detailed_info":[
+            {
+               "label":"Widget",
+               "value":"Volume (Count)",
+               "Widget":"Volume (Count)"
+            },
+            {
+               "label":"Product Type",
+               "value":"Oportunity",
+               "Product Type":"Oportunity"
+            },
+            {
+               "label":"Product",
+               "value":"ALL",
+               "Product":"ALL"
+            },
+            {
+               "label":"Circle",
+               "value":"ALL",
+               "Circle":"ALL"
+            },
+            {
+               "label":"Segment",
+               "value":"ALL",
+               "Segment":"ALL"
+            },
+            {
+               "label":"Account Manager",
+               "value":"ALL",
+               "Account Manager":"ALL"
+            },
+            {
+               "label":"Status Category",
+               "value":"Initiated, InProgress, onHold",
+               "Status Category":"Initiated, InProgress, onHold"
+            },
+            {
+               "label":"Date Type",
+               "value":"Created Date",
+               "Date Type":"Created Date"
+            },
+            {
+               "label":"Timeline",
+               "value":"Year to Date",
+               "Timeline":"Year to Date"
+            },
+            {
+               "Form":null,
+               "label":"Form",
+               "value":null
+            },
+            {
+               "Field":null,
+               "label":"Field",
+               "value":null
+            }
+         ]
+    },
+    {
+        "widget_name": "Status-wise Distribution - Value",
+        "widget_type_id": 38,
+        "widget_chart_id": 5,
+        "filter_date_type_id": 1,
+        "filter_hierarchy": 1,
+        "filter_timeline_id": 6,
+        "activity_widget_id":4,
+        "widget_detailed_info":[
+            {
+               "label":"Widget",
+               "value":"Volume (Count)",
+               "Widget":"Volume (Count)"
+            },
+            {
+               "label":"Product Type",
+               "value":"Oportunity",
+               "Product Type":"Oportunity"
+            },
+            {
+               "label":"Product",
+               "value":"ALL",
+               "Product":"ALL"
+            },
+            {
+               "label":"Circle",
+               "value":"ALL",
+               "Circle":"ALL"
+            },
+            {
+               "label":"Segment",
+               "value":"ALL",
+               "Segment":"ALL"
+            },
+            {
+               "label":"Account Manager",
+               "value":"ALL",
+               "Account Manager":"ALL"
+            },
+            {
+               "label":"Status Category",
+               "value":"Initiated, InProgress, onHold",
+               "Status Category":"Initiated, InProgress, onHold"
+            },
+            {
+               "label":"Date Type",
+               "value":"Created Date",
+               "Date Type":"Created Date"
+            },
+            {
+               "label":"Timeline",
+               "value":"Year to Date",
+               "Timeline":"Year to Date"
+            },
+            {
+               "Form":null,
+               "label":"Form",
+               "value":null
+            },
+            {
+               "Field":null,
+               "label":"Field",
+               "value":null
+            }
+         ]
+    },
+    {
+        "widget_name": "Month Wise Volume",
+        "widget_type_id": 28,
+        "widget_chart_id": 1,
+        "filter_date_type_id": 3,
+        "filter_hierarchy": 0,
+        "filter_timeline_id": 13,
+        "activity_widget_id":5,
+        "widget_detailed_info":[
+            {
+               "label":"Widget",
+               "value":"Volume (Count)",
+               "Widget":"Volume (Count)"
+            },
+            {
+               "label":"Product Type",
+               "value":"Oportunity",
+               "Product Type":"Oportunity"
+            },
+            {
+               "label":"Product",
+               "value":"ALL",
+               "Product":"ALL"
+            },
+            {
+               "label":"Circle",
+               "value":"ALL",
+               "Circle":"ALL"
+            },
+            {
+               "label":"Segment",
+               "value":"ALL",
+               "Segment":"ALL"
+            },
+            {
+               "label":"Account Manager",
+               "value":"ALL",
+               "Account Manager":"ALL"
+            },
+            {
+               "label":"Status Category",
+               "value":"Initiated, InProgress, onHold",
+               "Status Category":"Initiated, InProgress, onHold"
+            },
+            {
+               "label":"Date Type",
+               "value":"Created Date",
+               "Date Type":"Created Date"
+            },
+            {
+               "label":"Timeline",
+               "value":"Year to Date",
+               "Timeline":"Year to Date"
+            },
+            {
+               "Form":null,
+               "label":"Form",
+               "value":null
+            },
+            {
+               "Field":null,
+               "label":"Field",
+               "value":null
+            }
+         ]
+    },
+    {
+        "widget_name": "Month Wise Value",
+        "widget_type_id": 29,
+        "widget_chart_id": 1,
+        "filter_date_type_id": 3,
+        "filter_hierarchy": 0,
+        "filter_timeline_id": 13,
+        "activity_widget_id":6,
+        "widget_detailed_info":[
+            {
+               "label":"Widget",
+               "value":"Volume (Count)",
+               "Widget":"Volume (Count)"
+            },
+            {
+               "label":"Product Type",
+               "value":"Oportunity",
+               "Product Type":"Oportunity"
+            },
+            {
+               "label":"Product",
+               "value":"ALL",
+               "Product":"ALL"
+            },
+            {
+               "label":"Circle",
+               "value":"ALL",
+               "Circle":"ALL"
+            },
+            {
+               "label":"Segment",
+               "value":"ALL",
+               "Segment":"ALL"
+            },
+            {
+               "label":"Account Manager",
+               "value":"ALL",
+               "Account Manager":"ALL"
+            },
+            {
+               "label":"Status Category",
+               "value":"Initiated, InProgress, onHold",
+               "Status Category":"Initiated, InProgress, onHold"
+            },
+            {
+               "label":"Date Type",
+               "value":"Created Date",
+               "Date Type":"Created Date"
+            },
+            {
+               "label":"Timeline",
+               "value":"Year to Date",
+               "Timeline":"Year to Date"
+            },
+            {
+               "Form":null,
+               "label":"Form",
+               "value":null
+            },
+            {
+               "Field":null,
+               "label":"Field",
+               "value":null
+            }
+         ]
+    }
+]

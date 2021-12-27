@@ -167,6 +167,7 @@ function AnalyticsService(objectCollection)
         request.widget_chart_id = staticValues[0].widget_type_chart_id;
         request.flag_app = staticValues[0].flag_mobile_enabled;
         request.widget_aggregate_id = 1;
+
         //********************************************************/
 
         //Get Asset Name
@@ -244,6 +245,85 @@ function AnalyticsService(objectCollection)
         return response;
     };
 
+    this.analyticsWidgetAddV1 = async function(request) {
+        // console.log(request);
+        // console.log(request.widget_type_id)
+        request.datetime_log = util.getCurrentUTCTime();
+        let widgetId;
+        
+        //Update widget_aggregate_id and widget_chart_id
+        //*******************************************************/
+        let [err1, staticValues] = await self.getwidgetStaticValueDetails(request);
+        
+        if(err1) {
+            global.logger.write('conLog', "get Widget Chart Id | based on widget_type_id | Error: ", err, {});
+            return [true, {message: "Error creating Widget"}];
+        }
+        
+        global.logger.write('conLog', 'staticValues : ', {}, {});
+        global.logger.write('conLog', staticValues, {}, {});
+
+        request.widget_chart_id = staticValues[0].widget_type_chart_id;
+        request.flag_app = staticValues[0].flag_mobile_enabled;
+        request.widget_aggregate_id = 1;
+        //********************************************************/
+
+        //Get Asset Name
+        await new Promise((resolve)=>{
+            activityCommonService.getAssetDetails(request, (err, data, statusCode)=>{
+                if(!err && Object.keys(data).length > 0) {
+                    //console.log('DATA : ', data.operating_asset_first_name);
+                    request.widget_owner_asset_id = data.asset_id;
+                    request.widget_owner_asset_name = data.operating_asset_first_name;
+                    request.asset_type_id = data.asset_type_id;
+                }
+                resolve();
+            });
+        });
+        
+        //Add Activity - you will get ActivityID
+        const [err, activityData] = await createActivity(request);
+        if (err) {
+            global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
+            return [true, {message: "Error creating activity"}];
+        }
+        
+        //global.logger.write('conLog', "createAssetBundle | createActivity | activityData: " + activityData, {}, {});
+        //console.log("createAssetBundle | createActivity | activityData: ", activityData);
+        request.activity_id = activityData.response.activity_id;
+        if(Number(request.form_id)>0){
+            let [widgetErr, widgetResponse] = await this.widgetListInsert(request);
+            if(widgetErr) {
+                global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
+                return [true, {message: "Error creating Widget"}];
+            }            
+
+            widgetId = widgetResponse[0].widget_id;
+            request.widget_id = widgetId;
+                
+            await new Promise((resolve)=>{
+                setTimeout(()=>{
+                    return resolve();
+                }, 2500);
+            });
+            
+            await updateWidgetDetailsInActList(request);
+            await updateWidgetDetailsInActAssetList(request);
+    
+            let response = {};
+            response.widget_id = widgetId;
+            response.widget_activity_id = request.activity_id;
+            response.message_unique_id = request.message_unique_id;
+            response.activity_internal_id = request.activity_internal_id;
+            return [false,response];
+        }
+        else {
+
+        await updateWidgetDetailsInActListV1(request);
+        return [false,[]]
+        }
+    };
+
     async function createActivity(request) {
         //let filterTagTypeId = request.filter_tag_type_id;
         //let filterActivityStatusTypeId = request.filter_activity_status_type_id;   
@@ -284,8 +364,8 @@ function AnalyticsService(objectCollection)
         widgetInfo.filter_form_id = util.replaceDefaultNumber(request.filter_form_id);
         widgetInfo.filter_field_id = util.replaceDefaultNumber(request.filter_field_id);
 
-
-        let widgetDetailedInfo = JSON.parse(request.widget_detailed_info) || {};
+        request.widget_detailed_info = request.widget_detailed_info || {};
+        let widgetDetailedInfo = typeof request.widget_detailed_info == 'string' ? JSON.parse(request.widget_detailed_info):request.widget_detailed_info;
                
         activityInlineData.widget_info = widgetInfo;
         activityInlineData.widget_detailed_info = widgetDetailedInfo;
@@ -303,7 +383,7 @@ function AnalyticsService(objectCollection)
             activity_inline_data: JSON.stringify(activityInlineData),
             activity_datetime_start: util.getCurrentUTCTime(),
             activity_datetime_end: util.getCurrentUTCTime(),
-            activity_type_category_id: 52, //Widget
+            activity_type_category_id: request.activity_type_category_id || 52, //Widget
             activity_sub_type_id: 0,
             activity_type_id: request.activity_type_id || 0,
             activity_access_role_id: request.activity_access_role_id || 0,
@@ -331,7 +411,6 @@ function AnalyticsService(objectCollection)
             activity_timeline_collection : JSON.stringify(activityTimelineCollectionFor26004)
         };
 
-        
         const addActivityAsync = nodeUtil.promisify(makeRequest.post);
         const makeRequestOptions = {
             form: addActivityRequest
@@ -340,7 +419,9 @@ function AnalyticsService(objectCollection)
         try {
             // global.config.mobileBaseUrl + global.config.version
             const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
+            // console.log(response)
             const body = JSON.parse(response.body);
+            // console.log(body)
             if (Number(body.status) === 200) {
                 console.log("createActivity | addActivityAsync | Body: ", body);
                 widgetInfo.activity_id = body.response.activity_id;
@@ -359,9 +440,7 @@ function AnalyticsService(objectCollection)
         let responseData = [],
             error = true;
 
-        let paramsArr = new Array(            
-            request.widget_type_id,            
-        );
+        const paramsArr = [request.widget_type_id];
 
         let queryString = util.getQueryString('ds_p1_widget_type_master_select_id', paramsArr);
         if (queryString !== '') {
@@ -384,15 +463,15 @@ function AnalyticsService(objectCollection)
 
         let paramsArr = new Array(
             request.widget_name,
-            request.widget_description,
+            request.widget_description || "",
             request.activity_inline_data,
             request.flag_app,
             request.widget_type_id,
             request.widget_aggregate_id,
             request.widget_chart_id,
-            request.widget_timeline_id,
-            util.replaceDefaultNumber(request.entity1_id),
-            util.replaceDefaultNumber(request.entity2_id),
+            request.widget_timeline_id || 0,
+            util.replaceDefaultNumber(request.entity1_id || request.form_id),
+            util.replaceDefaultNumber(request.entity2_id || request.field_id),
             util.replaceDefaultNumber(request.entity3_id),
             util.replaceDefaultNumber(request.entity4_id),
             util.replaceDefaultNumber(request.entity5_id),
@@ -406,8 +485,8 @@ function AnalyticsService(objectCollection)
             request.workforce_id,
             request.account_id,
             request.organization_id,
-            request.log_asset_id,
-            request.log_workforce_id,            
+            request.log_asset_id || request.asset_id,
+            request.log_workforce_id || request.workforce_id,            
             request.datetime_log, //log_datetime
             request.widget_target_value
         );
@@ -450,6 +529,56 @@ function AnalyticsService(objectCollection)
                 });
         }
         return [error, responseData];
+    }
+
+    async function updateWidgetDetailsInActListV1 (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.activity_id,
+            request.activity_widget_id,
+            request.widget_type_id,
+            request.organization_id,
+            request.datetime_log
+        );
+
+        let queryString = util.getQueryString('ds_p1_1_activity_list_update_widget_details', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }
+
+    this.updateWidgetInline = async (request)=>{
+
+            var paramsArr = new Array(
+                request.activity_id,
+                request.organization_id,
+                request.activity_inline_data
+            );
+    
+            var queryString = util.getQueryString('ds_v1_activity_list_update_inline_data', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    if (err === false) {
+                        
+                        return [false,[]];
+                    } else {
+                        // some thing is wrong and have to be dealt
+                        
+                        //console.log(err);
+                        return [true,[]];
+                    }
+                });
+            }
     }
 
     //Updating Widget Details in Activity Asset Table
@@ -2192,8 +2321,9 @@ function AnalyticsService(objectCollection)
                         counter = 5
                    
                         for(let iteratorM = 0; iteratorM < counter; iteratorM++){
-                             paramsArray.push(iteratorM)
-                            tempResult = await db.callDBProcedureR2(request, 'ds_v1_9_activity_search_list_select_widget_values', paramsArray, 1);
+                             paramsArray.push(iteratorM);
+                             paramsArray.push(request.organization_onhold || 0);
+                            tempResult = await db.callDBProcedureR2(request, 'ds_v2_activity_search_list_select_widget_values', paramsArray, 1);
                             paramsArray.pop();
                             responseArray.push(tempResult[0])
                         }
@@ -2212,8 +2342,9 @@ function AnalyticsService(objectCollection)
                         results = await this.prepareWidgetData(request, paramsArray);
                     } else {
                         console.log(paramsArray);
-                        paramsArray.push(0)
-                        tempResult = await db.callDBProcedureR2(request, 'ds_v1_9_activity_search_list_select_widget_values', paramsArray, 1);
+                        paramsArray.push(0);
+                        paramsArray.push(request.organization_onhold || 0);
+                        tempResult = await db.callDBProcedureR2(request, 'ds_v2_activity_search_list_select_widget_values', paramsArray, 1);
                         console.log(tempResult);
                      //   let widgetTypes = [23,24,48,49,63,66,37,38,65,61,67,53,54, 39, 40, 41, 42];
                      //   if(widgetTypes.includes(request.widget_type_id)){
@@ -2418,10 +2549,12 @@ function AnalyticsService(objectCollection)
                 //paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
                 //paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 paramsArray[15] = 0;
+                paramsArray[16] = 0;
                 paramsArray[1] = 1;
                 if (widgetFlags[iteratorM] == 2) {
                     paramsArray[1] = 2;
                     paramsArray[15] = 1;
+                    paramsArray[16] = 148;
                 }
                 paramsArray.push(widgetFlags[iteratorM]);
                 paramsArray[10] = request.asset_id;
@@ -2429,6 +2562,7 @@ function AnalyticsService(objectCollection)
                 responseJson.datetime_start = paramsArray[18];
                 responseJson.datetime_end = paramsArray[19];
                 responseJson.filter_activity_status_type_id = paramsArray[15];
+                responseJson.filter_activity_status_tag_id = paramsArray[16];
                 responseJson.filter_date_type_id = paramsArray[1];
                 responseJson.filter_asset_id = paramsArray[10];
                 responseJson.sequence_id = widgetFlags[iteratorM];
@@ -3010,10 +3144,11 @@ function AnalyticsService(objectCollection)
                      request.filter_field_entity_2 || '',
                      request.filter_field_entity_3 || '',
                      request.filter_field_entity_4 || '',
-                     request.filter_field_entity_5 || ''
+                     request.filter_field_entity_5 || '',
+                     request.organization_onhold || 0
                     );
             
-            let queryString = util.getQueryString('ds_v1_9_activity_search_list_select_widget_drilldown_search', paramsArray);
+            let queryString = util.getQueryString('ds_v2_activity_search_list_select_widget_drilldown_search', paramsArray);
                 if (queryString !== '') {
                     tempResult = await (db.executeQueryPromise(1, queryString, request));
                 }
@@ -6216,8 +6351,25 @@ function AnalyticsService(objectCollection)
                 resourceValueFlgArrayTotal[i] = {};
                 resourceValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArray[i]);
             }
-            console.log("manager_asset_id ",finalResourceMap)
-            console.log("results ",results.length);
+
+            if (results.length == 1 && finalResourceMap.size == 0) {
+                let newMap = new Map();
+                for (let i = 0; i < widgetFlags.length; i++) {
+                    newMap.set("flag_" + (i + 1), 0);
+                }
+                request.asset_id = request.filter_asset_id;
+                let [err, assetData] = await activityCommonService.getAssetDetailsAsync(request);
+                newMap.set(request.filter_asset_id, assetData[0].operating_asset_first_name);
+                finalResourceMap.set(request.filter_asset_id, newMap);
+                for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                    let newMap = finalResourceMap.get(request.filter_asset_id) || new Map();
+                    newMap.set("flag_" + (iteratorM + 1) + "_count", 0);
+                    newMap.set("flag_" + (iteratorM + 1) + "_quantity", 0);
+                    newMap.set("flag_" + (iteratorM + 1) + "_value", 0);
+                    finalResourceMap.set(request.filter_asset_id, newMap);
+                }
+            }
+            console.log("finalResourceMap ", JSON.stringify(finalResourceMap));
             
             for (let [key, value] of finalResourceMap) {
                 console.log("key:"+key+" value:"+JSON.stringify(value))
@@ -6460,6 +6612,25 @@ function AnalyticsService(objectCollection)
                 resourceValueFlgArrayTotal[i] = {};
                 resourceValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArray[i]);
             }
+
+            if (results.length == 1 && finalResourceMap.size == 0) {
+                let newMap = new Map();
+                for (let i = 0; i < widgetFlags.length; i++) {
+                    newMap.set("flag_" + (i + 1), 0);
+                }
+                request.asset_id = request.filter_asset_id;
+                let [err, assetData] = await activityCommonService.getAssetDetailsAsync(request);
+                newMap.set(request.filter_asset_id, assetData[0].operating_asset_first_name);
+                finalResourceMap.set(request.filter_asset_id, newMap);
+                for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                    let newMap = finalResourceMap.get(request.filter_asset_id) || new Map();
+                    newMap.set("flag_" + (iteratorM + 1) + "_count", 0);
+                    newMap.set("flag_" + (iteratorM + 1) + "_quantity", 0);
+                    newMap.set("flag_" + (iteratorM + 1) + "_value", 0);
+                    finalResourceMap.set(request.filter_asset_id, newMap);
+                }
+            }
+            console.log("finalResourceMap ", JSON.stringify(finalResourceMap));
 
             for (let [key, value] of finalResourceMap) {
                 let newMap = value;
@@ -6740,7 +6911,26 @@ function AnalyticsService(objectCollection)
                 resourceValueFlgArrayTotal[i] = {};
                 resourceValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArray[i]);
             }
+
+            if (results.length == 1 && finalResourceMap.size == 0) {
+                let newMap = new Map();
+                for (let i = 0; i < widgetFlags.length; i++) {
+                    newMap.set("flag_" + (i + 1), 0);
+                }
+                request.asset_id = request.filter_asset_id;
+                let [err, assetData] = await activityCommonService.getAssetDetailsAsync(request);
+                newMap.set(request.filter_asset_id, assetData[0].operating_asset_first_name);
+                finalResourceMap.set(request.filter_asset_id, newMap);
+                for (let iteratorM = 0; iteratorM < widgetFlags.length; iteratorM++) {
+                    let newMap = finalResourceMap.get(request.filter_asset_id) || new Map();
+                    newMap.set("flag_" + (iteratorM + 1) + "_count", 0);
+                    newMap.set("flag_" + (iteratorM + 1) + "_quantity", 0);
+                    newMap.set("flag_" + (iteratorM + 1) + "_value", 0);
+                    finalResourceMap.set(request.filter_asset_id, newMap);
+                }
+            }
             console.log("finalResourceMap ",JSON.stringify(finalResourceMap));
+
             for (let [key, value] of finalResourceMap) {
                 console.log("key:"+key+" value:"+JSON.stringify(value))
                 let newMap = value;

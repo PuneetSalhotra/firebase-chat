@@ -5,9 +5,17 @@ const pubnubWrapper = new(require('../utils/pubnubWrapper'))(); //BETA
 //const pusherWrapper = new(require('../utils/pusherWrapper'))();
 //var PDFDocument = require('pdfkit');
 //var AwsSss = require('../utils/s3Wrapper');
-const { Kafka } = require('kafkajs');
 const logger = require("../logger/winstonLogger");
 const { serializeError } = require('serialize-error');
+
+const AWS = require('aws-sdk');
+AWS.config.update({
+    "accessKeyId": "AKIAWIPBVOFRSFSVJZMF",
+    "secretAccessKey": "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",
+    "region": "ap-south-1"
+});
+const sqs = new AWS.SQS();
+const uuidv4 = require('uuid/v4');
 
 function ActivityTimelineService(objectCollection) {
 
@@ -4370,25 +4378,49 @@ async function addFormEntriesAsync(request) {
         return [error, responseData];
     };
 
-    async function kafkaProdcucerForChildOrderCreation(topicName,message) {
-        const kafka = new Kafka({
-            clientId: 'child-order-creation',
-            brokers: global.config.BROKER_HOST.split(",")
-        })
-        
-        const producer = kafka.producer()
+    async function kafkaProdcucerForChildOrderCreation(topicName, message) {
+        // const kafka = new Kafka({
+        //     clientId: 'child-order-creation',
+        //     brokers: global.config.BROKER_HOST.split(",")
+        // })
 
-        await producer.connect()
-        await producer.send({
-            topic: topicName,
-    
-            messages: [
-                {
-                    value: JSON.stringify(message)
+        // const producer = kafka.producer()
+
+        // await producer.connect()
+        // await producer.send({
+        //     topic: topicName,
+
+        //     messages: [
+        //         {
+        //             value: JSON.stringify(message)
+        //         },
+        //     ],
+        // })
+        // producer.disconnect();
+
+        sqs.sendMessage({
+            // DelaySeconds: 5,
+            MessageBody: JSON.stringify(message),
+            QueueUrl: global.config.ChildOrdersSQSqueueUrl,
+            MessageGroupId: `mom-creation-queue-v1`,
+            MessageDeduplicationId: uuidv4(),
+            MessageAttributes: {
+                "Environment": {
+                    DataType: "String",
+                    StringValue: global.mode
                 },
-            ],
-        })
-        producer.disconnect();
+            }
+        }, (error, data) => {
+            if (error) {
+                logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error)});
+                console.log("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error)})
+            } else {
+                logger.info("Successfully sent excel job to SQS queue: %j", data);    
+                console.log("Successfully sent excel job to SQS queue: %j", data);                                    
+            }
+        });
+
+
         return;
     }
 }

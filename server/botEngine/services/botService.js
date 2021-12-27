@@ -2430,12 +2430,69 @@ function BotService(objectCollection) {
                             condition: botOperationsJson.bot_operations.condition
                         });
 
-                        await kafkaProdcucerForChildOrderCreation(global.config.CHILD_ORDER_TOPIC_NAME, {
-                            request,
-                            requestType: "mom_child_orders",
-                            form_field_copy: botOperationsJson.bot_operations.form_field_copy,
-                            condition: botOperationsJson.bot_operations.condition
-                        }).catch(global.logger.error);
+                        // await kafkaProdcucerForChildOrderCreation(global.config.CHILD_ORDER_TOPIC_NAME, {
+                        //     request,
+                        //     requestType: "mom_child_orders",
+                        //     form_field_copy: botOperationsJson.bot_operations.form_field_copy,
+                        //     condition: botOperationsJson.bot_operations.condition
+                        // }).catch(global.logger.error);
+
+
+                        sqs.sendMessage({
+                            // DelaySeconds: 5,
+                            MessageBody: JSON.stringify({
+                                request,
+                                requestType: "mom_child_orders",
+                                form_field_copy: botOperationsJson.bot_operations.form_field_copy,
+                                condition: botOperationsJson.bot_operations.condition
+                            }),
+                            QueueUrl: global.config.ChildOrdersSQSqueueUrl,
+                            MessageGroupId: `mom-creation-queue-v1`,
+                            MessageDeduplicationId: uuidv4(),
+                            MessageAttributes: {
+                                "Environment": {
+                                    DataType: "String",
+                                    StringValue: global.mode
+                                },
+                            }
+                        }, (error, data) => {
+                            if (error) {
+                                logger.error(request.workflow_activity_id+": Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                                console.log(request.workflow_activity_id+": Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request })
+                            } else {
+                                logger.info(request.workflow_activity_id+": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });    
+                                console.log(request.workflow_activity_id+": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request })                                    
+                            }                                    
+                        });
+
+                        let params = {
+                            QueueUrl: global.config.ChildOrdersSQSqueueUrl,
+                            AttributeNames: ['ApproximateNumberOfMessages'],
+                        };
+
+                        sqs.getQueueAttributes(params, function (err, data) {
+                            if (err) {
+                                console.log("Error", err);
+                            } else {
+                                console.log(data);
+                                console.log(data.Attributes.ApproximateNumberOfMessages);
+
+                                if (Number(data.Attributes.ApproximateNumberOfMessages) >= 20) {
+                                    addTimelineMessage(
+                                        {
+                                            activity_timeline_text: "Info",
+                                            organization_id: request.organization_id
+                                        }, request.workflow_activity_id || 0,
+                                        {
+                                            subject: 'Info: More Requests in queue',
+                                            content: "There will be delay in processing your request as we have received multiple requests at time.\nPlease wait for sometime while we are processing your request.",
+                                            mail_body: "There will be delay in processing your request as we have received multiple requests at time.\nPlease wait for sometime while we are processing your request.",
+                                            attachments: []
+                                        }
+                                    );
+                                }
+                            }
+                        });
 
                     } catch (err) {
                         global.logger.write('conLog', 'Error in executing Child Order creation BOT Step', {}, {});
@@ -5097,7 +5154,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             return [true, "unknown Error"];
         }
 
-        let resp = await getQueueActivity(newReq, request.workflow_activity_id);
+        let resp = await getQueueActivity(newReq, request.workflow_activity_id,request.activity_type_category_id);
         util.logInfo(request,` getQueueActivity | resp: %j`, resp);
 
         if (resp.length > 0) {
@@ -8243,14 +8300,21 @@ else{
         return {};
     }
 
-    async function getQueueActivity(request, idActivity) {
+    async function getQueueActivity(request, idActivity,activityTypeCategoryId) {
+        let queryString='';
+        if(Number(activityTypeCategoryId)===59){
+            let paramsArr = [idActivity];
+             queryString = util.getQueryString('ds_v2_queue_activity_mapping_select_activity', paramsArr);
+        }
+        else{
         let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
             idActivity
         );
-        let queryString = util.getQueryString('ds_v1_queue_activity_mapping_select_activity', paramsArr);
+         queryString = util.getQueryString('ds_v1_queue_activity_mapping_select_activity', paramsArr);
+        }
         if (queryString != '') {
             return await db.executeQueryPromise(1, queryString, request);
         }
@@ -8293,11 +8357,18 @@ else{
     }
 
     async function getAllQueuesBasedOnActId(request, activityId) {
+        let queryString="";
+        if(request.activity_type_category_id==59){
+            let paramsArr =[activityId]
+             queryString = util.getQueryString('ds_p1_3_queue_activity_mapping_select_activity', paramsArr);
+        }
+        else{
         let paramsArr = new Array(
             request.organization_id,
             activityId
         );
-        let queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select_activity', paramsArr);
+         queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_select_activity', paramsArr);
+        }
         if (queryString != '') {
             return await db.executeQueryPromise(1, queryString, request);
         }
@@ -14876,6 +14947,14 @@ if(workflowActivityData.length==0){
         let key = "_0";
         let isEnd = false;
 
+        if(Number(request.is_refill) == 1 && Number(request.lead_asset_id)) {
+            request.target_asset_id = request.lead_asset_id;
+            request.target_asset_first_name = request.lead_asset_first_name;
+            request.asset_type_id = request.lead_asset_type_id;
+            rmBotService.TriggerRoundRobinV2(request);
+            logger.info(request.workflow_activity_id+": arpBot: is cloned/is_refill  so skipped : %j", key);
+            return;
+        }
         // logger.silly("arpBot: Bot Inline data Key1: %j", inlineData._1);
         // logger.silly("arpBot: Bot Inline data Key2: %j", inlineData[key]);
         // logger.silly("arpBot: Bot Inline data Key Operation_type : %j", inlineData[key].operation_type);
