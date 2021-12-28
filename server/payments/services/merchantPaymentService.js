@@ -527,6 +527,7 @@ function MerchantPaymentService(objectCollection) {
                                                                         } else {
                                                                             console.log("getShortFirebaseURL " + res);
                                                                             let PhoneNumber = paymentresponse.paymentTransactionData.customer_mob_no;
+                                                                            let restaurant_Name=context.merchantData.merchant_display_name;
                                                                             let CountryCode = 91;
                                                                             let recipientData = {
                                                                                 name: CountryCode.toString() + PhoneNumber,
@@ -535,9 +536,10 @@ function MerchantPaymentService(objectCollection) {
                                                                             };
                                                                             let memberData = {
                                                                                 member_name: CountryCode.toString() + PhoneNumber,
+                                                                                restaurant_name:restaurant_Name,
                                                                                 link: res
                                                                             };
-                                                                            let templateName = "order_track";
+                                                                            let templateName = "orderupdate";
                                                                             let [error, data] = await util.WhatsappNotification(request, memberData, recipientData, templateName);
                                                                             return [true, {}]
                                                                         }

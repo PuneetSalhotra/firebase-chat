@@ -1185,12 +1185,12 @@ function ActivityListingController(objCollection) {
         }
     });
 
-    app.post('/' + global.config.version + '/activity/update/widget_name', async (req, res) => {
-        const [err, responseData] = await activityListingService.UpdateWidgetName(req.body);
+    app.post('/' + global.config.version + '/activity/update/widgets', async (req, res) => {
+        const [err, responseData] = await activityListingService.UpdateWidgetDetails(req.body);
         if (!err) {
             res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
-            console.log("/activity/update/widget_name | Error: ", err);
+            console.log("/activity/update/widgets | Error: ", err);
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });

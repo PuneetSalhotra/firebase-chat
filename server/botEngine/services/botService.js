@@ -9617,17 +9617,18 @@ else{
         };
         console.log('request.workflow_activity_id : ', request.workflow_activity_id);
         request.debug_info.push('request.workflow_activity_id : '+ request.workflow_activity_id);
-        
+        let status_dueDate = false;
         if(inlineData && inlineData.hasOwnProperty('is_status_due_date') && inlineData.is_status_due_date == 1) {
            let updateStatusDueDateParams = {...request};
            updateStatusDueDateParams.activity_id = Number(request.workflow_activity_id);
            updateStatusDueDateParams.status_due_datetime = newDate;
             rmBotService.updateStatusDueDate(updateStatusDueDateParams)
-            
-            return [false,[]]
+            status_dueDate = true;
         }
+        else {
 
         await queueWrapper.raiseActivityEventPromise(event, request.workflow_activity_id);
+        }
 
         //Timeline /activity/timeline/entry/add
             /*account_id: 1100
@@ -9675,7 +9676,7 @@ else{
 
             let assetName = (assetDetails.length > 0) ? assetDetails[0].operating_asset_first_name : 'Bot';
 
-            let content = `Due date changed from ${moment(oldDate).format('Do MMMM YYYY, h:mm a')} to ${moment(newDate).format('Do MMMM YYYY, h:mm a')} by ${assetName}`;
+            let content = `${status_dueDate?"Status d":"D"}ue date changed from ${moment(oldDate).format('Do MMMM YYYY, h:mm a')} to ${moment(newDate).format('Do MMMM YYYY, h:mm a')} by ${assetName}`;
             let activityTimelineCollection = {
                 content: content,
                 subject: `Note - ${util.getCurrentDate()}`,

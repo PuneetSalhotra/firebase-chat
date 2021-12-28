@@ -567,6 +567,14 @@ this.getAllParticipantsAsync = async (request) => {
         var dataTypeId = 0;
         var formId = 0;
         var newUserAssetId = (request.hasOwnProperty('signedup_asset_id')) ? request.signedup_asset_id : 0;
+        
+        const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50403, 50787];
+        if(supressTimelineEntries.includes(Number(request.form_id)) && Number(streamTypeId)==713){
+            //console.log("IN addTimelineTransactionAsync Suprress:: ");
+            streamTypeId = 728;
+            //request.activity_stream_type_id = 728;
+        }
+        
         if (Number(request.device_os_id) === 5)
             retryFlag = 1;
 
@@ -4442,6 +4450,14 @@ this.getAllParticipantsAsync = async (request) => {
         let dataTypeId = 0;
         let formId = 0;
         let newUserAssetId = (request.hasOwnProperty('signedup_asset_id')) ? request.signedup_asset_id : 0;
+        
+        const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50403, 50787];
+        if(supressTimelineEntries.includes(Number(request.form_id)) && Number(streamTypeId)==713){
+            //console.log("IN addTimelineTransactionAsync Suprress:: ");
+            streamTypeId = 728;
+            //request.activity_stream_type_id = 728;
+        }
+        
         if (Number(request.device_os_id) === 5)
             retryFlag = 1;
 
@@ -7115,7 +7131,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
         const paramsArr = new Array(
             request.organization_id,
-            request.activity_id,
+            request.activity_parent_id,
             request.activity_type_category_id,
             request.amount,
             util.getCurrentUTCTime()
