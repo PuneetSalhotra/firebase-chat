@@ -7115,7 +7115,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
         const paramsArr = new Array(
             request.organization_id,
-            request.activity_id,
+            request.activity_parent_id,
             request.activity_type_category_id,
             request.amount,
             util.getCurrentUTCTime()
