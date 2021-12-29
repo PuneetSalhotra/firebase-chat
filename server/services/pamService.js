@@ -4998,14 +4998,20 @@ this.checkingReservationCodeV1 = async (request) => {
         responseObject = {};
     request.datetime_log = util.getCurrentUTCTime();
     const [eventErr, eventData] = await self.getEvent(request);  
+    console.log(eventData,'eventData');
     if(!eventErr){
         if(eventData.length > 0){
-            request.parent_activity_id = eventData[0].activity_id;
+            for (let i = 0; i < eventData.length; i++) {
+            request.parent_activity_id = eventData[i].activity_id;
             request.activity_type_category_id = 37;
             request.page_start = 0;
             request.page_limit = 1;
             [error, responseData] = await self.getChildOfAParent(request);
-            responseObject = responseData.length>0 ?responseData[0]:{};
+            if (responseData.length > 0) {
+                responseObject = responseData.length > 0 ? responseData[0] : {};
+                break;
+            }       
+            }
         } else {
             return([true, ['No events available']]);
         }
