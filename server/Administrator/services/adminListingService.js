@@ -2222,6 +2222,30 @@ function AdminListingService(objectCollection) {
         }
         return [error, responseData];
      }
+
+     this.getOrgListSupportWorkflow = async (request) =>{
+        let responseData = [],
+            error = true;
+ 
+        const paramsArr = new Array(
+            request.form_id,
+            request.form_activity_type_id,
+            request.form_activity_type_category_id
+        );
+        const queryString = util.getQueryString('ds_v2_form_entity_mapping_select_form', paramsArr);
+ 
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+     }
 }
 
 module.exports = AdminListingService;

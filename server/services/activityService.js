@@ -2000,8 +2000,13 @@ function ActivityService(objectCollection) {
     var activityListUpdateStatusDuration = async function (request) {
         let responseData = [],
         error = true;
+        if(!(request.hasOwnProperty('activity_status_duration') && Number(request.activity_status_duration)>=0)){
+         return [false, []];
+        }
         let current_date = moment();
-    let activity_status_duration = util.addMinutes(current_date,request.activity_status_duration || 0)
+        
+    let activity_status_duration = util.addMinutes(current_date,request.activity_status_duration || 0);
+    
         let paramsArr = new Array(                
             request.organization_id, 
             request.activity_id, 
