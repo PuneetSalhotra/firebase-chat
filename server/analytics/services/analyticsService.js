@@ -5364,10 +5364,12 @@ function AnalyticsService(objectCollection)
                 //paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
                 //paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 paramsArray[15] = 0;
+                paramsArray[16] = 0;
                 paramsArray[1] = 1;
                 if (widgetFlags[iteratorM] == 2) {
                     paramsArray[1] = 2;
                     paramsArray[15] = 1;
+                    paramsArray[16] = 148;
                 }
                 paramsArray.push(widgetFlags[iteratorM]);
                 paramsArray[10] = 0; //request.asset_id;
@@ -5375,6 +5377,7 @@ function AnalyticsService(objectCollection)
                 responseJson.datetime_start = paramsArray[18];
                 responseJson.datetime_end = paramsArray[19];
                 responseJson.filter_activity_status_type_id = paramsArray[15];
+                responseJson.filter_activity_status_tag_id = paramsArray[16];
                 responseJson.filter_date_type_id = paramsArray[1];
                 responseJson.filter_asset_id = paramsArray[10];
                 responseJson.sequence_id = widgetFlags[iteratorM];
@@ -6203,10 +6206,12 @@ function AnalyticsService(objectCollection)
                 //paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
                 //paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 paramsArray[15] = 0;
+                paramsArray[16] = 0;
                 paramsArray[1] = 1;
                 if (widgetFlags[iteratorM] == 2) {
                     paramsArray[1] = 2;
                     paramsArray[15] = 1;
+                    paramsArray[16] = 148;
                 }
                 paramsArray.push(widgetFlags[iteratorM]);
                 paramsArray[10] = request.filter_asset_id;
@@ -6214,6 +6219,7 @@ function AnalyticsService(objectCollection)
                 responseJson.datetime_start = paramsArray[18];
                 responseJson.datetime_end = paramsArray[19];
                 responseJson.filter_activity_status_type_id = paramsArray[15];
+                responseJson.filter_activity_status_tag_id = paramsArray[16];
                 responseJson.filter_date_type_id = paramsArray[1];
                 responseJson.filter_asset_id = paramsArray[10];
                 responseJson.sequence_id = widgetFlags[iteratorM];
