@@ -296,6 +296,7 @@ function AnalyticsService(objectCollection)
         //global.logger.write('conLog', "createAssetBundle | createActivity | activityData: " + activityData, {}, {});
         //console.log("createAssetBundle | createActivity | activityData: ", activityData);
         request.activity_id = activityData.response.activity_id;
+        updateWidgetsTagType(request);
         if(Number(request.form_id)>0){
             let [widgetErr, widgetResponse] = await this.widgetListInsert(request);
             if(widgetErr) {
@@ -328,6 +329,32 @@ function AnalyticsService(objectCollection)
         return [false,[]]
         }
     };
+
+    async function updateWidgetsTagType(request) {
+        let responseData = [],
+            error = true;
+
+            let paramsArr = new Array(
+                request.organization_id,
+                request.activity_id,
+                request.tag_id,
+                request.tag_type_id
+            );
+
+        let queryString = util.getQueryString('ds_p1_activity_list_update_tag', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];        
+    }
+
 
     async function createActivity(request) {
         //let filterTagTypeId = request.filter_tag_type_id;
@@ -542,7 +569,7 @@ function AnalyticsService(objectCollection)
 
         let paramsArr = new Array(
             request.activity_id,
-            request.activity_widget_id,
+            request.activity_widget_id || request.widget_id,
             request.widget_type_id,
             request.organization_id,
             request.datetime_log
@@ -1231,7 +1258,7 @@ function AnalyticsService(objectCollection)
                 request.workforce_id,
                 request.tag_type_id,
                 global.analyticsConfig.parameter_flag_sort,
-                request.target_asset_id,
+                request.target_asset_id || 0,
                 request.asset_id,
                 request.page_start || 0,
                 request.page_limit || 50
