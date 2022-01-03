@@ -9,6 +9,8 @@ function AnalyticsService(objectCollection)
     const nodeUtil = require('util');
     
     const AssetService = require('../../services/assetService');
+    const AdminListingService = require('../../Administrator/services/adminListingService');
+    const adminListingService = new AdminListingService(objectCollection);
     const assetService = new AssetService(objectCollection);
 
     //const cacheWrapper = objectCollection.cacheWrapper;
@@ -250,7 +252,10 @@ function AnalyticsService(objectCollection)
         // console.log(request.widget_type_id)
         request.datetime_log = util.getCurrentUTCTime();
         let widgetId;
-        
+
+        let [actError,activity_type] = await adminListingService.workforceActivityTypeMappingSelectCategory({...request,activity_type_category_id:58})
+        request.activity_type_id = activity_type[0].activity_type_id;
+        request.activity_type_category_id = 58;
         //Update widget_aggregate_id and widget_chart_id
         //*******************************************************/
         let [err1, staticValues] = await self.getwidgetStaticValueDetails(request);

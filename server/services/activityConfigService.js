@@ -1226,10 +1226,15 @@ function ActivityConfigService(db,util,objCollection) {
             //1) CUID3 of Workflow
             logger.silly("Updating CUID3 Value of workflow");
             logger.silly("Update CUID Bot Request: ",request);
+            let objToSend = {"CUID3": accountCode};
+            if(checkPan!=""){
+                objToSend = {...objToSend,"CUID1":checkPan}
+            }
+
             try {
                 request.account_code_update = true;
                 request.datetime_log = util.getCurrentUTCTime();
-                await botService.updateCUIDBotOperationMethod(request,{},{"CUID3": accountCode});
+                await botService.updateCUIDBotOperationMethod(request,{},objToSend);
             } catch(error) {
                 logger.error("Error running the CUID update bot - CUID3",{type: 'bot_engine',error: serializeError(error),request_body: request});
             }
