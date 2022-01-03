@@ -539,7 +539,7 @@ function MerchantPaymentService(objectCollection) {
                                                                                 restaurant_name:restaurant_Name,
                                                                                 link: res
                                                                             };
-                                                                            let templateName = "order__tracking";
+                                                                            let templateName = "orderstatus";
                                                                             let [error, data] = await util.WhatsappNotification(request, memberData, recipientData, templateName);
                                                                             return [true, {}]
                                                                         }
