@@ -1725,7 +1725,6 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             //add approval workflow activity
             let [errActivity,newActivityData] = await createActivityV1(request,workforceID,organizationID,accountID,request.log_asset_id,activityInlineData);
             let newActivity_id = newActivityData;
-console.log('new ActivityId321',newActivity_id)
             //make manager as lead
             await addParticipantasLead(request,newActivity_id,managerAssetId,managerAssetId)
             
@@ -7656,24 +7655,14 @@ console.log('new ActivityId321',newActivity_id)
     async function createDefaultWidgets (request,tag_type_id){
         let responseData = [],
         error = true;
-    const paramsArr = new Array(
-        request.organization_id,
-        request.widget_type_category_id || 3,
-        request.workforce_id,
-        0,
-        50
-    );
-
-    const queryString = util.getQueryString('ds_p1_widget_type_master_select_tag_type', paramsArr);
-
-    if (queryString !== '') {
-        await db.executeQueryPromise(0, queryString, request)
-            .then(async (data1) => {
+        request.tag_type_id = tag_type_id;
+       let data1 = await analyticsService.getManagementWidgetList(request);
+    //    console.log(data1)
                let widgetData = require('../../utils/defaultWidgetMappings.json');
                let [actError,activity_type] = await adminListingService.workforceActivityTypeMappingSelectCategory({...request,activity_type_category_id:58})
             //    console.log(widgetData)
                for(let i=0;i<widgetData.length;i++){
-                  let checkExistingWidgets = data1.findIndex((item)=>item.widget_type_id==widgetData[i].widget_type_id);
+                  let checkExistingWidgets = data1.length>0 ? data1.findIndex((item)=>item.widget_type_id==widgetData[i].widget_type_id):-1;
                   if(checkExistingWidgets!=-1){
                       continue
                   }
@@ -7714,15 +7703,6 @@ console.log('new ActivityId321',newActivity_id)
                 //   console.log(requestToSend)
                   analyticsService.analyticsWidgetAddV1(requestToSend)
                }
-              
-
-            })
-            .catch((err)=>{
-                error = err;
-                console.log('error :: ' + error);
-            })
-
-    }
 }
 
 this.createWidgetsV1 = async (request)=>{
@@ -11895,6 +11875,58 @@ if (queryString !== '') {
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_v1_application_tag_type_mapping_update', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.applicationMasterSequenceUpdate = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.application_id,
+            request.sequence_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_application_master_update_sequence', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.organizationFilterTagTypeMappingUpdateInline = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.tag_type_mapping_id,
+            request.filter_inline_data
+        );
+        const queryString = util.getQueryString('ds_p1_organization_filter_tag_type_mapping_update_inline', paramsArr);
 
 
         if (queryString !== '') {
