@@ -3137,6 +3137,11 @@ console.log('new ActivityId321',newActivity_id)
             }];
         }
 
+        //
+        archiveAsset({...request,
+            asset_id: deskAssetID
+        },3803);
+
         // Asset List History Insert
         try {
             await assetListHistoryInsert({
