@@ -7637,10 +7637,10 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
+                .then(async (data) => {
                     responseData = data;
                     error = false;
-                    createDefaultWidgets(request,data[0].tag_type_id)
+                    await createDefaultWidgets(request,data[0].tag_type_id)
                     //History Insert
                     tagEntityMappingHistoryInsert(request, 0);
                 })
@@ -7659,10 +7659,14 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
        let data1 = await analyticsService.getManagementWidgetList(request);
     //    console.log(data1)
                let widgetData = require('../../utils/defaultWidgetMappings.json');
-               let [actError,activity_type] = await adminListingService.workforceActivityTypeMappingSelectCategory({...request,activity_type_category_id:58})
+               let [actError,activity_type] = await adminListingService.workforceActivityTypeMappingSelectCategory({...request,activity_type_category_id:58,workforce_id:0});
+               if(activity_type.length==0){
+                   return [false,[]]
+               }
             //    console.log(widgetData)
                for(let i=0;i<widgetData.length;i++){
                   let checkExistingWidgets = data1.length>0 ? data1.findIndex((item)=>item.widget_type_id==widgetData[i].widget_type_id):-1;
+                  console.log(checkExistingWidgets)
                   if(checkExistingWidgets!=-1){
                       continue
                   }
@@ -7701,8 +7705,15 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                   widgetDataToSend = {...widgetDataToSend,...widgetData[i]};
                   let requestToSend = {...request,...widgetDataToSend};
                 //   console.log(requestToSend)
-                  analyticsService.analyticsWidgetAddV1(requestToSend)
+                 let [errCreate,createdData] = await analyticsService.analyticsWidgetAddV1(requestToSend)
                }
+            //    await new Promise((resolve)=>{
+            //     setTimeout(()=>{
+            //         return resolve();
+            //     }, 3500);
+            // });
+            // console.log("returned")
+               return [false,[]]
 }
 
 this.createWidgetsV1 = async (request)=>{
@@ -11561,31 +11572,6 @@ if (queryString !== '') {
         return [error, responseData];
     };  
 
-    this.applicationMasterUpdate  = async (request) => {
-        let responseData = [],
-            error = true;
-
-        const paramsArr = new Array(
-            request.organization_id,
-            request.application_id, 
-            request.asset_id,
-            request.application_name,
-            util.getCurrentUTCTime()         
-            );
-        const queryString = util.getQueryString('ds_v1_application_master_update', paramsArr);
-
-        if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, responseData];
-    };  
 
     this.assetTypeAccessMappingInsert  = async (request) => {
         let responseData = [],
@@ -11653,6 +11639,7 @@ if (queryString !== '') {
             request.application_label_name,
             request.application_name,
             request.tag_type_label_name,
+            request.sequence_id,
             request.log_asset_id,
             util.getCurrentUTCTime()
         );
