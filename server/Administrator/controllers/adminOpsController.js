@@ -1132,16 +1132,6 @@ function AdminOpsController(objCollection) {
             }
         });
 
-        app.post("/" + global.config.version + "/application/master/update", async function (req, res) {
-            const [err, result] = await adminOpsService.applicationMasterUpdate(req.body);
-            if (!err) {
-                res.json(responseWrapper.getResponse(false, result, 200, req.body));
-            } else {
-                console.log("/application/master/update | Error: ", err);
-                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
-            }
-        });
-
         app.post("/" + global.config.version + "/admin/asset/type/mapping/insert", async function (req, res) {
             const [err, result] = await adminOpsService.assetTypeAccessMappingInsert(req.body);
             if (!err) {
