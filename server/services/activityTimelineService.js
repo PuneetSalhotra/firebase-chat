@@ -38,7 +38,8 @@ function ActivityTimelineService(objectCollection) {
     this.addTimelineTransaction = function (request, callback) {
 
         util.logInfo(request,`IN addTimelineTransaction :: `);
-        const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50403, 50787];
+        // const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50403, 50787];
+        const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50787,50824, 51087, 51086, 50403];
 
         //const self = this;
         let logDatetime = util.getCurrentUTCTime();
@@ -246,7 +247,8 @@ function ActivityTimelineService(objectCollection) {
         //ELSE IF | 9 & 713
         //ELSE IF | 48,50,51,54 & 705,713,715,716,726
         //ELSE
-        const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50403, 50787];
+        // const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50403, 50787];
+        const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50787,50824, 51087, 51086, 50403];
         
         let responseData = [],
             error = true;
