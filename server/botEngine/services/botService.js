@@ -2485,8 +2485,8 @@ function BotService(objectCollection) {
                                         }, request.workflow_activity_id || 0,
                                         {
                                             subject: 'Info: More Requests in queue',
-                                            content: "There will be delay in processing your request as we have received multiple requests at time.\nPlease wait for sometime while we are processing your request.",
-                                            mail_body: "There will be delay in processing your request as we have received multiple requests at time.\nPlease wait for sometime while we are processing your request.",
+                                            content: "There will be a slight delay in processing your request as we have received multiple requests at a time.\nPlease wait for sometime while we are processing your request.",
+                                            mail_body: "There will be a slight delay in processing your request as we have received multiple requests at a time.\nPlease wait for sometime while we are processing your request.",
                                             attachments: []
                                         }
                                     );
