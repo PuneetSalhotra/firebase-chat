@@ -3,11 +3,11 @@
  */
 const { Kafka } = require('kafkajs');
 const logger = require("../../logger/winstonLogger");
-var ActivityService = require('../../services/activityService.js');
-var ActivityParticipantService = require('../../services/activityParticipantService.js');
+const ActivityService = require('../../services/activityService.js');
+const ActivityParticipantService = require('../../services/activityParticipantService.js');
 //var ActivityUpdateService = require('../../services/activityUpdateService.js');
-var ActivityTimelineService = require('../../services/activityTimelineService.js');
-var ActivityListingService = require('../../services/activityListingService.js');
+const ActivityTimelineService = require('../../services/activityTimelineService.js');
+const ActivityListingService = require('../../services/activityListingService.js');
 
 const UrlOpsService = require('../../UrlShortner/services/urlOpsService');
 
@@ -41,7 +41,7 @@ const sqs = new AWS.SQS();
 const XLSX = require('xlsx');
 const {PDFDocument, rgb, StandardFonts,degrees } = require('pdf-lib');
 const fetch = require('node-fetch');
-var fontkit = require('@pdf-lib/fontkit');
+const fontkit = require('@pdf-lib/fontkit');
 
 function isObject(obj) {
     return obj !== undefined && obj !== null && !Array.isArray(obj) && obj.constructor == Object;
@@ -276,7 +276,7 @@ function BotService(objectCollection) {
                              error = false;
                          })
                          .catch((err)=>{
-                                 console.log('[Error] bot data update ',err);
+                                 util.logError(request,`[Error] bot data update `, { type: 'bot_engine', err });
                                  error = err;
                          });
                  }
@@ -1477,7 +1477,7 @@ function BotService(objectCollection) {
                     try {
                         await fireTextMsg(request, botOperationsJson.bot_operations.fire_text);
                     } catch (err) {
-                        console.log("Error in executing fireTextMsg Step | Error: ", err)
+                        util.logError(request,`Error in executing fireTextMsg Step | Error: `, { type: 'bot_engine', err });
                         global.logger.write('serverError', err, {}, {});
                         i.bot_operation_status_id = 4;
                         i.bot_operation_inline_data = JSON.stringify({
@@ -1506,7 +1506,7 @@ function BotService(objectCollection) {
                         await fireEmail(request, botOperationsJson.bot_operations.fire_email);
                     } catch (err) {
                         global.logger.write('conLog', 'Error in executing fireEmail Step', {}, {});
-                        console.log("Error in executing fireEmail Step: ", err)
+                        util.logError(request,`Error in executing fireEmail Step: `, { type: 'bot_engine', err });
                         global.logger.write('serverError', err, {}, {});
                         i.bot_operation_status_id = 4;
                         i.bot_operation_inline_data = JSON.stringify({
@@ -1518,21 +1518,21 @@ function BotService(objectCollection) {
                     break;
                 
                 case 8: // add_comment
-                    console.log('****************************************************************');
-                    console.log('add_comment');
-                    console.log('add_comment | Request Params received by BOT ENGINE', request);
+                    util.logInfo(request,`****************************************************************`);
+                    util.logInfo(request,`add_comment`);
+                    util.logInfo(request,`add_comment | Request Params received by BOT ENGINE`);
                     request.debug_info.push('add_comment');
                     request.debug_info.push('add_comment | Request Params received by BOT ENGINE'+ request);
                     try {
                         await addComment(request, botOperationsJson.bot_operations.add_comment);
                     } catch (err) {
-                        console.log('add_comment | Error', err);
+                        util.logError(request,`add_comment | Error`, { type: 'bot_engine', error });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
                     }
-                    console.log('****************************************************************');
+                    util.logInfo(request,`****************************************************************`);
                     break;
                 
                 // case 9: // add_attachment
@@ -1552,23 +1552,23 @@ function BotService(objectCollection) {
                 //     break;
                 
                 case 10: // add_attachment_with_attestation
-                    console.log('****************************************************************');
-                    console.log('add_attachment_with_attestation');
-                    console.log('add_attachment_with_attestation | Request Params received by BOT ENGINE', request);
+                    util.logInfo(request,`****************************************************************`);
+                    util.logInfo(request,`add_attachment_with_attestation`);
+                    util.logInfo(request,`add_attachment_with_attestation | Request Params received by BOT ENGINE`);
                     request.debug_info.push('add_attachment_with_attestation ');
                     request.debug_info.push('add_attachment_with_attestation | Request Params received by BOT ENGINE'+ request);
                     try {
-                        console.log('try add_attachment_with_attestation');
+                        util.logInfo(request,`try add_attachment_with_attestation`);
                         
                          await addAttachmentWithAttestation(request, botOperationsJson.bot_operations.add_attachment_with_attestation);
                     } catch (err) {
-                        console.log('add_attachment_with_attestation  | Error', err);
+                        util.logError(request,`add_attachment_with_attestation  | Error`, { type: 'bot_engine', err });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
                     }
-                    console.log('****************************************************************');
+                    util.logInfo(request,`****************************************************************`);
                     break;
                 
                 // case 11: // add_form_as_pdf
@@ -1588,12 +1588,12 @@ function BotService(objectCollection) {
                 //     break;
                 
                 case 12: // form_pdf
-                    console.log('****************************************************************');
-                    console.log('form_pdf');
+                    util.logInfo(request,`****************************************************************`);
+                    util.logInfo(request,`form_pdf %j`, request);
                     logger.silly('form_pdf | Request Params received by BOT ENGINE: %j', request);
                     request.debug_info.push('form_pdf');
                     try {
-                        console.log('form_pdf');
+                        util.logInfo(request,`form_pdf %j`, request);
                         // commenting to get hummus error
                         // await addPdfFromHtmlTemplate(request, botOperationsJson.bot_operations.form_pdf);
                     } catch (err) {
@@ -1603,7 +1603,7 @@ function BotService(objectCollection) {
                             "err": err
                         });
                     }
-                    console.log('****************************************************************');
+                    util.logInfo(request,`****************************************************************`);
                     break;
                 
                 case 13: // [RESERVED] Time Slot Bot
@@ -1614,7 +1614,7 @@ function BotService(objectCollection) {
                     try {
                         await ledgerOpsService.ledgerCreditDebitNetTransactionUpdate(request);
                     } catch (error) {
-                        console.log("LEDGER TRANSACTION Error: ", error);
+                        util.logError(request,`LEDGER TRANSACTION Error: `, { type: 'bot_engine', error });
                     }
                     break;
 
@@ -1631,7 +1631,7 @@ function BotService(objectCollection) {
                     try {
                         await createCustomerAsset(request, botOperationsJson.bot_operations.create_customer);
                     } catch (error) {
-                        console.log("CREATE CUSTOMER Error: ", error);
+                        util.logError(request,`CREATE CUSTOMER Error: `, { type: 'bot_engine', error });
                     }
                     break;
                 
@@ -1640,7 +1640,7 @@ function BotService(objectCollection) {
                     try {
                         //await createCustomerAsset(request, botOperationsJson.bot_operations.create_customer);
                     } catch (error) {
-                        console.log("Workflow Reference Bot: ", error);
+                        util.logError(request,`Workflow Reference Bot: `, { type: 'bot_engine', error });
                     }
                     break;
 
@@ -1671,8 +1671,8 @@ function BotService(objectCollection) {
                         logger.error("Error parsing inline JSON for workbook bot", { type: 'bot_engine', error, request_body: request });
                     }
 
-                    console.log(' ');
-                    console.log('activityInlineData : ', activityInlineData);
+                    util.logInfo(request,` `);
+                    util.logInfo(request,`activityInlineData : ${activityInlineData} %j`);
                     request.debug_info.push('activityInlineData: ' + activityInlineData);
 
                     let activityProductSelection;
@@ -1682,18 +1682,18 @@ function BotService(objectCollection) {
 
                             let fieldValue = JSON.parse(i.field_value);
                             let cartItems = fieldValue.cart_items;
-                            console.log('typeof Cart Items : ', typeof cartItems);
-                            console.log('Cart Items : ', cartItems);
+                            util.logInfo(request,`typeof Cart Items :  ${typeof cartItems} %j`);
+                            util.logInfo(request,`Cart Items : ${cartItems} %j`);
                             request.debug_info.push('typeof Cart Items: ' + typeof cartItems);
                             request.debug_info.push('Cart Items: ' + cartItems);
 
                             cartItems = (typeof cartItems === 'string') ? JSON.parse(cartItems) : cartItems;
 
                             if(cartItems.length > 0) {
-                                console.log('Searching for custom variant');
+                                util.logInfo(request,`Searching for custom variant %j`, request);
                                 request.debug_info.push('Searching for custom variant');
                                 for(j of cartItems) {
-                                    console.log('product_variant_activity_title : ', (j.product_variant_activity_title).toLowerCase());
+                                    util.logInfo(request,`product_variant_activity_title : ${(j.product_variant_activity_title).toLowerCase()} %j`);
                                     request.debug_info.push('product_variant_activity_title: ' + (j.product_variant_activity_title).toLowerCase());
                                     if((j.product_variant_activity_title).toLowerCase() == 'custom variant' ||
                                         (j.product_variant_activity_title).toLowerCase() == 'custom') {
@@ -1711,7 +1711,7 @@ function BotService(objectCollection) {
                         flag = 1;
                     }
 
-                    console.log('Number(request.parent_activity_id) - ', Number(request.parent_activity_id));
+                    util.logInfo(request,`Number(request.parent_activity_id) - ${Number(request.parent_activity_id)} %j`);
                     request.debug_info.push('Number(request.parent_activity_id): ' + Number(request.parent_activity_id));
                     if(request.hasOwnProperty('parent_activity_id') && Number(request.parent_activity_id) > 0) {
                         flag = 0;
@@ -1729,7 +1729,7 @@ function BotService(objectCollection) {
                     //For Workbook logs
                     request.activity_product_selection = (typeof activityProductSelection === 'object') ? JSON.stringify(activityProductSelection) : activityProductSelection;
                     let[err, response] = await activityCommonService.workbookTrxInsert(request);
-                    console.log(response);
+                    util.logInfo(request,`response : ${response}  %j`);
                     request.debug_info.push('response: ' + response);
                                 
                     let workbookTxnID = (response.length > 0) ? response[0].transaction_id : 0;
@@ -1738,7 +1738,7 @@ function BotService(objectCollection) {
 
                     if(Number(flag) === 1) {
                         if(Number(request.activity_type_id) === 152184) {
-                            console.log('Its a BC workflow Form : ', request.form_id, ' -- ' , request.form_name);
+                            util.logInfo(request,`Its a BC workflow Form : ${request.form_id} -- ${request.form_name} %j` , request);
                             request.debug_info.push('request.form_id: ' + request.form_id);
                             request.debug_info.push('request.form_name: ' + request.form_name);
                         }
@@ -1810,9 +1810,9 @@ function BotService(objectCollection) {
                             logger.error("Error running the Workbook Mapping Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         }
                     } else {
-                        console.log('Its not a custom Variant. Hence not triggering the Bot!');
-                        console.log('OR It has non-zero parent activity ID - ', Number(request.parent_activity_id));
-                        console.log('---------- TIMELINE ENTRY -----------');
+                        util.logInfo(request,`Its not a custom Variant. Hence not triggering the Bot! %j`);
+                        util.logInfo(request,`OR It has non-zero parent activity ID - ${Number(request.parent_activity_id)} %j`);
+                        util.logInfo(request,`---------- TIMELINE ENTRY ----------- %j`);
                         request.debug_info.push('Its not a custom Variant. Hence not triggering the Bot!');
                         request.debug_info.push('OR It has non-zero parent activity ID: ' +  Number(request.parent_activity_id));
                         
@@ -1831,7 +1831,7 @@ function BotService(objectCollection) {
                         || request.activity_type_id == 149818 || request.activity_type_id == 149752
                         || request.activity_type_id == 149058 || request.activity_type_id == 151728 || request.activity_type_id == 151727
                         || request.activity_type_id == 151729 || request.activity_type_id == 151730)) {
-                        console.log("OPPORTUNITY :: " + request.activity_type_category_id + " :: " + request.activity_type_id);
+                        util.logInfo(request,`OPPORTUNITY :: ${request.activity_type_category_id} :: ${request.activity_type_id} %j`);
                         request.debug_info.push('activity_type_category_id: ' + request.activity_type_category_id);
                         request.debug_info.push('activity_type_id: ' + request.activity_type_id);
 
@@ -1909,7 +1909,7 @@ function BotService(objectCollection) {
                 case 28: //Arithmetic Bot
                         logger.silly("ArithMetic Bot Params received from Request: %j", request);
                         try {
-                            console.log('botOperationsJson in Arithmetic Bot: ', botOperationsJson);
+                            util.logInfo(request,`botOperationsJson in Arithmetic Bot: ${botOperationsJson} %j` , request);
                             request.debug_info.push('botOperationsJson in Arithmetic Bot: '+ botOperationsJson);
                             await arithmeticBot(request, formInlineDataMap, botOperationsJson.bot_operations.arithmetic_calculation);
                         } catch (error) {
@@ -1960,7 +1960,7 @@ function BotService(objectCollection) {
                     request.debug_info.push('WorkFlow Bot');
                     try {
                         // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
-                        console.log('workflow start | Request Params received by BOT ENGINE', request);
+                        util.logInfo(request,`workflow start | Request Params received by BOT ENGINE %j`, request);
                         request.debug_info.push('workflow start | Request Params received by BOT ENGINE'+ request);
                         await workFlowCopyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
                     } catch (err) {
@@ -2108,7 +2108,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
                 case 37: //PDF generation Bot
-                    console.log("entered 37");
+                    util.logInfo(request,`entered 37 %j`, request);
                     let pdf_json = JSON.parse(i.bot_operation_inline_data);
                     request.pdf_json = pdf_json;
                     request.generate_pdf = 1;
@@ -2312,11 +2312,11 @@ function BotService(objectCollection) {
                     break;    
                     
                     case 48 : // pdf_edit
-                    console.log('****************************************************************');
-                    console.log('pdf_edit');
+                    util.logInfo(request,`**************************************************************** %j`,request);
+                    util.logInfo(request,`pdf_edit %j`, request);
                     logger.silly('pdf_edit | Request Params received by BOT ENGINE: %j', request);
                     request.debug_info.push('pdf_edit');
-                    console.log(botOperationsJson)
+                    util.logInfo(request,`botOperationsJson : ${botOperationsJson} %j` , request);
                     try {
                         await editPDF(request, JSON.parse(i.bot_operation_inline_data));
                     } catch (err) {
@@ -2326,7 +2326,7 @@ function BotService(objectCollection) {
                             "err": err
                         });
                     }
-                    console.log('****************************************************************');
+                    util.logInfo(request,`**************************************************************** %j`, request);
                     break;
                 case 49: // Bulk Third Party Bot
                     logger.silly("Bulk Third party opex Bot params received from request: %j", request);
@@ -2342,8 +2342,8 @@ function BotService(objectCollection) {
                     break;
 
                 case 50 : // Activity Update customer data 
-                    console.log('****************************************************************');
-                    console.log('');
+                    util.logInfo(request,`**************************************************************** %j`, request);
+                    util.logInfo(request,` %j`, request);
                     logger.silly('Activity Update customer data | Request Params received by BOT ENGINE: %j', request);
                     request.debug_info.push('pdf_edit');
                     try {
@@ -2355,16 +2355,16 @@ function BotService(objectCollection) {
                             "err": err
                         });
                     }
-                    console.log('****************************************************************');
+                    util.logInfo(request,`**************************************************************** %j`, request);
                     break;
 
                 case 51: // Autopopulate BC excel
-                    console.log('****************************************************************');
-                    console.log('');
+                    util.logInfo(request,`**************************************************************** %j`, request);
+                    util.logInfo(request,` %j`, request);
                     logger.silly('Autopopulate BC excel | Request Params received by BOT ENGINE: %j', request);
                     request.debug_info.push('bc_auto_populate');
                     try {
-                        console.log("botOperationsJson.bot_operations.condition.form_id ",botOperationsJson.bot_operations.condition.form_id);
+                        util.logInfo(request,`botOperationsJson.bot_operations.condition.form_id ${botOperationsJson.bot_operations.condition.form_id} %j` , request);
                         sendToSqsPdfGeneration({ ...request, sqs_switch_flag: 3, bot_operation_id: 51, third_party_opex_form_id:botOperationsJson.bot_operations.condition.form_id  });
                     } catch (err) {
                         logger.error("Autopopulate | Error in pushing sqs message for autopopulate", { type: "bot_engine", request_body: request, error: serializeError(err) });
@@ -2373,15 +2373,15 @@ function BotService(objectCollection) {
                             "err": err
                         });
                     }
-                    console.log('****************************************************************');
+                    util.logInfo(request,`**************************************************************** %j`, request);
                 break;
 
                 case 53: // Calender Auto form submittion
-                    console.log('****************************************************************');
+                    util.logInfo(request,`**************************************************************** %j`, request);
                     
                     request.debug_info.push('calender_auto_form_submittion');
                     try {
-                        console.log('came in auto submit')
+                        util.logInfo(request,`came in auto submit %j`, request);
                         autoFormSubmission(request,botOperationsJson.bot_operations);
                     } catch (err) {
                         logger.error("Auto form submission | Error ", { type: "bot_engine", request_body: request, error: serializeError(err) });
@@ -2390,7 +2390,7 @@ function BotService(objectCollection) {
                             "err": err
                         });
                     }
-                    console.log('****************************************************************');
+                    util.logInfo(request,`**************************************************************** %j`, request);
                 break;
 
                 case 54: // Child Order creation BOT
@@ -2399,7 +2399,7 @@ function BotService(objectCollection) {
                     request.debug_info.push('WorkFlow Bot');
                     try {
                         // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
-                        console.log('Child Order creation BOT | Request Params received by BOT ENGINE', request);
+                        util.logInfo(request,`Child Order creation BOT | Request Params received by BOT ENGINE %j`, request);
                         request.debug_info.push('Child Order creation BOT | Request Params received by BOT ENGINE' + request);
 
                         let formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data) : request.activity_inline_data;
@@ -2418,7 +2418,7 @@ function BotService(objectCollection) {
                                 if(!insertError && insertResponseData.length > 0) {
                                     request.meeting_transaction_id = insertResponseData[0].meeting_transaction_id
                                 }
-                                console.log(insertResponseData);
+                                util.logInfo(request,`insertResponseData ${insertResponseData} %j` , request);
                                 break;
                             }
                         }
@@ -2458,10 +2458,10 @@ function BotService(objectCollection) {
                         }, (error, data) => {
                             if (error) {
                                 logger.error(request.workflow_activity_id+": Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                                console.log(request.workflow_activity_id+": Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request })
+                                util.logError(request,request.workflow_activity_id + `: Error sending excel job to SQS queue`, { type: 'bot_engine', error });
                             } else {
                                 logger.info(request.workflow_activity_id+": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });    
-                                console.log(request.workflow_activity_id+": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request })                                    
+                                util.logInfo(request, `${request.workflow_activity_id} : Successfully sent excel job to SQS queue: ${data} %j` , request);
                             }                                    
                         });
 
@@ -2472,10 +2472,10 @@ function BotService(objectCollection) {
 
                         sqs.getQueueAttributes(params, function (err, data) {
                             if (err) {
-                                console.log("Error", err);
+                                util.logError(request,`Error`, { type: 'bot_engine', err });
                             } else {
-                                console.log(data);
-                                console.log(data.Attributes.ApproximateNumberOfMessages);
+                                util.logInfo(request,`data ${data} %j` , request);
+                                util.logInfo(request,`data.Attributes.ApproximateNumberOfMessages : ${data.Attributes.ApproximateNumberOfMessages} %j` , request);
 
                                 if (Number(data.Attributes.ApproximateNumberOfMessages) >= 20) {
                                     addTimelineMessage(
@@ -2643,7 +2643,7 @@ function BotService(objectCollection) {
     }, (error, data) => {
         if (error) {
             logger.error(request.workflow_activity_id+": Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
-            console.log(request.workflow_activity_id+": Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request })
+            util.logError(request,request.workflow_activity_id + `: Error sending excel job to SQS queue`, { type: 'bot_engine', error });
             // activityCommonService.workbookTrxUpdate({
             //     activity_workbook_transaction_id: workbookTxnID,
             //     flag_generated: -1, //Error pushing to SQS Queue
@@ -2651,17 +2651,17 @@ function BotService(objectCollection) {
             // });
         } else {
             logger.info(request.workflow_activity_id+": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });    
-            console.log(request.workflow_activity_id+": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request })                                    
+            util.logInfo(request,request.workflow_activity_id + `: Successfully sent excel job to SQS queue: ${data} %j ` , request);                              
         }                                    
     });
    }
 
    async function getFieldDataComboIdUsingFieldIdV1(request,formID,fieldID) {
-    console.log(' ');
-    console.log('*************************');
-    console.log('request.form_id - ', request.form_id);
-    console.log('formID - ', formID);
-    console.log('fieldID - ', fieldID);
+    util.logInfo(request,` %j`, request);
+    util.logInfo(request,`************************ %j`, request);
+    util.logInfo(request,`request.form_id - ${request.form_id} %j` , request);
+    util.logInfo(request,`formID - ${formID} %j` , request);
+    util.logInfo(request,`fieldID - ${fieldID} %j` , request);
 
     let fieldValue = "";
     let formData;
@@ -2684,7 +2684,7 @@ function BotService(objectCollection) {
     for(const fieldData of formData) {
         if(Number(fieldData.field_id) == fieldID) {
            
-            console.log('fieldData.field_data_type_id : ',fieldData);
+            util.logInfo(request,`fieldData.field_data_type_id : ${fieldData} %j` , request);
             switch(Number(fieldData.field_data_type_id)) {
                 //Need Single selection and Drop Down
                 //circle/ state
@@ -2701,7 +2701,7 @@ function BotService(objectCollection) {
     }
 
 
-    console.log('Field Value B4: ',fieldValue);
+    util.logInfo(request,`Field Value B4: ${fieldValue} %j` , request);
     // fieldValue = fieldValue.split(" ").join("");
     // console.log('Field Value After: ',fieldValue);
     // console.log('*************************');
@@ -2948,9 +2948,9 @@ let periodValue = 0;
    }
 */
    function pdfstrToByteArray(str) {
-    var myBuffer = [];
-    var buffer = Buffer.from(str);
-    for (var i = 0; i < buffer.length; i++) {
+    let myBuffer = [];
+    let buffer = Buffer.from(str);
+    for (let i = 0; i < buffer.length; i++) {
         myBuffer.push(buffer[i]);
     }
     return myBuffer;
@@ -3047,7 +3047,7 @@ return [error, responseData];
          let activity_inline_data_json = typeof wfActivityDetails[0].activity_inline_data =="string"?JSON.parse(wfActivityDetails[0].activity_inline_data):wfActivityDetails[0].activity_inline_data;
          activity_inline_data_json = typeof activity_inline_data_json == "string" ? JSON.parse(activity_inline_data_json):activity_inline_data_json;
          let target_asset_id_form = activity_inline_data_json.filter(formdata=>formdata.field_id==bot_data.field_id);
-         console.log(target_asset_id_form);
+         util.logInfo(request,`target_asset_id_form : ${target_asset_id_form} %j` , request);
          let target_asset_id = target_asset_id_form[0].field_value;
         //  console.log(assetfeildDetails)
         //  let target_asset_id = assetfeildDetails.field_value;
@@ -3071,7 +3071,7 @@ return [error, responseData];
             request.workflow_activity_id
         );
 
-        var queryString = util.getQueryString('ds_p1_asset_list_update_flag_asset_approval',paramsArr);
+        let queryString = util.getQueryString('ds_p1_asset_list_update_flag_asset_approval',paramsArr);
         if(queryString !== '') {
             try {
                 const data = await db.executeQueryPromise(0,queryString,request);
@@ -3137,10 +3137,10 @@ return [error, responseData];
             if (fieldDataTypeID === 5 || fieldDataTypeID === 6) {
                 fieldValue = Number(fieldValue);
             }
-            console.log("isBotOperationConditionTrue | fieldValue: ", fieldValue);
+            util.logInfo(request,`isBotOperationConditionTrue | fieldValue: ${fieldValue} %j` , request);
 
             let isConditionTrue = await checkForThresholdCondition(fieldValue, threshold, operation);
-            console.log("isBotOperationConditionTrue | isConditionTrue: ", isConditionTrue);
+            util.logInfo(request,`isBotOperationConditionTrue | isConditionTrue: ${isConditionTrue} %j` , request);
 
             return isConditionTrue;
         } else {
@@ -3273,8 +3273,8 @@ return [error, responseData];
 
             let inlineData = removeParticipantBotOperationData;
 
-            console.log("Inline data");
-            console.log(inlineData);
+            util.logInfo(request,`Inline data %j`, request);
+            util.logInfo(request,`${inlineData} %j` , request);
             request.debug_info.push('inlineData: ' + JSON.stringify(inlineData));
 
             let type = Object.keys(inlineData);
@@ -3285,12 +3285,12 @@ return [error, responseData];
             //if(type[0] === 'flag_esms') {
             if(type.includes('static')){
                     assetID = Number(inlineData[type[0]].asset_id);
-                    console.log('STATIC - Asset ID : ', assetID);
+                    util.logInfo(request,`STATIC - Asset ID : ${assetID} %j` , request);
                     request.debug_info.push('STATIC - Asset ID : '+ assetID);
                 }
                 else if(type.includes('from_request')){
                     assetID = Number(request.asset_id);
-                    console.log('from_request - Asset ID : ', assetID);
+                    util.logInfo(request,`from_request - Asset ID : ${assetID} %j` , request);
                     request.debug_info.push('from_request - Asset ID : '+ assetID);
                 } else if(type.includes('asset_reference'))
                 {
@@ -3319,7 +3319,7 @@ return [error, responseData];
                             });
                             assetID = Number(fieldData[0].data_entity_bigint_1);
                         }
-                        console.log('Asset Reference - Asset ID : ', assetID);
+                        util.logInfo(request,`Asset Reference - Asset ID : ${assetID} %j` , request);
                         request.debug_info.push(' Asset ID: ' + assetID);
                 }
 
@@ -3330,23 +3330,23 @@ return [error, responseData];
                 let creatorAssetID = Number(wfActivityDetails[0].activity_creator_asset_id);
                 let ownerAssetID = Number(wfActivityDetails[0].activity_owner_asset_id)
                     
-                console.log('Asset ID : ', assetID);
-                console.log('Lead Asset ID : ', leadAssetID);
-                console.log('Creator Asset ID : ', creatorAssetID);
+                util.logInfo(request,`Asset ID : ${assetID} $j` , request);
+                util.logInfo(request,`Lead Asset ID : ${leadAssetID} %j` , request);
+                util.logInfo(request,`Creator Asset ID : ${creatorAssetID} %j` , request);
                 request.debug_info.push('Asset ID : '+ assetID);
                 request.debug_info.push('Lead Asset ID : '+ leadAssetID);
                 request.debug_info.push('Creator Asset ID : '+ creatorAssetID);
 
 
                 if(Number(inlineData["flag_remove_lead"]) === 1){
-                    console.log('Remove as lead');
+                    util.logInfo(request,`Remove as lead %j`, request);
                     request.debug_info.push('Remove as lead');
                     await removeAsLead(request,workflowActivityID,leadAssetID);
                 }
                 
                 else if(Number(inlineData["flag_remove_owner"]) === 1){
 
-                    console.log('Remove as Owner');
+                    util.logInfo(request,`Remove as Owner %j`, request);
                     request.debug_info.push('Remove as Owner');
                     let reqDataForRemovingAsOwner = { 
                         activity_id : workflowActivityID,
@@ -3358,7 +3358,7 @@ return [error, responseData];
 
                 }
                 else if(Number(inlineData["flag_remove_creator_as_owner"]) === 1 ){
-                    console.log("Remove Creator as owner");
+                    util.logInfo(request,`Remove Creator as owner %j`, request);
                     request.debug_info.push("Remove Creator as owner");
                     let reqDataForRemovingCreaterAsOwner = { 
                         activity_id : workflowActivityID,
@@ -3371,7 +3371,7 @@ return [error, responseData];
                 }
                 else if(Number(inlineData["flag_remove_participant"]) === 1){
 
-                    console.log("Remove Participant");
+                    util.logInfo(request,`Remove Participant %j`, request);
                     request.debug_info.push("Remove Participant");
 
                     if(leadAssetID === assetID && leadAssetID !== creatorAssetID) {
@@ -3417,7 +3417,7 @@ return [error, responseData];
 
         if(leadAssetID !== 0)
         {
-            console.log("Remove lead asset inside if--------");
+            util.logInfo(request,`Remove lead asset inside if-------- %j`, request);
             request.debug_info.push("Remove lead asset inside if--------");
             let leadAssetFirstName = '',leadOperatingAssetFirstName='';
             try {
@@ -3426,14 +3426,14 @@ return [error, responseData];
                     asset_id: leadAssetID
                 });
         
-                console.log('********************************');
-                console.log('LEAD ASSET DATA - ', assetData[0]);
-                console.log('********************************');
+                util.logInfo(request,`******************************** %j`, request);
+                util.logInfo(request,`LEAD ASSET DATA - ${assetData[0]} %j` , request);
+                util.logInfo(request,`******************************** %j`, request);
                 request.debug_info.push('LEAD ASSET DATA - '+ assetData[0]);
                 // leadAssetFirstName = assetData[0].asset_first_name;
                 leadOperatingAssetFirstName = assetData[0].operating_asset_first_name;
             } catch (error) {
-                console.log(error);
+                util.logError(request,`Error removeAsLead`, { type: 'bot_engine', error });
             }
             
             // const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
@@ -3491,13 +3491,13 @@ async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,cre
             asset_id: leadAssetID
         });
 
-        console.log('********************************');
-        console.log('LEAD ASSET DATA - ', assetData[0]);
-        console.log('********************************');
+        util.logInfo(request,`******************************** %j`, request);
+        util.logInfo(request,`LEAD ASSET DATA - ${assetData[0]} %j` , request);
+        util.logInfo(request,`******************************** %j`, request);
         request.debug_info.push('LEAD ASSET DATA - '+ assetData[0]);
         leadAssetFirstName = assetData[0].asset_first_name;
     } catch (error) {
-        console.log(error);
+        util.logError(request,`Error removeAsLeadAndAssignCreaterAsLead`, { type: 'bot_engine', error });
     }
  
     // const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
@@ -3544,7 +3544,7 @@ async function removeAsOwner(request,data,addT=0)  {
             util.getCurrentUTCTime()
         );
 
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner_flag',paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner_flag',paramsArr);
         if(queryString !== '') {
             try {
                 const data = await db.executeQueryPromise(0,queryString,request);
@@ -3593,7 +3593,7 @@ async function removeAsOwner(request,data,addT=0)  {
 
 
     async function removeParticipantBot(request, removeParticipantBotOperationData, formInlineDataMap = new Map()) {
-        console.log("removeParticipant | formInlineDataMap: ", formInlineDataMap);
+        util.logInfo(request,`removeParticipant | formInlineDataMap: ${formInlineDataMap} %j` , request);
         request.debug_info.push("removeParticipant | formInlineDataMap: "+ formInlineDataMap);
         if (!Number(removeParticipantBotOperationData.flag_form_submitter) === 1) {
             throw new Error("FlagFormSubmitter flag not set to 1");
@@ -3734,7 +3734,7 @@ async function removeAsOwner(request,data,addT=0)  {
                 organization_id: request.organization_id,
                 asset_id: assetID
             });
-            console.log("removeParticipant | error: ", error);
+            util.logError(request,`removeParticipant | error: `, { type: 'bot_engine', error });
             request.debug_info.push("removeParticipant | error: "+ error);
             if (assetData.length > 0) {
                 removeParticipantRequest.activity_participant_collection = JSON.stringify([
@@ -4080,7 +4080,7 @@ async function removeAsOwner(request,data,addT=0)  {
         let formDataHTML = '';
 
         for (const formEntry of formEntries) {
-            console.log(`addFormAsPdf | getHTMLTemplateForFormData | Field Name: ${formEntry.field_name} | Field Value: ${formEntry.field_value}`);
+            util.logInfo(request,`addFormAsPdf | getHTMLTemplateForFormData | Field Name: ${formEntry.field_name} | Field Value: ${formEntry.field_value} %j`, request);
             
             formDataHTML += `
             <tr>
@@ -4137,8 +4137,8 @@ async function removeAsOwner(request,data,addT=0)  {
             if(Number(reqActivityInlineData[i].field_id) === Number(request.trigger_field_id)) {
                 let fieldValue = reqActivityInlineData[i].field_value;
 
-                console.log('typeof field_value: ', typeof fieldValue);
-                console.log('field_value: ', fieldValue);
+                util.logInfo(request,`typeof field_value: ${typeof fieldValue} %j` , request);
+                util.logInfo(request,`field_value: ${fieldValue} %j` , request);
                 request.debug_info.push('typeof field_value: '+ typeof fieldValue);
                 request.debug_info.push('field_value: '+ fieldValue);
                 
@@ -4147,7 +4147,7 @@ async function removeAsOwner(request,data,addT=0)  {
                     return;
                 }
 
-                console.log('Number(request.device_os_id): ', Number(request.device_os_id));
+                util.logInfo(request,`Number(request.device_os_id): ${Number(request.device_os_id)} %j` , request);
                 request.debug_info.push('Number(request.device_os_id): '+ Number(request.device_os_id));
                 if(Number(request.device_os_id) === 2) { //IOS
                     // if(util.checkDateFormat(reqActivityInlineData[i].field_value).toString(),"DD MMM YYYY"){
@@ -4200,8 +4200,8 @@ async function removeAsOwner(request,data,addT=0)  {
                 //let currentDateArr = ((util.getCurrentDate()).toString()).split("-");
                 let currentDateArr = (util.getCurrentDate()).toString();
 
-                console.log('fridExpiryDate : ', fridExpiryDate);
-                console.log('currentDateArr : ', currentDateArr);
+                util.logInfo(request,`fridExpiryDate : ${fridExpiryDate} %j` , request);
+                util.logInfo(request,`currentDateArr : ${currentDateArr} %j` , request);
                 request.debug_info.push('fridExpiryDate : '+ fridExpiryDate);
                 request.debug_info.push('currentDateArr : '+ currentDateArr);
                 
@@ -4209,7 +4209,7 @@ async function removeAsOwner(request,data,addT=0)  {
                 let b = moment(currentDateArr, "YYYY-MM-DD");
                 
                 let difference = a.diff(b, 'days');
-                console.log('Difference : ', difference);
+                util.logInfo(request,`Difference : ${difference} %j` , request);
                 request.debug_info.push('Difference : '+ difference);
                 
                 fridExpiryDate = util.formatDate(fridExpiryDate, "DD MMM YYYY");
@@ -4236,8 +4236,8 @@ async function removeAsOwner(request,data,addT=0)  {
                 attachments = ["https://worlddesk-staging-2020-10.s3.amazonaws.com/868/1102/5918/34810/2020/10/103/1603209047434/MASTER-SUBSCRIPTION-AGREEMENT.docx"];
             }
 
-            console.log("comment ---------------------");
-            console.log(comment.comment);
+            util.logInfo(request,`comment --------------------- %j`, request);
+            util.logInfo(request,`${comment.comment} %j` , request);
             request.debug_info.push('comment: ' + comment.comment);
 
             addCommentRequest.asset_id = 100;
@@ -4271,7 +4271,7 @@ async function removeAsOwner(request,data,addT=0)  {
                 //await addTimelineTransactionAsync(addCommentRequest);
                 await activityTimelineService.addTimelineTransactionAsync(addCommentRequest);
             } catch (error) {
-                console.log("addComment | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
+                util.logError(request,`addComment | addCommentRequest | addTimelineTransactionAsync | Error: `, { type: 'bot_engine', error });
                 throw new Error(error);
             }
         }
@@ -4325,7 +4325,7 @@ async function removeAsOwner(request,data,addT=0)  {
                 });
 
                 // console.log("targetFieldData: ", targetFieldData);
-                console.log("targetFieldData[0].data_entity_text_1: ", targetFieldData[0].data_entity_text_1);
+                util.logInfo(request,`targetFieldData[0].data_entity_text_1: ${targetFieldData[0].data_entity_text_1} %j` , request);
                 if (
                     Number(targetFieldData.length) > 0 &&
                     targetFieldData[0].data_entity_text_1 !== ''
@@ -4335,7 +4335,7 @@ async function removeAsOwner(request,data,addT=0)  {
             }
 
         }
-        console.log("attachmentsList: ", attachmentsList);
+        util.logInfo(request,`attachmentsList: ${attachmentsList} %j` , request);
         // Do not do anything if no attachments are to be added
         if (
             Number(attachmentsList.length) === 0
@@ -4373,7 +4373,7 @@ async function removeAsOwner(request,data,addT=0)  {
         try {
             await addTimelineTransactionAsync(addCommentRequest);
         } catch (error) {
-            console.log("addComment | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
+            util.logError(request,`addComment | addCommentRequest | addTimelineTransactionAsync | Error: `, { type: 'bot_engine', error });
             throw new Error(error);
         }
         return;
@@ -4470,7 +4470,7 @@ async function removeAsOwner(request,data,addT=0)  {
                     organization_id: request.organization_id
                 });
                 // console.log("documentFieldData: ", documentFieldData);
-                console.log("documentFieldData[0].data_entity_text_1: ", documentFieldData[0].data_entity_text_1);
+                util.logInfo(request,`documentFieldData[0].data_entity_text_1: ${documentFieldData[0].data_entity_text_1} %j` , request);
                 request.debug_info.push("documentFieldData[0].data_entity_text_1: "+ documentFieldData[0].data_entity_text_1);
                 
                 // Fetch the Attestation URL
@@ -4482,7 +4482,7 @@ async function removeAsOwner(request,data,addT=0)  {
                 });
 
                 // console.log("attestationFieldData: ", attestationFieldData);
-                console.log("attestationFieldData[0].data_entity_text_1: ", attestationFieldData[0].data_entity_text_1);
+                util.logInfo(request,`attestationFieldData[0].data_entity_text_1: ${attestationFieldData[0].data_entity_text_1} %j` , request);
                 request.debug_info.push("attestationFieldData[0].data_entity_text_1: "+ attestationFieldData[0].data_entity_text_1);
 
                 if (
@@ -4579,9 +4579,9 @@ async function removeAsOwner(request,data,addT=0)  {
                         if (flagAttestationIsText) {
                             //text
                             const firstPage = pdfPages[i];
-                            console.log("attestationText",attestationText + ' length : '+pdfPages.length);
+                            util.logInfo(request,`attestationText ${attestationText} length : ${pdfPages.length} %j`, request);
                             const { width, height } = firstPage.getSize()
-                            console.log('sizes','width : '+width+' height : '+height)
+                            util.logInfo(request,`sizes width : ${width} height : ${height} %j`, request);
                             firstPage.drawText(attestationText, {
                                 x: 400,
                                 y: 10,
@@ -4616,8 +4616,8 @@ async function removeAsOwner(request,data,addT=0)  {
                     }
                     const pdfBytes = await pdfDoc.save();
 fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
-  if (err) return console.log(err);
-  console.log('created pdf');
+  if (err) return util.logError(request,`Error `, { type: 'bot_engine', err });;
+  util.logInfo(request,`created pdf %j`, request);
 });
                     // Upload to S3
                     // const environment = global.mode;
@@ -4670,7 +4670,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             }
 
         }
-        console.log("attachmentsList: ", attachmentsList);
+        util.logInfo(request,`attachmentsList: ${attachmentsList} %j` , request);
         request.debug_info.push('attachmentsList: ' + attachmentsList);
         // Do not do anything if no attachments are to be added
         if (
@@ -4692,7 +4692,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
         try {
             await alterFormActivityFieldValues(fieldsAlterRequest);
         } catch (error) {
-            console.log("addAttachmentWithAttestation | alterFormActivityFieldValues | Error: ", error);
+            util.logError(request,`addAttachmentWithAttestation | alterFormActivityFieldValues | Error: `, { type: 'bot_engine', error });
         }
 
         // Decide whether to add the attested document to timeline or not
@@ -4732,7 +4732,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
         try {
             await addTimelineTransactionAsync(addCommentRequest);
         } catch (error) {
-            console.log("addComment | addCommentRequest | addTimelineTransactionAsync | Error: ", error);
+            util.logError(request,`addComment | addCommentRequest | addTimelineTransactionAsync | Error: `, { type: 'bot_engine', error });
             throw new Error(error);
         }
         return;
@@ -4867,11 +4867,11 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
     }
 
     async function botOperationTxnInsertV1(request, botData) {
-        console.log(' ');
-        console.log('***********************');
+        util.logInfo(request,` %j`, request);
+        util.logInfo(request,`*********************** %j`, request);
         //console.log('request.debug_info - ', request.debug_info);
-        console.log('***********************');
-        console.log(' ');
+        util.logInfo(request,`*********************** %j`, request);
+        util.logInfo(request,` %j`, request);
         let debugInfo = {
             debug_info : request.debug_info
         }
@@ -4901,7 +4901,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             try {
                 return await (db.executeQueryPromise(0, queryString, request));
             } catch(err) {
-                console.log(err);
+                util.logError(request,`botOperationTxnInsertV1 Error `, { type: 'bot_engine', err });
                 return;
             }            
         }
@@ -4919,7 +4919,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
     }
 
     async function changeStatusV1(request, inlineData = {}) {
-        console.log('change status v1',inlineData)
+        util.logInfo(request,`change status v1 ${inlineData} %j` , request);
         // if(inlineData.hasOwnProperty('check_dates')&&Number(inlineData.check_dates)===1){
             
         //     let field_value1 = await getFormFieldValue(request,inlineData.field_id1);
@@ -4933,7 +4933,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
         //         await changeStatus(request,inlineData);
                 // await this.alterWFCompletionPercentageMethod({...request,activity_status_workflow_percentage:inlineData.})
                 if(inlineData.hasOwnProperty('check_parent_closure')&& Number(inlineData.check_parent_closure)===1){
-                    util.logInfo(request,"checking parent closure");
+                    util.logInfo(request,"checking parent closure %J");
                     let childActivityDetails = await activityCommonService.getActivityDetailsPromise(request,request.workflow_activity_id);
                     const paramsArr = new Array(
                         request.organization_id,
@@ -4957,7 +4957,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                                     let parentInlineData = {...inlineData};
                                     parentInlineData.activity_status_id = inlineData.parent_activity_status_id;
                                     // return [false,{}];
-                                    console.log('parent change status',parentInlineData)
+                                    util.logInfo(request,`parent change status ${parentInlineData} %j` , request);
                                     await changeStatus({...request,...parentActivityDetails[0],workflow_activity_id:childActivityDetails[0].parent_activity_id},parentInlineData); 
                                     if(inlineData.is_workflow_percentage_change==1){
                                        await alterWFCompletionPercentage({...request,...parentActivityDetails[0],workflow_activity_id:childActivityDetails[0].parent_activity_id,activity_status_workflow_percentage:inlineData.workflow_percentage},{workflow_percentage_contribution: inlineData.workflow_percentage})
@@ -5247,10 +5247,10 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
     this.copyFieldBot = async (request) => {
         try {
             // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
-            console.log('form_field_copy | Request Params received by BOT ENGINE', request);
+            util.logInfo(request,`form_field_copy | Request Params received by BOT ENGINE %j`, request);
             await copyFields(request, JSON.parse(request.form_field_copy));
         } catch (err) {
-         console.log('ERR : ', err, error.stack);
+         util.logError(request,`Error` + error.stack, { type: 'bot_engine', err });
         }
     }
     
@@ -5538,15 +5538,15 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                 //formName = String(formConfigData[0].form_name),
                 //workflowActivityTypeDefaultDurationDays = Number(formConfigData[0].form_workflow_activity_type_default_duration_days);
 
-            console.log('##################################');
-            console.log('originFlagSet : ', originFlagSet);
-            console.log('isWorkflowEnabled : ', isWorkflowEnabled);
-            console.log('sourceFormActivityTypeID : ', sourceFormActivityTypeID);
-            console.log('workflowActivityTypeId : ', workflowActivityTypeId);
+            util.logInfo(request,`################################## %j`, request);
+            util.logInfo(request,`originFlagSet : ${originFlagSet} %j` , request);
+            util.logInfo(request,`isWorkflowEnabled : ${isWorkflowEnabled} %j` , request);
+            util.logInfo(request,`sourceFormActivityTypeID : ${sourceFormActivityTypeID} %j` , request);
+            util.logInfo(request,`workflowActivityTypeId : ${workflowActivityTypeId} %j` , request);
 
             if(sourceFormActivityTypeID !== workflowActivityTypeId){
-                console.log('Target Form Process is different from the Source form');
-                console.log('##################################');
+                util.logInfo(request,`Target Form Process is different from the Source form %j`, request);
+                util.logInfo(request,`################################## %j`, request);
 
                 esmsFlag = 1;
                 if(originFlagSet && isWorkflowEnabled) {
@@ -5574,17 +5574,17 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                     targetFormActivityID = targetFormTransactionData[0].data_activity_id;
 
                     if(Number(esmsFlag) === 1) {
-                        console.log('Target Form Submitted!');
-                        console.log(targetFormTransactionID);
-                        console.log(targetFormActivityID);
+                        util.logInfo(request,`Target Form Submitted! %j`, request);
+                        util.logInfo(request,`targetFormTransactionID : ${targetFormTransactionID} %j` , request);
+                        util.logInfo(request,`targetFormActivityID : ${targetFormActivityID} %j` , request);
                     }
                 } else {
                     if(Number(esmsFlag) === 1) {
-                        console.log('Target Form Not Submitted!');
+                        util.logInfo(request,`Target Form Not Submitted! %j`, request);
                     }
                 }
             } catch (error) {
-                console.log("copyFields | Fetch Target Form Transaction Data | Error: ", error);
+                util.logError(request,`copyFields | Fetch Target Form Transaction Data | Error: `, { type: 'bot_engine', error });
                 throw new Error(error);
             }
         //}
@@ -5593,7 +5593,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             activityInlineDataMap = new Map(),
             REQUEST_FIELD_ID = 0;
 
-        console.log('fieldCopyInlineData.length : ', fieldCopyInlineData.length);
+        util.logInfo(request,`fieldCopyInlineData.length : ${fieldCopyInlineData.length} %j` , request);
         for (const batch of fieldCopyInlineData) {
             let sourceFormID = Number(batch.source_form_id),
                 sourceFormTransactionData = [],
@@ -5613,7 +5613,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                     sourceFormActivityID = Number(sourceFormTransactionData[0].data_activity_id);
                 }
             } catch (error) {
-                console.log("copyFields | Fetch Source Form Transaction Data | Error: ", error);
+                util.logError(request,`copyFields | Fetch Source Form Transaction Data | Error: `, { type: 'bot_engine', error });
                 throw new Error(error);
             }
             if (
@@ -5635,10 +5635,10 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             });
 
             try {
-                console.log('sourceFieldData[0] : ', sourceFieldData[0]);
+                util.logInfo(request,`sourceFieldData[0] : ${sourceFieldData[0]} %j` , request);
                 const sourceFieldDataTypeID = Number(sourceFieldData[0].data_type_id);
-                console.log('sourceFieldDataTypeID : ', sourceFieldDataTypeID);
-                console.log('getFielDataValueColumnName(sourceFieldDataTypeID) : ', getFielDataValueColumnNameNew(sourceFieldDataTypeID));
+                util.logInfo(request,`sourceFieldDataTypeID : ${sourceFieldDataTypeID} %j` , request);
+                util.logInfo(request,`getFielDataValueColumnName(sourceFieldDataTypeID) : ${getFielDataValueColumnNameNew(sourceFieldDataTypeID)} %j` , request);
                 const sourceFieldValue = sourceFieldData[0][getFielDataValueColumnNameNew(sourceFieldDataTypeID)];
 
                 activityInlineDataMap.set(sourceFieldID, {
@@ -5654,16 +5654,18 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                     "message_unique_id": 123123123123123123
                 });
             } catch(err) {
-                console.log(`Error in processing the form_id - ${sourceFormID} and field_id -  ${sourceFieldID}`);
+                util.logInfo(request,`Error in processing the form_id - ${sourceFormID} and field_id -  ${sourceFieldID}`, request);
+                util.logError(request,`Error in processing the form_id - ${sourceFormID} and field_id -  ${sourceFieldID}`, { type: 'bot_engine', err });
+                
             }
         } //For loop Finished
 
         activityInlineData = [...activityInlineDataMap.values()];
-        console.log("copyFields | activityInlineData: ", activityInlineData);
+        util.logInfo(request,`copyFields | activityInlineData: ${activityInlineData} %j` , request);
         request.activity_title = activityInlineData[0].field_value;
 
-        console.log("targetFormTransactionID: ", targetFormTransactionID);
-        console.log("targetFormActivityID: ", targetFormActivityID);
+        util.logInfo(request,`targetFormTransactionID: ${targetFormTransactionID} %j` , request);
+        util.logInfo(request,`targetFormActivityID: ${targetFormActivityID} %j` , request);
 
         if (targetFormTransactionID !== 0) {
             let fieldsAlterRequest = Object.assign({}, request);
@@ -5678,12 +5680,12 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             try {
                 await alterFormActivityFieldValues(fieldsAlterRequest);
             } catch (error) {
-                console.log("copyFields | alterFormActivityFieldValues | Error: ", error);
+                util.logError(request,`copyFields | alterFormActivityFieldValues | Error: `, { type: 'bot_engine', error });
             }
 
         } else if (targetFormTransactionID === 0 || targetFormActivityID === 0) {
             // If the target form has not been submitted yet, DO NOT DO ANYTHING
-            console.log('shouldSubmitTargetForm : ', shouldSubmitTargetForm);
+            util.logInfo(request,`shouldSubmitTargetForm : ${shouldSubmitTargetForm} %j` , request);
             if(shouldSubmitTargetForm === 1) {
                 // If the target form has not been submitted yet, create one
                 //console.log('Request.activity_title : ', request);
@@ -5710,7 +5712,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                 try {
                     await createTargetFormActivity(createTargetFormRequest);
                 } catch (error) {
-                    console.log("copyFields | createTargetFormActivity | Error: ", error);
+                    util.logError(request,`copyFields | createTargetFormActivity | Error: `, { type: 'bot_engine', error });
                 }
             }
 
@@ -5789,13 +5791,13 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
         if(createTargetFormRequest.start_workflow_activity_parent_id) {
             let [err, resp] = await workforceActivityTypeMappingSelectCategory({...createTargetFormRequest, activity_type_category_id : 63 });
 
-            console.log("resp", resp);
+            util.logInfo(request,`resp : ${resp} %j` , request);
             let [err1, resp1] = await workforceActivityStatusMappingSelectStatusType({...createTargetFormRequest, activity_status_type_id : 184, 
                 activity_type_category_id : 63, // MOM type
                 activity_type_id : resp[0].activity_type_id
             });
 
-            console.log("resp1", resp1);
+            util.logInfo(request,`resp1 : ${resp1} %j` , request);
 
             createTargetFormRequest.activity_status_id = resp1[0].activity_status_id;
             createTargetFormRequest.activity_status_type_id = 184;
@@ -5874,7 +5876,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
             const body = JSON.parse(response.body);
             if (Number(body.status) === 200) {
-                console.log("createActivity | addActivityAsync | Body: ", body);
+                util.logInfo(request,`createActivity | addActivityAsync | Body: ${body} %j` , request);
                 let activityTimelineCollection =  JSON.stringify({
                     "content"            : `Form Submitted`,
                     "subject"            : `Form Submitted`,
@@ -5904,7 +5906,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                 return [false, body];
             }
         } catch (error) {
-            console.log("createActivity | addActivityAsync | Error: ", error);
+            util.logError(request,`createActivity | addActivityAsync | Error: `, { type: 'bot_engine', error });
             return [true, {}];
         }
         return;
@@ -5912,8 +5914,8 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
 
     function activityListUpdateSubtype(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array();
-            var queryString = '';
+            let paramsArr = new Array();
+            let queryString = '';
             paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
@@ -5935,8 +5937,8 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
 
     function activityAssetMappingUpdateSubtype(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array();
-            var queryString = '';
+            let paramsArr = new Array();
+            let queryString = '';
             paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
@@ -6065,7 +6067,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             case 64: //JSON                
             //case 71: //JSON
                 return 'data_entity_inline';
-            default: console.log('In default Case : getFielDataValueColumnName');
+            default: util.logInfo(request,`In default Case : getFielDataValueColumnName %j`, request);
         }
     }
 
@@ -6094,7 +6096,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                 return 'data_entity_text_2';
             case 64: //JSON                
                 return 'data_entity_inline';
-            default: console.log('In default Case : getFielDataValueColumnName');
+            default: util.logInfo(request,`In default Case : getFielDataValueColumnName %j`, request);
         }
     }    
     
@@ -6345,7 +6347,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             logger.info(request.workflow_activity_id + " : ");
             request.debug_info.push('Inside workflow_reference');
             // newReq.flag_asset = inlineData[type[0]].flag_asset;
-            console.log("request.activity_inline_data", request.activity_inline_data);
+            util.logInfo(request,`request.activity_inline_data ${request.activity_inline_data} %j` , request);
             let activityInlineData = typeof request.activity_inline_data =="string" ? JSON.parse(request.activity_inline_data):request.activity_inline_data;
             let fieldDetails;
             for(let row of activityInlineData) {
@@ -6499,7 +6501,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                         // Ignore
                     }
                 } catch (error) {
-                    console.log("Error fetching attachment value: ", error)
+                    util.logError(request,`Error fetching attachment value: `, { type: 'bot_engine', error });
                 }
             }
         }
@@ -6516,7 +6518,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             let buff = new Buffer(retrievedCommInlineData.communication_template.email.body, 'base64');
             emailBody = buff.toString('ascii');
         } catch (error) {
-            console.log("Fire Email | base64_2_string | Decode Error: ", error);
+            util.logError(request,`Fire Email | base64_2_string | Decode Error: `, { type: 'bot_engine', error });
         }
 
         // Find and replace placeholders
@@ -6578,7 +6580,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                     // Populate with the default value
                 }
             } catch (error) {
-                console.log("Error fetching userNameValue value: ", error)
+                util.logError(request,`Error fetching userNameValue value: `, { type: 'bot_engine', error });
             }
         }
 
@@ -6616,7 +6618,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                     // Populate with the default value
                 }
             } catch (error) {
-                console.log("Error fetching userNameValue value: ", error)
+                util.logError(request,`Error fetching userNameValue value: `, { type: 'bot_engine', error });
             }
         }
         if (String(emailBody).includes("{$fromName}")) {
@@ -6633,7 +6635,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                     request.operating_asset_phone_number = processUserData[0].operating_asset_phone_number;
                 }
             } catch (error) {
-                console.log("Error fetching processUserData: ", error)
+                util.logError(request,`Error fetching processUserData: `, { type: 'bot_engine', error });
             }
         }
         // All call to actions!
@@ -6773,7 +6775,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             url_mail_receiver: request.email_id || ''
         });
         if (errOne) {
-            console.log("Error shortening URL parameters: ", errOne);
+            util.logError(request,`Error shortening URL parameters: `, { type: 'bot_engine', errOne });
         }
         const paramsJSON = {
             "url_id": urlData[0].url_id,
@@ -6808,10 +6810,10 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                     }
                 })
                 .catch((error) => {
-                    console.log("workflowActivityTypeId | getActivityDetailsPromise | error: ", error);
+                    util.logError(request,`workflowActivityTypeId | getActivityDetailsPromise | error: `, { type: 'bot_engine', error });
                 });
         } catch (error) {
-            console.log("workflowActivityTypeId | error: ", error);
+            util.logError(request,`workflowActivityTypeId | error: `, { type: 'bot_engine', error });
         }
         const JsonData = {
             organization_id: request.organization_id,
@@ -6832,7 +6834,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             url_mail_receiver: request.email_id || ''
         });
         if (errOne) {
-            console.log("Error shortening URL parameters: ", errOne);
+            util.logError(request,`Error shortening URL parameters: `, { type: 'bot_engine', errOne });
         }
         const paramsJSON = {
             "url_id": urlData[0].url_id,
@@ -6848,7 +6850,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             urlStrFill = "https://preprodweb.officedesk.app/#/orderstatus/" + base64Json;
         }
 
-        console.log('urlStrFill : ', urlStrFill);
+        util.logInfo(request,`urlStrFill : ${urlStrFill} %j` , request);
         const statusLink = `<a style='background: #f47920;display: inline-block;color: #FFFFFF;text-decoration: none;font-size: 12px;margin-top: 1.0em;background-clip: padding-box;padding: 5px 15px;box-shadow: 4px 4px 6px 1px #cbcbcb;margin-left:10px' target='_blank' href='${urlStrFill}'>Track Order Status</a>`;
 
         return statusLink;
@@ -6858,7 +6860,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
     async function fireTextMsg(request, inlineData) {
         let newReq = Object.assign({}, request);
         let resp;
-console.log('inline data',JSON.stringify(inlineData))
+        util.logInfo(request,`inline data ${JSON.stringify(inlineData)} %j` , request);
         global.logger.write('conLog', inlineData, {}, {});
         request.debug_info.push('inlineData: ' + inlineData);
         let type = Object.keys(inlineData);
@@ -6890,7 +6892,7 @@ console.log('inline data',JSON.stringify(inlineData))
             let assetfieldData = activityInlineData.find((item=>item.field_id == target_field_id));
             if(assetfieldData){
             let targetAssetId = typeof assetfieldData.field_value == 'string'?assetfieldData.field_value.split('|'):assetfieldData.field_value.toString().split('|');
-            console.log('tar asset id',targetAssetId)
+            util.logInfo(request,`tar asset id ${targetAssetId} %j` , request);
             let dataResp = await getAssetDetails({
                 "organization_id": request.organization_id,
                 "asset_id": targetAssetId[0]
@@ -7323,7 +7325,7 @@ else{
             global.logger.write('conLog', Template, {}, {});            
 
             if(Number(request.organization_id) === 868) {
-                console.log('Its vodafone request');
+                util.logInfo(request,`Its vodafone request %j`, request);
                 //From ESMSMails@vodafoneidea.com
                 //util.sendEmailEWS(request, request.email_id, emailSubject, Template);  
 
@@ -7353,7 +7355,7 @@ else{
       }
 
             } else {
-                console.log('Its non-vodafone request');
+                util.logInfo(request,`Its non-vodafone request %j`, request);
                 util.sendEmailV3(request,
                     request.email_id,
                     emailSubject,
@@ -8068,7 +8070,7 @@ else{
                     }
                     break;
                 case 18: //Money with currency name
-                    var money = typeof row.field_value=='string'?JSON.parse(row.field_value):row.field_value;
+                    let money = typeof row.field_value=='string'?JSON.parse(row.field_value):row.field_value;
                     params[14] = money.value;
                     params[18] = money.code;
                     params[27] = JSON.stringify(money)
@@ -8107,7 +8109,7 @@ else{
                     break;
                 case 27: //General Signature with asset reference
                 case 28: //General Picnature with asset reference
-                    var signatureData = row.field_value.split('|');
+                    let signatureData = row.field_value.split('|');
                     params[18] = signatureData[0]; //image path
                     params[13] = signatureData[1]; // asset reference
                     params[11] = signatureData[1]; // accepted /rejected flag
@@ -8115,7 +8117,7 @@ else{
                 case 29: //Coworker Signature with asset reference
                 case 30: //Coworker Picnature with asset reference
                     // approvalFields.push(row.field_id);
-                    var signatureData = row.field_value.split('|');
+                    let signatureData = row.field_value.split('|');
                     params[18] = signatureData[0]; //image path
                     params[13] = signatureData[1]; // asset reference
                     params[11] = signatureData[1]; // accepted /rejected flag
@@ -8321,23 +8323,23 @@ else{
     }
 
     async function getAssetDetailsOfANumber(request) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id || 0,
             request.phone_number,
             request.country_code || 91
         );
-        var queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
+        let queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
         if (queryString != '') {
             return await db.executeQueryPromise(1, queryString, request);
         }
     }
 
     async function getAssetDetails(request) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.asset_id
         );
-        var queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
         if (queryString != '') {
             return await db.executeQueryPromise(1, queryString, request);
         }
@@ -8616,14 +8618,14 @@ else{
         // Prepare the customer data
         const customerData = {};
         for (const key of Object.keys(createCustomerInlineData)) {
-            console.log("key: ", key);
+            util.logInfo(request,`key: ${key} %j` , request);
             request.debug_info.push('key: ' + key);
             const fieldID = Number(createCustomerInlineData[key].field_id);
-            console.log("fieldID: ", fieldID);
+            util.logInfo(request,`fieldID: ${fieldID} %j` , request);
             request.debug_info.push('fieldID: ' + fieldID);
             if (formInlineDataMap.has(fieldID)) {
                 customerData[key] = formInlineDataMap.get(fieldID).field_value;
-                console.log("formInlineDataMap.get(fieldID).field_value: ", formInlineDataMap.get(fieldID).field_value);
+                util.logInfo(request,`formInlineDataMap.get(fieldID).field_value: ${formInlineDataMap.get(fieldID).field_value} %j` , request);
                 request.debug_info.push('formInlineDataMap.get(fieldID).field_value: ' + formInlineDataMap.get(fieldID).field_value);
             }
         }
@@ -8631,7 +8633,7 @@ else{
         
         let indutry_type_id = createCustomerInlineData['lov_type_id'];
         const [errInd,industryData] = await getIndustryIdByName({id:indutry_type_id,name:customerData.customer_industry})
-        console.log('indData12',industryData)
+        util.logInfo(request,`indData12 ${industryData} %j` , request);
         let countryCode = 0, phoneNumber = 0;
         if (customerData.customer_phone_number.includes('|')) {
             [countryCode, phoneNumber] = customerData.customer_phone_number.split('|')
@@ -8802,7 +8804,7 @@ else{
             util.getCurrentUTCTime()
         );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_update_industry', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_update_industry', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
@@ -8825,7 +8827,7 @@ else{
           request.name
         );
 
-        var queryString = util.getQueryString('ds_p3_lov_list_select', paramsArr);
+        let queryString = util.getQueryString('ds_p3_lov_list_select', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -8881,7 +8883,7 @@ else{
         let newRequest = Object.assign({}, request);
             newRequest.operation_type_id = 16;
         const [err, respData] = await activityListingService.getWorkflowReferenceBots(newRequest);
-        console.log('Workflow Reference Bots for this activity_type : ', respData.length);
+        util.logInfo(request,`Workflow Reference Bots for this activity_type : ` + respData.length, request);
         if(respData.length > 0) {
             //for(let i = 0; i<respData.length; i++) {}               
             activityCommonService.activityEntityMappingUpdateWFPercentage(request, {
@@ -8892,7 +8894,7 @@ else{
 
         newRequest.operation_type_id = 17;
         const [err1, respData1] = await activityListingService.getWorkflowReferenceBots(newRequest);
-        console.log('Combo Field Reference Bots for this activity_type : ', respData.length);
+        util.logInfo(request,`Combo Field Reference Bots for this activity_type : ${respData.length} %j` , request);
         if(respData1.length > 0) {
             //for(let i = 0; i<respData.length; i++) {}
             activityCommonService.activityEntityMappingUpdateWFPercentage(request, {
@@ -8917,7 +8919,7 @@ else{
             request.limit_value || 50
         );
 
-        var queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_select_operation_type', paramsArr);
+        let queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_select_operation_type', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -8966,7 +8968,7 @@ else{
             }
           }*/
           
-        console.log('cuidInlineData : ', cuidInlineData);
+        util.logInfo(request,`cuidInlineData : ${cuidInlineData} %j` , request);
 
         for (let [cuidKey, cuidValue] of Object.entries(cuidInlineData)) {
             let cuidUpdateFlag = 0,
@@ -8982,8 +8984,8 @@ else{
             } else if(formInlineDataMap.has(Number(cuidValue.field_id))) {
                 const fieldData = formInlineDataMap.get(Number(cuidValue.field_id));
                 
-                console.log('fieldData : ', fieldData);
-                console.log('Number(fieldData.field_data_type_id) : ', Number(fieldData.field_data_type_id));
+                util.logInfo(request,`fieldData : ${fieldData} %j` , request);
+                util.logInfo(request,`Number(fieldData.field_data_type_id) : ${Number(fieldData.field_data_type_id)} %j` , request);
 
                 switch(Number(fieldData.field_data_type_id)) {
                     //Workflow Reference
@@ -9180,7 +9182,7 @@ else{
                     error = false;
 
                     //Inserting into activity asset table for account search
-                    console.log('\nAccount Search - Updating the activity asset table');
+                    util.logInfo(request,`\nAccount Search - Updating the activity asset table %j`, request);
                     activityCommonService.actAssetSearchMappingUpdate({
                         activity_id: request.activity_id,
                         asset_id: request.asset_id,
@@ -9321,7 +9323,7 @@ else{
             }
         } catch (e) {
             error = true;
-            console.log("error : ", e);
+            util.logError(request,`generateOppurtunity Error `, { type: 'bot_engine', e });
         }
 
         return [error, responseData];
@@ -9350,7 +9352,7 @@ else{
 
         } catch (e) {
             error = true;
-            console.log("error : ", e);
+            util.logError(request,`generateCalendarEventID Error`, { type: 'bot_engine', e });
         }
         return [error, responseData];
     }
@@ -9423,7 +9425,7 @@ else{
             logger.error("Error parsing inline JSON and/or preparing the form data map", { type: 'bot_engine', error, request_body: request });
         }
 
-        console.log('formInlineDataMap : ', formInlineDataMap);
+        util.logInfo(request,`formInlineDataMap : ${formInlineDataMap} %j` , request);
 
         await this.setDueDateOfWorkflow(request, formInlineDataMap, botOperationsJson.bot_operations.due_date_edit);
 
@@ -9443,8 +9445,8 @@ else{
         oldDate = (workflowActivityDetails.length > 0) ? workflowActivityDetails[0].activity_datetime_end_deferred: 0;
         //oldDate = util.replaceDefaultDatetime(oldDate);
         oldDate = util.getFormatedLogDatetimeV1(oldDate,"DD-MM-YYYY HH:mm:ss");
-        console.log('formInlineDataMap : ', formInlineDataMap);
-        console.log('dueDateEdit form bot inline: ', dueDateEdit);
+        util.logInfo(request,`formInlineDataMap : ${formInlineDataMap} %j` , request);
+        util.logInfo(request,`dueDateEdit form bot inline: ${dueDateEdit} %j` , request);
         request.debug_info.push('formInlineDataMap: ' + formInlineDataMap);
         request.debug_info.push('dueDateEdit: ' + dueDateEdit);
 
@@ -9469,56 +9471,56 @@ else{
         } else {
             if(formInlineDataMap.has(Number(dueDateEdit.field_id))) {
                 fieldData = formInlineDataMap.get(Number(dueDateEdit.field_id));
-                console.log('fieldData : ', fieldData);
+                util.logInfo(request,`fieldData : ${fieldData} %j` , request);
                 request.debug_info.push('fieldData: ' + fieldData);
 
                 newDate = fieldData.field_value;
 
                 if(inlineData && Number(inlineData.is_meeting) && fieldData.field_data_type_id == 77) {
-                    console.log("Parsing Data type 77", fieldData.field_value);
+                    util.logInfo(request,`Parsing Data type 77 ${fieldData.field_value} %j` , request);
                     let data = fieldData.field_value;
                     newDate =  data.end_date_time;
                 }
 
-                console.log('New Date b4 converting - ', newDate);
-                console.log('Number(request.device_os_id) - ', Number(request.device_os_id));
+                util.logInfo(request,`New Date b4 converting - ${newDate} %j` , request);
+                util.logInfo(request,`Number(request.device_os_id) - ${Number(request.device_os_id)} %j` , request);
                 request.debug_info.push('newDate: ' + newDate);
                 request.debug_info.push('Number(request.device_os_id): ' + Number(request.device_os_id));
                  
                 if(Number(request.device_os_id) === 1) {
                     //newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
 
-                    console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid());
+                    util.logInfo(request,`moment(newDate, YYYY-MM-DD, true) - ${moment(newDate, 'YYYY-MM-DD', true).isValid()} %j` , request);
                     request.debug_info.push('moment(newDate, YYYY-MM-DD, true): ' + moment(newDate, 'YYYY-MM-DD', true).isValid());
                     if(!moment(newDate, 'YYYY-MM-DD', true).isValid()) {
                         newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
                     }
                     
-                    console.log('Retrieved Date field value - ANDROID: ', newDate);
+                    util.logInfo(request,`Retrieved Date field value - ANDROID: ${newDate} %j` , request);
                     request.debug_info.push('Retrieved Date field value - ANDROID: '+ newDate);
                 } else if(Number(request.device_os_id) === 2) {
                     //newDate = util.getFormatedLogDatetimeV1(newDate, "DD MMM YYYY");
 
-                    console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid());
+                    util.logInfo(request,`moment(newDate, YYYY-MM-DD, true) - ${moment(newDate, 'YYYY-MM-DD', true).isValid()} %j` , request);
                     request.debug_info.push('moment(newDate, YYYY-MM-DD, true) -: '+ moment(newDate, 'YYYY-MM-DD', true).isValid());
                     if(!moment(newDate, 'YYYY-MM-DD', true).isValid()) {
                         newDate = util.getFormatedLogDatetimeV1(newDate, "DD MMM YYYY");
                     }                   
                     
-                    console.log('Retrieved Date field value - IOS: ', newDate);
+                    util.logInfo(request,`Retrieved Date field value - IOS: ${newDate} %j` , request);
                     request.debug_info.push('Retrieved Date field value - IOS: '+ newDate);
                 }
                  else if(Number(request.device_os_id) === 5||Number(request.device_os_id) === 8){
-                    console.log('moment(newDate, YYYY-MM-DD, true) - ', moment(newDate, 'YYYY-MM-DD', true).isValid());
+                    util.logInfo(request,`moment(newDate, YYYY-MM-DD, true) - ${moment(newDate, 'YYYY-MM-DD', true).isValid()} %j` , request);
                     request.debug_info.push('moment(newDate, YYYY-MM-DD, true) - '+ moment(newDate, 'YYYY-MM-DD', true).isValid());
                     
                     if(!(moment(newDate, 'YYYY-MM-DD', true).isValid() || moment(newDate, 'YYYY-MM-DD HH:mm:ss', true).isValid())) {
                         if(moment(newDate, 'YYYY-MM-DD', true).isValid()) {
-                            console.log('IN IF');
+                            util.logInfo(request,`IN IF %j`, request);
                             request.debug_info.push('IN IF');
                             newDate = await util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD");
                         } else {
-                            console.log('IN ELSE');
+                            util.logInfo(request,`IN ELSE %j`, request);
                             request.debug_info.push('IN ELSE');
                             newDate = await util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD HH:mm:ss");
                         }
@@ -9528,8 +9530,8 @@ else{
         }
  
         
-        console.log('OLD DATE : ', oldDate);
-        console.log('NEW DATE : ', newDate);
+        util.logInfo(request,`OLD DATE : ${oldDate} %j` , request);
+        util.logInfo(request,`NEW DATE : ${newDate} %j` , request);
         request.debug_info.push('OLD DATE: ' + oldDate);
         request.debug_info.push('NEW DATE: ' + newDate);
 
@@ -9582,7 +9584,7 @@ else{
                 activityCoverData.duedate.new = newDate;
         // console.log("inlineData", inlineData);
         let fieldDetails = formInlineDataMap.get(Number(dueDateEdit.field_id));
-        console.log("fieldDetails", fieldDetails);
+        util.logInfo(request,`fieldDetails : ${fieldDetails} %j` , request);
         if(inlineData && Number(inlineData.is_meeting) && fieldDetails.field_data_type_id == 77) {
             let parseDetails = fieldDetails.field_value;
            activityCoverData.start_date = {};
@@ -9594,15 +9596,15 @@ else{
         //    activityCoverData.duedate.new = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
         //    activityCoverData.start_date.new = await util.getFormatedLogDatetimeV1(request.activity_datetime_start, "DD-MM-YYYY HH:mm:ss");
 
-           console.log("EDC bot update details", activityCoverData, "current date", parseDetails.start_date_time);
+           util.logInfo(request,`EDC bot update details : ${activityCoverData} current date : ${parseDetails.start_date_time} %j`, request);
         }
 
-        console.log('activityCoverData : ', activityCoverData);
+        util.logInfo(request,`activityCoverData : ${activityCoverData} %j` , request);
         request.debug_info.push('activityCoverData: ' + activityCoverData);
         try{
             newReq.activity_cover_data = JSON.stringify(activityCoverData);
         } catch(err) {
-            console.log(err);
+            util.logError(request,`Error`, { type: 'bot_engine', err });
         }
         
         newReq.asset_id = 100;
@@ -9615,7 +9617,7 @@ else{
             method: "alterActivityCover",
             payload: newReq
         };
-        console.log('request.workflow_activity_id : ', request.workflow_activity_id);
+        util.logInfo(request,`request.workflow_activity_id : ${request.workflow_activity_id} %j` , request);
         request.debug_info.push('request.workflow_activity_id : '+ request.workflow_activity_id);
         let status_dueDate = false;
         if(inlineData && inlineData.hasOwnProperty('is_status_due_date') && inlineData.is_status_due_date == 1) {
@@ -9729,7 +9731,7 @@ else{
                 util.getCurrentUTCTime()
             );
     
-            var queryString = util.getQueryString('ds_v1_activity_list_delete_deferred_datetime', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_list_delete_deferred_datetime', paramsArr);
             if (queryString !== '') {
                 await db.executeQueryPromise(0, queryString, request)
                     .then((data) => {
@@ -10056,7 +10058,7 @@ else{
             request.limit_value || 50
         );
 
-        var queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_select_operation_type', paramsArr);
+        let queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_select_operation_type', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -10149,13 +10151,13 @@ else{
                 let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, i_iterator.form_id);                            
                 if(!formDataFrom713Entry.length > 0) {
                     responseData.push({'message': `${i_iterator.form_id} is not submitted`});
-                    console.log('responseData : ', responseData);
+                    util.logInfo(request,`responseData : ${responseData} %j` , request);
                     return [true, responseData];
                 }
 
                 //console.log('formDataFrom713Entry[0] : ', formDataFrom713Entry[0]);
                 let formTransactionInlineData = JSON.parse(formDataFrom713Entry[0].data_entity_inline);
-                console.log('formTransactionInlineData form_submitted: ', formTransactionInlineData.form_submitted);
+                util.logInfo(request,`formTransactionInlineData form_submitted: ${formTransactionInlineData.form_submitted} %j` , request);
                 let formData = formTransactionInlineData.form_submitted;
                 formData = (typeof formData === 'string')? JSON.parse(formData) : formData;
 
@@ -10163,10 +10165,10 @@ else{
                     if(Number(i_iterator.field_id) === Number(j_iterator.field_id)) {
                         if(util.replaceDefaultString(j_iterator.field_value) === '') {
                             responseData.push({'message': `${j_iterator.field_value} is empty`});
-                            console.log('responseData : ', responseData);
+                            util.logInfo(request,`responseData : ${responseData} %j` , request);
                             return [true, responseData];
                         }
-                        console.log('field_value : ', j_iterator.field_value);
+                        util.logInfo(request,`field_value : ${j_iterator.field_value} %j` , request);
                         i_iterator.field_value = j_iterator.field_value;
                     }
                 } //End of checking for non-empty field_value                    
@@ -10174,18 +10176,18 @@ else{
             
         } //End of processing all form fields in the bot operation inline
 
-        console.log('sortedfieldsData : ', sortedfieldsData);
-        console.log('sortedfieldsData[0] : ', sortedfieldsData[0]);
+        util.logInfo(request,`sortedfieldsData : ${sortedfieldsData} %j` , request);
+        util.logInfo(request,`sortedfieldsData[0] : ${sortedfieldsData[0]} %j` , request);
         let finalResult = sortedfieldsData[0].field_value;
         for(let i=0; i<sortedfieldsData.length;i++){
-            console.log('sortedfieldsData[i].join_condition : ', sortedfieldsData[i].join_condition);
+            util.logInfo(request,`sortedfieldsData[i].join_condition : ${sortedfieldsData[i].join_condition} %j` , request);
             if(sortedfieldsData[i].join_condition === 'EOJ') {
                 break;
             }
 
-            console.log('sortedfieldsData[i+1].field_value : ', sortedfieldsData[i+1].field_value);
+            util.logInfo(request,`sortedfieldsData[i+1].field_value : ${sortedfieldsData[i+1].field_value} %j` , request);
             finalResult = await performArithmeticOperation(finalResult, sortedfieldsData[i+1].field_value, sortedfieldsData[i].join_condition);
-            console.log('finalResult : ', finalResult);
+            util.logInfo(request,`finalResult : ${finalResult} %j` , request);
         }
 
         //Update in the target form and field Id
@@ -10195,9 +10197,9 @@ else{
         let formDataFrom713Entry = await getFormInlineData(newReq, 1);
         let formData = await getFormInlineData(newReq, 2);
 
-        console.log('formDataFrom713Entry: ', formDataFrom713Entry);
-        console.log(' ');
-        console.log('formData: ', formData);
+        util.logInfo(request,`formDataFrom713Entry: ${formDataFrom713Entry} %j` , request);
+        util.logInfo(request,` %j`, request);
+        util.logInfo(request,`formData: ${formData} %j` , request);
         
         let activityInlineData = [{
             form_id: arithmeticCalculation.target_form_id,
@@ -10222,7 +10224,7 @@ else{
         try {
             await alterFormActivityFieldValues(fieldsAlterRequest);
         } catch (error) {
-            console.log("copyFields | alterFormActivityFieldValues | Error: ", error);
+            util.logError(request,`copyFields | alterFormActivityFieldValues | Error: `, { type: 'bot_engine', error });
         }
         
         return [error, responseData];
@@ -10334,13 +10336,13 @@ else{
                     }
                 }
         } catch(err) {
-            console.log('Unable to get the date field : ', err);
+            util.logError(request,`Unable to get the date field : `, { type: 'bot_engine', err });
         }
         
-        console.log('Retrieved Date field value : ', dateFieldValue);
+        util.logInfo(request,`Retrieved Date field value : ${dateFieldValue} %j` , request);
         if(Number(request.device_os_id) === 1) {
             dateFieldValue = util.getFormatedLogDatetimeV1(dateFieldValue, "DD-MM-YYYY HH:mm:ss");
-            console.log('Retrieved Date field value - ANDROiD: ', dateFieldValue);
+            util.logInfo(request,`Retrieved Date field value - ANDROiD: ${dateFieldValue} %j` , request);
         }
         
         if(alterType === 'before') {
@@ -10365,14 +10367,14 @@ else{
         
         switch(escalationType) {
             case 'timeline': //post a reminder onto the timeline
-                            console.log('---------- TIMELINE ENTRY -----------');
+                            util.logInfo(request,`---------- TIMELINE ENTRY ----------- %j`, request);
                             try{
                                 let tempVar = { date_reminder: dateReminder };
                                 let newReq = Object.assign({}, request);
                                     newReq.inline_data = JSON.stringify(tempVar);                                    
                                 await activityCommonService.activityReminderTxnInsert(newReq, 1, reminderDatetime);
                             } catch(err) {
-                                console.log('Reminder Bot - Error in updating Timeline in TXN Table: ', err);
+                                util.logError(request,`Reminder Bot - Error in updating Timeline in TXN Table: `, { type: 'bot_engine', err });
                             }                            
                             break;
 
@@ -10401,7 +10403,7 @@ else{
                                         newReq.inline_data = JSON.stringify(tempVar);
                                     await activityCommonService.activityReminderTxnInsert(newReq, 2, reminderDatetime);
                                 } catch(err) {
-                                    console.log('Reminder Bot - Error in updating Participant in TXN Table: ', err);
+                                    util.logError(request,`Reminder Bot - Error in updating Participant in TXN Table: `, { type: 'bot_engine', err });
                                 }
                                 break;
 
@@ -10412,7 +10414,7 @@ else{
                                        newReq.inline_data = JSON.stringify(tempVar);       
                                    await activityCommonService.activityReminderTxnInsert(newReq, 3, reminderDatetime);
                                 } catch(err) {
-                                   console.log('Reminder Bot - Error in updating Email in TXN Table: ', err);
+                                   util.logError(request,`Reminder Bot - Error in updating Email in TXN Table: `, { type: 'bot_engine', err });
                                 }
                                  break;
 
@@ -10423,7 +10425,7 @@ else{
                                 newReq.inline_data = JSON.stringify(tempVar);
                             await activityCommonService.activityReminderTxnInsert(newReq, 4, reminderDatetime);
                         } catch(err) {
-                            console.log('Reminder Bot - Error in updating Text in TXN Table: ', err);
+                            util.logError(request,`Reminder Bot - Error in updating Text in TXN Table: `, { type: 'bot_engine', err });
                         }
                         break;            
                 }
@@ -10441,7 +10443,7 @@ async function getFormInlineData(request, flag) {
         if(!formDataFrom713Entry.length > 0) {
             let responseData = [];
             responseData.push({'message': `${request.form_id} is not submitted`});
-            console.log('responseData : ', responseData);
+            util.logInfo(request,`responseData : ${responseData} %j` , request);
             return [true, responseData];
         }
 
@@ -10493,7 +10495,7 @@ async function getFormInlineData(request, flag) {
         request.start_from = startFrom;
         let [err, reminderBotData] = await activityCommonService.activityReminderTxnSelect(request);
 
-        console.log('reminderBotData : ', reminderBotData);        
+        util.logInfo(request,`reminderBotData : ${reminderBotData} %j` , request);        
         
         let activityData;
         let assetID;
@@ -10522,12 +10524,12 @@ async function getFormInlineData(request, flag) {
             dateReminder = inlineData.date_reminder;
             switch(Number(i_iterator.reminder_type_id)) {
                 case 1: //Add timeline Entry
-                        console.log('---------- TIMELINE ENTRY -----------');
+                        util.logInfo(request,`---------- TIMELINE ENTRY ----------- %j`, request);
                         await addTimelineEntry(i_iterator,0);
                         break;
 
                 case 2: //Add Participant     
-                        console.log('---------- PARTICIPANT -----------');                   
+                        util.logInfo(request,`---------- PARTICIPANT ----------- %j`, request);                 
                         let participantReq = {
                                 asset_reference: {
                                     form_id: dateReminder.asset_reference_form_id,
@@ -10543,16 +10545,16 @@ async function getFormInlineData(request, flag) {
                 case 3: //Send email                        
                 case 4: //Send Text
                         if(Number(i_iterator.reminder_type_id) === 3) {
-                            console.log('---------- EMAIL -----------');
+                            util.logInfo(request,`---------- EMAIL ----------- %j`, request);
                         } else if(Number(i_iterator.reminder_type_id) === 4) {
-                            console.log('---------- TEXT -----------');
+                            util.logInfo(request,`---------- TEXT ----------- %j`, request);
                         }
                         activityData = await activityCommonService.getActivityDetailsPromise({ organization_id: i_iterator.organization_id }, 
                                                                                        i_iterator.activity_id);
                         
                         //console.log('activityData : ', activityData);
-                        console.log(inlineData);
-                        console.log('inlineData.escalation_target : ', dateReminder.escalation_target);
+                        util.logInfo(request,`inlineData : ${inlineData} %j` , request);
+                        util.logInfo(request,`inlineData.escalation_target : ${dateReminder.escalation_target} %j` , request);
                         //Get the lead email ID
                         if(dateReminder.escalation_target === 'creator') {
                             assetID = activityData[0].activity_creator_asset_id;
@@ -10602,7 +10604,7 @@ if(assetDetails.length==0){
                                                                     });
 
                                 managerAssetID = Number(assetDetails[0].manager_asset_id);
-                                console.log('Manager Asset ID : ', managerAssetID);
+                                util.logInfo(request,`Manager Asset ID : ${managerAssetID} %j` , request);
 
                                 assetDetails = await getAssetDetails({
                                     "organization_id": i_iterator.organization_id,
@@ -10628,7 +10630,7 @@ if(assetDetails.length==0){
                                 }
 
                                 managerAssetID = Number(assetDetails[0].manager_asset_id);
-                                console.log('Manager Asset ID : ', managerAssetID);
+                                util.logInfo(request,`Manager Asset ID : ${managerAssetID} %j` , request);
 
                                 assetDetails = await getAssetDetails({
                                     "organization_id": i_iterator.organization_id,
@@ -10661,7 +10663,7 @@ if(assetDetails.length==0){
                             });                            
                         } else if(Number(i_iterator.reminder_type_id) === 4) {
                             const text = `This is a scheduled reminder for ${i_iterator.activity_title}!`;
-                            console.log('Phone Number with country code : ', textPhCtyCode, textPhNo);
+                            util.logInfo(request,`Phone Number with country code : ${textPhCtyCode} ${textPhNo} %j` , request);
                             
                             //Send text                            
                             await new Promise((resolve, reject)=>{
@@ -10679,9 +10681,9 @@ if(assetDetails.length==0){
                 status_id: 3
             });
             
-            console.log(' ');
-            console.log('********************************************************');
-            console.log(' ');
+            util.logInfo(request,` %j`, request);
+            util.logInfo(request,`******************************************************** %j`, request);
+            util.logInfo(request,` %j`, request);
         } //End of For Loop
 
         if(reminderBotData.length === 50) {
@@ -10738,8 +10740,8 @@ if(assetDetails.length==0){
             if(reminder_inline_data.hasOwnProperty('date_reminder')){
                 if(reminder_inline_data.date_reminder.hasOwnProperty("message_template")&&reminder_inline_data.date_reminder.message_template!=""){
                     let message_template = reminder_inline_data.date_reminder.message_template;
-                    console.log("message template",message_template);
-                    console.log('req',request)
+                    util.logInfo(request,`message template ${message_template} %j` , request);
+                    util.logInfo(request,`req ${request} %j` , request);
                     // let message_template_textArr = message_template.split(" ");
                     const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
 if(workflowActivityData.length==0){
@@ -10755,7 +10757,7 @@ if(workflowActivityData.length==0){
                     let dateObj = new Date(dueDate);
                     dueDate = `${moment(dateObj).format('ddd DD MMM YYYY')}`
                     message_template = message_template.replace("<<duedate>>",dueDate);
-                    console.log('message template after',message_template)
+                    util.logInfo(request,`message template after ${message_template} %j` , request);
                     // console.log("array",message_template_textArr)
                     // for(let i=0;i<message_template_textArr.length;i++){
                     //     if(message_template_textArr[i]=="<<title>>"){
@@ -10822,7 +10824,7 @@ if(workflowActivityData.length==0){
         try {
             await activityTimelineService.timelineStandardCallsAsyncV1(addCommentRequest);        
         } catch (error) {
-            console.log("Reminder Bot trigger - timeline entry failed : ", error);
+            util.logError(request,`Reminder Bot trigger - timeline entry failed : `, { type: 'bot_engine', error });
             //throw new Error(error);
         }
 
@@ -10831,7 +10833,7 @@ if(workflowActivityData.length==0){
     
     
     async function unassignParticipantFunc(request, activityID, assetID) {
-        console.log('Unassigning the participant!');
+        util.logInfo(request,`Unassigning the participant! %j`, request);
         request.debug_info.push('Unassigning the participant!');
 
         let trackGpsDatetime = request.track_gps_datetime || util.getCurrentUTCTime();
@@ -10866,7 +10868,7 @@ if(workflowActivityData.length==0){
                 asset_id: assetID
             });
 
-            console.log("removeParticipant | error: ", error);
+            util.logError(request,`removeParticipant | error: `, { type: 'bot_engine', error });
             request.debug_info.push("removeParticipant | error: "+ error);
             if (assetData.length > 0) {
                 removeParticipantRequest.activity_participant_collection = JSON.stringify([
@@ -11068,7 +11070,7 @@ if(workflowActivityData.length==0){
 
         // const urlKey = `868/984/5648/35156/2020/12/103/1608140463463/OPP-V-002337-161220-_-004.xlsx`;
         // bulkUploadFieldData[0].data_entity_text_1 = `https://worlddesk-preprod-d20kggbr.s3.amazonaws.com/${urlKey}`;
-        console.log("bulkUploadFieldData[0].data_entity_text_1: ", bulkUploadFieldData[0].data_entity_text_1);
+        util.logInfo(request,`bulkUploadFieldData[0].data_entity_text_1: ${bulkUploadFieldData[0].data_entity_text_1} %j` , request);
         request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: " + bulkUploadFieldData[0].data_entity_text_1);
         const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
         if (xlsxDataBodyError) {
@@ -11423,7 +11425,7 @@ if(workflowActivityData.length==0){
 
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
-            console.log(`IsNewFeasibilityRequest: ${childOpportunity.IsNewFeasibilityRequest} | serialNum: ${childOpportunity.serialNum} | actionType: ${childOpportunity.actionType}`);
+            util.logInfo(request,`IsNewFeasibilityRequest: ${childOpportunity.IsNewFeasibilityRequest} | serialNum: ${childOpportunity.serialNum} | actionType: ${childOpportunity.actionType} %j`, request);
             if (
                 !childOpportunity.hasOwnProperty("IsNewFeasibilityRequest") ||
                 childOpportunity.IsNewFeasibilityRequest === "" ||
@@ -11824,7 +11826,7 @@ if(workflowActivityData.length==0){
         let responseData = [],
             error = true;
 
-        var paramsArr;
+        let paramsArr;
         if (Number(activityID > 0)) {
             paramsArr = new Array(
                 activityID,
@@ -11905,7 +11907,7 @@ if(workflowActivityData.length==0){
     }
 
     async function addParticipantCreatorOwner(request) {
-        console.log("making creator bot - addParticipantCreatorOwner");
+        util.logInfo(request,`making creator bot - addParticipantCreatorOwner %j`, request);
         
         let activityData = await activityCommonService.getActivityDetailsPromise({ organization_id: request.organization_id },request.workflow_activity_id);
         let assetID = activityData[0].activity_creator_asset_id;
@@ -11973,12 +11975,12 @@ if(workflowActivityData.length==0){
         let isLead = 0, isOwner = 0, flagCreatorAsOwner = 0;
         
         global.logger.write('conLog', inlineData, {}, {});
-        console.log(inlineData);
+        util.logInfo(request,`inlineData : ${inlineData} %j` , request);
         request.debug_info.push('inlineData: ' + inlineData);
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
 
         let inlineKeys = Object.keys(inlineData);        
-        console.log('inlineKeys - ', inlineKeys);
+        util.logInfo(request,`inlineKeys - ${inlineKeys} %j` , request);
         request.debug_info.push('inlineKeys: ' + inlineKeys);
 
         if(inlineKeys.includes('static')) {
@@ -12074,7 +12076,7 @@ if(workflowActivityData.length==0){
                 });
                 if (fieldData.length > 0) {
                     newReq.customer_name = String(fieldData[0].data_entity_text_1);
-                    console.log("BotEngine | addParticipant | getFieldValue | Customer Name: ", newReq.customer_name);
+                    util.logInfo(request,`BotEngine | addParticipant | getFieldValue | Customer Name: ${newReq.customer_name} %j` , request);
                     request.debug_info.push("BotEngine | addParticipant | getFieldValue | Customer Name: "+ newReq.customer_name);
                 }
             } catch (error) {
@@ -12086,14 +12088,14 @@ if(workflowActivityData.length==0){
         newReq.is_owner = isOwner;
         newReq.flag_creator_as_owner = flagCreatorAsOwner;
 
-        console.log('newReq.phone_number : ', newReq.phone_number);
+        util.logInfo(request,`newReq.phone_number : ${newReq.phone_number} %j` , request);
         request.debug_info.push('newReq.phone_number : '+ newReq.phone_number);
         if (
             (newReq.phone_number !== -1) &&
             (Number(newReq.phone_number) !== 0) &&
             (newReq.phone_number !== 'null') && (newReq.phone_number !== undefined)
         ) {
-            console.log("BotService | addParticipant | Message: ", newReq.phone_number, " | ", typeof newReq.phone_number);
+            util.logInfo(request,`BotService | addParticipant | Message: ${newReq.phone_number}  |  ${typeof newReq.phone_number} %j`, request);
             request.debug_info.push('phone_number: ' + newReq.phone_number);
             newReq.organization_id = 906;
             return await addParticipantStep(newReq);
@@ -12105,7 +12107,7 @@ if(workflowActivityData.length==0){
     }
 
     async function checkLargeDoa(request, inlineData) {
-        console.log("checkLargDoa");
+        util.logInfo(request,`checkLargDoa %j`, request);
         await sleep(5 * 1000);
 
         request.form_id = 4353;
@@ -12620,7 +12622,7 @@ if(workflowActivityData.length==0){
             return;
         }
 
-        console.log("checkCustomBot----", JSON.stringify(request), inlineData, request.workflow_activity_id, request.activity_id);
+        util.logInfo(request,`checkCustomBot---- ${JSON.stringify(request)} ${inlineData} ${request.workflow_activity_id} ${request.activity_id} %j` , request);
         request.debug_info.push('inlineData: ' + inlineData);
         request.debug_info.push('workflow_activity_id: ' + request.workflow_activity_id);
         request.debug_info.push('activity_id: ' + request.activity_id);
@@ -12628,7 +12630,7 @@ if(workflowActivityData.length==0){
         request.form_id = 4353;
         let originForm = await getFormInlineData(request, 1);
         let originFormData = JSON.parse(originForm.data_entity_inline).form_submitted;
-        console.log("dateFormData", JSON.stringify(originFormData));
+        util.logInfo(request,`dateFormData : ${JSON.stringify(originFormData)} %j` , request);
         request.debug_info.push('dateFormData: ' + JSON.stringify(originFormData));
         let dataResp = await getAssetDetailsOfANumber({
             country_code : inlineData.country_code || '',
@@ -12648,7 +12650,7 @@ if(workflowActivityData.length==0){
         // validating product and request type
         let resultProductAndRequestType = validatingProductAndRequestType(originFormData, inlineData.origin_form_config);
 
-        console.log("resultProductAndRequestType----", resultProductAndRequestType);
+        util.logInfo(request,`resultProductAndRequestType---- ${resultProductAndRequestType} %j` , request);
         request.debug_info.push('resultProductAndRequestType: ' + resultProductAndRequestType);
         // if(!resultProductAndRequestType.requestTypeMatch && resultProductAndRequestType.reqularApproval) {
         //     console.log("Request type match failed");
@@ -12661,17 +12663,17 @@ if(workflowActivityData.length==0){
         // }
 
         resultProductAndRequestType.productMatchFlag = (resultProductAndRequestType.productMatchFlag == 1 || resultProductAndRequestType.productMatchFlag == 3) ? resultProductAndRequestType.productMatchFlag : 0;
-        console.log("final value resultProductAndRequestType.productMatchFlag", resultProductAndRequestType.productMatchFlag);
+        util.logInfo(request,`final value resultProductAndRequestType.productMatchFlag ${resultProductAndRequestType.productMatchFlag} %j` , request);
         request.debug_info.push("final value resultProductAndRequestType.productMatchFlag : "+ resultProductAndRequestType.productMatchFlag);
         if(resultProductAndRequestType.productMatchFlag == 1 && !resultProductAndRequestType.reqularApproval) {
-            console.log("Got Product FLD Domestic, Tiggering SME ILL BOT, IF this fails then it should be manual approval");
+            util.logInfo(request,`Got Product FLD Domestic, Tiggering SME ILL BOT, IF this fails then it should be manual approval %j`, request);
             request.debug_info.push("Got Product FLD Domestic, Tiggering SME ILL BOT, IF this fails then it should be manual approval");
             inlineData.sme_config.phone_number = inlineData.phone_number;
             checkSmeBot(request, inlineData.sme_config, deskAssetData);
             return;
         } else if(resultProductAndRequestType.productMatchFlag == 3 &&
           ([1,2,4].indexOf(resultProductAndRequestType.requestTypeMatch) > -1)) { // [1,2,4] Acquisition, Rentention and Mnp
-            console.log("Got Product Mobility, Triggering Mobility BOT");
+            util.logInfo(request,`Got Product Mobility, Triggering Mobility BOT %j`, request);
             request.debug_info.push("Got Product Mobility, Triggering Mobility BOT");
             inlineData.mobility_config.phone_number = inlineData.phone_number;
             checkMobility(request, inlineData.mobility_config, deskAssetData, resultProductAndRequestType.requestTypeMatch, resultProductAndRequestType.reqularApproval);
@@ -12679,7 +12681,7 @@ if(workflowActivityData.length==0){
         } else if((!resultProductAndRequestType.productMatchFlag && !resultProductAndRequestType.reqularApproval) ||
           (resultProductAndRequestType.productMatchFlag == 3 && resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval) ||
           (resultProductAndRequestType.productMatchFlag == 3 && !resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval)) {
-            console.log("Product Match Failed--- Manual Flow");
+            util.logInfo(request,`Product Match Failed--- Manual Flow %j`, request);
             request.debug_info.push("Product Match Failed--- Manual Flow");
             // submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
@@ -12762,20 +12764,20 @@ if(workflowActivityData.length==0){
         for(let row of formData) {
             if(Object.keys(originFormConfig).includes(row.field_id.toString())) {
                 let value = originFormConfig[row.field_id];
-                console.log("Value from config", value, "Value from list" ,row.field_value);
+                util.logInfo(request,`Value from config ${value} Value from list ${row.field_value} %j` , request);
                 if(!value) {
-                    console.log("Value not found in validatingProductAndRequestType", row.field_id);
+                    util.logInfo(request,`Value not found in validatingProductAndRequestType ${row.field_id} %j` , request);
                     break;
                 }
 
                 if(row.field_id == 224835) {
-                    console.log("Value get matched in validatingProductAndRequestType", row.field_id, row.data_type_combo_id);
+                    util.logInfo(request,`Value get matched in validatingProductAndRequestType ${row.field_id} ${row.data_type_combo_id} %j` , request);
                     productMatchFlag = row.data_type_combo_id;
                 } else if(row.field_id == 225020) {
-                    console.log("Value get matched in validatingProductAndRequestType", row.field_id, row.data_type_combo_id);
+                    util.logInfo(request,`Value get matched in validatingProductAndRequestType ${row.field_id} ${row.data_type_combo_id} %j` , request);
                     requestTypeMatch = row.data_type_combo_id;
                 } else if(row.field_id == 223769 && originFormConfig[row.field_id] == Number(row.data_type_combo_id)){
-                    console.log("Value get matched in validatingProductAndRequestType reqularApproval", row.field_id, row.data_type_combo_id);
+                    util.logInfo(request,`Value get matched in validatingProductAndRequestType reqularApproval ${row.field_id} ${row.data_type_combo_id} %j` , request);
                     reqularApproval = 1;
                 }
 
@@ -12791,13 +12793,13 @@ if(workflowActivityData.length==0){
         let submitRejectionFormFlag = 0, comment = '';
         let fldForm = await getFormInlineData(request, 1);
         let fldFormData = JSON.parse(fldForm.data_entity_inline).form_submitted;
-        console.log("dateFormData1", JSON.stringify(fldFormData));
+        util.logInfo(request,`dateFormData1 : ${JSON.stringify(fldFormData)} %j` , request);
         request.debug_info.push("dateFormData1", JSON.stringify(fldFormData));
 
 
         let totalCOCPAndIOIP = countCOCPAndIOIP(fldFormData, inlineData.plans_field_ids);
 
-        console.log("totalCOCPAndIOIP", totalCOCPAndIOIP);
+        util.logInfo(request,`totalCOCPAndIOIP : ${totalCOCPAndIOIP} %j` , request);
         request.debug_info.push("totalCOCPAndIOIP", totalCOCPAndIOIP);
 
         let sheets = [], connectionType = '';
@@ -12815,17 +12817,17 @@ if(workflowActivityData.length==0){
             connectionType = 'IOIP';
         }
 
-        console.log("Sheet Selected is ", sheets, " and the connection type is ", connectionType);
+        util.logInfo(request,`Sheet Selected is ${sheets} and the connection type is ${connectionType} %j` , request);
         request.debug_info.push("Sheet Selected is ", sheets, " and the connection type is ", connectionType);
 
         let configSheets =  inlineData.field_values_map[connectionType] || [];
 
         if(!configSheets.length) {
-            console.log("No Sheet Selected");
+            util.logInfo(request,`No Sheet Selected %j`, request);
             request.debug_info.push("No Sheet Selected");
         }
 
-        console.log("configSheets", JSON.stringify(configSheets));
+        util.logInfo(request,`configSheets : ${JSON.stringify(configSheets)} %j` , request);
         request.debug_info.push("configSheets", JSON.stringify(configSheets));
 
         let checkingSegmentResult = validatingSegment(fldFormData, inlineData.segment_config, configSheets, sheets);
@@ -12835,22 +12837,22 @@ if(workflowActivityData.length==0){
             submitRejectionFormFlag = 1;
         }
 
-        console.log("checkingSegmentResult", JSON.stringify(checkingSegmentResult));
+        util.logInfo(request,`checkingSegmentResult : ${JSON.stringify(checkingSegmentResult)} %j` , request);
         request.debug_info.push("checkingSegmentResult", JSON.stringify(checkingSegmentResult));
 
         let sheetMatchFlag = {};
         for(let row of checkingSegmentResult) {
-            console.log("Processing Sheet ", row.sheet);
+            util.logInfo(request,`Processing Sheet ${row.sheet} %j` , request);
             request.debug_info.push("Processing Sheet ", row.sheet);
             comment = row.comment;
 
             if(sheetMatchFlag[row.sheet] && sheetMatchFlag[row.sheet] == '0') {
-                console.log("Already matched for sheet ", row.sheet, ' so skipping and checking for next sheet if there is');
+                util.logInfo(request,`Already matched for sheet ${row.sheet}  so skipping and checking for next sheet if there is %j`, request);
                 request.debug_info.push("Already matched for sheet ", row.sheet, ' so skipping and checking for next sheet if there is');
                 continue;
             }
 
-            console.log("row.key---->", JSON.stringify(row.key));
+            util.logInfo(request,`row.key----> ${JSON.stringify(row.key)} %j` , request);
             request.debug_info.push("row.key---->", JSON.stringify(row.key));
             if(!(row.value.key.indexOf(parseInt(requestTypeComboId)) > -1)) {
                 console.error("Request Type Match Failed requestTypeComboId ", requestTypeComboId);
@@ -12938,7 +12940,7 @@ if(workflowActivityData.length==0){
 
             let minQuota = validateMins(fldFormData, smsCount, inlineData.min_field_ids);
 
-            console.log("minQuota", JSON.stringify(minQuota));
+            util.logInfo(request,`minQuota ${JSON.stringify(minQuota)} %j` , request);
             request.debug_info.push("minQuota", JSON.stringify(minQuota));
             if(smsCount.length != minQuota.length) {
                 console.error("Condition failed in validate Mins");
@@ -12953,7 +12955,7 @@ if(workflowActivityData.length==0){
                 sheetMatchFlag[row.sheet] = '0';
                 // break;
             }
-            console.log("sheetMatchFlag--", JSON.stringify(sheetMatchFlag));
+            util.logInfo(request,`sheetMatchFlag-- ${JSON.stringify(sheetMatchFlag)} %j` , request);
             request.debug_info.push("sheetMatchFlag-- " + JSON.stringify(sheetMatchFlag));
         }
 
@@ -12973,14 +12975,14 @@ if(workflowActivityData.length==0){
             if(workflowType == 1) {
                 submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             } else {
-                console.log("Not Rejection because workflowType did not matched to current value");
+                util.logInfo(request,`Not Rejection because workflowType did not matched to current value %j`, request);
                 request.debug_info.push("Not Rejection because workflowType did not matched to current value");
             }
             return;
         }
 
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
-        console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
+        util.logInfo(request,`wfActivityDetails : ${JSON.stringify(wfActivityDetails)} %j` , request);
         request.debug_info.push("wfActivityDetails "+ JSON.stringify(wfActivityDetails));
 
 
@@ -12995,7 +12997,8 @@ if(workflowActivityData.length==0){
                 asset_id : wfActivityDetails[0].activity_creator_asset_id
             });
         }catch(e) {
-            console.log("Error while adding participant")
+            util.logInfo(request,`Error while adding participant $j`, request);
+            util.logError(request,`Error while adding participant`, { type: 'bot_engine', e });
             request.debug_info.push("Error while adding participant")
         }
 
@@ -13096,11 +13099,11 @@ if(workflowActivityData.length==0){
         createWorkflowRequest.form_transaction_id = targetFormTransactionID;
         createWorkflowRequest.data_entity_inline        = createWorkflowRequest.activity_inline_data;
 
-        console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+        util.logInfo(request,`createWorkflowRequest ${JSON.stringify(createWorkflowRequest)} %j` , request);
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
-        console.log("activityInsertedDetails---->", activityInsertedDetails);
+        util.logInfo(request,`InactivityInsertedDetails----> ${activityInsertedDetails} %j` , request);
 
 
         let activityTimelineCollection =  JSON.stringify({
@@ -13139,7 +13142,7 @@ if(workflowActivityData.length==0){
                 organization_id : request.organization_id
             });
         }catch(e) {
-            console.log("Error while adding participant")
+            util.logError(request,`Error while adding participant`, { type: 'bot_engine', e });
         }
     }
 
@@ -13534,7 +13537,7 @@ if(workflowActivityData.length==0){
         let response = [];
         for(let row of formData) {
             if (segment[row.field_id]) {
-                console.log("Value found in Segment", segment[row.field_id], row.field_value.toUpperCase());
+                util.logInfo(request,`Value found in Segment ${segment[row.field_id]} ${row.field_value.toUpperCase()} %j` , request);
                 for(let config of configSheets) {
                     if(config.key.indexOf(row.field_value.toUpperCase()) > -1 && sheets.indexOf(config.sheet) > -1) {
                         response.push(config);
@@ -13565,32 +13568,32 @@ if(workflowActivityData.length==0){
         let totalLink = [];
         for(let plan of plans) {
             let fieldIds = Object.keys(plan);
-            console.log("fieldIds", fieldIds, plan);
+            util.logInfo(request,`fieldIds ${fieldIds} ${plan} %j` , request);
 
             totalLink.push(Number(plan[fieldIds[0]]));
 
         }
-        console.log("totalLinks", totalLink);
+        util.logInfo(request,`totalLinks ${totalLink} %j` , request);
         return totalLink;
     }
 
     function validatingRentals(formData, rentalFieldIds, mobiltiyFieldsValues) {
-        console.log("Testing Rentals");
+        util.logInfo(request,`Testing Rentals %j`, request);
         let response = [];
-        console.log("validatingRentals mobiltiyFieldsValues",Object.keys(mobiltiyFieldsValues));
+        util.logInfo(request,`validatingRentals mobiltiyFieldsValues ${Object.keys(mobiltiyFieldsValues)} %j` , request);
         for(let row of formData) {
             if(rentalFieldIds.includes(Number(row.field_id))) {
-                console.log("Getting this value to match in Rentals", row.field_value);
+                util.logInfo(request,`Getting this value to match in Rentals ${row.field_value}` , request);
 
                 if(row.field_value == '') {
-                    console.log("Got Empty Value in validatingRentals for plan", rentalFieldIds.indexOf(row.field_id) + 1);
+                    util.logInfo(request,`Got Empty Value in validatingRentals for plan ${rentalFieldIds.indexOf(row.field_id) + 1} %j` , request);
                     response.push('');
                     continue;
                 }
 
                 if(row.field_value != null) {
                     if(mobiltiyFieldsValues[Number(row.field_value)] == null || mobiltiyFieldsValues[Number(row.field_value)] == undefined) {
-                        console.log("Got empty value in validatingRentals");
+                        util.logInfo(request,`Got empty value in validatingRentals %j`, request);
                         return [];
                     }
                     response.push(mobiltiyFieldsValues[Number(row.field_value)]);
@@ -13602,45 +13605,45 @@ if(workflowActivityData.length==0){
 
 
     function validatingNoOfLinks(configSheet, totalLinks, sheet) {
-        console.log("Validating No of Links ", totalLinks, sheet);
+        util.logInfo(request,`Validating No of Links ${totalLinks} ${sheet} %j` , request);
 
         for(let i = 0; i < totalLinks.length; i++) {
             for(let row of configSheet) {
                 if(row.LOWER) {
 
                     if(sheet == 1) {
-                        console.log("row sheet 1->", row.LOWER, row.UPPER, totalLinks[i], totalLinks[i].cocpr > row.LOWER, totalLinks[i].cocpr < row.UPPER, row.value);
+                        util.logInfo(request,`row sheet 1-> ${row.LOWER} ${row.UPPER} ${totalLinks[i]} ${totalLinks[i].cocpr > row.LOWER} ${totalLinks[i].cocpr < row.UPPER} ${row.value} %j` , request);
                         if(totalLinks[i].cocpr >= row.LOWER) {
                             if(row.UPPER) {
                                 if(totalLinks[i].cocpr < row.UPPER) {
                                     return row.value;
                                 }
-                                console.log("Did not match for total ", totalLinks[i], " Link value ", row.LOWER, row.UPPER);
+                                util.logInfo(request,`Did not match for total ${totalLinks[i]} Link value  ${row.LOWER} ${row.UPPER} %j` , request);
                                 continue;
                             }
                             return row.value;
                         }
                     } else if(sheet == 2) {
-                        console.log("row sheet 2->", row.LOWER, row.UPPER, totalLinks[i], totalLinks[i].cocp > row.LOWER, totalLinks[i].cocp < row.UPPER, row.value);
+                        util.logInfo(request,`row sheet 2-> ${row.LOWER} ${row.UPPER} ${totalLinks[i]} ${totalLinks[i].cocp > row.LOWER} ${totalLinks[i].cocp < row.UPPER} ${row.value} %j` , request);
                         if(totalLinks[i].cocp >= row.LOWER) {
                             if(row.UPPER) {
                                 if(totalLinks[i].cocp < row.UPPER) {
                                     return row.value;
                                 }
-                                console.log("Did not match for total ", totalLinks[i], " Link value ", row.LOWER, row.UPPER);
+                                util.logInfo(request,`Did not match for total ${totalLinks[i]} Link value ${row.LOWER} ${row.UPPER} %j` , request);
                                 continue;
                             }
                             return row.value;
                         }
                     } else if(sheet == 3) {
-                        console.log("row 3->", row.LOWER, row.UPPER, totalLinks[i], totalLinks[i].ioip > row.LOWER, totalLinks[i].ioip < row.UPPER, row.value);
+                        util.logInfo(request,`row 3-> ${row.LOWER} ${row.UPPER} ${totalLinks[i]} ${totalLinks[i].ioip > row.LOWER} ${totalLinks[i].ioip < row.UPPER} ${row.value} %j` , request);
 
                         if(totalLinks[i].ioip >= row.LOWER) {
                             if(row.UPPER) {
                                 if(totalLinks[i].ioip < row.UPPER) {
                                     return row.value;
                                 }
-                                console.log("Did not match for total ", totalLinks[i], " Link value ", row.LOWER, row.UPPER);
+                                util.logInfo(request,`Did not match for total ${totalLinks[i]} ${row.LOWER} ${row.UPPER} %j` , request);
                                 continue;
                             }
                             return row.value;
@@ -13649,13 +13652,13 @@ if(workflowActivityData.length==0){
                 }
             }
         }
-        console.log("Response from validatingNoOfLinks");
+        util.logInfo(request,`Response from validatingNoOfLinks %j`, request);
         return ;
     }
 
     function validatingMonthlyQuota(formData, linkResp, monthlyQuota) {
 
-        console.log("Validating Monthly Quota");
+        util.logInfo(request,`Validating Monthly Quota %j`, request);
         let response = [];
         for(let row of formData) {
             for(let i =0; i < monthlyQuota.length; i++) {
@@ -13666,30 +13669,30 @@ if(workflowActivityData.length==0){
                     if(Number(row.field_id) == monthlyQuotaFieldId) {
                         if(linkResp[i] == '') {
                             response.push('');
-                            console.log("Got Empty Value in validatingMonthlyQuota for plan", i + 1);
+                            util.logInfo(request,`Got Empty Value in validatingMonthlyQuota for plan ${i + 1} %j` , request);
                             continue;
                         }
                         let monthlyQuotaValue = Object.keys(linkResp[i]);
 
-                        console.log("linkResp[i]", linkResp[i], i, row.field_id, Number(row.field_value), monthlyQuotaValue[0]);
+                        util.logInfo(request,`linkResp[i] ${linkResp[i]} ${i} ${row.field_id} ${Number(row.field_value)} ${monthlyQuotaValue[0]}  %j`, request);
                         if(Number(row.field_value) > Number(monthlyQuotaValue[0])) {
-                            console.log("Got invalid value", Number(row.field_value), monthlyQuotaValue);
+                            util.logInfo(request,`Got invalid value ${Number(row.field_value)} ${monthlyQuotaValue} %j` , request);
                             return []
                         }
-                        console.log("linkResp[i][monthlyQuotaValue[0]]", linkResp[i][monthlyQuotaValue[0]]);
+                        util.logInfo(request,`linkResp[i][monthlyQuotaValue[0]] : ${linkResp[i][monthlyQuotaValue[0]]} %j` , request);
                         response.push(linkResp[i][monthlyQuotaValue[0]]);
                     }
                 }
             }
         }
 
-        console.log("Final Response in validatingMonthlyQuota", response);
+        util.logInfo(request,`Final Response in validatingMonthlyQuota ${response} %j` , request);
         return response;
     }
 
     function validatingDailyQuota(formData, linkResp, dailyQuota) {
 
-        console.log("Validating Daily Quota");
+        util.logInfo(request,`Validating Daily Quota %j`, request);
         let response = [];
         for(let row of formData) {
             for(let i =0; i < dailyQuota.length; i++) {
@@ -13700,24 +13703,24 @@ if(workflowActivityData.length==0){
                     if(Number(row.field_id) == dailyQuotaFieldId) {
                         if(linkResp[i] == '') {
                             response.push('');
-                            console.log("Got Empty Value in validatingDailyQuota for plan", i + 1);
+                            util.logInfo(request,`Got Empty Value in validatingDailyQuota for plan ${i + 1} %j` , request);
                             continue;
                         }
                         let dailyQuotaValue = Object.keys(linkResp[i]);
 
-                        console.log("linkResp[i]", linkResp[i], i, row.field_id, Number(row.field_value), dailyQuotaValue[0]);
+                        util.logInfo(request,`linkResp[i] ${linkResp[i]} ${i} ${row.field_id} ${Number(row.field_value)} ${dailyQuotaValue[0]} %j` , request);
                         if(Number(row.field_value) > Number(dailyQuotaValue[0])) {
-                            console.log("Got invalid value", Number(row.field_value), dailyQuotaValue);
+                            util.logInfo(request,`Got invalid value ${Number(row.field_value)} ${dailyQuotaValue} %j` , request);
                             return [];
                         }
-                        console.log("linkResp[i][dailyQuotaValue[0]]", linkResp[i][dailyQuotaValue[0]]);
+                        util.logInfo(request,`linkResp[i][dailyQuotaValue[0]] ${linkResp[i][dailyQuotaValue[0]]} %j` , request);
                         response.push(linkResp[i][dailyQuotaValue[0]]);
                     }
                 }
             }
         }
 
-        console.log("Final Response in validatingDailyQuota", response);
+        util.logInfo(request,`Final Response in validatingDailyQuota ${response} %j` , request);
         return response;
     }
 
@@ -13732,14 +13735,14 @@ if(workflowActivityData.length==0){
                     if(Number(row.field_id) == smsFieldIdsFieldId) {
                         if(monthlyQuota[i] == '' ) {
                             response.push('');
-                            console.log("Got Empty Value in validatingSMSValues for plan", i + 1);
+                            util.logInfo(request,`Got Empty Value in validatingSMSValues for plan ${(i + 1)} %j` , request);
                             continue;
                         }
                         let smsFieldIdsValue = Object.keys(monthlyQuota[i]);
 
-                        console.log("smsFieldIdsFieldId",row.field_id, smsFieldIdsFieldId);
+                        util.logInfo(request,`smsFieldIdsFieldId ${row.field_id} ${smsFieldIdsFieldId} %j` , request);
                         if(Number(row.field_value) > smsFieldIdsValue[0]) {
-                            console.log("Got invalid value validatingSMSValues", Number(row.field_value), smsFieldIdsValue);
+                            util.logInfo(request,`Got invalid value validatingSMSValues ${Number(row.field_value)} ${smsFieldIdsValue} %j` , request);
                             return response
                         }
                         response.push(monthlyQuota[i][smsFieldIdsValue[0]]);
@@ -13748,7 +13751,7 @@ if(workflowActivityData.length==0){
                 }
             }
         }
-        console.log("Final Response in validatingSMSValues", response);
+        util.logInfo(request,`Final Response in validatingSMSValues ${response} %j` , request);
         return response;
     }
 
@@ -13760,13 +13763,13 @@ if(workflowActivityData.length==0){
                     if(row.field_id == minFieldIds[i]) {
                         if(minQuota[i] == '' ) {
                             response.push('');
-                            console.log("Got Empty Value in validateMins for plan", i + 1);
+                            util.logInfo(request,`Got Empty Value in validateMins for plan ${(i + 1)} %j` , request);
                             continue;
                         }
                         let minValue = Object.keys(minQuota[i]);
-                        console.log("Field ids", row.field_id, minFieldIds[i], minValue, row.field_value, minQuota[i][row.field_value]);
+                        util.logInfo(request,`Field ids ${row.field_id} ${minFieldIds[i]} ${minValue} ${row.field_value} ${minQuota[i][row.field_value]} %j` , request);
                         if(row.field_value < Number(minValue[0])) {
-                            console.log("Got nothing for ", minQuota[i], row.field_value);
+                            util.logInfo(request,`Got nothing for ${minQuota[i]} ${row.field_value} %j` , request);
                             return [];
                         } else {
                             response.push(minQuota[i]);
@@ -13808,7 +13811,7 @@ if(workflowActivityData.length==0){
         let IllForm = await getFormInlineData(request, 1);
         let IllFormData = JSON.parse(IllForm.data_entity_inline).form_submitted;
 
-        console.log("----", JSON.stringify(IllFormData));
+        util.logInfo(request,`IllFormData ---- ${JSON.stringify(IllFormData)} %j` , request);
 
         let segmentFieldIds =  inlineData.segmentFieldIds;
         let netCash =  inlineData.netCash;;
@@ -13876,14 +13879,14 @@ if(workflowActivityData.length==0){
             }
         }
 
-        console.log("activationDataOfLinks", JSON.stringify(activationDataOfLinks));
+        util.logInfo(request,`activationDataOfLinks ${JSON.stringify(activationDataOfLinks)} %j` , request);
         illFormDataWithLiks.push(temp);
 
         for(let row of illFormDataWithLiks) {
             row.push(paybackData);
         }
 
-        console.log("illFormDataWithLiks",JSON.stringify(illFormDataWithLiks));
+        util.logInfo(request,`illFormDataWithLiks ${JSON.stringify(illFormDataWithLiks)} %j` , request);
 
         for(let i = 0; i < illFormDataWithLiks.length; i++) {
             if(!checkValues(illFormDataWithLiks[i], productFieldIds[i], segmentFieldIds[0], orderTypeFieldIds[i], bwFieldIds[i], otcFieldIds[i], arcFields[i], contractTermsFieldIds[i], netCash[0], capexValue, opexValue, i, inlineData, activationDataOfLinks[i], paybackFieldId)) {
@@ -13896,7 +13899,7 @@ if(workflowActivityData.length==0){
         }
 
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
-        console.log("wfActivityDetails", JSON.stringify(wfActivityDetails));
+        util.logInfo(request,`wfActivityDetails ${JSON.stringify(wfActivityDetails)} %j` , request);
 
 
         try{
@@ -13910,7 +13913,8 @@ if(workflowActivityData.length==0){
                 asset_id : wfActivityDetails[0].activity_creator_asset_id
             });
         }catch(e) {
-            console.log("Error while adding participant")
+            util.logInfo(request,`Error while adding participant %j`, request);
+            util.logError(request,`Error while adding participant %j`, { type: 'bot_engine', e });
         }
 
 
@@ -14010,11 +14014,11 @@ if(workflowActivityData.length==0){
         createWorkflowRequest.form_transaction_id = targetFormTransactionID;
         createWorkflowRequest.data_entity_inline        = createWorkflowRequest.activity_inline_data;
 
-        console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+        util.logInfo(request,`createWorkflowRequest ${JSON.stringify(createWorkflowRequest)} %j` , request);
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
-        console.log("activityInsertedDetails---->", activityInsertedDetails);
+        util.logInfo(request,`activityInsertedDetails----> ${activityInsertedDetails} %j` , request);
 
 
         let activityTimelineCollection =  JSON.stringify({
@@ -14053,7 +14057,8 @@ if(workflowActivityData.length==0){
                 organization_id : request.organization_id
             });
         }catch(e) {
-            console.log("Error while adding participant")
+            util.logInfo(request,`Error while adding participant %j`, request);
+            util.logError(request,`Error while adding participant `, { type: 'bot_engine', e });
         }
 
         function checkValues(linkDetails, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash, capexValue, opexValue, linkId, inlineData, activationDataOfLinks, paybackValue) {
@@ -14062,40 +14067,40 @@ if(workflowActivityData.length==0){
             for(let value of inlineData.smeConstants) {
                 let productF = 0, segementF = 0, orderTypeF = 0;
                 for(let row of linkDetails) {
-                    console.log("ROw Data", row.field_id, row.field_value, productFieldId, segmentFieldId, orderTypeFieldId, bwFieldId, otcFieldId, arcField, contractTermsFieldId, netCash)
+                    util.logInfo(request,`ROw Data ${row.field_id} ${row.field_value} ${productFieldId} ${segmentFieldId} ${orderTypeFieldId} ${bwFieldId} ${otcFieldId} ${arcField} ${contractTermsFieldId} ${netCash} %j`, request);
                     if(row.field_id == productFieldId) {
                         // console.log("row.field_id == productFieldId && value['1'].toLowerCase() == row.field_value.toLowerCase()", row.field_id == productFieldId && value['1'].toLowerCase() == row.field_value.toLowerCase())
-                        console.log("Product Matched", row.field_id, "expected",value['1'], "got this", row.field_value.toLowerCase());
+                        util.logInfo(request,`Product Matched ${row.field_id} expected ${value['1']} got this ${row.field_value.toLowerCase()} %j` , request);
                         value['1'].toLowerCase() == row.field_value.toLowerCase() ? productF = 1 : 0;
                         row.field_value == '' ? productF = 1 : 0;
                         continue;
                     } else if(row.field_id == segmentFieldId) {
-                        console.log("Segment Matched", row.field_id, "expected",value['2'], "got this", row.field_value.toLowerCase());
+                        util.logInfo(request,`Segment Matched ${row.field_id} expected ${value['2']} got this ${row.field_value.toLowerCase()} %j` , request);
                         value['2'].toLowerCase() == row.field_value.toLowerCase() ? segementF = 1 : 0;
                         row.field_value == '' ? segementF = 1 : 0;
                         continue;
                     } else if(row.field_id == orderTypeFieldId) {
                         if(row.field_value.toLowerCase() == 'new link' || row.field_value.toLowerCase() == 'upgrade with capex/ opex') {
-                            console.log("Matched Order Type capexValue, opexValue", capexValue,opexValue);
+                            util.logInfo(request,`Matched Order Type capexValue, opexValue ${capexValue} ${opexValue} %j` , request);
                             orderTypeF = 1;
 
                             if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
-                                console.log("Sheet Selected Sheet 1");
+                                util.logInfo(request,`Sheet Selected Sheet 1 %j`, request);
                                 sheetSelected = inlineData.smeSheet1;
                             } else if(opexValue > 0){
-                                console.log("Sheet Selected Sheet 3");
+                                util.logInfo(request,`Sheet Selected Sheet 3 %j`, request);
                                 sheetSelected = inlineData.smeSheet3;
                             }
                         } else if(row.field_value.toLowerCase() == 'price revision' || row.field_value.toLowerCase() == 'downgrade') {
-                            console.log("Matched Order Type capexValue, opexValue", capexValue,opexValue);
+                            util.logInfo(request,`Matched Order Type capexValue, opexValue ${capexValue} ${opexValue} %j` , request);
                             orderTypeF = 1;
 
                             if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
-                                console.log("Sheet Selected Sheet 2");
+                                util.logInfo(request,`Sheet Selected Sheet 2 %j`, request);
                                 checkActivationDateFlag = 1;
                                 sheetSelected = inlineData.smeSheet2;
                             } else if(opexValue > 0){
-                                console.log("Sheet Selected Sheet 4");
+                                util.logInfo(request,`Sheet Selected Sheet 4 %j`, request);
                                 checkActivationDateFlag = 1;
                                 sheetSelected = inlineData.smeSheet4;
                             }
@@ -14103,10 +14108,10 @@ if(workflowActivityData.length==0){
                             console.error("Got Empty values while checking capexValue opexValue");
                             orderTypeF = 1;
                             if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
-                                console.log("Sheet Selected Sheet 2");
+                                util.logInfo(request,`Sheet Selected Sheet 2 %j`, request);
                                 sheetSelected = inlineData.smeSheet2;
                             } else if(opexValue > 0){
-                                console.log("Sheet Selected Sheet 4");
+                                util.logInfo(request,`Sheet Selected Sheet 4 %j`, request);
                                 sheetSelected = inlineData.smeSheet4;
                             }
                         }
@@ -14114,15 +14119,15 @@ if(workflowActivityData.length==0){
                     }
                 }
 
-                console.log("productF && segementF && orderTypeF", productF, segementF,  orderTypeF);
+                util.logInfo(request,`productF && segementF && orderTypeF ${productF} ${segementF} ${orderTypeF} %j` , request);
                 if(productF && segementF && orderTypeF){
-                    console.log("Got match in phase 1");
+                    util.logInfo(request,`Got match in phase 1 %j`, request);
                     phase1 = {productF, segementF, orderTypeF};
                     break;
                 }
                 else {
                     productF = 0, segementF = 0, orderTypeF = 0;
-                    console.log("Reset Params phase 1. Checking for new");
+                    util.logInfo(request,`Reset Params phase 1. Checking for new %j`, request);
                 }
 
             }
@@ -14132,32 +14137,32 @@ if(workflowActivityData.length==0){
                 return false;
             }
 
-            console.log("Executing new sheet", sheetSelected);
+            util.logInfo(request,`Executing new sheet ${sheetSelected} %j` , request);
             for(let value of sheetSelected) {
 
                 let bwF = 0, otcF = 0, arcF = 0, contractF = 0, netCashF = 0, paybackF = 0;
                 for(let row of linkDetails) {
-                    console.log("bwF && otcF && arcF && contractF && netCashF loop", row.field_id, row.field_name, row.field_value);
+                    util.logInfo(request,`bwF && otcF && arcF && contractF && netCashF loop ${row.field_id} ${row.field_name} ${row.field_value} %j` , request);
                     if(row.field_id == bwFieldId) {
-                        console.log("BW Match )", row.field_id, bwFieldId, Number(row.field_value), Number(value['4']));
+                        util.logInfo(request,`BW Match ) ${row.field_id} ${bwFieldId} ${Number(row.field_value)} ${Number(value['4'])} %j` , request);
                         Number(row.field_value) == Number(value['4']) ? bwF = 1 : 0;
                         row.field_value == '' ? bwF = 1 : 0;
                         continue;
                     } else if(row.field_id == otcFieldId) {
-                        console.log("otcF", row.field_id , otcFieldId , Number(row.field_value) , Number(value['5']));
+                        util.logInfo(request,`otcF ${row.field_id} ${otcFieldId} ${Number(row.field_value)} ${Number(value['5'])} %j` , request);
                         Number(row.field_value) >= Number(value['5']) ? otcF = 1 : 0;
                         row.field_value == '' ? otcF = 1 : 0;
                         continue;
                     } else if(row.field_id == arcField) {
-                        console.log("arcF", row.field_id, arcField,  Number(row.field_value), Number(value['6']));
+                        util.logInfo(request,`arcF ${row.field_id} ${arcField} ${Number(row.field_value)} ${Number(value['6'])} %j` , request);
                         Number(row.field_value) >= Number(value['6']) ? arcF = 1 : 0;
                         row.field_value == '' ? arcF = 1 : 0;
                         continue;
                     } else if(row.field_id == contractTermsFieldId) {
-                        console.log("contractF", row.field_id, contractTermsFieldId, Number(row.field_value), Number(value['7']));
+                        util.logInfo(request,`contractF ${row.field_id} ${contractTermsFieldId} ${Number(row.field_value)} ${Number(value['7'])} %j` , request);
                         if(checkActivationDateFlag) {
                             let yearsDiff = moment(new Date()).diff(new Date(activationDataOfLinks.field_value), 'years', true);
-                            console.log("Months Difference is", yearsDiff, new Date(), new Date(activationDataOfLinks.field_value), activationDataOfLinks.field_value);
+                            util.logInfo(request,`Months Difference is ${yearsDiff} ${new Date()} ${new Date(activationDataOfLinks.field_value)} ${activationDataOfLinks.field_value} %j` , request);
                             yearsDiff >= Number(value['7']) ? contractF = 1 : 0;
 
                         } else {
@@ -14166,15 +14171,15 @@ if(workflowActivityData.length==0){
                         row.field_value == '' ? contractF = 1 : 0;
                         continue;
                     } else if(row.field_id == netCash) {
-                        console.log("netCashF", row.field_id, netCash , Number(row.field_value) , Number(value['8']));
+                        util.logInfo(request,`netCashF ${row.field_id} ${netCash} ${Number(row.field_value)} ${Number(value['8'])} %j` , request);
                         Number(row.field_value) >= Number(value['8']) ? netCashF = 1 : 0;
                         row.field_value == '' ? netCashF = 1 : 0;
                         continue;
                     } else if(row.field_id == paybackFieldId) {
-                        console.log("Checking for Pay back fields");
+                        util.logInfo(request,`Checking for Pay back fields %j`, request);
 
                         if(row.field_value <= value['9']) {
-                            console.log("Value matched in pay back value");
+                            util.logInfo(request,`Value matched in pay back value %j`, request);
                             paybackF = 1;
                         }
                         row.field_value == '' ? paybackF = 1 : 0;
@@ -14182,13 +14187,13 @@ if(workflowActivityData.length==0){
                     }
                 }
 
-                console.log("bwF && otcF && arcF && contractF && netCashF && paybackF", bwF, otcF, arcF, contractF, netCashF, paybackF);
+                util.logInfo(request,`bwF && otcF && arcF && contractF && netCashF && paybackF ${bwF} ${otcF} ${arcF} ${contractF} ${netCashF} ${paybackF} %j` , request);
                 if(bwF && otcF && arcF && contractF && netCashF && paybackF) {
-                    console.log("Got match in phase 2 link" + linkId);
+                    util.logInfo(request,`Got match in phase 2 link ${linkId} %j` , request);
                     phase2 = {bwF, otcF, arcF, contractF, netCashF, paybackF};
                     return true;
                 } else {
-                    console.log("Reset In phase 2. Checking for new");
+                    util.logInfo(request,`Reset In phase 2. Checking for new %j`, request);
                     bwF = 0, otcF = 0, arcF = 0, contractF = 0, netCashF = 0, paybackF = 0;
                 }
             }
@@ -14340,7 +14345,7 @@ if(workflowActivityData.length==0){
             }
         }
         
-        console.log("activityDetails----", activityDetails);
+        util.logInfo(request,`activityDetails---- ${activityDetails} %j` , request);
         let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
 
         if(activityTypeDetails.length) {
@@ -14635,7 +14640,7 @@ if(workflowActivityData.length==0){
     }
 
     async function submitRejectionForm(request, reason, deskAssetData, inlineData) {
-        console.log("Processing Rejection Form ");
+        util.logInfo(request,`Processing Rejection Form %j`, request);
         try {
             let planConfig = {}, activityDetails = '', activityTypeId = '', aovValue = '', productId = '';
 
@@ -14654,7 +14659,7 @@ if(workflowActivityData.length==0){
                 }
             }
             
-            console.log("activityDetails----", activityDetails);
+            util.logInfo(request,`activityDetails---- ${activityDetails} %j` , request);
             let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
     
             if(activityTypeDetails.length) {
@@ -14665,7 +14670,7 @@ if(workflowActivityData.length==0){
             }
     
             let fieldValue = planConfig.data_type_combo_id == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
-            console.log("Will be assigned to the required team");
+            util.logInfo(request,`Will be assigned to the required team %j`, request);
     
             request.team_title = "commercial L1";
             request.decision_type_value = fieldValue;
@@ -14704,7 +14709,7 @@ if(workflowActivityData.length==0){
                     }
                 }
 
-                console.log("botData--- ", botData);
+                util.logInfo(request,`botData--- ${botData} %j` , request);
 
                 if(!botData) {
                     console.error("Bot data was not found so lead would not be added before form submission");
@@ -14712,9 +14717,9 @@ if(workflowActivityData.length==0){
 
                 botData = JSON.parse(botData.bot_operation_inline_data).bot_operations.participant_add.static;
 
-                console.log("Final=----- ", botData);
+                util.logInfo(request,`Final=----- ${botData} %j` , request);
                 let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
-                console.log("wfActivityDetails ", JSON.stringify(wfActivityDetails));
+                util.logInfo(request,`wfActivityDetails ${JSON.stringify(wfActivityDetails)} %j` , request);
 
 
                 await addParticipantStep({
@@ -14727,7 +14732,7 @@ if(workflowActivityData.length==0){
                     asset_id : wfActivityDetails[0].activity_creator_asset_id
                 });
             } catch (e) {
-                console.log("Error while adding participant while form is rejected", e, e.stack);
+                util.logError(request,`Error while adding participant while form is rejected ` + e.stack, { type: 'bot_engine', e });
             }
 
 
@@ -14782,11 +14787,11 @@ if(workflowActivityData.length==0){
             createWorkflowRequest.form_transaction_id = targetFormTransactionID;
             createWorkflowRequest.data_entity_inline        = createWorkflowRequest.activity_inline_data;
 
-            console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+            util.logInfo(request,`createWorkflowRequest ${JSON.stringify(createWorkflowRequest)} %j` , request);
             const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
             let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
-            console.log("activityInsertedDetails---->", activityInsertedDetails);
+            util.logInfo(request,`activityInsertedDetails----> ${activityInsertedDetails} %j` , request);
 
 
             let activityTimelineCollection =  JSON.stringify({
@@ -14817,7 +14822,7 @@ if(workflowActivityData.length==0){
 
             await activityTimelineService.addTimelineTransactionAsync(timelineReq);
         } catch (e) {
-            console.log("Auto Rejection form Failed", e.stack);
+            util.logError(request,`Auto Rejection form Failed ` + e.stack, { type: 'bot_engine', e });
         }
     }
 
@@ -14841,7 +14846,7 @@ if(workflowActivityData.length==0){
                 });
             }
 
-            console.log("activityInlineData", JSON.stringify(activityInlineData));
+            util.logInfo(request,`activityInlineData ${JSON.stringify(activityInlineData)} %j` , request);
 
             let finalInlineData = [];
             for(let formInline of activityInlineData) {
@@ -14859,12 +14864,12 @@ if(workflowActivityData.length==0){
             }
 
             if(!finalInlineData.length) {
-                console.log("Got No field to copy");
+                util.logInfo(request,`Got No field to copy %j`, request);
                 request.debug_info.push('Got No field to copy' + JSON.stringify(inlineData), "Data from db " + formData[0].field_inline_data);
                 return;
             }
 
-            console.log("After Alteration", finalInlineData);
+            util.logInfo(request,`After Alteration ${finalInlineData} %j` , request);
 
             await sleep(30 * 1000);
             let formId = row.target_form_id;
@@ -14904,12 +14909,12 @@ if(workflowActivityData.length==0){
             createWorkflowRequest.form_transaction_id = targetFormTransactionID;
             createWorkflowRequest.data_entity_inline  = createWorkflowRequest.activity_inline_data;
 
-            console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+            util.logInfo(request,`createWorkflowRequest ${JSON.stringify(createWorkflowRequest)} %j` , request);
             request.debug_info.push('createWorkflowRequest: ' + createWorkflowRequest);
             const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
             let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
-            console.log("activityInsertedDetails---->", activityInsertedDetails);
+            util.logInfo(request,`activityInsertedDetails----> ${activityInsertedDetails} %j` , request);
             request.debug_info.push('activityInsertedDetails: ' + activityInsertedDetails);
 
 
@@ -15100,11 +15105,11 @@ if(workflowActivityData.length==0){
 
 
     async function getFieldValueUsingFieldIdV1(request,formID,fieldID) {
-        console.log(' ');
-        console.log('*************************');
-        console.log('request.form_id - ', request.form_id);
-        console.log('formID - ', formID);
-        console.log('fieldID - ', fieldID);
+        util.logInfo(request,` %j`, request);
+        util.logInfo(request,`************************* %j`, request);
+        util.logInfo(request,`request.form_id - ${request.form_id} %j` , request);
+        util.logInfo(request,`formID - ${formID} %j` , request);
+        util.logInfo(request,`fieldID - ${fieldID} %j` , request);
 
         let fieldValue = "";
         let formData;
@@ -15134,7 +15139,7 @@ if(workflowActivityData.length==0){
         for(const fieldData of formData) {
             if(Number(fieldData.field_id) === Number(fieldID)) {
                
-                console.log('fieldData.field_data_type_id : ',fieldData.field_data_type_id);
+                util.logInfo(request,`fieldData.field_data_type_id : ${fieldData.field_data_type_id} %j` , request);
                 switch(Number(fieldData.field_data_type_id)) {
                     //Need Single selection and Drop Down
                     //circle/ state
@@ -15154,10 +15159,10 @@ if(workflowActivityData.length==0){
             }
         }
     
-        console.log('Field Value B4: ',fieldValue);
+        util.logInfo(request,`Field Value B4: ${fieldValue} %j` , request);
         fieldValue = fieldValue.split(" ").join("");
-        console.log('Field Value After: ',fieldValue);
-        console.log('*************************');
+        util.logInfo(request,`Field Value After: ${fieldValue} %j` , request);
+        util.logInfo(request,`************************* $j`, request);
         return fieldValue;
     }
 
@@ -15252,7 +15257,7 @@ if(workflowActivityData.length==0){
             childOpportunitiesCountOffset = Number(childOpportunitiesCount[0].count) + 1;
         }
 
-        console.log("bulkUploadFieldData[0].data_entity_text_1: ", bulkUploadFieldData[0].data_entity_text_1);
+        util.logInfo(request,`bulkUploadFieldData[0].data_entity_text_1: ${bulkUploadFieldData[0].data_entity_text_1} %j` , request);
         request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: " + bulkUploadFieldData[0].data_entity_text_1);
         const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
         if (xlsxDataBodyError) {
@@ -15303,7 +15308,7 @@ if(workflowActivityData.length==0){
         let errorMessage = "";
         for (let i = 1; i < OpportunitiesArray.length; i++) {
             const Opportunity = OpportunitiesArray[i];
-            console.log(`NewCreateSR: serialNum: ${Opportunity.serialNumber}`);
+            util.logInfo(request,`teSR: serialNum: ${Opportunity.serialNumber} %j`, request);
             let errorFoundForAnyColumn = false;
             for (const header of mandatoryHeaders) {
                 if (Opportunity[header] == undefined || Opportunity[header] === "") {
@@ -15580,7 +15585,7 @@ if(workflowActivityData.length==0){
             url: "/r1/activity/add/v1",
             
         };
-        console.log(JSON.stringify(addActivityRequest))
+        util.logInfo(request,`addActivityRequest ${JSON.stringify(addActivityRequest)} %j` , request);
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         await addActivityAsync(addActivityRequest);
         // console.log('xdxd',xx);
@@ -15600,7 +15605,7 @@ if(workflowActivityData.length==0){
             childWorkflow705Request.track_gps_datetime = util.getCurrentUTCTime();
             childWorkflow705Request.activity_datetime_end=util.getCurrentUTCTime();
             // childWorkflow705Request.activity_timeline_collection = activityTimelineCollection;
-            console.log("timeline entry",childWorkflow705Request)
+            util.logInfo(request,`timeline entry ${childWorkflow705Request} %j` , request);
             // const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
             // await addTimelineTransactionAsync(childWorkflow705Request);
             
@@ -15611,7 +15616,7 @@ if(workflowActivityData.length==0){
     async function insertSqsStatus(request) {
         let responseData = 0,
         error = true;
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             0,
             util.getCurrentUTCTime(),
             5,
@@ -15626,7 +15631,7 @@ if(workflowActivityData.length==0){
             request.asset_id,
             util.getCurrentUTCTime(),
         );
-        var queryString = util.getQueryString('ds_p1_bot_excel_log_transaction_insert', paramsArr);
+        let queryString = util.getQueryString('ds_p1_bot_excel_log_transaction_insert', paramsArr);
         if (queryString != '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then(async (data) => {
@@ -15989,7 +15994,7 @@ if(workflowActivityData.length==0){
                 throw new Error("Field to fetch the bulk upload excel file not submitted");
             }
 
-            console.log("bulkUploadFieldData[0].data_entity_text_1: ", bulkUploadFieldData[0].data_entity_text_1);
+            util.logInfo(request,`bulkUploadFieldData[0].data_entity_text_1: ${bulkUploadFieldData[0].data_entity_text_1} %j` , request);
             request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: " + bulkUploadFieldData[0].data_entity_text_1);
             const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
             if (xlsxDataBodyError) {
@@ -16039,7 +16044,7 @@ if(workflowActivityData.length==0){
             let errorMessage = "";
             for (let i = 1; i < excelRows.length; i++) {
                 const row = excelRows[i];
-                console.log(`NewThirdPartyOpexFR: serialNum: ${row.SerialNo}`);
+                util.logInfo(request,`NewThirdPartyOpexFR: serialNum: ${row.SerialNo} %j`, request);
                 let errorFoundForAnyColumn = false;
                 for (const header of mandatoryHeaders) {
                     if (row[header] == undefined || row[header] === "") {
@@ -16055,7 +16060,7 @@ if(workflowActivityData.length==0){
                         let fridtype = "";
                         let childActivityId = 0;
                         for (const childOpty of childOpportunitiesData) {
-                            console.log(childOpty);
+                            util.logInfo(request,`childOpty : ${childOpty} %j` , request);
                             if (
                                 String(row.currentBusinessFR).toUpperCase() === String(childOpty.activity_cuid_2).toUpperCase() ||
                                 String(row.currentBusinessFR).toUpperCase() === String(childOpty.activity_cuid_3).toUpperCase()
@@ -16199,7 +16204,7 @@ if(workflowActivityData.length==0){
           organization_id: request.organization_id,
           email: request.emails[i].email,
         });
-        console.log("assetData",assetDetails)
+        util.logInfo(request,`assetData : ${assetDetails} %j` , request);
         if(assetDetails.length>0){
             deskAssetData = assetDetails[0];
         }
@@ -16250,7 +16255,7 @@ if(workflowActivityData.length==0){
         let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request,request.workflow_activity_id,request.form_id);
         if(!formDataFrom713Entry.length > 0) {
             responseData.push({'message': `${i_iterator.form_id} is not submitted`});
-            console.log('responseData : ',responseData);
+            util.logInfo(request,`responseData : ${responseData} %j` , request);
             return [true,responseData];
         }
 
@@ -16278,7 +16283,7 @@ if(workflowActivityData.length==0){
           return [false,[]]
       }
       let activity_type_inline_data = typeof activityTypeConfig[0].activity_type_inline_data == 'string' ? JSON.parse(activityTypeConfig[0].activity_type_inline_data) : activityTypeConfig[0].activity_type_inline_data;
-      console.log(activity_type_inline_data);
+      util.logInfo(request,`activity_type_inline_data : ${activity_type_inline_data} %j` , request);
       //Getting Activity Details
       let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
 
@@ -16297,7 +16302,7 @@ if(workflowActivityData.length==0){
         let eventLocation = formData.filter((_, i) =>_.field_id == activity_type_inline_data.meeting_location_field_id);
         let eventTimeDetails = formData.filter((_, i) => _.field_data_type_id === 77);
 
-        var timeDifferenceInMinutes = Math.floor(eventTimeDetails[0].field_value.duration);
+        const timeDifferenceInMinutes = Math.floor(eventTimeDetails[0].field_value.duration);
         let createDate = new Date(moment(eventTimeDetails[0].field_value.start_date_time).utcOffset("-05:30").format("YYYY-MM-DD HH:mm:ss"));
         let endDate = new Date(moment(eventTimeDetails[0].field_value.end_date_time).utcOffset("-05:30").format("YYYY-MM-DD HH:mm:ss"));
         let createDateutc = new Date(moment(eventTimeDetails[0].field_value.start_date_time).format("YYYY-MM-DD HH:mm:ss"));
@@ -16309,7 +16314,7 @@ if(workflowActivityData.length==0){
         
         util.logInfo(request,"Participants length : "+ dat.length);
         let emailsToAdd = [];
-        var months = [
+        const months = [
             "Jan",
             "Feb",
             "Mar",
@@ -16398,7 +16403,7 @@ if(workflowActivityData.length==0){
             },
             async (error, value) => {
                 if (error) {
-                    console.log(error);
+                    util.logError(request,`Error`, { type: 'bot_engine', error });
                 }
 
                 let fileName = `${global.config.efsPath}${
@@ -16440,8 +16445,8 @@ if(workflowActivityData.length==0){
                     emailProviderDetails
                 );
                 fs.unlink(fileName, function(err) {
-                    if (err) return console.log(err);
-                    console.log("file deleted successfully");
+                    if (err) return util.logError(request,`Error`, { type: 'bot_engine', err });;
+                    util.logInfo(request,`file deleted successfully %j`, request);
                 });
             })
         });
@@ -16522,8 +16527,8 @@ if(workflowActivityData.length==0){
             util.logInfo(request,"field_value 1"+field_value1);
             let field_value2 = await getFormFieldValue(request,inlineData.submit_form.field_id2);
             util.logInfo(request,"field_value 2"+field_value2);
-            var time1 = field_value1 //.format('YYYY-MM-DD');
-            var time2 = field_value2 //.format('YYYY-MM-DD');
+            const time1 = field_value1 //.format('YYYY-MM-DD');
+            const time2 = field_value2 //.format('YYYY-MM-DD');
             if(time1 == time2){
              submitFormInternal(request,inlineData,time1)
             }
@@ -16585,7 +16590,7 @@ if(workflowActivityData.length==0){
             //     });
             // }
 
-            console.log("activityInlineData", JSON.stringify(activityInlineData));
+            util.logInfo(request,`activityInlineData : ${JSON.stringify(activityInlineData)} %j` , request);
 
 
             let formId = formData[0].form_id;
@@ -16612,12 +16617,12 @@ if(workflowActivityData.length==0){
             createWorkflowRequest.message_unique_id = util.getMessageUniqueId(100);
             createWorkflowRequest.log_message_unique_id = util.getMessageUniqueId(100);
 
-            console.log("createWorkflowRequest", JSON.stringify(createWorkflowRequest));
+            util.logInfo(request,`createWorkflowRequest ${JSON.stringify(createWorkflowRequest)} %j` , request);
             // request.debug_info.push('createWorkflowRequest: ' + createWorkflowRequest);
             const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
             let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
-            console.log("activityInsertedDetails---->", activityInsertedDetails);
+            util.logInfo(request,`activityInsertedDetails----> ${activityInsertedDetails} %j` , request);
             // request.debug_info.push('activityInsertedDetails: ' + activityInsertedDetails);
 
 
@@ -16734,8 +16739,8 @@ if(workflowActivityData.length==0){
             let inputTypeFormID = inputJSON.input_type.form_id;
             let inputTypeFieldID = inputJSON.input_type.field_id;
 
-            console.log("inputTypeFormID ", inputTypeFormID);
-            console.log("inputTypeFieldID ", inputTypeFormID);
+            util.logInfo(request,`inputTypeFormID : ${inputTypeFormID} %j` , request);
+            util.logInfo(request,`inputTypeFieldID ${inputTypeFieldID} %j` , request);
 
             const inputTypeFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
                 organization_id: request.organization_id,
@@ -16775,7 +16780,7 @@ if(workflowActivityData.length==0){
             let fieldIdValueMap = new Map();
             for (let key of Object.keys(inputFields)) {
                 for (let field of inputFields[key]) {
-                    console.log(field);
+                    util.logInfo(request,`field : ${field} %j` , request);
 
                     const inputFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
                         organization_id: request.organization_id,
@@ -16872,7 +16877,7 @@ if(workflowActivityData.length==0){
             });
 
         } catch (e) {
-            console.log(e);
+            util.logError(request,`Error`, { type: 'bot_engine', e });
         }
     }
     async function closeRefferedOutActivities(request,bot_inline){
@@ -16922,7 +16927,7 @@ if(workflowActivityData.length==0){
         let formData = inlineData.target_form_data;
         let activityInlineData = formData.fields;
         activityInlineData[0].field_value = `Opportunity Closed - ${sourceFieldValue}`;
-        console.log("activityInlineData", JSON.stringify(activityInlineData));
+        util.logInfo(request,`activityInlineData ${JSON.stringify(activityInlineData)} %j` , request);
         let formId = formData.form_id;
 
         let targetFormctivityTypeID = formData.form_activity_type_id;
@@ -16979,7 +16984,7 @@ if(workflowActivityData.length==0){
             const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
             const body = JSON.parse(response.body);
             if (Number(body.status) === 200) {
-                console.log("createActivity | addActivityAsync | Body: ", body);
+                util.logInfo(request,`createActivity | addActivityAsync | Body: ${body} %j` , request);
                 let activityTimelineCollection =  JSON.stringify({
                     "content"            : `Form Submitted`,
                     "subject"            : `Form Submitted`,
@@ -17009,7 +17014,7 @@ if(workflowActivityData.length==0){
                 return [false, body];
             }
         } catch (error) {
-            console.log("createActivity | addActivityAsync | Error: ", error);
+            util.logError(request,`createActivity | addActivityAsync | Error: `, { type: 'bot_engine', error });
             return [true, {}];
         }
     }
