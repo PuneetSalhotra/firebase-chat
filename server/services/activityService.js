@@ -5511,7 +5511,10 @@ function ActivityService(objectCollection) {
         try {
             newReq.account_code_update = true;
             newReq.datetime_log = util.getCurrentUTCTime();
-            newReq.cuid_inline_data = JSON.stringify({"CUID3": generatedAccountCode});
+            let cuid_inline_data = {"CUID3": generatedAccountCode};
+            if(panNumber!=""){cuid_inline_data= {...cuid_inline_data,"CUID1":panNumber}};
+            if(gstNumber!=""){cuid_inline_data= {...cuid_inline_data,"CUID2":gstNumber}};
+            newReq.cuid_inline_data = JSON.stringify(cuid_inline_data);
             //await botService.updateCUIDBotOperationMethod(newReq,{},{"CUID3": generatedAccountCode});
             
             newReq.workflow_activity_id = request.activity_id;
