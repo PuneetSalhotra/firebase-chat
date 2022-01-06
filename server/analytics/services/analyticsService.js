@@ -9,6 +9,8 @@ function AnalyticsService(objectCollection)
     const nodeUtil = require('util');
     
     const AssetService = require('../../services/assetService');
+    const AdminListingService = require('../../Administrator/services/adminListingService');
+    const adminListingService = new AdminListingService(objectCollection);
     const assetService = new AssetService(objectCollection);
 
     //const cacheWrapper = objectCollection.cacheWrapper;
@@ -250,7 +252,10 @@ function AnalyticsService(objectCollection)
         // console.log(request.widget_type_id)
         request.datetime_log = util.getCurrentUTCTime();
         let widgetId;
-        
+
+        let [actError,activity_type] = await adminListingService.workforceActivityTypeMappingSelectCategory({...request,activity_type_category_id:58})
+        request.activity_type_id = activity_type[0].activity_type_id;
+        request.activity_type_category_id = 58;
         //Update widget_aggregate_id and widget_chart_id
         //*******************************************************/
         let [err1, staticValues] = await self.getwidgetStaticValueDetails(request);
@@ -291,6 +296,7 @@ function AnalyticsService(objectCollection)
         //global.logger.write('conLog', "createAssetBundle | createActivity | activityData: " + activityData, {}, {});
         //console.log("createAssetBundle | createActivity | activityData: ", activityData);
         request.activity_id = activityData.response.activity_id;
+        updateWidgetsTagType(request);
         if(Number(request.form_id)>0){
             let [widgetErr, widgetResponse] = await this.widgetListInsert(request);
             if(widgetErr) {
@@ -323,6 +329,32 @@ function AnalyticsService(objectCollection)
         return [false,[]]
         }
     };
+
+    async function updateWidgetsTagType(request) {
+        let responseData = [],
+            error = true;
+
+            let paramsArr = new Array(
+                request.organization_id,
+                request.activity_id,
+                request.tag_id,
+                request.tag_type_id
+            );
+
+        let queryString = util.getQueryString('ds_p1_activity_list_update_tag', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];        
+    }
+
 
     async function createActivity(request) {
         //let filterTagTypeId = request.filter_tag_type_id;
@@ -537,7 +569,7 @@ function AnalyticsService(objectCollection)
 
         let paramsArr = new Array(
             request.activity_id,
-            request.activity_widget_id,
+            request.activity_widget_id || request.widget_id,
             request.widget_type_id,
             request.organization_id,
             request.datetime_log
@@ -1226,7 +1258,7 @@ function AnalyticsService(objectCollection)
                 request.workforce_id,
                 request.tag_type_id,
                 global.analyticsConfig.parameter_flag_sort,
-                request.target_asset_id,
+                request.target_asset_id || 0,
                 request.asset_id,
                 request.page_start || 0,
                 request.page_limit || 50
@@ -5364,10 +5396,12 @@ function AnalyticsService(objectCollection)
                 //paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
                 //paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 paramsArray[15] = 0;
+                paramsArray[16] = 0;
                 paramsArray[1] = 1;
                 if (widgetFlags[iteratorM] == 2) {
                     paramsArray[1] = 2;
                     paramsArray[15] = 1;
+                    paramsArray[16] = 148;
                 }
                 paramsArray.push(widgetFlags[iteratorM]);
                 paramsArray[10] = 0; //request.asset_id;
@@ -5375,6 +5409,7 @@ function AnalyticsService(objectCollection)
                 responseJson.datetime_start = paramsArray[18];
                 responseJson.datetime_end = paramsArray[19];
                 responseJson.filter_activity_status_type_id = paramsArray[15];
+                responseJson.filter_activity_status_tag_id = paramsArray[16];
                 responseJson.filter_date_type_id = paramsArray[1];
                 responseJson.filter_asset_id = paramsArray[10];
                 responseJson.sequence_id = widgetFlags[iteratorM];
@@ -6203,10 +6238,12 @@ function AnalyticsService(objectCollection)
                 //paramsArray[18] = util.getFirstDayOfCurrentMonthToIST();
                 //paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 paramsArray[15] = 0;
+                paramsArray[16] = 0;
                 paramsArray[1] = 1;
                 if (widgetFlags[iteratorM] == 2) {
                     paramsArray[1] = 2;
                     paramsArray[15] = 1;
+                    paramsArray[16] = 148;
                 }
                 paramsArray.push(widgetFlags[iteratorM]);
                 paramsArray[10] = request.filter_asset_id;
@@ -6214,6 +6251,7 @@ function AnalyticsService(objectCollection)
                 responseJson.datetime_start = paramsArray[18];
                 responseJson.datetime_end = paramsArray[19];
                 responseJson.filter_activity_status_type_id = paramsArray[15];
+                responseJson.filter_activity_status_tag_id = paramsArray[16];
                 responseJson.filter_date_type_id = paramsArray[1];
                 responseJson.filter_asset_id = paramsArray[10];
                 responseJson.sequence_id = widgetFlags[iteratorM];

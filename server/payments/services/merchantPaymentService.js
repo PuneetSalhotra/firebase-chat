@@ -539,7 +539,7 @@ function MerchantPaymentService(objectCollection) {
                                                                                 restaurant_name:restaurant_Name,
                                                                                 link: res
                                                                             };
-                                                                            let templateName = "orderupdate";
+                                                                            let templateName = "orderstatus";
                                                                             let [error, data] = await util.WhatsappNotification(request, memberData, recipientData, templateName);
                                                                             return [true, {}]
                                                                         }
@@ -2354,7 +2354,7 @@ function MerchantPaymentService(objectCollection) {
                 "subject": "Status updated to "+request.activity_status_name
             });
 
-        const [err2, activityStatus] = await this.getActivityStatusV1(request);
+        const activityStatus = await getActivityStatusId(request);
         request.activity_status_id = activityStatus[0].activity_status_id;              
         const alterStatusRequest = {
             organization_id: request.organization_id,
@@ -2749,6 +2749,27 @@ function MerchantPaymentService(objectCollection) {
             }
         });
     };
+
+    function getActivityStatusId(request) {
+        return new Promise((resolve, reject)=>{
+            var paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.workforce_id,
+                request.activity_status_type_id
+            );
+            var queryString = util.getQueryString('ds_v1_workforce_activity_status_mapping_select_status', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(0, queryString, request, function (err, resp) {
+                    if (err === false) {
+                        resolve(resp);
+                        } else {
+                        reject(err);
+                    }
+                });
+            }
+        });
+    }
 }
 
 module.exports = MerchantPaymentService;
