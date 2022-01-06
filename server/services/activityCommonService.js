@@ -7202,6 +7202,131 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         }
         return [error, responseData];
     };
+
+    this.BOTMessageTransactionIdInsertAsync = async function (request) {
+        let responseData = [],
+            error = true;
+            
+        const paramsArr = new Array(
+            request.message_id,
+            request.workflow_activity_id,
+            request.form_activity_id,
+            request.form_trasnaction_id,
+            request.form_id,
+            request.field_id,
+            request.message_body,
+            request.status_id,
+            request.produced_datetime,
+            request.organization_id,
+            request.log_asset_id,
+            request.log_datetime,
+        );
+        const queryString = util.getQueryString('ds_p1_bot_message_transaction_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.BOTMessageTransactionIdUpdateErrorAsync = async function (request) {
+        let responseData = [],
+            error = true;
+            
+        const paramsArr = new Array(
+            request.bot_transaction_id,
+            request.message_id,
+            request.error_failed_json,
+            request.log_datetime,
+        );
+        const queryString = util.getQueryString('ds_p1_bot_message_transaction_update_error', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.BOTMessageTransactionIdUpdateStatusAsync = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.bot_transaction_id,
+            request.message_id,
+            request.status_id,
+            request.log_asset_id,
+            request.consumed_datetime,
+            request.processed_datetime,
+            request.failed_datetime,
+            request.log_datetime,
+        );
+        const queryString = util.getQueryString('ds_p1_bot_message_transaction_update_status', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.BOTOperationMessageTransactionIdInsertAsync = async function (request) {
+        let responseData = [],
+            error = true;
+          
+        const paramsArr = new Array(
+            request.bot_transaction_id,
+            request.message_id,
+            request.bot_operation_id,
+            request.bot_operation_type_id,
+            request.workflow_activity_id,
+            request.form_activity_id,
+            request.form_trasnaction_id,
+            request.form_id,
+            request.field_id,
+            request.status_id,
+            request.bot_operation_start_datetime,
+            request.bot_operation_end_datetime,
+            request.error_failed_json,
+            request.organization_id,
+            request.log_datetime,
+        );
+        const queryString = util.getQueryString('ds_p1_bot_operation_message_transaction_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    
 }
 
 
