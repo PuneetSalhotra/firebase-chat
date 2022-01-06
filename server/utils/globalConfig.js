@@ -3,7 +3,7 @@
  */
 
 //mode = process.env.mode;
-mode = process.env.NODE_ENV;
+mode = "local";
 //mode = "local";
 //var Logger = require(`${__dirname}/logger.js`);
 //logger = new Logger();
@@ -335,7 +335,7 @@ if(mode === 'local') {
 
 
     //Ports Config
-    config.version = 'r1';
+    config.version = 'r0';
     config.servicePort = 7000;
     config.standAlonePamServicePort = 7100;
 
@@ -387,7 +387,7 @@ if(mode === 'local') {
     
     //Portal Service URL & Mobile Service URL
     config.portalBaseUrl = "http://localhost:7001/";
-    config.mobileBaseUrl = "http://localhost:7000/";
+    config.mobileBaseUrl = "https://stagingapi.worlddesk.cloud/";
 
     //making twilio, Nexmo Calls
     config.efsPath = "/apistaging-data/";
@@ -419,9 +419,9 @@ if(mode === 'local') {
     //config.TOPIC_NAME = "desker-activities";
     //config.CONSUMER_GROUP_ID = 'desker-activities-consumer-group';   
 
-    config.TOPIC_ID = 38;
+    config.TOPIC_ID = 42;
     // config.TOPIC_ID = 26;
-    config.TOPIC_NAME = "desker-activities-sravan-test-topic";
+    config.TOPIC_NAME = "desker-topic1";
     // config.TOPIC_NAME = "demo-eks-test-topic";
     config.CONSUMER_GROUP_ID = 'desker-activities-test-topic-consumer-group-ben-v1';
 
@@ -1179,6 +1179,7 @@ config.gallaboxApiCredentials = {
     "apiKey": '61af21eeef52e800049bf811',
     "ContentType": 'application/json'
 };
+
 config.gallaboxurl='https://server.gallabox.com/devapi/messages/whatsapp';
 config.gallaboxChannelId="61a9b44216fc4c0004b14d13";
 //pam order track link

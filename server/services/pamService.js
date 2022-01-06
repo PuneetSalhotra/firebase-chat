@@ -3276,35 +3276,25 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                             //text = `Dear ${memberName},Your ${memberName} guest(s) reservation request has been received for ${memberName} at ${memberName}. The Pudding & Mink team will contact you shortly to confirm your reservation  -GreneOS`;
                             //text = `Dear Sravan, Your 10 guest(s) reservation request has been received for Friday, 27th August at 05:30 AM. The Pudding & Mink team will contact you shortly to confirm your reservation.`
                             let reservationStartDatetimeIST = util.UTCtoIST(reservationStartDatetime);
-                            text = `Dear ${memberName},Your ${noOfGuests} guest(s) reservation request has been received for ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")}. The Pudding & Mink team will contact you shortly to confirm your reservation  -GreneOS`;
+                            // text = `Dear ${memberName},Your ${noOfGuests} guest(s) reservation request has been received for ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")}. The Pudding & Mink team will contact you shortly to confirm your reservation  -GreneOS`;
                             
-                                let recipientData = {
-                            name: memberName,
-                            phone: countryCode.toString() + phoneNumber,
-                            };
-                            let memberData = {
-                            memberName: memberName,
-                            reservationStartDatetime: `${util.convertDateFormat(
-                                reservationStartDatetimeIST,
-                                "dddd, Do MMMM"
-                            )}`,
-                            reservationtime: `${util.convertDateFormat(
-                                reservationStartDatetimeIST,
-                                "hh:mm A"
-                            )}`,
-                            noOfGuests: noOfGuests,
-                            reservationCode: reservationCode,
-                            supportContactNumber: supportContactNumber,
-                            };
-                            let templateName=request.templateName;
-                            let [error, data] = await util.WhatsappNotification(
-                            request,
-                            memberData,
-                            recipientData,
-                            templateName
-                            );
-                        return[false,{}]
-    }else {
+                            // no need to send code when reservation is request from web
+                            // reservation is getting into accepted state from mobile IOS/Android
+                            // reservation is getting into requested state from web
+                             let recipientData = {
+                                 name: memberName,
+                                 phone: countryCode.toString() + phoneNumber,
+                             };
+                             let memberData = {
+                                 memberName: memberName,
+                                 noOfGuests: noOfGuests,
+                                 reservationStartDatetime: `${util.convertDateFormat(reservationStartDatetimeIST, "dddd, Do MMMM")}`,
+                                 reservationtime: `${util.convertDateFormat(reservationStartDatetimeIST, "hh:mm A")}`,
+                             };
+                             let templateName = 'reservationrequest';
+                             let [error, data] = await util.WhatsappNotification(request, memberData, recipientData, templateName);
+                             return [false, {}]
+                        } else {
                             let reservationStartDatetimeIST = util.UTCtoIST(reservationStartDatetime);
                             text = `Dear ${memberName},Your reservation on ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")} for ${noOfGuests} is confirmed. Your reservation code is ${reservationCode}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${supportContactNumber}.`
                             //text = `Dear ${memberName},\nYour reservation on ${util.convertDateFormat(reservationStartDatetimeIST,"dddd, Do MMMM")} at ${util.convertDateFormat(reservationStartDatetimeIST,"hh:mm A")} for ${noOfGuests} is confirmed. Your reservation code is ${reservationCode}. You will need this code for valet, entry and ordering. Please share it only with the guests for this reservation. If any questions please call ${supportContactNumber}. -GreneOS`;
@@ -4998,14 +4988,20 @@ this.checkingReservationCodeV1 = async (request) => {
         responseObject = {};
     request.datetime_log = util.getCurrentUTCTime();
     const [eventErr, eventData] = await self.getEvent(request);  
+    console.log(eventData,'eventData');
     if(!eventErr){
         if(eventData.length > 0){
-            request.parent_activity_id = eventData[0].activity_id;
+            for (let i = 0; i < eventData.length; i++) {
+            request.parent_activity_id = eventData[i].activity_id;
             request.activity_type_category_id = 37;
             request.page_start = 0;
             request.page_limit = 1;
             [error, responseData] = await self.getChildOfAParent(request);
-            responseObject = responseData.length>0 ?responseData[0]:{};
+            if (responseData.length > 0) {
+                responseObject = responseData.length > 0 ? responseData[0] : {};
+                break;
+            }       
+            }
         } else {
             return([true, ['No events available']]);
         }
