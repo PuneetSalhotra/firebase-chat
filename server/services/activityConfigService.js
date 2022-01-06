@@ -1230,6 +1230,9 @@ function ActivityConfigService(db,util,objCollection) {
             if(checkPan!=""){
                 objToSend = {...objToSend,"CUID1":checkPan}
             }
+            if(gstNumber!=null && gstNumber!=""){
+                objToSend = {...objToSend,"CUID2":gstNumber}
+               }
 
             try {
                 request.account_code_update = true;

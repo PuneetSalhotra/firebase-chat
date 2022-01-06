@@ -9441,8 +9441,16 @@ else{
         let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
 
         oldDate = (workflowActivityDetails.length > 0) ? workflowActivityDetails[0].activity_datetime_end_deferred: 0;
+        if(inlineData && inlineData.hasOwnProperty('is_status_due_date') && inlineData.is_status_due_date == 1) {
+            oldDate = (workflowActivityDetails.length > 0) ? workflowActivityDetails[0].activity_datetime_end_status: 0; 
+        }
         //oldDate = util.replaceDefaultDatetime(oldDate);
+        if(oldDate && oldDate != ""){
         oldDate = util.getFormatedLogDatetimeV1(oldDate,"DD-MM-YYYY HH:mm:ss");
+        }
+        else {
+            oldDate= "";
+        }
         console.log('formInlineDataMap : ', formInlineDataMap);
         console.log('dueDateEdit form bot inline: ', dueDateEdit);
         request.debug_info.push('formInlineDataMap: ' + formInlineDataMap);
@@ -9676,7 +9684,7 @@ else{
 
             let assetName = (assetDetails.length > 0) ? assetDetails[0].operating_asset_first_name : 'Bot';
 
-            let content = `${status_dueDate?"Status d":"D"}ue date changed from ${moment(oldDate).format('Do MMMM YYYY, h:mm a')} to ${moment(newDate).format('Do MMMM YYYY, h:mm a')} by ${assetName}`;
+            let content = `${status_dueDate?"Status d":"D"}ue date ${oldDate != "" ? `changed from ${moment(oldDate).format('Do MMMM YYYY, h:mm a')}`:"set"} to ${moment(newDate).format('Do MMMM YYYY, h:mm a')} by ${assetName}`;
             let activityTimelineCollection = {
                 content: content,
                 subject: `Note - ${util.getCurrentDate()}`,

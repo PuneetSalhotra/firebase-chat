@@ -403,6 +403,11 @@ function AnalyticsService(objectCollection)
         //widgetInfo.filter_timeline_name = util.replaceDefaultNumber(request.filter_timeline_name); 
         widgetInfo.filter_form_id = util.replaceDefaultNumber(request.filter_form_id);
         widgetInfo.filter_field_id = util.replaceDefaultNumber(request.filter_field_id);
+        widgetInfo.filter_is_value_considered  = util.replaceDefaultNumber(request.filter_is_value_considered);
+        widgetInfo.filter_is_datetime_considered  = util.replaceDefaultNumber(request.filter_is_datetime_considered);
+        widgetInfo.filter_tag_id  = util.replaceDefaultNumber(request.filter_tag_id);
+        widgetInfo.filter_workforce_id  = util.replaceDefaultNumber(request.filter_workforce_id);
+        widgetInfo.filter_workforce_type_id  = util.replaceDefaultNumber(request.filter_workforce_type_id);
 
       //  request.widget_detailed_info = request.widget_detailed_info || {};
       //  let widgetDetailedInfo = typeof request.widget_detailed_info == 'string' ? JSON.parse(request.widget_detailed_info):request.widget_detailed_info;
@@ -2309,7 +2314,7 @@ function AnalyticsService(objectCollection)
                 params.push(parseInt(request.organization_id));
                 let organization_List = await db.callDBProcedureR2(request, 'ds_p1_organization_list_select', params, 1);
                 request.organization_onhold = organization_List[0].organization_flag_dashboard_onhold || 0;
-
+                request.filter_date_type_id = request.filter_date_type_id && Number(request.filter_date_type_id) >0 ? Number(request.filter_date_type_id) : 1;
                 paramsArray = 
                     new Array
                     (
@@ -3141,6 +3146,7 @@ function AnalyticsService(objectCollection)
             params.push(parseInt(request.organization_id));
             let organization_List = await db.callDBProcedureR2(request, 'ds_p1_organization_list_select', params, 1);
             request.organization_onhold = organization_List[0].organization_flag_dashboard_onhold || 0;
+            request.filter_date_type_id = request.filter_date_type_id && Number(request.filter_date_type_id) >0 ? Number(request.filter_date_type_id):1;
 
                  paramsArray = 
                  new Array(
