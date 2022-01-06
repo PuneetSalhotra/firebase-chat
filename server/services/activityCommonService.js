@@ -7151,6 +7151,57 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         }
         return [error, responseData];
     }
+
+    this.SQSMessageIdInsertAsync = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.topic_id,
+            request.message_id,
+            request.asset_id,
+            request.activity_id,
+            request.form_activity_id,
+            request.form_transaction_id
+        );
+        const queryString = util.getQueryString('ds_v1_sqs_message_transaction_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.checkingSQSMessageIdAsync = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.topic_id,
+            request.message_id,
+        );
+
+        const queryString = util.getQueryString('ds_v1_sqs_message_transaction_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 }
 
 
