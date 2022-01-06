@@ -1192,6 +1192,7 @@ config.gallaboxApiCredentials = {
     "apiKey": '61af21eeef52e800049bf811',
     "ContentType": 'application/json'
 };
+
 config.gallaboxurl='https://server.gallabox.com/devapi/messages/whatsapp';
 config.gallaboxChannelId="61a9b44216fc4c0004b14d13";
 //pam order track link
