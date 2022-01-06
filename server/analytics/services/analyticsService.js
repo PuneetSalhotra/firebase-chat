@@ -2600,7 +2600,7 @@ function AnalyticsService(objectCollection)
                 //paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 paramsArray[15] = 0;
                 paramsArray[16] = 0;
-                paramsArray[1] = 1;
+                paramsArray[1] = filter_date_type_id;
                 if (widgetFlags[iteratorM] == 2) {
                     paramsArray[1] = 2;
                     paramsArray[15] = 1;
@@ -5411,7 +5411,7 @@ function AnalyticsService(objectCollection)
                 //paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 paramsArray[15] = 0;
                 paramsArray[16] = 0;
-                paramsArray[1] = 1;
+                paramsArray[1] = filter_date_type_id;
                 if (widgetFlags[iteratorM] == 2) {
                     paramsArray[1] = 2;
                     paramsArray[15] = 1;
@@ -6253,7 +6253,7 @@ function AnalyticsService(objectCollection)
                 //paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 paramsArray[15] = 0;
                 paramsArray[16] = 0;
-                paramsArray[1] = 1;
+                paramsArray[1] = filter_date_type_id;
                 if (widgetFlags[iteratorM] == 2) {
                     paramsArray[1] = 2;
                     paramsArray[15] = 1;
