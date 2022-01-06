@@ -1142,6 +1142,7 @@ function FormConfigService(objCollection) {
                         let workflowRequest = Object.assign({}, request);
                             workflowRequest.activity_inline_data = JSON.stringify(activityInlineData);
                             workflowRequest.is_from_field_alter = 1;
+                            workflowRequest.is_bulk_edit = 1;
                         try {
                             self.workflowOnFormEdit(workflowRequest);
                         } catch (error) {
@@ -1243,7 +1244,7 @@ function FormConfigService(objCollection) {
                 var params = new Array(
                     request.form_transaction_id, //0
                     request.form_id, //1
-                    request.field_id, //2
+                    row.field_id, //2
                     dataTypeComboId,
                     //request.data_type_combo_id || 0, //3
                     //request.data_type_combo_id || row.data_type_combo_id, //3
