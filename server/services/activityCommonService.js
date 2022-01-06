@@ -7246,7 +7246,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             error = true;
             
         const paramsArr = new Array(
-            request.bot_transaction_id,
+            request.sqs_bot_transaction_id,
             request.message_id,
             request.error_failed_json,
             request.log_datetime,
@@ -7271,7 +7271,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             error = true;
 
         const paramsArr = new Array(
-            request.bot_transaction_id,
+            request.sqs_bot_transaction_id,
             request.message_id,
             request.status_id,
             request.log_asset_id,
@@ -7300,7 +7300,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             error = true;
           
         const paramsArr = new Array(
-            request.bot_transaction_id,
+            request.sqs_bot_transaction_id,
             request.message_id,
             request.bot_operation_id,
             request.bot_operation_type_id,

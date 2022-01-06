@@ -21,17 +21,9 @@ const Util = require('./server/utils/util');
 const AwsSns = require('./server/utils/snsWrapper');
 const CacheWrapper = require('./server/utils/cacheWrapper');
 const QueueWrapper = require('./server/queue/queueWrapper');
-const ActivityService = require("./server/services/activityService");
-const ActivityTimelineService = require("./server/services/activityTimelineService");
 const ActivityPushService = require("./server/services/activityPushService");
 const ActivityCommonService = require("./server/services/activityCommonService");
 const db = require("./server/utils/dbWrapper");
-const VodafoneService = require("./server/vodafone/services/vodafoneService");
-const ActivityUpdateService = require("./server/services/activityUpdateService");
-const FormConfigService = require("./server/services/formConfigService");
-const PamUpdateService = require("./server/services/pamUpdateService");
-const PamService = require("./server/services/pamService");
-const ActivityParticipantService = require("./server/services/activityParticipantService");
 const BotService = require("./server/botEngine/services/botService");
 
 async function SetMessageHandlerForConsumer() {
@@ -44,50 +36,64 @@ async function SetMessageHandlerForConsumer() {
     global.logger = new Logger(objectCollection.queueWrapper);
 
     const serviceObjectCollection = {
-        activityService: new ActivityService(objectCollection),
-        activityTimelineService: new ActivityTimelineService(objectCollection),
-        vodafoneService: new VodafoneService(objectCollection),
-        activityUpdateService: new ActivityUpdateService(objectCollection),
-        activityParticipantService: new ActivityParticipantService(objectCollection),
-        formConfigService: new FormConfigService(objectCollection),
-        pamService: new PamService(objectCollection),
-        pamUpdateService: new PamUpdateService(objectCollection),
+        util: objectCollection.util,
+        db: objectCollection.db,
+        cacheWrapper: cacheWrapper,
+        queueWrapper: objectCollection.queueWrapper,
         activityCommonService: objectCollection.activityCommonService,
-        cacheWrapper: cacheWrapper
+        forEachAsync: objectCollection.forEachAsync
     }
 
     const activityCommonService = objectCollection.activityCommonService;
 
-    let botService = new BotService(serviceObjectCollection);
+    const botService = new BotService(serviceObjectCollection);
 
     const sqsConsumerOne = Consumer.create({
         queueUrl: global.config.sqsConsumerSQSQueue,
         handleMessage: async (message) => {
 
-            try{
+            try {
                 console.log("message", message);
 
                 const messageBody = JSON.parse(message.Body);
                 const messageID = message.MessageId;
-    
+
                 let request = {};
                 request.message_id = messageID;
                 request.topic_id = global.config.sqsConsumerSQSQueueId;
                 request.asset_id = messageBody.asset_id || 0;
                 request.activity_id = messageBody.workflow_activity_id || 0;
-                request.form_activity_id = messageBody.activity_id || 0;
+                request.form_activity_id = messageBody.form_activity_id || 0;
                 request.form_transaction_id = messageBody.form_transaction_id || 0;
-    
+                request.sqs_bot_transaction_id = messageBody.sqs_bot_transaction_id || 0;
+
+                let requestForBotEngine = JSON.parse(messageBody.message_body);
+                requestForBotEngine.message_id = messageID;
+                requestForBotEngine.sqs_bot_transaction_id = messageBody.sqs_bot_transaction_id || 0;
+
                 const [errorZero, partitionOffsetData] = await activityCommonService.checkingSQSMessageIdAsync(request);
                 if (errorZero || Number(partitionOffsetData.length) > 0) {
-                    logger.error(`Message ID already exist`, { type: "bot_consumer", error: serializeError(errorZero) })
+                    logger.error(`Message ID already exist`, { type: "bot_consumer", error: serializeError(errorZero) });
+                    return;
                 }
 
                 const [errorTwo, _] = await activityCommonService.SQSMessageIdInsertAsync(request);
                 if (errorTwo) { logger.error(`Error recording the message ID`, { type: "bot_consumer", error: serializeError(errorTwo) }) }
-    
-                logger.info(`[${messageID}] consuming message`, { type: "bot_consumer", request })
-            } catch(e) {
+
+                logger.info(`[${request.activity_id}][${request.sqs_bot_transaction_id || 0}] consuming bot engine message`, { type: "bot_consumer", messageBody })
+
+                request.status_id = 2;
+                request.log_asset_id = messageBody.asset_id || 0;
+                request.consumed_datetime = objectCollection.util.getCurrentUTCTime();
+                request.processed_datetime = null;
+                request.failed_datetime = null;
+                request.log_datetime = objectCollection.util.getCurrentUTCTime();
+
+                const [errorThree, _] = await activityCommonService.BOTMessageTransactionUpdateStatusAsync(request);
+
+                botService.initBotEngine(requestForBotEngine);
+
+            } catch (e) {
                 logger.error('Bot Consumer Error', { type: 'bot_consumer', error: serializeError(e) });
             }
 
@@ -114,7 +120,9 @@ async function SetMessageHandlerForConsumer() {
     console.log("sqsConsumerOne started");
 }
 
+
 SetMessageHandlerForConsumer();
+
 async function GetObjectCollection(kafkaProducer, cacheWrapper) {
     // Initialize fellows!
     const queueWrapper = new QueueWrapper(kafkaProducer, cacheWrapper);

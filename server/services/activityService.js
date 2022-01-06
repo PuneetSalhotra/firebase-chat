@@ -2547,10 +2547,13 @@ function ActivityService(objectCollection) {
                             let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
                             if (botsListData.length > 0) {
                                 botEngineRequest.bot_id = botsListData[0].bot_id;
-                                await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
-                                    .then((resp) => {
-                                        global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
-                                    });
+                                // await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
+                                //     .then((resp) => {
+                                //         global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                //     });
+
+                                util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { botEngineRequest });
+                                util.pushBotRequestToSQS(botEngineRequest);
                             }
                         }
                     } catch (botInitError) {
