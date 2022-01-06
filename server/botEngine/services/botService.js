@@ -9453,7 +9453,7 @@ else{
         else {
             oldDate= "";
         }
-        
+
         util.logInfo(request,`formInlineDataMap : %j` , formInlineDataMap);
         util.logInfo(request,`dueDateEdit form bot inline: %j` , dueDateEdit);
         request.debug_info.push('formInlineDataMap: ' + formInlineDataMap);
@@ -9605,7 +9605,7 @@ else{
         //    activityCoverData.duedate.new = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
         //    activityCoverData.start_date.new = await util.getFormatedLogDatetimeV1(request.activity_datetime_start, "DD-MM-YYYY HH:mm:ss");
 
-           util.logInfo(request,`EDC bot update details : ${activityCoverData} current date : ${parseDetails.start_date_time}`);
+           util.logInfo(request,`EDC bot update details : current date : ${parseDetails.start_date_time} %j`, activityCoverData);
         }
 
         util.logInfo(request,`activityCoverData : %j` , activityCoverData);
