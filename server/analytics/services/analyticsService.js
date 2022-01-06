@@ -296,8 +296,15 @@ function AnalyticsService(objectCollection)
         //global.logger.write('conLog', "createAssetBundle | createActivity | activityData: " + activityData, {}, {});
         //console.log("createAssetBundle | createActivity | activityData: ", activityData);
         request.activity_id = activityData.response.activity_id;
+        await new Promise((resolve)=>{
+            setTimeout(()=>{
+                return resolve();
+            }, 2000);
+        });
         updateWidgetsTagType(request);
-        if(Number(request.form_id)>0){
+        if(Number(request.form_id)>0 || Number(request.filter_form_id)>0){
+            request.form_id = request.form_id || request.filter_form_id;
+            request.field_id = request.field_id || request.filter_field_id;
             let [widgetErr, widgetResponse] = await this.widgetListInsert(request);
             if(widgetErr) {
                 global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
@@ -326,8 +333,9 @@ function AnalyticsService(objectCollection)
         else {
 
         await updateWidgetDetailsInActListV1(request);
-        return [false,[]]
+        
         }
+        return [false,[]]
     };
 
     async function updateWidgetsTagType(request) {
@@ -395,6 +403,11 @@ function AnalyticsService(objectCollection)
         //widgetInfo.filter_timeline_name = util.replaceDefaultNumber(request.filter_timeline_name); 
         widgetInfo.filter_form_id = util.replaceDefaultNumber(request.filter_form_id);
         widgetInfo.filter_field_id = util.replaceDefaultNumber(request.filter_field_id);
+        widgetInfo.filter_is_value_considered  = util.replaceDefaultNumber(request.filter_is_value_considered);
+        widgetInfo.filter_is_datetime_considered  = util.replaceDefaultNumber(request.filter_is_datetime_considered);
+        widgetInfo.filter_tag_id  = util.replaceDefaultNumber(request.filter_tag_id);
+        widgetInfo.filter_workforce_id  = util.replaceDefaultNumber(request.filter_workforce_id);
+        widgetInfo.filter_workforce_type_id  = util.replaceDefaultNumber(request.filter_workforce_type_id);
 
       //  request.widget_detailed_info = request.widget_detailed_info || {};
       //  let widgetDetailedInfo = typeof request.widget_detailed_info == 'string' ? JSON.parse(request.widget_detailed_info):request.widget_detailed_info;
@@ -508,7 +521,7 @@ function AnalyticsService(objectCollection)
             util.replaceDefaultNumber(request.entity4_id),
             util.replaceDefaultNumber(request.entity5_id),
             util.replaceDefaultNumber(request.timezone_id),
-            util.replaceDefaultNumber(request.access_level_id),
+            1,
             request.widget_owner_asset_id,
             request.activity_id,
             request.activity_type_id,
@@ -2301,7 +2314,7 @@ function AnalyticsService(objectCollection)
                 params.push(parseInt(request.organization_id));
                 let organization_List = await db.callDBProcedureR2(request, 'ds_p1_organization_list_select', params, 1);
                 request.organization_onhold = organization_List[0].organization_flag_dashboard_onhold || 0;
-
+                request.filter_date_type_id = request.filter_date_type_id && Number(request.filter_date_type_id) >0 ? Number(request.filter_date_type_id) : 1;
                 paramsArray = 
                     new Array
                     (
@@ -3133,6 +3146,7 @@ function AnalyticsService(objectCollection)
             params.push(parseInt(request.organization_id));
             let organization_List = await db.callDBProcedureR2(request, 'ds_p1_organization_list_select', params, 1);
             request.organization_onhold = organization_List[0].organization_flag_dashboard_onhold || 0;
+            request.filter_date_type_id = request.filter_date_type_id && Number(request.filter_date_type_id) >0 ? Number(request.filter_date_type_id):1;
 
                  paramsArray = 
                  new Array(

@@ -568,7 +568,9 @@ this.getAllParticipantsAsync = async (request) => {
         var formId = 0;
         var newUserAssetId = (request.hasOwnProperty('signedup_asset_id')) ? request.signedup_asset_id : 0;
         
-        const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50403, 50787];
+        // const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50403, 50787];
+        const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50787,50824, 51087, 51086, 50403];
+        
         if(supressTimelineEntries.includes(Number(request.form_id)) && Number(streamTypeId)==713){
             //console.log("IN addTimelineTransactionAsync Suprress:: ");
             streamTypeId = 728;
@@ -4451,7 +4453,10 @@ this.getAllParticipantsAsync = async (request) => {
         let formId = 0;
         let newUserAssetId = (request.hasOwnProperty('signedup_asset_id')) ? request.signedup_asset_id : 0;
         
-        const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50403, 50787];
+        // const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50403, 50787];
+        
+        const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50787,50824, 51087, 51086, 50403];
+        
         if(supressTimelineEntries.includes(Number(request.form_id)) && Number(streamTypeId)==713){
             //console.log("IN addTimelineTransactionAsync Suprress:: ");
             streamTypeId = 728;
