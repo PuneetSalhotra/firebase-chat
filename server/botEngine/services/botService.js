@@ -1589,11 +1589,11 @@ function BotService(objectCollection) {
                 
                 case 12: // form_pdf
                     util.logInfo(request,`****************************************************************`);
-                    util.logInfo(request,`form_pdf %j`, request);
+                    util.logInfo(request,`form_pdf`);
                     logger.silly('form_pdf | Request Params received by BOT ENGINE: %j', request);
                     request.debug_info.push('form_pdf');
                     try {
-                        util.logInfo(request,`form_pdf %j`, request);
+                        util.logInfo(request,`form_pdf`);
                         // commenting to get hummus error
                         // await addPdfFromHtmlTemplate(request, botOperationsJson.bot_operations.form_pdf);
                     } catch (err) {
@@ -1672,7 +1672,7 @@ function BotService(objectCollection) {
                     }
 
                     util.logInfo(request,` `);
-                    util.logInfo(request,`activityInlineData : ${activityInlineData} %j`);
+                    util.logInfo(request,`activityInlineData : %j`,activityInlineData);
                     request.debug_info.push('activityInlineData: ' + activityInlineData);
 
                     let activityProductSelection;
@@ -1682,8 +1682,8 @@ function BotService(objectCollection) {
 
                             let fieldValue = JSON.parse(i.field_value);
                             let cartItems = fieldValue.cart_items;
-                            util.logInfo(request,`typeof Cart Items :  ${typeof cartItems} %j`);
-                            util.logInfo(request,`Cart Items : ${cartItems} %j`);
+                            util.logInfo(request,`typeof Cart Items : %j`, typeof cartItems);
+                            util.logInfo(request,`Cart Items :  %j`, cartItems);
                             request.debug_info.push('typeof Cart Items: ' + typeof cartItems);
                             request.debug_info.push('Cart Items: ' + cartItems);
 
@@ -1693,7 +1693,7 @@ function BotService(objectCollection) {
                                 util.logInfo(request,`Searching for custom variant %j`, request);
                                 request.debug_info.push('Searching for custom variant');
                                 for(j of cartItems) {
-                                    util.logInfo(request,`product_variant_activity_title : ${(j.product_variant_activity_title).toLowerCase()} %j`);
+                                    util.logInfo(request,`product_variant_activity_title : ${(j.product_variant_activity_title).toLowerCase()}`);
                                     request.debug_info.push('product_variant_activity_title: ' + (j.product_variant_activity_title).toLowerCase());
                                     if((j.product_variant_activity_title).toLowerCase() == 'custom variant' ||
                                         (j.product_variant_activity_title).toLowerCase() == 'custom') {
@@ -1711,7 +1711,7 @@ function BotService(objectCollection) {
                         flag = 1;
                     }
 
-                    util.logInfo(request,`Number(request.parent_activity_id) - ${Number(request.parent_activity_id)} %j`);
+                    util.logInfo(request,`Number(request.parent_activity_id) - ${Number(request.parent_activity_id)}`);
                     request.debug_info.push('Number(request.parent_activity_id): ' + Number(request.parent_activity_id));
                     if(request.hasOwnProperty('parent_activity_id') && Number(request.parent_activity_id) > 0) {
                         flag = 0;
@@ -1729,7 +1729,7 @@ function BotService(objectCollection) {
                     //For Workbook logs
                     request.activity_product_selection = (typeof activityProductSelection === 'object') ? JSON.stringify(activityProductSelection) : activityProductSelection;
                     let[err, response] = await activityCommonService.workbookTrxInsert(request);
-                    util.logInfo(request,`response : ${response}  %j`);
+                    util.logInfo(request,`response : %j`,response);
                     request.debug_info.push('response: ' + response);
                                 
                     let workbookTxnID = (response.length > 0) ? response[0].transaction_id : 0;
@@ -1738,7 +1738,7 @@ function BotService(objectCollection) {
 
                     if(Number(flag) === 1) {
                         if(Number(request.activity_type_id) === 152184) {
-                            util.logInfo(request,`Its a BC workflow Form : ${request.form_id} -- ${request.form_name} %j` , request);
+                            util.logInfo(request,`Its a BC workflow Form : ${request.form_id} -- ${request.form_name}`);
                             request.debug_info.push('request.form_id: ' + request.form_id);
                             request.debug_info.push('request.form_name: ' + request.form_name);
                         }
@@ -1810,9 +1810,9 @@ function BotService(objectCollection) {
                             logger.error("Error running the Workbook Mapping Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         }
                     } else {
-                        util.logInfo(request,`Its not a custom Variant. Hence not triggering the Bot! %j`);
-                        util.logInfo(request,`OR It has non-zero parent activity ID - ${Number(request.parent_activity_id)} %j`);
-                        util.logInfo(request,`---------- TIMELINE ENTRY ----------- %j`);
+                        util.logInfo(request,`Its not a custom Variant. Hence not triggering the Bot!`);
+                        util.logInfo(request,`OR It has non-zero parent activity ID - ${Number(request.parent_activity_id)}`);
+                        util.logInfo(request,`---------- TIMELINE ENTRY -----------`);
                         request.debug_info.push('Its not a custom Variant. Hence not triggering the Bot!');
                         request.debug_info.push('OR It has non-zero parent activity ID: ' +  Number(request.parent_activity_id));
                         
@@ -1831,7 +1831,7 @@ function BotService(objectCollection) {
                         || request.activity_type_id == 149818 || request.activity_type_id == 149752
                         || request.activity_type_id == 149058 || request.activity_type_id == 151728 || request.activity_type_id == 151727
                         || request.activity_type_id == 151729 || request.activity_type_id == 151730)) {
-                        util.logInfo(request,`OPPORTUNITY :: ${request.activity_type_category_id} :: ${request.activity_type_id} %j`);
+                        util.logInfo(request,`OPPORTUNITY :: ${request.activity_type_category_id} :: ${request.activity_type_id}`);
                         request.debug_info.push('activity_type_category_id: ' + request.activity_type_category_id);
                         request.debug_info.push('activity_type_id: ' + request.activity_type_id);
 
@@ -1909,7 +1909,7 @@ function BotService(objectCollection) {
                 case 28: //Arithmetic Bot
                         logger.silly("ArithMetic Bot Params received from Request: %j", request);
                         try {
-                            util.logInfo(request,`botOperationsJson in Arithmetic Bot: ${botOperationsJson} %j` , request);
+                            util.logInfo(request,`botOperationsJson in Arithmetic Bot: %j` , botOperationsJson);
                             request.debug_info.push('botOperationsJson in Arithmetic Bot: '+ botOperationsJson);
                             await arithmeticBot(request, formInlineDataMap, botOperationsJson.bot_operations.arithmetic_calculation);
                         } catch (error) {
@@ -1960,7 +1960,7 @@ function BotService(objectCollection) {
                     request.debug_info.push('WorkFlow Bot');
                     try {
                         // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
-                        util.logInfo(request,`workflow start | Request Params received by BOT ENGINE %j`, request);
+                        util.logInfo(request,`workflow start | Request Params received by BOT ENGINE`);
                         request.debug_info.push('workflow start | Request Params received by BOT ENGINE'+ request);
                         await workFlowCopyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
                     } catch (err) {
@@ -2108,7 +2108,7 @@ function BotService(objectCollection) {
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
                 case 37: //PDF generation Bot
-                    util.logInfo(request,`entered 37 %j`, request);
+                    util.logInfo(request,`entered 37`);
                     let pdf_json = JSON.parse(i.bot_operation_inline_data);
                     request.pdf_json = pdf_json;
                     request.generate_pdf = 1;
@@ -2312,11 +2312,11 @@ function BotService(objectCollection) {
                     break;    
                     
                     case 48 : // pdf_edit
-                    util.logInfo(request,`**************************************************************** %j`,request);
-                    util.logInfo(request,`pdf_edit %j`, request);
+                    util.logInfo(request,`****************************************************************`);
+                    util.logInfo(request,`pdf_edit`);
                     logger.silly('pdf_edit | Request Params received by BOT ENGINE: %j', request);
                     request.debug_info.push('pdf_edit');
-                    util.logInfo(request,`botOperationsJson : ${botOperationsJson} %j` , request);
+                    util.logInfo(request,`botOperationsJson : %j` , botOperationsJson);
                     try {
                         await editPDF(request, JSON.parse(i.bot_operation_inline_data));
                     } catch (err) {
@@ -2326,7 +2326,7 @@ function BotService(objectCollection) {
                             "err": err
                         });
                     }
-                    util.logInfo(request,`**************************************************************** %j`, request);
+                    util.logInfo(request,`****************************************************************`);
                     break;
                 case 49: // Bulk Third Party Bot
                     logger.silly("Bulk Third party opex Bot params received from request: %j", request);
@@ -2342,8 +2342,8 @@ function BotService(objectCollection) {
                     break;
 
                 case 50 : // Activity Update customer data 
-                    util.logInfo(request,`**************************************************************** %j`, request);
-                    util.logInfo(request,` %j`, request);
+                    util.logInfo(request,`****************************************************************`);
+                    util.logInfo(request,` `);
                     logger.silly('Activity Update customer data | Request Params received by BOT ENGINE: %j', request);
                     request.debug_info.push('pdf_edit');
                     try {
@@ -2355,16 +2355,16 @@ function BotService(objectCollection) {
                             "err": err
                         });
                     }
-                    util.logInfo(request,`**************************************************************** %j`, request);
+                    util.logInfo(request,`****************************************************************`);
                     break;
 
                 case 51: // Autopopulate BC excel
-                    util.logInfo(request,`**************************************************************** %j`, request);
-                    util.logInfo(request,` %j`, request);
+                    util.logInfo(request,`****************************************************************`);
+                    util.logInfo(request,` `);
                     logger.silly('Autopopulate BC excel | Request Params received by BOT ENGINE: %j', request);
                     request.debug_info.push('bc_auto_populate');
                     try {
-                        util.logInfo(request,`botOperationsJson.bot_operations.condition.form_id ${botOperationsJson.bot_operations.condition.form_id} %j` , request);
+                        util.logInfo(request,`botOperationsJson.bot_operations.condition.form_id ${botOperationsJson.bot_operations.condition.form_id}`);
                         sendToSqsPdfGeneration({ ...request, sqs_switch_flag: 3, bot_operation_id: 51, third_party_opex_form_id:botOperationsJson.bot_operations.condition.form_id  });
                     } catch (err) {
                         logger.error("Autopopulate | Error in pushing sqs message for autopopulate", { type: "bot_engine", request_body: request, error: serializeError(err) });
@@ -2373,15 +2373,15 @@ function BotService(objectCollection) {
                             "err": err
                         });
                     }
-                    util.logInfo(request,`**************************************************************** %j`, request);
+                    util.logInfo(request,`****************************************************************`);
                 break;
 
                 case 53: // Calender Auto form submittion
-                    util.logInfo(request,`**************************************************************** %j`, request);
+                    util.logInfo(request,`****************************************************************`);
                     
                     request.debug_info.push('calender_auto_form_submittion');
                     try {
-                        util.logInfo(request,`came in auto submit %j`, request);
+                        util.logInfo(request,`came in auto submit`);
                         autoFormSubmission(request,botOperationsJson.bot_operations);
                     } catch (err) {
                         logger.error("Auto form submission | Error ", { type: "bot_engine", request_body: request, error: serializeError(err) });
@@ -2390,7 +2390,7 @@ function BotService(objectCollection) {
                             "err": err
                         });
                     }
-                    util.logInfo(request,`**************************************************************** %j`, request);
+                    util.logInfo(request,`****************************************************************`);
                 break;
 
                 case 54: // Child Order creation BOT
@@ -2399,7 +2399,7 @@ function BotService(objectCollection) {
                     request.debug_info.push('WorkFlow Bot');
                     try {
                         // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
-                        util.logInfo(request,`Child Order creation BOT | Request Params received by BOT ENGINE %j`, request);
+                        util.logInfo(request,`Child Order creation BOT | Request Params received by BOT ENGINE`);
                         request.debug_info.push('Child Order creation BOT | Request Params received by BOT ENGINE' + request);
 
                         let formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data) : request.activity_inline_data;
@@ -2418,7 +2418,7 @@ function BotService(objectCollection) {
                                 if(!insertError && insertResponseData.length > 0) {
                                     request.meeting_transaction_id = insertResponseData[0].meeting_transaction_id
                                 }
-                                util.logInfo(request,`insertResponseData ${insertResponseData} %j` , request);
+                                util.logInfo(request,`insertResponseData  %j` , insertResponseData);
                                 break;
                             }
                         }
@@ -2461,7 +2461,7 @@ function BotService(objectCollection) {
                                 util.logError(request,request.workflow_activity_id + `: Error sending excel job to SQS queue`, { type: 'bot_engine', error });
                             } else {
                                 logger.info(request.workflow_activity_id+": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });    
-                                util.logInfo(request, `${request.workflow_activity_id} : Successfully sent excel job to SQS queue: ${data} %j` , request);
+                                util.logInfo(request, `${request.workflow_activity_id} : Successfully sent excel job to SQS queue:  %j` , data);
                             }                                    
                         });
 
@@ -2474,8 +2474,8 @@ function BotService(objectCollection) {
                             if (err) {
                                 util.logError(request,`Error`, { type: 'bot_engine', err });
                             } else {
-                                util.logInfo(request,`data ${data} %j` , request);
-                                util.logInfo(request,`data.Attributes.ApproximateNumberOfMessages : ${data.Attributes.ApproximateNumberOfMessages} %j` , request);
+                                util.logInfo(request,`data %j` , data);
+                                util.logInfo(request,`data.Attributes.ApproximateNumberOfMessages : ${data.Attributes.ApproximateNumberOfMessages}`);
 
                                 if (Number(data.Attributes.ApproximateNumberOfMessages) >= 20) {
                                     addTimelineMessage(
@@ -2651,17 +2651,17 @@ function BotService(objectCollection) {
             // });
         } else {
             logger.info(request.workflow_activity_id+": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });    
-            util.logInfo(request,request.workflow_activity_id + `: Successfully sent excel job to SQS queue: ${data} %j ` , request);                              
+            util.logInfo(request,request.workflow_activity_id + `: Successfully sent excel job to SQS queue: %j ` , data);                              
         }                                    
     });
    }
 
    async function getFieldDataComboIdUsingFieldIdV1(request,formID,fieldID) {
-    util.logInfo(request,` %j`, request);
-    util.logInfo(request,`************************ %j`, request);
-    util.logInfo(request,`request.form_id - ${request.form_id} %j` , request);
-    util.logInfo(request,`formID - ${formID} %j` , request);
-    util.logInfo(request,`fieldID - ${fieldID} %j` , request);
+    util.logInfo(request,` `);
+    util.logInfo(request,`************************`);
+    util.logInfo(request,`request.form_id - ${request.form_id}`);
+    util.logInfo(request,`formID - ${formID}`);
+    util.logInfo(request,`fieldID - ${fieldID}`);
 
     let fieldValue = "";
     let formData;
@@ -2684,7 +2684,7 @@ function BotService(objectCollection) {
     for(const fieldData of formData) {
         if(Number(fieldData.field_id) == fieldID) {
            
-            util.logInfo(request,`fieldData.field_data_type_id : ${fieldData} %j` , request);
+            util.logInfo(request,`fieldData.field_data_type_id : %j` , fieldData);
             switch(Number(fieldData.field_data_type_id)) {
                 //Need Single selection and Drop Down
                 //circle/ state
@@ -2701,7 +2701,7 @@ function BotService(objectCollection) {
     }
 
 
-    util.logInfo(request,`Field Value B4: ${fieldValue} %j` , request);
+    util.logInfo(request,`Field Value B4: %j` , fieldValue);
     // fieldValue = fieldValue.split(" ").join("");
     // console.log('Field Value After: ',fieldValue);
     // console.log('*************************');
@@ -3047,7 +3047,7 @@ return [error, responseData];
          let activity_inline_data_json = typeof wfActivityDetails[0].activity_inline_data =="string"?JSON.parse(wfActivityDetails[0].activity_inline_data):wfActivityDetails[0].activity_inline_data;
          activity_inline_data_json = typeof activity_inline_data_json == "string" ? JSON.parse(activity_inline_data_json):activity_inline_data_json;
          let target_asset_id_form = activity_inline_data_json.filter(formdata=>formdata.field_id==bot_data.field_id);
-         util.logInfo(request,`target_asset_id_form : ${target_asset_id_form} %j` , request);
+         util.logInfo(request,`target_asset_id_form : %j` , target_asset_id_form);
          let target_asset_id = target_asset_id_form[0].field_value;
         //  console.log(assetfeildDetails)
         //  let target_asset_id = assetfeildDetails.field_value;
@@ -3137,10 +3137,10 @@ return [error, responseData];
             if (fieldDataTypeID === 5 || fieldDataTypeID === 6) {
                 fieldValue = Number(fieldValue);
             }
-            util.logInfo(request,`isBotOperationConditionTrue | fieldValue: ${fieldValue} %j` , request);
+            util.logInfo(request,`isBotOperationConditionTrue | fieldValue: %j` , fieldValue);
 
             let isConditionTrue = await checkForThresholdCondition(fieldValue, threshold, operation);
-            util.logInfo(request,`isBotOperationConditionTrue | isConditionTrue: ${isConditionTrue} %j` , request);
+            util.logInfo(request,`isBotOperationConditionTrue | isConditionTrue: ${isConditionTrue}`);
 
             return isConditionTrue;
         } else {
@@ -3273,8 +3273,8 @@ return [error, responseData];
 
             let inlineData = removeParticipantBotOperationData;
 
-            util.logInfo(request,`Inline data %j`, request);
-            util.logInfo(request,`${inlineData} %j` , request);
+            util.logInfo(request,`Inline data`);
+            util.logInfo(request,` %j` , inlineData);
             request.debug_info.push('inlineData: ' + JSON.stringify(inlineData));
 
             let type = Object.keys(inlineData);
@@ -3285,12 +3285,12 @@ return [error, responseData];
             //if(type[0] === 'flag_esms') {
             if(type.includes('static')){
                     assetID = Number(inlineData[type[0]].asset_id);
-                    util.logInfo(request,`STATIC - Asset ID : ${assetID} %j` , request);
+                    util.logInfo(request,`STATIC - Asset ID : ${assetID}`);
                     request.debug_info.push('STATIC - Asset ID : '+ assetID);
                 }
                 else if(type.includes('from_request')){
                     assetID = Number(request.asset_id);
-                    util.logInfo(request,`from_request - Asset ID : ${assetID} %j` , request);
+                    util.logInfo(request,`from_request - Asset ID : ${assetID}`);
                     request.debug_info.push('from_request - Asset ID : '+ assetID);
                 } else if(type.includes('asset_reference'))
                 {
@@ -3319,7 +3319,7 @@ return [error, responseData];
                             });
                             assetID = Number(fieldData[0].data_entity_bigint_1);
                         }
-                        util.logInfo(request,`Asset Reference - Asset ID : ${assetID} %j` , request);
+                        util.logInfo(request,`Asset Reference - Asset ID : ${assetID}`);
                         request.debug_info.push(' Asset ID: ' + assetID);
                 }
 
@@ -3330,23 +3330,23 @@ return [error, responseData];
                 let creatorAssetID = Number(wfActivityDetails[0].activity_creator_asset_id);
                 let ownerAssetID = Number(wfActivityDetails[0].activity_owner_asset_id)
                     
-                util.logInfo(request,`Asset ID : ${assetID} $j` , request);
-                util.logInfo(request,`Lead Asset ID : ${leadAssetID} %j` , request);
-                util.logInfo(request,`Creator Asset ID : ${creatorAssetID} %j` , request);
+                util.logInfo(request,`Asset ID : ${assetID}`);
+                util.logInfo(request,`Lead Asset ID : ${leadAssetID}`);
+                util.logInfo(request,`Creator Asset ID : ${creatorAssetID}`);
                 request.debug_info.push('Asset ID : '+ assetID);
                 request.debug_info.push('Lead Asset ID : '+ leadAssetID);
                 request.debug_info.push('Creator Asset ID : '+ creatorAssetID);
 
 
                 if(Number(inlineData["flag_remove_lead"]) === 1){
-                    util.logInfo(request,`Remove as lead %j`, request);
+                    util.logInfo(request,`Remove as lead`);
                     request.debug_info.push('Remove as lead');
                     await removeAsLead(request,workflowActivityID,leadAssetID);
                 }
                 
                 else if(Number(inlineData["flag_remove_owner"]) === 1){
 
-                    util.logInfo(request,`Remove as Owner %j`, request);
+                    util.logInfo(request,`Remove as Owner`);
                     request.debug_info.push('Remove as Owner');
                     let reqDataForRemovingAsOwner = { 
                         activity_id : workflowActivityID,
@@ -3358,7 +3358,7 @@ return [error, responseData];
 
                 }
                 else if(Number(inlineData["flag_remove_creator_as_owner"]) === 1 ){
-                    util.logInfo(request,`Remove Creator as owner %j`, request);
+                    util.logInfo(request,`Remove Creator as owner`);
                     request.debug_info.push("Remove Creator as owner");
                     let reqDataForRemovingCreaterAsOwner = { 
                         activity_id : workflowActivityID,
@@ -3371,7 +3371,7 @@ return [error, responseData];
                 }
                 else if(Number(inlineData["flag_remove_participant"]) === 1){
 
-                    util.logInfo(request,`Remove Participant %j`, request);
+                    util.logInfo(request,`Remove Participant`);
                     request.debug_info.push("Remove Participant");
 
                     if(leadAssetID === assetID && leadAssetID !== creatorAssetID) {
@@ -3417,7 +3417,7 @@ return [error, responseData];
 
         if(leadAssetID !== 0)
         {
-            util.logInfo(request,`Remove lead asset inside if-------- %j`, request);
+            util.logInfo(request,`Remove lead asset inside if--------`);
             request.debug_info.push("Remove lead asset inside if--------");
             let leadAssetFirstName = '',leadOperatingAssetFirstName='';
             try {
@@ -3426,9 +3426,9 @@ return [error, responseData];
                     asset_id: leadAssetID
                 });
         
-                util.logInfo(request,`******************************** %j`, request);
-                util.logInfo(request,`LEAD ASSET DATA - ${assetData[0]} %j` , request);
-                util.logInfo(request,`******************************** %j`, request);
+                util.logInfo(request,`********************************`);
+                util.logInfo(request,`LEAD ASSET DATA - %j` , assetData[0]);
+                util.logInfo(request,`********************************`);
                 request.debug_info.push('LEAD ASSET DATA - '+ assetData[0]);
                 // leadAssetFirstName = assetData[0].asset_first_name;
                 leadOperatingAssetFirstName = assetData[0].operating_asset_first_name;
@@ -3491,9 +3491,9 @@ async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,cre
             asset_id: leadAssetID
         });
 
-        util.logInfo(request,`******************************** %j`, request);
-        util.logInfo(request,`LEAD ASSET DATA - ${assetData[0]} %j` , request);
-        util.logInfo(request,`******************************** %j`, request);
+        util.logInfo(request,`********************************`);
+        util.logInfo(request,`LEAD ASSET DATA - %j` , assetData[0]);
+        util.logInfo(request,`********************************`);
         request.debug_info.push('LEAD ASSET DATA - '+ assetData[0]);
         leadAssetFirstName = assetData[0].asset_first_name;
     } catch (error) {
@@ -3593,7 +3593,7 @@ async function removeAsOwner(request,data,addT=0)  {
 
 
     async function removeParticipantBot(request, removeParticipantBotOperationData, formInlineDataMap = new Map()) {
-        util.logInfo(request,`removeParticipant | formInlineDataMap: ${formInlineDataMap} %j` , request);
+        util.logInfo(request,`removeParticipant | formInlineDataMap: %j` , formInlineDataMap);
         request.debug_info.push("removeParticipant | formInlineDataMap: "+ formInlineDataMap);
         if (!Number(removeParticipantBotOperationData.flag_form_submitter) === 1) {
             throw new Error("FlagFormSubmitter flag not set to 1");
@@ -4080,7 +4080,7 @@ async function removeAsOwner(request,data,addT=0)  {
         let formDataHTML = '';
 
         for (const formEntry of formEntries) {
-            util.logInfo(request,`addFormAsPdf | getHTMLTemplateForFormData | Field Name: ${formEntry.field_name} | Field Value: ${formEntry.field_value} %j`, request);
+            util.logInfo(request,`addFormAsPdf | getHTMLTemplateForFormData | Field Name: ${formEntry.field_name} | Field Value: ${formEntry.field_value}`);
             
             formDataHTML += `
             <tr>
@@ -4137,8 +4137,8 @@ async function removeAsOwner(request,data,addT=0)  {
             if(Number(reqActivityInlineData[i].field_id) === Number(request.trigger_field_id)) {
                 let fieldValue = reqActivityInlineData[i].field_value;
 
-                util.logInfo(request,`typeof field_value: ${typeof fieldValue} %j` , request);
-                util.logInfo(request,`field_value: ${fieldValue} %j` , request);
+                util.logInfo(request,`typeof field_value: %j` , typeof fieldValue);
+                util.logInfo(request,`field_value:  %j` , fieldValue);
                 request.debug_info.push('typeof field_value: '+ typeof fieldValue);
                 request.debug_info.push('field_value: '+ fieldValue);
                 
@@ -4147,7 +4147,7 @@ async function removeAsOwner(request,data,addT=0)  {
                     return;
                 }
 
-                util.logInfo(request,`Number(request.device_os_id): ${Number(request.device_os_id)} %j` , request);
+                util.logInfo(request,`Number(request.device_os_id): ${Number(request.device_os_id)}`);
                 request.debug_info.push('Number(request.device_os_id): '+ Number(request.device_os_id));
                 if(Number(request.device_os_id) === 2) { //IOS
                     // if(util.checkDateFormat(reqActivityInlineData[i].field_value).toString(),"DD MMM YYYY"){
@@ -4200,8 +4200,8 @@ async function removeAsOwner(request,data,addT=0)  {
                 //let currentDateArr = ((util.getCurrentDate()).toString()).split("-");
                 let currentDateArr = (util.getCurrentDate()).toString();
 
-                util.logInfo(request,`fridExpiryDate : ${fridExpiryDate} %j` , request);
-                util.logInfo(request,`currentDateArr : ${currentDateArr} %j` , request);
+                util.logInfo(request,`fridExpiryDate : %j` , fridExpiryDate);
+                util.logInfo(request,`currentDateArr : %j` , currentDateArr);
                 request.debug_info.push('fridExpiryDate : '+ fridExpiryDate);
                 request.debug_info.push('currentDateArr : '+ currentDateArr);
                 
@@ -4209,7 +4209,7 @@ async function removeAsOwner(request,data,addT=0)  {
                 let b = moment(currentDateArr, "YYYY-MM-DD");
                 
                 let difference = a.diff(b, 'days');
-                util.logInfo(request,`Difference : ${difference} %j` , request);
+                util.logInfo(request,`Difference : ${difference}`);
                 request.debug_info.push('Difference : '+ difference);
                 
                 fridExpiryDate = util.formatDate(fridExpiryDate, "DD MMM YYYY");
@@ -4236,8 +4236,8 @@ async function removeAsOwner(request,data,addT=0)  {
                 attachments = ["https://worlddesk-staging-2020-10.s3.amazonaws.com/868/1102/5918/34810/2020/10/103/1603209047434/MASTER-SUBSCRIPTION-AGREEMENT.docx"];
             }
 
-            util.logInfo(request,`comment --------------------- %j`, request);
-            util.logInfo(request,`${comment.comment} %j` , request);
+            util.logInfo(request,`comment ---------------------`);
+            util.logInfo(request,` %j` , comment.comment);
             request.debug_info.push('comment: ' + comment.comment);
 
             addCommentRequest.asset_id = 100;
@@ -4325,7 +4325,7 @@ async function removeAsOwner(request,data,addT=0)  {
                 });
 
                 // console.log("targetFieldData: ", targetFieldData);
-                util.logInfo(request,`targetFieldData[0].data_entity_text_1: ${targetFieldData[0].data_entity_text_1} %j` , request);
+                util.logInfo(request,`targetFieldData[0].data_entity_text_1: %j` , targetFieldData[0].data_entity_text_1);
                 if (
                     Number(targetFieldData.length) > 0 &&
                     targetFieldData[0].data_entity_text_1 !== ''
@@ -4335,7 +4335,7 @@ async function removeAsOwner(request,data,addT=0)  {
             }
 
         }
-        util.logInfo(request,`attachmentsList: ${attachmentsList} %j` , request);
+        util.logInfo(request,`attachmentsList: %j` , attachmentsList);
         // Do not do anything if no attachments are to be added
         if (
             Number(attachmentsList.length) === 0
@@ -4470,7 +4470,7 @@ async function removeAsOwner(request,data,addT=0)  {
                     organization_id: request.organization_id
                 });
                 // console.log("documentFieldData: ", documentFieldData);
-                util.logInfo(request,`documentFieldData[0].data_entity_text_1: ${documentFieldData[0].data_entity_text_1} %j` , request);
+                util.logInfo(request,`documentFieldData[0].data_entity_text_1: %j` , documentFieldData[0].data_entity_text_1);
                 request.debug_info.push("documentFieldData[0].data_entity_text_1: "+ documentFieldData[0].data_entity_text_1);
                 
                 // Fetch the Attestation URL
@@ -4482,7 +4482,7 @@ async function removeAsOwner(request,data,addT=0)  {
                 });
 
                 // console.log("attestationFieldData: ", attestationFieldData);
-                util.logInfo(request,`attestationFieldData[0].data_entity_text_1: ${attestationFieldData[0].data_entity_text_1} %j` , request);
+                util.logInfo(request,`attestationFieldData[0].data_entity_text_1: %j` , attestationFieldData[0].data_entity_text_1);
                 request.debug_info.push("attestationFieldData[0].data_entity_text_1: "+ attestationFieldData[0].data_entity_text_1);
 
                 if (
@@ -4579,9 +4579,9 @@ async function removeAsOwner(request,data,addT=0)  {
                         if (flagAttestationIsText) {
                             //text
                             const firstPage = pdfPages[i];
-                            util.logInfo(request,`attestationText ${attestationText} length : ${pdfPages.length} %j`, request);
+                            util.logInfo(request,`attestationText ${attestationText} length : ${pdfPages.length}`);
                             const { width, height } = firstPage.getSize()
-                            util.logInfo(request,`sizes width : ${width} height : ${height} %j`, request);
+                            util.logInfo(request,`sizes width : ${width} height : ${height}`);
                             firstPage.drawText(attestationText, {
                                 x: 400,
                                 y: 10,
@@ -4617,7 +4617,7 @@ async function removeAsOwner(request,data,addT=0)  {
                     const pdfBytes = await pdfDoc.save();
 fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
   if (err) return util.logError(request,`Error `, { type: 'bot_engine', err });;
-  util.logInfo(request,`created pdf %j`, request);
+  util.logInfo(request,`created pdf`);
 });
                     // Upload to S3
                     // const environment = global.mode;
@@ -4670,7 +4670,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             }
 
         }
-        util.logInfo(request,`attachmentsList: ${attachmentsList} %j` , request);
+        util.logInfo(request,`attachmentsList: %j` , attachmentsList);
         request.debug_info.push('attachmentsList: ' + attachmentsList);
         // Do not do anything if no attachments are to be added
         if (
@@ -4867,11 +4867,11 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
     }
 
     async function botOperationTxnInsertV1(request, botData) {
-        util.logInfo(request,` %j`, request);
-        util.logInfo(request,`*********************** %j`, request);
+        util.logInfo(request,` `);
+        util.logInfo(request,`***********************`);
         //console.log('request.debug_info - ', request.debug_info);
-        util.logInfo(request,`*********************** %j`, request);
-        util.logInfo(request,` %j`, request);
+        util.logInfo(request,`***********************`);
+        util.logInfo(request,` `);
         let debugInfo = {
             debug_info : request.debug_info
         }
@@ -4919,7 +4919,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
     }
 
     async function changeStatusV1(request, inlineData = {}) {
-        util.logInfo(request,`change status v1 ${inlineData} %j` , request);
+        util.logInfo(request,`change status v1 %j` , inlineData);
         // if(inlineData.hasOwnProperty('check_dates')&&Number(inlineData.check_dates)===1){
             
         //     let field_value1 = await getFormFieldValue(request,inlineData.field_id1);
@@ -4933,7 +4933,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
         //         await changeStatus(request,inlineData);
                 // await this.alterWFCompletionPercentageMethod({...request,activity_status_workflow_percentage:inlineData.})
                 if(inlineData.hasOwnProperty('check_parent_closure')&& Number(inlineData.check_parent_closure)===1){
-                    util.logInfo(request,"checking parent closure %J");
+                    util.logInfo(request,"checking parent closure");
                     let childActivityDetails = await activityCommonService.getActivityDetailsPromise(request,request.workflow_activity_id);
                     const paramsArr = new Array(
                         request.organization_id,
@@ -4957,7 +4957,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                                     let parentInlineData = {...inlineData};
                                     parentInlineData.activity_status_id = inlineData.parent_activity_status_id;
                                     // return [false,{}];
-                                    util.logInfo(request,`parent change status ${parentInlineData} %j` , request);
+                                    util.logInfo(request,`parent change status %j` , parentInlineData);
                                     await changeStatus({...request,...parentActivityDetails[0],workflow_activity_id:childActivityDetails[0].parent_activity_id},parentInlineData); 
                                     if(inlineData.is_workflow_percentage_change==1){
                                        await alterWFCompletionPercentage({...request,...parentActivityDetails[0],workflow_activity_id:childActivityDetails[0].parent_activity_id,activity_status_workflow_percentage:inlineData.workflow_percentage},{workflow_percentage_contribution: inlineData.workflow_percentage})
@@ -5247,7 +5247,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
     this.copyFieldBot = async (request) => {
         try {
             // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
-            util.logInfo(request,`form_field_copy | Request Params received by BOT ENGINE %j`, request);
+            util.logInfo(request,`form_field_copy | Request Params received by BOT ENGINE`);
             await copyFields(request, JSON.parse(request.form_field_copy));
         } catch (err) {
          util.logError(request,`Error` + error.stack, { type: 'bot_engine', err });
@@ -5538,15 +5538,15 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                 //formName = String(formConfigData[0].form_name),
                 //workflowActivityTypeDefaultDurationDays = Number(formConfigData[0].form_workflow_activity_type_default_duration_days);
 
-            util.logInfo(request,`################################## %j`, request);
-            util.logInfo(request,`originFlagSet : ${originFlagSet} %j` , request);
-            util.logInfo(request,`isWorkflowEnabled : ${isWorkflowEnabled} %j` , request);
-            util.logInfo(request,`sourceFormActivityTypeID : ${sourceFormActivityTypeID} %j` , request);
-            util.logInfo(request,`workflowActivityTypeId : ${workflowActivityTypeId} %j` , request);
+            util.logInfo(request,`##################################`);
+            util.logInfo(request,`originFlagSet : ${originFlagSet}`);
+            util.logInfo(request,`isWorkflowEnabled : ${isWorkflowEnabled}`);
+            util.logInfo(request,`sourceFormActivityTypeID : ${sourceFormActivityTypeID}`);
+            util.logInfo(request,`workflowActivityTypeId : %j` , workflowActivityTypeId);
 
             if(sourceFormActivityTypeID !== workflowActivityTypeId){
-                util.logInfo(request,`Target Form Process is different from the Source form %j`, request);
-                util.logInfo(request,`################################## %j`, request);
+                util.logInfo(request,`Target Form Process is different from the Source form`);
+                util.logInfo(request,`##################################`);
 
                 esmsFlag = 1;
                 if(originFlagSet && isWorkflowEnabled) {
@@ -5574,13 +5574,13 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                     targetFormActivityID = targetFormTransactionData[0].data_activity_id;
 
                     if(Number(esmsFlag) === 1) {
-                        util.logInfo(request,`Target Form Submitted! %j`, request);
-                        util.logInfo(request,`targetFormTransactionID : ${targetFormTransactionID} %j` , request);
-                        util.logInfo(request,`targetFormActivityID : ${targetFormActivityID} %j` , request);
+                        util.logInfo(request,`Target Form Submitted!`);
+                        util.logInfo(request,`targetFormTransactionID : ${targetFormTransactionID}`);
+                        util.logInfo(request,`targetFormActivityID : ${targetFormActivityID}`);
                     }
                 } else {
                     if(Number(esmsFlag) === 1) {
-                        util.logInfo(request,`Target Form Not Submitted! %j`, request);
+                        util.logInfo(request,`Target Form Not Submitted!`);
                     }
                 }
             } catch (error) {
@@ -5593,7 +5593,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             activityInlineDataMap = new Map(),
             REQUEST_FIELD_ID = 0;
 
-        util.logInfo(request,`fieldCopyInlineData.length : ${fieldCopyInlineData.length} %j` , request);
+        util.logInfo(request,`fieldCopyInlineData.length : %j` , fieldCopyInlineData.length);
         for (const batch of fieldCopyInlineData) {
             let sourceFormID = Number(batch.source_form_id),
                 sourceFormTransactionData = [],
@@ -5635,10 +5635,10 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             });
 
             try {
-                util.logInfo(request,`sourceFieldData[0] : ${sourceFieldData[0]} %j` , request);
+                util.logInfo(request,`sourceFieldData[0] : %j` , sourceFieldData[0]);
                 const sourceFieldDataTypeID = Number(sourceFieldData[0].data_type_id);
-                util.logInfo(request,`sourceFieldDataTypeID : ${sourceFieldDataTypeID} %j` , request);
-                util.logInfo(request,`getFielDataValueColumnName(sourceFieldDataTypeID) : ${getFielDataValueColumnNameNew(sourceFieldDataTypeID)} %j` , request);
+                util.logInfo(request,`sourceFieldDataTypeID : ${sourceFieldDataTypeID}`);
+                util.logInfo(request,`getFielDataValueColumnName(sourceFieldDataTypeID) : %j` , getFielDataValueColumnNameNew(sourceFieldDataTypeID));
                 const sourceFieldValue = sourceFieldData[0][getFielDataValueColumnNameNew(sourceFieldDataTypeID)];
 
                 activityInlineDataMap.set(sourceFieldID, {
@@ -5661,11 +5661,11 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
         } //For loop Finished
 
         activityInlineData = [...activityInlineDataMap.values()];
-        util.logInfo(request,`copyFields | activityInlineData: ${activityInlineData} %j` , request);
+        util.logInfo(request,`copyFields | activityInlineData: %j` , activityInlineData);
         request.activity_title = activityInlineData[0].field_value;
 
-        util.logInfo(request,`targetFormTransactionID: ${targetFormTransactionID} %j` , request);
-        util.logInfo(request,`targetFormActivityID: ${targetFormActivityID} %j` , request);
+        util.logInfo(request,`targetFormTransactionID: ${targetFormTransactionID}`);
+        util.logInfo(request,`targetFormActivityID: ${targetFormActivityID}`);
 
         if (targetFormTransactionID !== 0) {
             let fieldsAlterRequest = Object.assign({}, request);
@@ -5685,7 +5685,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
 
         } else if (targetFormTransactionID === 0 || targetFormActivityID === 0) {
             // If the target form has not been submitted yet, DO NOT DO ANYTHING
-            util.logInfo(request,`shouldSubmitTargetForm : ${shouldSubmitTargetForm} %j` , request);
+            util.logInfo(request,`shouldSubmitTargetForm : ${shouldSubmitTargetForm}`);
             if(shouldSubmitTargetForm === 1) {
                 // If the target form has not been submitted yet, create one
                 //console.log('Request.activity_title : ', request);
@@ -5791,13 +5791,13 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
         if(createTargetFormRequest.start_workflow_activity_parent_id) {
             let [err, resp] = await workforceActivityTypeMappingSelectCategory({...createTargetFormRequest, activity_type_category_id : 63 });
 
-            util.logInfo(request,`resp : ${resp} %j` , request);
+            util.logInfo(request,`resp : %j` , resp);
             let [err1, resp1] = await workforceActivityStatusMappingSelectStatusType({...createTargetFormRequest, activity_status_type_id : 184, 
                 activity_type_category_id : 63, // MOM type
                 activity_type_id : resp[0].activity_type_id
             });
 
-            util.logInfo(request,`resp1 : ${resp1} %j` , request);
+            util.logInfo(request,`resp1 : %j` , resp1);
 
             createTargetFormRequest.activity_status_id = resp1[0].activity_status_id;
             createTargetFormRequest.activity_status_type_id = 184;
@@ -5876,7 +5876,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
             const body = JSON.parse(response.body);
             if (Number(body.status) === 200) {
-                util.logInfo(request,`createActivity | addActivityAsync | Body: ${body} %j` , request);
+                util.logInfo(request,`createActivity | addActivityAsync | Body: %j` , body);
                 let activityTimelineCollection =  JSON.stringify({
                     "content"            : `Form Submitted`,
                     "subject"            : `Form Submitted`,
@@ -6067,7 +6067,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             case 64: //JSON                
             //case 71: //JSON
                 return 'data_entity_inline';
-            default: util.logInfo(request,`In default Case : getFielDataValueColumnName %j`, request);
+            default: util.logInfo(request,`In default Case : getFielDataValueColumnName`);
         }
     }
 
@@ -6096,7 +6096,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                 return 'data_entity_text_2';
             case 64: //JSON                
                 return 'data_entity_inline';
-            default: util.logInfo(request,`In default Case : getFielDataValueColumnName %j`, request);
+            default: util.logInfo(request,`In default Case : getFielDataValueColumnName`);
         }
     }    
     
@@ -6347,7 +6347,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             logger.info(request.workflow_activity_id + " : ");
             request.debug_info.push('Inside workflow_reference');
             // newReq.flag_asset = inlineData[type[0]].flag_asset;
-            util.logInfo(request,`request.activity_inline_data ${request.activity_inline_data} %j` , request);
+            util.logInfo(request,`request.activity_inline_data %j` , request.activity_inline_data);
             let activityInlineData = typeof request.activity_inline_data =="string" ? JSON.parse(request.activity_inline_data):request.activity_inline_data;
             let fieldDetails;
             for(let row of activityInlineData) {
@@ -6850,7 +6850,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             urlStrFill = "https://preprodweb.officedesk.app/#/orderstatus/" + base64Json;
         }
 
-        util.logInfo(request,`urlStrFill : ${urlStrFill} %j` , request);
+        util.logInfo(request,`urlStrFill : ${urlStrFill}`);
         const statusLink = `<a style='background: #f47920;display: inline-block;color: #FFFFFF;text-decoration: none;font-size: 12px;margin-top: 1.0em;background-clip: padding-box;padding: 5px 15px;box-shadow: 4px 4px 6px 1px #cbcbcb;margin-left:10px' target='_blank' href='${urlStrFill}'>Track Order Status</a>`;
 
         return statusLink;
@@ -6860,7 +6860,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
     async function fireTextMsg(request, inlineData) {
         let newReq = Object.assign({}, request);
         let resp;
-        util.logInfo(request,`inline data ${JSON.stringify(inlineData)} %j` , request);
+        util.logInfo(request,`inline data %j` , JSON.stringify(inlineData));
         global.logger.write('conLog', inlineData, {}, {});
         request.debug_info.push('inlineData: ' + inlineData);
         let type = Object.keys(inlineData);
@@ -6892,7 +6892,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             let assetfieldData = activityInlineData.find((item=>item.field_id == target_field_id));
             if(assetfieldData){
             let targetAssetId = typeof assetfieldData.field_value == 'string'?assetfieldData.field_value.split('|'):assetfieldData.field_value.toString().split('|');
-            util.logInfo(request,`tar asset id ${targetAssetId} %j` , request);
+            util.logInfo(request,`tar asset id %j` , targetAssetId);
             let dataResp = await getAssetDetails({
                 "organization_id": request.organization_id,
                 "asset_id": targetAssetId[0]
@@ -7325,7 +7325,7 @@ else{
             global.logger.write('conLog', Template, {}, {});            
 
             if(Number(request.organization_id) === 868) {
-                util.logInfo(request,`Its vodafone request %j`, request);
+                util.logInfo(request,`Its vodafone request`);
                 //From ESMSMails@vodafoneidea.com
                 //util.sendEmailEWS(request, request.email_id, emailSubject, Template);  
 
@@ -7355,7 +7355,7 @@ else{
       }
 
             } else {
-                util.logInfo(request,`Its non-vodafone request %j`, request);
+                util.logInfo(request,`Its non-vodafone request`);
                 util.sendEmailV3(request,
                     request.email_id,
                     emailSubject,
@@ -8618,14 +8618,14 @@ else{
         // Prepare the customer data
         const customerData = {};
         for (const key of Object.keys(createCustomerInlineData)) {
-            util.logInfo(request,`key: ${key} %j` , request);
+            util.logInfo(request,`key: ${key}`);
             request.debug_info.push('key: ' + key);
             const fieldID = Number(createCustomerInlineData[key].field_id);
-            util.logInfo(request,`fieldID: ${fieldID} %j` , request);
+            util.logInfo(request,`fieldID: ${fieldID}`);
             request.debug_info.push('fieldID: ' + fieldID);
             if (formInlineDataMap.has(fieldID)) {
                 customerData[key] = formInlineDataMap.get(fieldID).field_value;
-                util.logInfo(request,`formInlineDataMap.get(fieldID).field_value: ${formInlineDataMap.get(fieldID).field_value} %j` , request);
+                util.logInfo(request,`formInlineDataMap.get(fieldID).field_value: %j` , formInlineDataMap.get(fieldID).field_value);
                 request.debug_info.push('formInlineDataMap.get(fieldID).field_value: ' + formInlineDataMap.get(fieldID).field_value);
             }
         }
@@ -8633,7 +8633,7 @@ else{
         
         let indutry_type_id = createCustomerInlineData['lov_type_id'];
         const [errInd,industryData] = await getIndustryIdByName({id:indutry_type_id,name:customerData.customer_industry})
-        util.logInfo(request,`indData12 ${industryData} %j` , request);
+        util.logInfo(request,`indData12 %j` , industryData);
         let countryCode = 0, phoneNumber = 0;
         if (customerData.customer_phone_number.includes('|')) {
             [countryCode, phoneNumber] = customerData.customer_phone_number.split('|')
@@ -8883,7 +8883,7 @@ else{
         let newRequest = Object.assign({}, request);
             newRequest.operation_type_id = 16;
         const [err, respData] = await activityListingService.getWorkflowReferenceBots(newRequest);
-        util.logInfo(request,`Workflow Reference Bots for this activity_type : ` + respData.length, request);
+        util.logInfo(request,`Workflow Reference Bots for this activity_type : %j`, respData.length);
         if(respData.length > 0) {
             //for(let i = 0; i<respData.length; i++) {}               
             activityCommonService.activityEntityMappingUpdateWFPercentage(request, {
@@ -8894,7 +8894,7 @@ else{
 
         newRequest.operation_type_id = 17;
         const [err1, respData1] = await activityListingService.getWorkflowReferenceBots(newRequest);
-        util.logInfo(request,`Combo Field Reference Bots for this activity_type : ${respData.length} %j` , request);
+        util.logInfo(request,`Combo Field Reference Bots for this activity_type : ${respData.length}`);
         if(respData1.length > 0) {
             //for(let i = 0; i<respData.length; i++) {}
             activityCommonService.activityEntityMappingUpdateWFPercentage(request, {
@@ -8968,7 +8968,7 @@ else{
             }
           }*/
           
-        util.logInfo(request,`cuidInlineData : ${cuidInlineData} %j` , request);
+        util.logInfo(request,`cuidInlineData : %j` , cuidInlineData);
 
         for (let [cuidKey, cuidValue] of Object.entries(cuidInlineData)) {
             let cuidUpdateFlag = 0,
@@ -8984,8 +8984,8 @@ else{
             } else if(formInlineDataMap.has(Number(cuidValue.field_id))) {
                 const fieldData = formInlineDataMap.get(Number(cuidValue.field_id));
                 
-                util.logInfo(request,`fieldData : ${fieldData} %j` , request);
-                util.logInfo(request,`Number(fieldData.field_data_type_id) : ${Number(fieldData.field_data_type_id)} %j` , request);
+                util.logInfo(request,`fieldData : %j` , fieldData);
+                util.logInfo(request,`Number(fieldData.field_data_type_id) : ${Number(fieldData.field_data_type_id)}`);
 
                 switch(Number(fieldData.field_data_type_id)) {
                     //Workflow Reference
@@ -9182,7 +9182,7 @@ else{
                     error = false;
 
                     //Inserting into activity asset table for account search
-                    util.logInfo(request,`\nAccount Search - Updating the activity asset table %j`, request);
+                    util.logInfo(request,`\nAccount Search - Updating the activity asset table`);
                     activityCommonService.actAssetSearchMappingUpdate({
                         activity_id: request.activity_id,
                         asset_id: request.asset_id,
@@ -9425,7 +9425,7 @@ else{
             logger.error("Error parsing inline JSON and/or preparing the form data map", { type: 'bot_engine', error, request_body: request });
         }
 
-        util.logInfo(request,`formInlineDataMap : ${formInlineDataMap} %j` , request);
+        util.logInfo(request,`formInlineDataMap : %j` , formInlineDataMap);
 
         await this.setDueDateOfWorkflow(request, formInlineDataMap, botOperationsJson.bot_operations.due_date_edit);
 
@@ -9445,8 +9445,8 @@ else{
         oldDate = (workflowActivityDetails.length > 0) ? workflowActivityDetails[0].activity_datetime_end_deferred: 0;
         //oldDate = util.replaceDefaultDatetime(oldDate);
         oldDate = util.getFormatedLogDatetimeV1(oldDate,"DD-MM-YYYY HH:mm:ss");
-        util.logInfo(request,`formInlineDataMap : ${formInlineDataMap} %j` , request);
-        util.logInfo(request,`dueDateEdit form bot inline: ${dueDateEdit} %j` , request);
+        util.logInfo(request,`formInlineDataMap : %j` , formInlineDataMap);
+        util.logInfo(request,`dueDateEdit form bot inline: %j` , dueDateEdit);
         request.debug_info.push('formInlineDataMap: ' + formInlineDataMap);
         request.debug_info.push('dueDateEdit: ' + dueDateEdit);
 
@@ -9471,56 +9471,56 @@ else{
         } else {
             if(formInlineDataMap.has(Number(dueDateEdit.field_id))) {
                 fieldData = formInlineDataMap.get(Number(dueDateEdit.field_id));
-                util.logInfo(request,`fieldData : ${fieldData} %j` , request);
+                util.logInfo(request,`fieldData : %j` , fieldData);
                 request.debug_info.push('fieldData: ' + fieldData);
 
                 newDate = fieldData.field_value;
 
                 if(inlineData && Number(inlineData.is_meeting) && fieldData.field_data_type_id == 77) {
-                    util.logInfo(request,`Parsing Data type 77 ${fieldData.field_value} %j` , request);
+                    util.logInfo(request,`Parsing Data type 77 %j` , fieldData.field_value);
                     let data = fieldData.field_value;
                     newDate =  data.end_date_time;
                 }
 
-                util.logInfo(request,`New Date b4 converting - ${newDate} %j` , request);
-                util.logInfo(request,`Number(request.device_os_id) - ${Number(request.device_os_id)} %j` , request);
+                util.logInfo(request,`New Date b4 converting - %j` , newDate);
+                util.logInfo(request,`Number(request.device_os_id) - ${Number(request.device_os_id)}`);
                 request.debug_info.push('newDate: ' + newDate);
                 request.debug_info.push('Number(request.device_os_id): ' + Number(request.device_os_id));
                  
                 if(Number(request.device_os_id) === 1) {
                     //newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
 
-                    util.logInfo(request,`moment(newDate, YYYY-MM-DD, true) - ${moment(newDate, 'YYYY-MM-DD', true).isValid()} %j` , request);
+                    util.logInfo(request,`moment(newDate, YYYY-MM-DD, true) - ${moment(newDate, 'YYYY-MM-DD', true).isValid()}`);
                     request.debug_info.push('moment(newDate, YYYY-MM-DD, true): ' + moment(newDate, 'YYYY-MM-DD', true).isValid());
                     if(!moment(newDate, 'YYYY-MM-DD', true).isValid()) {
                         newDate = util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
                     }
                     
-                    util.logInfo(request,`Retrieved Date field value - ANDROID: ${newDate} %j` , request);
+                    util.logInfo(request,`Retrieved Date field value - ANDROID: %j` , newDate);
                     request.debug_info.push('Retrieved Date field value - ANDROID: '+ newDate);
                 } else if(Number(request.device_os_id) === 2) {
                     //newDate = util.getFormatedLogDatetimeV1(newDate, "DD MMM YYYY");
 
-                    util.logInfo(request,`moment(newDate, YYYY-MM-DD, true) - ${moment(newDate, 'YYYY-MM-DD', true).isValid()} %j` , request);
+                    util.logInfo(request,`moment(newDate, YYYY-MM-DD, true) - ${moment(newDate, 'YYYY-MM-DD', true).isValid()}`);
                     request.debug_info.push('moment(newDate, YYYY-MM-DD, true) -: '+ moment(newDate, 'YYYY-MM-DD', true).isValid());
                     if(!moment(newDate, 'YYYY-MM-DD', true).isValid()) {
                         newDate = util.getFormatedLogDatetimeV1(newDate, "DD MMM YYYY");
                     }                   
                     
-                    util.logInfo(request,`Retrieved Date field value - IOS: ${newDate} %j` , request);
+                    util.logInfo(request,`Retrieved Date field value - IOS: %j` , newDate);
                     request.debug_info.push('Retrieved Date field value - IOS: '+ newDate);
                 }
                  else if(Number(request.device_os_id) === 5||Number(request.device_os_id) === 8){
-                    util.logInfo(request,`moment(newDate, YYYY-MM-DD, true) - ${moment(newDate, 'YYYY-MM-DD', true).isValid()} %j` , request);
+                    util.logInfo(request,`moment(newDate, YYYY-MM-DD, true) - ${moment(newDate, 'YYYY-MM-DD', true).isValid()}`);
                     request.debug_info.push('moment(newDate, YYYY-MM-DD, true) - '+ moment(newDate, 'YYYY-MM-DD', true).isValid());
                     
                     if(!(moment(newDate, 'YYYY-MM-DD', true).isValid() || moment(newDate, 'YYYY-MM-DD HH:mm:ss', true).isValid())) {
                         if(moment(newDate, 'YYYY-MM-DD', true).isValid()) {
-                            util.logInfo(request,`IN IF %j`, request);
+                            util.logInfo(request,`IN IF`);
                             request.debug_info.push('IN IF');
                             newDate = await util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD");
                         } else {
-                            util.logInfo(request,`IN ELSE %j`, request);
+                            util.logInfo(request,`IN ELSE`);
                             request.debug_info.push('IN ELSE');
                             newDate = await util.getFormatedLogDatetimeV1(newDate, "YYYY-MM-DD HH:mm:ss");
                         }
@@ -9530,8 +9530,8 @@ else{
         }
  
         
-        util.logInfo(request,`OLD DATE : ${oldDate} %j` , request);
-        util.logInfo(request,`NEW DATE : ${newDate} %j` , request);
+        util.logInfo(request,`OLD DATE : ${oldDate}`);
+        util.logInfo(request,`NEW DATE : ${newDate}`);
         request.debug_info.push('OLD DATE: ' + oldDate);
         request.debug_info.push('NEW DATE: ' + newDate);
 
@@ -9584,7 +9584,7 @@ else{
                 activityCoverData.duedate.new = newDate;
         // console.log("inlineData", inlineData);
         let fieldDetails = formInlineDataMap.get(Number(dueDateEdit.field_id));
-        util.logInfo(request,`fieldDetails : ${fieldDetails} %j` , request);
+        util.logInfo(request,`fieldDetails : %j` , fieldDetails);
         if(inlineData && Number(inlineData.is_meeting) && fieldDetails.field_data_type_id == 77) {
             let parseDetails = fieldDetails.field_value;
            activityCoverData.start_date = {};
@@ -9596,10 +9596,10 @@ else{
         //    activityCoverData.duedate.new = await util.getFormatedLogDatetimeV1(newDate, "DD-MM-YYYY HH:mm:ss");
         //    activityCoverData.start_date.new = await util.getFormatedLogDatetimeV1(request.activity_datetime_start, "DD-MM-YYYY HH:mm:ss");
 
-           util.logInfo(request,`EDC bot update details : ${activityCoverData} current date : ${parseDetails.start_date_time} %j`, request);
+           util.logInfo(request,`EDC bot update details : ${activityCoverData} current date : ${parseDetails.start_date_time}`);
         }
 
-        util.logInfo(request,`activityCoverData : ${activityCoverData} %j` , request);
+        util.logInfo(request,`activityCoverData : %j` , activityCoverData);
         request.debug_info.push('activityCoverData: ' + activityCoverData);
         try{
             newReq.activity_cover_data = JSON.stringify(activityCoverData);
@@ -9617,7 +9617,7 @@ else{
             method: "alterActivityCover",
             payload: newReq
         };
-        util.logInfo(request,`request.workflow_activity_id : ${request.workflow_activity_id} %j` , request);
+        util.logInfo(request,`request.workflow_activity_id : ${request.workflow_activity_id}`);
         request.debug_info.push('request.workflow_activity_id : '+ request.workflow_activity_id);
         let status_dueDate = false;
         if(inlineData && inlineData.hasOwnProperty('is_status_due_date') && inlineData.is_status_due_date == 1) {
@@ -10151,13 +10151,13 @@ else{
                 let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request, request.workflow_activity_id, i_iterator.form_id);                            
                 if(!formDataFrom713Entry.length > 0) {
                     responseData.push({'message': `${i_iterator.form_id} is not submitted`});
-                    util.logInfo(request,`responseData : ${responseData} %j` , request);
+                    util.logInfo(request,`responseData : %j` , responseData);
                     return [true, responseData];
                 }
 
                 //console.log('formDataFrom713Entry[0] : ', formDataFrom713Entry[0]);
                 let formTransactionInlineData = JSON.parse(formDataFrom713Entry[0].data_entity_inline);
-                util.logInfo(request,`formTransactionInlineData form_submitted: ${formTransactionInlineData.form_submitted} %j` , request);
+                util.logInfo(request,`formTransactionInlineData form_submitted: %j` , formTransactionInlineData.form_submitted);
                 let formData = formTransactionInlineData.form_submitted;
                 formData = (typeof formData === 'string')? JSON.parse(formData) : formData;
 
@@ -10165,10 +10165,10 @@ else{
                     if(Number(i_iterator.field_id) === Number(j_iterator.field_id)) {
                         if(util.replaceDefaultString(j_iterator.field_value) === '') {
                             responseData.push({'message': `${j_iterator.field_value} is empty`});
-                            util.logInfo(request,`responseData : ${responseData} %j` , request);
+                            util.logInfo(request,`responseData : %j` , responseData);
                             return [true, responseData];
                         }
-                        util.logInfo(request,`field_value : ${j_iterator.field_value} %j` , request);
+                        util.logInfo(request,`field_value : %j` , j_iterator.field_value);
                         i_iterator.field_value = j_iterator.field_value;
                     }
                 } //End of checking for non-empty field_value                    
@@ -10176,18 +10176,18 @@ else{
             
         } //End of processing all form fields in the bot operation inline
 
-        util.logInfo(request,`sortedfieldsData : ${sortedfieldsData} %j` , request);
-        util.logInfo(request,`sortedfieldsData[0] : ${sortedfieldsData[0]} %j` , request);
+        util.logInfo(request,`sortedfieldsData : %j` , sortedfieldsData);
+        util.logInfo(request,`sortedfieldsData[0] : %j` , sortedfieldsData[0]);
         let finalResult = sortedfieldsData[0].field_value;
         for(let i=0; i<sortedfieldsData.length;i++){
-            util.logInfo(request,`sortedfieldsData[i].join_condition : ${sortedfieldsData[i].join_condition} %j` , request);
+            util.logInfo(request,`sortedfieldsData[i].join_condition : %j` , sortedfieldsData[i].join_condition);
             if(sortedfieldsData[i].join_condition === 'EOJ') {
                 break;
             }
 
-            util.logInfo(request,`sortedfieldsData[i+1].field_value : ${sortedfieldsData[i+1].field_value} %j` , request);
+            util.logInfo(request,`sortedfieldsData[i+1].field_value : %j` , sortedfieldsData[i+1].field_value);
             finalResult = await performArithmeticOperation(finalResult, sortedfieldsData[i+1].field_value, sortedfieldsData[i].join_condition);
-            util.logInfo(request,`finalResult : ${finalResult} %j` , request);
+            util.logInfo(request,`finalResult : %j` , finalResult);
         }
 
         //Update in the target form and field Id
@@ -10197,9 +10197,9 @@ else{
         let formDataFrom713Entry = await getFormInlineData(newReq, 1);
         let formData = await getFormInlineData(newReq, 2);
 
-        util.logInfo(request,`formDataFrom713Entry: ${formDataFrom713Entry} %j` , request);
-        util.logInfo(request,` %j`, request);
-        util.logInfo(request,`formData: ${formData} %j` , request);
+        util.logInfo(request,`formDataFrom713Entry: %j` , formDataFrom713Entry);
+        util.logInfo(request,` `);
+        util.logInfo(request,`formData: %j` , formData);
         
         let activityInlineData = [{
             form_id: arithmeticCalculation.target_form_id,
@@ -10339,10 +10339,10 @@ else{
             util.logError(request,`Unable to get the date field : `, { type: 'bot_engine', err });
         }
         
-        util.logInfo(request,`Retrieved Date field value : ${dateFieldValue} %j` , request);
+        util.logInfo(request,`Retrieved Date field value : %j` , dateFieldValue);
         if(Number(request.device_os_id) === 1) {
             dateFieldValue = util.getFormatedLogDatetimeV1(dateFieldValue, "DD-MM-YYYY HH:mm:ss");
-            util.logInfo(request,`Retrieved Date field value - ANDROiD: ${dateFieldValue} %j` , request);
+            util.logInfo(request,`Retrieved Date field value - ANDROiD: %j` , dateFieldValue);
         }
         
         if(alterType === 'before') {
@@ -10367,7 +10367,7 @@ else{
         
         switch(escalationType) {
             case 'timeline': //post a reminder onto the timeline
-                            util.logInfo(request,`---------- TIMELINE ENTRY ----------- %j`, request);
+                            util.logInfo(request,`---------- TIMELINE ENTRY -----------`);
                             try{
                                 let tempVar = { date_reminder: dateReminder };
                                 let newReq = Object.assign({}, request);
@@ -10443,7 +10443,7 @@ async function getFormInlineData(request, flag) {
         if(!formDataFrom713Entry.length > 0) {
             let responseData = [];
             responseData.push({'message': `${request.form_id} is not submitted`});
-            util.logInfo(request,`responseData : ${responseData} %j` , request);
+            util.logInfo(request,`responseData : %j` , responseData);
             return [true, responseData];
         }
 
@@ -10495,7 +10495,7 @@ async function getFormInlineData(request, flag) {
         request.start_from = startFrom;
         let [err, reminderBotData] = await activityCommonService.activityReminderTxnSelect(request);
 
-        util.logInfo(request,`reminderBotData : ${reminderBotData} %j` , request);        
+        util.logInfo(request,`reminderBotData : %j` , reminderBotData);        
         
         let activityData;
         let assetID;
@@ -10524,12 +10524,12 @@ async function getFormInlineData(request, flag) {
             dateReminder = inlineData.date_reminder;
             switch(Number(i_iterator.reminder_type_id)) {
                 case 1: //Add timeline Entry
-                        util.logInfo(request,`---------- TIMELINE ENTRY ----------- %j`, request);
+                        util.logInfo(request,`---------- TIMELINE ENTRY -----------`);
                         await addTimelineEntry(i_iterator,0);
                         break;
 
                 case 2: //Add Participant     
-                        util.logInfo(request,`---------- PARTICIPANT ----------- %j`, request);                 
+                        util.logInfo(request,`---------- PARTICIPANT -----------`);                 
                         let participantReq = {
                                 asset_reference: {
                                     form_id: dateReminder.asset_reference_form_id,
@@ -10545,16 +10545,16 @@ async function getFormInlineData(request, flag) {
                 case 3: //Send email                        
                 case 4: //Send Text
                         if(Number(i_iterator.reminder_type_id) === 3) {
-                            util.logInfo(request,`---------- EMAIL ----------- %j`, request);
+                            util.logInfo(request,`---------- EMAIL -----------`);
                         } else if(Number(i_iterator.reminder_type_id) === 4) {
-                            util.logInfo(request,`---------- TEXT ----------- %j`, request);
+                            util.logInfo(request,`---------- TEXT -----------`);
                         }
                         activityData = await activityCommonService.getActivityDetailsPromise({ organization_id: i_iterator.organization_id }, 
                                                                                        i_iterator.activity_id);
                         
                         //console.log('activityData : ', activityData);
-                        util.logInfo(request,`inlineData : ${inlineData} %j` , request);
-                        util.logInfo(request,`inlineData.escalation_target : ${dateReminder.escalation_target} %j` , request);
+                        util.logInfo(request,`inlineData : %j` , inlineData);
+                        util.logInfo(request,`inlineData.escalation_target : %j` , dateReminder.escalation_target);
                         //Get the lead email ID
                         if(dateReminder.escalation_target === 'creator') {
                             assetID = activityData[0].activity_creator_asset_id;
@@ -10604,7 +10604,7 @@ if(assetDetails.length==0){
                                                                     });
 
                                 managerAssetID = Number(assetDetails[0].manager_asset_id);
-                                util.logInfo(request,`Manager Asset ID : ${managerAssetID} %j` , request);
+                                util.logInfo(request,`Manager Asset ID : ${managerAssetID}`);
 
                                 assetDetails = await getAssetDetails({
                                     "organization_id": i_iterator.organization_id,
@@ -10630,7 +10630,7 @@ if(assetDetails.length==0){
                                 }
 
                                 managerAssetID = Number(assetDetails[0].manager_asset_id);
-                                util.logInfo(request,`Manager Asset ID : ${managerAssetID} %j` , request);
+                                util.logInfo(request,`Manager Asset ID : ${managerAssetID}`);
 
                                 assetDetails = await getAssetDetails({
                                     "organization_id": i_iterator.organization_id,
@@ -10663,7 +10663,7 @@ if(assetDetails.length==0){
                             });                            
                         } else if(Number(i_iterator.reminder_type_id) === 4) {
                             const text = `This is a scheduled reminder for ${i_iterator.activity_title}!`;
-                            util.logInfo(request,`Phone Number with country code : ${textPhCtyCode} ${textPhNo} %j` , request);
+                            util.logInfo(request,`Phone Number with country code : ${textPhCtyCode} ${textPhNo}`);
                             
                             //Send text                            
                             await new Promise((resolve, reject)=>{
@@ -10681,9 +10681,9 @@ if(assetDetails.length==0){
                 status_id: 3
             });
             
-            util.logInfo(request,` %j`, request);
-            util.logInfo(request,`******************************************************** %j`, request);
-            util.logInfo(request,` %j`, request);
+            util.logInfo(request,` `);
+            util.logInfo(request,`********************************************************`);
+            util.logInfo(request,` `);
         } //End of For Loop
 
         if(reminderBotData.length === 50) {
@@ -10740,8 +10740,8 @@ if(assetDetails.length==0){
             if(reminder_inline_data.hasOwnProperty('date_reminder')){
                 if(reminder_inline_data.date_reminder.hasOwnProperty("message_template")&&reminder_inline_data.date_reminder.message_template!=""){
                     let message_template = reminder_inline_data.date_reminder.message_template;
-                    util.logInfo(request,`message template ${message_template} %j` , request);
-                    util.logInfo(request,`req ${request} %j` , request);
+                    util.logInfo(request,`message template %j` , message_template);
+                    util.logInfo(request,`req %j` , request);
                     // let message_template_textArr = message_template.split(" ");
                     const workflowActivityData = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
 if(workflowActivityData.length==0){
@@ -10757,7 +10757,7 @@ if(workflowActivityData.length==0){
                     let dateObj = new Date(dueDate);
                     dueDate = `${moment(dateObj).format('ddd DD MMM YYYY')}`
                     message_template = message_template.replace("<<duedate>>",dueDate);
-                    util.logInfo(request,`message template after ${message_template} %j` , request);
+                    util.logInfo(request,`message template after %j` , message_template);
                     // console.log("array",message_template_textArr)
                     // for(let i=0;i<message_template_textArr.length;i++){
                     //     if(message_template_textArr[i]=="<<title>>"){
@@ -10833,7 +10833,7 @@ if(workflowActivityData.length==0){
     
     
     async function unassignParticipantFunc(request, activityID, assetID) {
-        util.logInfo(request,`Unassigning the participant! %j`, request);
+        util.logInfo(request,`Unassigning the participant!`);
         request.debug_info.push('Unassigning the participant!');
 
         let trackGpsDatetime = request.track_gps_datetime || util.getCurrentUTCTime();
@@ -11070,7 +11070,7 @@ if(workflowActivityData.length==0){
 
         // const urlKey = `868/984/5648/35156/2020/12/103/1608140463463/OPP-V-002337-161220-_-004.xlsx`;
         // bulkUploadFieldData[0].data_entity_text_1 = `https://worlddesk-preprod-d20kggbr.s3.amazonaws.com/${urlKey}`;
-        util.logInfo(request,`bulkUploadFieldData[0].data_entity_text_1: ${bulkUploadFieldData[0].data_entity_text_1} %j` , request);
+        util.logInfo(request,`bulkUploadFieldData[0].data_entity_text_1: %j` , bulkUploadFieldData[0].data_entity_text_1);
         request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: " + bulkUploadFieldData[0].data_entity_text_1);
         const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
         if (xlsxDataBodyError) {
@@ -11425,7 +11425,7 @@ if(workflowActivityData.length==0){
 
         for (let i = 2; i < childOpportunitiesArray.length; i++) {
             const childOpportunity = childOpportunitiesArray[i];
-            util.logInfo(request,`IsNewFeasibilityRequest: ${childOpportunity.IsNewFeasibilityRequest} | serialNum: ${childOpportunity.serialNum} | actionType: ${childOpportunity.actionType} %j`, request);
+            util.logInfo(request,`IsNewFeasibilityRequest: ${childOpportunity.IsNewFeasibilityRequest} | serialNum: ${childOpportunity.serialNum} | actionType: ${childOpportunity.actionType}`);
             if (
                 !childOpportunity.hasOwnProperty("IsNewFeasibilityRequest") ||
                 childOpportunity.IsNewFeasibilityRequest === "" ||
@@ -11907,7 +11907,7 @@ if(workflowActivityData.length==0){
     }
 
     async function addParticipantCreatorOwner(request) {
-        util.logInfo(request,`making creator bot - addParticipantCreatorOwner %j`, request);
+        util.logInfo(request,`making creator bot - addParticipantCreatorOwner`);
         
         let activityData = await activityCommonService.getActivityDetailsPromise({ organization_id: request.organization_id },request.workflow_activity_id);
         let assetID = activityData[0].activity_creator_asset_id;
@@ -11975,12 +11975,12 @@ if(workflowActivityData.length==0){
         let isLead = 0, isOwner = 0, flagCreatorAsOwner = 0;
         
         global.logger.write('conLog', inlineData, {}, {});
-        util.logInfo(request,`inlineData : ${inlineData} %j` , request);
+        util.logInfo(request,`inlineData : %j` , inlineData);
         request.debug_info.push('inlineData: ' + inlineData);
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
 
         let inlineKeys = Object.keys(inlineData);        
-        util.logInfo(request,`inlineKeys - ${inlineKeys} %j` , request);
+        util.logInfo(request,`inlineKeys - %j` , inlineKeys);
         request.debug_info.push('inlineKeys: ' + inlineKeys);
 
         if(inlineKeys.includes('static')) {
@@ -12076,7 +12076,7 @@ if(workflowActivityData.length==0){
                 });
                 if (fieldData.length > 0) {
                     newReq.customer_name = String(fieldData[0].data_entity_text_1);
-                    util.logInfo(request,`BotEngine | addParticipant | getFieldValue | Customer Name: ${newReq.customer_name} %j` , request);
+                    util.logInfo(request,`BotEngine | addParticipant | getFieldValue | Customer Name: ${newReq.customer_name}`);
                     request.debug_info.push("BotEngine | addParticipant | getFieldValue | Customer Name: "+ newReq.customer_name);
                 }
             } catch (error) {
@@ -12088,14 +12088,14 @@ if(workflowActivityData.length==0){
         newReq.is_owner = isOwner;
         newReq.flag_creator_as_owner = flagCreatorAsOwner;
 
-        util.logInfo(request,`newReq.phone_number : ${newReq.phone_number} %j` , request);
+        util.logInfo(request,`newReq.phone_number : ${newReq.phone_number}`);
         request.debug_info.push('newReq.phone_number : '+ newReq.phone_number);
         if (
             (newReq.phone_number !== -1) &&
             (Number(newReq.phone_number) !== 0) &&
             (newReq.phone_number !== 'null') && (newReq.phone_number !== undefined)
         ) {
-            util.logInfo(request,`BotService | addParticipant | Message: ${newReq.phone_number}  |  ${typeof newReq.phone_number} %j`, request);
+            util.logInfo(request,`BotService | addParticipant | Message: ${newReq.phone_number}  |  ${typeof newReq.phone_number}`);
             request.debug_info.push('phone_number: ' + newReq.phone_number);
             newReq.organization_id = 906;
             return await addParticipantStep(newReq);
@@ -12107,7 +12107,7 @@ if(workflowActivityData.length==0){
     }
 
     async function checkLargeDoa(request, inlineData) {
-        util.logInfo(request,`checkLargDoa %j`, request);
+        util.logInfo(request,`checkLargDoa`);
         await sleep(5 * 1000);
 
         request.form_id = 4353;
@@ -12622,7 +12622,7 @@ if(workflowActivityData.length==0){
             return;
         }
 
-        util.logInfo(request,`checkCustomBot---- ${JSON.stringify(request)} ${inlineData} ${request.workflow_activity_id} ${request.activity_id} %j` , request);
+        util.logInfo(request, `checkCustomBot---- ${request.workflow_activity_id} ${request.activity_id} %j `, { request, inlineData });
         request.debug_info.push('inlineData: ' + inlineData);
         request.debug_info.push('workflow_activity_id: ' + request.workflow_activity_id);
         request.debug_info.push('activity_id: ' + request.activity_id);
@@ -12630,7 +12630,7 @@ if(workflowActivityData.length==0){
         request.form_id = 4353;
         let originForm = await getFormInlineData(request, 1);
         let originFormData = JSON.parse(originForm.data_entity_inline).form_submitted;
-        util.logInfo(request,`dateFormData : ${JSON.stringify(originFormData)} %j` , request);
+        util.logInfo(request,`dateFormData : %j` , JSON.stringify(originFormData));
         request.debug_info.push('dateFormData: ' + JSON.stringify(originFormData));
         let dataResp = await getAssetDetailsOfANumber({
             country_code : inlineData.country_code || '',
@@ -12650,7 +12650,7 @@ if(workflowActivityData.length==0){
         // validating product and request type
         let resultProductAndRequestType = validatingProductAndRequestType(originFormData, inlineData.origin_form_config);
 
-        util.logInfo(request,`resultProductAndRequestType---- ${resultProductAndRequestType} %j` , request);
+        util.logInfo(request,`resultProductAndRequestType---- %j` , resultProductAndRequestType);
         request.debug_info.push('resultProductAndRequestType: ' + resultProductAndRequestType);
         // if(!resultProductAndRequestType.requestTypeMatch && resultProductAndRequestType.reqularApproval) {
         //     console.log("Request type match failed");
@@ -12663,17 +12663,17 @@ if(workflowActivityData.length==0){
         // }
 
         resultProductAndRequestType.productMatchFlag = (resultProductAndRequestType.productMatchFlag == 1 || resultProductAndRequestType.productMatchFlag == 3) ? resultProductAndRequestType.productMatchFlag : 0;
-        util.logInfo(request,`final value resultProductAndRequestType.productMatchFlag ${resultProductAndRequestType.productMatchFlag} %j` , request);
+        util.logInfo(request,`final value resultProductAndRequestType.productMatchFlag ${resultProductAndRequestType.productMatchFlag}`);
         request.debug_info.push("final value resultProductAndRequestType.productMatchFlag : "+ resultProductAndRequestType.productMatchFlag);
         if(resultProductAndRequestType.productMatchFlag == 1 && !resultProductAndRequestType.reqularApproval) {
-            util.logInfo(request,`Got Product FLD Domestic, Tiggering SME ILL BOT, IF this fails then it should be manual approval %j`, request);
+            util.logInfo(request,`Got Product FLD Domestic, Tiggering SME ILL BOT, IF this fails then it should be manual approval`);
             request.debug_info.push("Got Product FLD Domestic, Tiggering SME ILL BOT, IF this fails then it should be manual approval");
             inlineData.sme_config.phone_number = inlineData.phone_number;
             checkSmeBot(request, inlineData.sme_config, deskAssetData);
             return;
         } else if(resultProductAndRequestType.productMatchFlag == 3 &&
           ([1,2,4].indexOf(resultProductAndRequestType.requestTypeMatch) > -1)) { // [1,2,4] Acquisition, Rentention and Mnp
-            util.logInfo(request,`Got Product Mobility, Triggering Mobility BOT %j`, request);
+            util.logInfo(request,`Got Product Mobility, Triggering Mobility BOT`);
             request.debug_info.push("Got Product Mobility, Triggering Mobility BOT");
             inlineData.mobility_config.phone_number = inlineData.phone_number;
             checkMobility(request, inlineData.mobility_config, deskAssetData, resultProductAndRequestType.requestTypeMatch, resultProductAndRequestType.reqularApproval);
@@ -12681,7 +12681,7 @@ if(workflowActivityData.length==0){
         } else if((!resultProductAndRequestType.productMatchFlag && !resultProductAndRequestType.reqularApproval) ||
           (resultProductAndRequestType.productMatchFlag == 3 && resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval) ||
           (resultProductAndRequestType.productMatchFlag == 3 && !resultProductAndRequestType.requestTypeMatch && !resultProductAndRequestType.reqularApproval)) {
-            util.logInfo(request,`Product Match Failed--- Manual Flow %j`, request);
+            util.logInfo(request,`Product Match Failed--- Manual Flow`);
             request.debug_info.push("Product Match Failed--- Manual Flow");
             // submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             return;
@@ -12764,20 +12764,20 @@ if(workflowActivityData.length==0){
         for(let row of formData) {
             if(Object.keys(originFormConfig).includes(row.field_id.toString())) {
                 let value = originFormConfig[row.field_id];
-                util.logInfo(request,`Value from config ${value} Value from list ${row.field_value} %j` , request);
+                util.logInfo(request,`Value from config ${value} Value from list ${row.field_value}`);
                 if(!value) {
-                    util.logInfo(request,`Value not found in validatingProductAndRequestType ${row.field_id} %j` , request);
+                    util.logInfo(request,`Value not found in validatingProductAndRequestType ${row.field_id}`);
                     break;
                 }
 
                 if(row.field_id == 224835) {
-                    util.logInfo(request,`Value get matched in validatingProductAndRequestType ${row.field_id} ${row.data_type_combo_id} %j` , request);
+                    util.logInfo(request,`Value get matched in validatingProductAndRequestType ${row.field_id} ${row.data_type_combo_id}`);
                     productMatchFlag = row.data_type_combo_id;
                 } else if(row.field_id == 225020) {
-                    util.logInfo(request,`Value get matched in validatingProductAndRequestType ${row.field_id} ${row.data_type_combo_id} %j` , request);
+                    util.logInfo(request,`Value get matched in validatingProductAndRequestType ${row.field_id} ${row.data_type_combo_id}`);
                     requestTypeMatch = row.data_type_combo_id;
                 } else if(row.field_id == 223769 && originFormConfig[row.field_id] == Number(row.data_type_combo_id)){
-                    util.logInfo(request,`Value get matched in validatingProductAndRequestType reqularApproval ${row.field_id} ${row.data_type_combo_id} %j` , request);
+                    util.logInfo(request,`Value get matched in validatingProductAndRequestType reqularApproval ${row.field_id} ${row.data_type_combo_id}`);
                     reqularApproval = 1;
                 }
 
@@ -12793,13 +12793,13 @@ if(workflowActivityData.length==0){
         let submitRejectionFormFlag = 0, comment = '';
         let fldForm = await getFormInlineData(request, 1);
         let fldFormData = JSON.parse(fldForm.data_entity_inline).form_submitted;
-        util.logInfo(request,`dateFormData1 : ${JSON.stringify(fldFormData)} %j` , request);
+        util.logInfo(request,`dateFormData1 : %j` , JSON.stringify(fldFormData));
         request.debug_info.push("dateFormData1", JSON.stringify(fldFormData));
 
 
         let totalCOCPAndIOIP = countCOCPAndIOIP(fldFormData, inlineData.plans_field_ids);
 
-        util.logInfo(request,`totalCOCPAndIOIP : ${totalCOCPAndIOIP} %j` , request);
+        util.logInfo(request,`totalCOCPAndIOIP : %j` , totalCOCPAndIOIP);
         request.debug_info.push("totalCOCPAndIOIP", totalCOCPAndIOIP);
 
         let sheets = [], connectionType = '';
@@ -12817,13 +12817,13 @@ if(workflowActivityData.length==0){
             connectionType = 'IOIP';
         }
 
-        util.logInfo(request,`Sheet Selected is ${sheets} and the connection type is ${connectionType} %j` , request);
+        util.logInfo(request,`Sheet Selected is ${sheets} and the connection type is ${connectionType}`);
         request.debug_info.push("Sheet Selected is ", sheets, " and the connection type is ", connectionType);
 
         let configSheets =  inlineData.field_values_map[connectionType] || [];
 
         if(!configSheets.length) {
-            util.logInfo(request,`No Sheet Selected %j`, request);
+            util.logInfo(request,`No Sheet Selected`);
             request.debug_info.push("No Sheet Selected");
         }
 
@@ -12837,22 +12837,22 @@ if(workflowActivityData.length==0){
             submitRejectionFormFlag = 1;
         }
 
-        util.logInfo(request,`checkingSegmentResult : ${JSON.stringify(checkingSegmentResult)} %j` , request);
+        util.logInfo(request,`checkingSegmentResult : %j` , JSON.stringify(checkingSegmentResult));
         request.debug_info.push("checkingSegmentResult", JSON.stringify(checkingSegmentResult));
 
         let sheetMatchFlag = {};
         for(let row of checkingSegmentResult) {
-            util.logInfo(request,`Processing Sheet ${row.sheet} %j` , request);
+            util.logInfo(request,`Processing Sheet %j` , row.sheet);
             request.debug_info.push("Processing Sheet ", row.sheet);
             comment = row.comment;
 
             if(sheetMatchFlag[row.sheet] && sheetMatchFlag[row.sheet] == '0') {
-                util.logInfo(request,`Already matched for sheet ${row.sheet}  so skipping and checking for next sheet if there is %j`, request);
+                util.logInfo(request,`Already matched for sheet ${row.sheet}  so skipping and checking for next sheet if there is`);
                 request.debug_info.push("Already matched for sheet ", row.sheet, ' so skipping and checking for next sheet if there is');
                 continue;
             }
 
-            util.logInfo(request,`row.key----> ${JSON.stringify(row.key)} %j` , request);
+            util.logInfo(request,`row.key----> %j` , JSON.stringify(row.key));
             request.debug_info.push("row.key---->", JSON.stringify(row.key));
             if(!(row.value.key.indexOf(parseInt(requestTypeComboId)) > -1)) {
                 console.error("Request Type Match Failed requestTypeComboId ", requestTypeComboId);
@@ -12940,7 +12940,7 @@ if(workflowActivityData.length==0){
 
             let minQuota = validateMins(fldFormData, smsCount, inlineData.min_field_ids);
 
-            util.logInfo(request,`minQuota ${JSON.stringify(minQuota)} %j` , request);
+            util.logInfo(request,`minQuota %j` , JSON.stringify(minQuota));
             request.debug_info.push("minQuota", JSON.stringify(minQuota));
             if(smsCount.length != minQuota.length) {
                 console.error("Condition failed in validate Mins");
@@ -12955,7 +12955,7 @@ if(workflowActivityData.length==0){
                 sheetMatchFlag[row.sheet] = '0';
                 // break;
             }
-            util.logInfo(request,`sheetMatchFlag-- ${JSON.stringify(sheetMatchFlag)} %j` , request);
+            util.logInfo(request,`sheetMatchFlag-- %j` , JSON.stringify(sheetMatchFlag));
             request.debug_info.push("sheetMatchFlag-- " + JSON.stringify(sheetMatchFlag));
         }
 
@@ -12975,14 +12975,14 @@ if(workflowActivityData.length==0){
             if(workflowType == 1) {
                 submitRejectionForm(request, "Rejected! One/more of the condition for trading desk approval is not met.", deskAssetData, inlineData);
             } else {
-                util.logInfo(request,`Not Rejection because workflowType did not matched to current value %j`, request);
+                util.logInfo(request,`Not Rejection because workflowType did not matched to current value`);
                 request.debug_info.push("Not Rejection because workflowType did not matched to current value");
             }
             return;
         }
 
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
-        util.logInfo(request,`wfActivityDetails : ${JSON.stringify(wfActivityDetails)} %j` , request);
+        util.logInfo(request,`wfActivityDetails : %j` , JSON.stringify(wfActivityDetails));
         request.debug_info.push("wfActivityDetails "+ JSON.stringify(wfActivityDetails));
 
 
@@ -12997,7 +12997,7 @@ if(workflowActivityData.length==0){
                 asset_id : wfActivityDetails[0].activity_creator_asset_id
             });
         }catch(e) {
-            util.logInfo(request,`Error while adding participant $j`, request);
+            util.logInfo(request,`Error while adding participant`);
             util.logError(request,`Error while adding participant`, { type: 'bot_engine', e });
             request.debug_info.push("Error while adding participant")
         }
@@ -13099,11 +13099,11 @@ if(workflowActivityData.length==0){
         createWorkflowRequest.form_transaction_id = targetFormTransactionID;
         createWorkflowRequest.data_entity_inline        = createWorkflowRequest.activity_inline_data;
 
-        util.logInfo(request,`createWorkflowRequest ${JSON.stringify(createWorkflowRequest)} %j` , request);
+        util.logInfo(request,`createWorkflowRequest %j` , JSON.stringify(createWorkflowRequest));
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
-        util.logInfo(request,`InactivityInsertedDetails----> ${activityInsertedDetails} %j` , request);
+        util.logInfo(request,`InactivityInsertedDetails----> %j` , activityInsertedDetails);
 
 
         let activityTimelineCollection =  JSON.stringify({
@@ -13537,7 +13537,7 @@ if(workflowActivityData.length==0){
         let response = [];
         for(let row of formData) {
             if (segment[row.field_id]) {
-                util.logInfo(request,`Value found in Segment ${segment[row.field_id]} ${row.field_value.toUpperCase()} %j` , request);
+                util.logInfo(request,`Value found in Segment ${segment[row.field_id]} ${row.field_value.toUpperCase()}`);
                 for(let config of configSheets) {
                     if(config.key.indexOf(row.field_value.toUpperCase()) > -1 && sheets.indexOf(config.sheet) > -1) {
                         response.push(config);
@@ -13568,32 +13568,32 @@ if(workflowActivityData.length==0){
         let totalLink = [];
         for(let plan of plans) {
             let fieldIds = Object.keys(plan);
-            util.logInfo(request,`fieldIds ${fieldIds} ${plan} %j` , request);
+            util.logInfo(request,`fieldIds %j` , {fieldIds,plan});
 
             totalLink.push(Number(plan[fieldIds[0]]));
 
         }
-        util.logInfo(request,`totalLinks ${totalLink} %j` , request);
+        util.logInfo(request,`totalLinks %j` , totalLink);
         return totalLink;
     }
 
     function validatingRentals(formData, rentalFieldIds, mobiltiyFieldsValues) {
         util.logInfo(request,`Testing Rentals %j`, request);
         let response = [];
-        util.logInfo(request,`validatingRentals mobiltiyFieldsValues ${Object.keys(mobiltiyFieldsValues)} %j` , request);
+        util.logInfo(request,`validatingRentals mobiltiyFieldsValues %j` , Object.keys(mobiltiyFieldsValues));
         for(let row of formData) {
             if(rentalFieldIds.includes(Number(row.field_id))) {
-                util.logInfo(request,`Getting this value to match in Rentals ${row.field_value}` , request);
+                util.logInfo(request,`Getting this value to match in Rentals ${row.field_value}`);
 
                 if(row.field_value == '') {
-                    util.logInfo(request,`Got Empty Value in validatingRentals for plan ${rentalFieldIds.indexOf(row.field_id) + 1} %j` , request);
+                    util.logInfo(request,`Got Empty Value in validatingRentals for plan ${rentalFieldIds.indexOf(row.field_id) + 1}`);
                     response.push('');
                     continue;
                 }
 
                 if(row.field_value != null) {
                     if(mobiltiyFieldsValues[Number(row.field_value)] == null || mobiltiyFieldsValues[Number(row.field_value)] == undefined) {
-                        util.logInfo(request,`Got empty value in validatingRentals %j`, request);
+                        util.logInfo(request,`Got empty value in validatingRentals`);
                         return [];
                     }
                     response.push(mobiltiyFieldsValues[Number(row.field_value)]);
@@ -13605,45 +13605,45 @@ if(workflowActivityData.length==0){
 
 
     function validatingNoOfLinks(configSheet, totalLinks, sheet) {
-        util.logInfo(request,`Validating No of Links ${totalLinks} ${sheet} %j` , request);
+        util.logInfo(request,`Validating No of Links %j` , {totalLinks,sheet});
 
         for(let i = 0; i < totalLinks.length; i++) {
             for(let row of configSheet) {
                 if(row.LOWER) {
 
                     if(sheet == 1) {
-                        util.logInfo(request,`row sheet 1-> ${row.LOWER} ${row.UPPER} ${totalLinks[i]} ${totalLinks[i].cocpr > row.LOWER} ${totalLinks[i].cocpr < row.UPPER} ${row.value} %j` , request);
+                        util.logInfo(request,`row sheet 1-> ${row.LOWER} ${row.UPPER} ${totalLinks[i]} ${totalLinks[i].cocpr > row.LOWER} ${totalLinks[i].cocpr < row.UPPER} ${row.value}`);
                         if(totalLinks[i].cocpr >= row.LOWER) {
                             if(row.UPPER) {
                                 if(totalLinks[i].cocpr < row.UPPER) {
                                     return row.value;
                                 }
-                                util.logInfo(request,`Did not match for total ${totalLinks[i]} Link value  ${row.LOWER} ${row.UPPER} %j` , request);
+                                util.logInfo(request,`Did not match for total ${totalLinks[i]} Link value  ${row.LOWER} ${row.UPPER}`);
                                 continue;
                             }
                             return row.value;
                         }
                     } else if(sheet == 2) {
-                        util.logInfo(request,`row sheet 2-> ${row.LOWER} ${row.UPPER} ${totalLinks[i]} ${totalLinks[i].cocp > row.LOWER} ${totalLinks[i].cocp < row.UPPER} ${row.value} %j` , request);
+                        util.logInfo(request,`row sheet 2-> ${row.LOWER} ${row.UPPER} ${totalLinks[i]} ${totalLinks[i].cocp > row.LOWER} ${totalLinks[i].cocp < row.UPPER} ${row.value}`);
                         if(totalLinks[i].cocp >= row.LOWER) {
                             if(row.UPPER) {
                                 if(totalLinks[i].cocp < row.UPPER) {
                                     return row.value;
                                 }
-                                util.logInfo(request,`Did not match for total ${totalLinks[i]} Link value ${row.LOWER} ${row.UPPER} %j` , request);
+                                util.logInfo(request,`Did not match for total ${totalLinks[i]} Link value ${row.LOWER} ${row.UPPER}`);
                                 continue;
                             }
                             return row.value;
                         }
                     } else if(sheet == 3) {
-                        util.logInfo(request,`row 3-> ${row.LOWER} ${row.UPPER} ${totalLinks[i]} ${totalLinks[i].ioip > row.LOWER} ${totalLinks[i].ioip < row.UPPER} ${row.value} %j` , request);
+                        util.logInfo(request,`row 3-> ${row.LOWER} ${row.UPPER} ${totalLinks[i]} ${totalLinks[i].ioip > row.LOWER} ${totalLinks[i].ioip < row.UPPER} ${row.value}`);
 
                         if(totalLinks[i].ioip >= row.LOWER) {
                             if(row.UPPER) {
                                 if(totalLinks[i].ioip < row.UPPER) {
                                     return row.value;
                                 }
-                                util.logInfo(request,`Did not match for total ${totalLinks[i]} ${row.LOWER} ${row.UPPER} %j` , request);
+                                util.logInfo(request,`Did not match for total ${totalLinks[i]} ${row.LOWER} ${row.UPPER}`);
                                 continue;
                             }
                             return row.value;
@@ -13652,13 +13652,13 @@ if(workflowActivityData.length==0){
                 }
             }
         }
-        util.logInfo(request,`Response from validatingNoOfLinks %j`, request);
+        util.logInfo(request,`Response from validatingNoOfLinks`);
         return ;
     }
 
     function validatingMonthlyQuota(formData, linkResp, monthlyQuota) {
 
-        util.logInfo(request,`Validating Monthly Quota %j`, request);
+        util.logInfo(request,`Validating Monthly Quota`);
         let response = [];
         for(let row of formData) {
             for(let i =0; i < monthlyQuota.length; i++) {
@@ -13669,30 +13669,30 @@ if(workflowActivityData.length==0){
                     if(Number(row.field_id) == monthlyQuotaFieldId) {
                         if(linkResp[i] == '') {
                             response.push('');
-                            util.logInfo(request,`Got Empty Value in validatingMonthlyQuota for plan ${i + 1} %j` , request);
+                            util.logInfo(request,`Got Empty Value in validatingMonthlyQuota for plan ${i + 1}`);
                             continue;
                         }
                         let monthlyQuotaValue = Object.keys(linkResp[i]);
 
-                        util.logInfo(request,`linkResp[i] ${linkResp[i]} ${i} ${row.field_id} ${Number(row.field_value)} ${monthlyQuotaValue[0]}  %j`, request);
+                        util.logInfo(request,`linkResp[i] ${linkResp[i]} ${i} ${row.field_id} ${Number(row.field_value)} ${monthlyQuotaValue[0]}`);
                         if(Number(row.field_value) > Number(monthlyQuotaValue[0])) {
-                            util.logInfo(request,`Got invalid value ${Number(row.field_value)} ${monthlyQuotaValue} %j` , request);
+                            util.logInfo(request,`Got invalid value ${Number(row.field_value)} %j` , monthlyQuotaValue);
                             return []
                         }
-                        util.logInfo(request,`linkResp[i][monthlyQuotaValue[0]] : ${linkResp[i][monthlyQuotaValue[0]]} %j` , request);
+                        util.logInfo(request,`linkResp[i][monthlyQuotaValue[0]] : %j` , linkResp[i][monthlyQuotaValue[0]]);
                         response.push(linkResp[i][monthlyQuotaValue[0]]);
                     }
                 }
             }
         }
 
-        util.logInfo(request,`Final Response in validatingMonthlyQuota ${response} %j` , request);
+        util.logInfo(request,`Final Response in validatingMonthlyQuota %j` , response);
         return response;
     }
 
     function validatingDailyQuota(formData, linkResp, dailyQuota) {
 
-        util.logInfo(request,`Validating Daily Quota %j`, request);
+        util.logInfo(request,`Validating Daily Quota`);
         let response = [];
         for(let row of formData) {
             for(let i =0; i < dailyQuota.length; i++) {
@@ -13703,24 +13703,24 @@ if(workflowActivityData.length==0){
                     if(Number(row.field_id) == dailyQuotaFieldId) {
                         if(linkResp[i] == '') {
                             response.push('');
-                            util.logInfo(request,`Got Empty Value in validatingDailyQuota for plan ${i + 1} %j` , request);
+                            util.logInfo(request,`Got Empty Value in validatingDailyQuota for plan ${i + 1}`);
                             continue;
                         }
                         let dailyQuotaValue = Object.keys(linkResp[i]);
 
-                        util.logInfo(request,`linkResp[i] ${linkResp[i]} ${i} ${row.field_id} ${Number(row.field_value)} ${dailyQuotaValue[0]} %j` , request);
+                        util.logInfo(request,`linkResp[i] ${linkResp[i]} ${i} ${row.field_id} ${Number(row.field_value)} ${dailyQuotaValue[0]}`);
                         if(Number(row.field_value) > Number(dailyQuotaValue[0])) {
-                            util.logInfo(request,`Got invalid value ${Number(row.field_value)} ${dailyQuotaValue} %j` , request);
+                            util.logInfo(request,`Got invalid value ${Number(row.field_value)} %j` , dailyQuotaValue);
                             return [];
                         }
-                        util.logInfo(request,`linkResp[i][dailyQuotaValue[0]] ${linkResp[i][dailyQuotaValue[0]]} %j` , request);
+                        util.logInfo(request,`linkResp[i][dailyQuotaValue[0]] ${linkResp[i][dailyQuotaValue[0]]}`);
                         response.push(linkResp[i][dailyQuotaValue[0]]);
                     }
                 }
             }
         }
 
-        util.logInfo(request,`Final Response in validatingDailyQuota ${response} %j` , request);
+        util.logInfo(request,`Final Response in validatingDailyQuota %j` , response);
         return response;
     }
 
@@ -13735,14 +13735,14 @@ if(workflowActivityData.length==0){
                     if(Number(row.field_id) == smsFieldIdsFieldId) {
                         if(monthlyQuota[i] == '' ) {
                             response.push('');
-                            util.logInfo(request,`Got Empty Value in validatingSMSValues for plan ${(i + 1)} %j` , request);
+                            util.logInfo(request,`Got Empty Value in validatingSMSValues for plan ${(i + 1)}`);
                             continue;
                         }
                         let smsFieldIdsValue = Object.keys(monthlyQuota[i]);
 
-                        util.logInfo(request,`smsFieldIdsFieldId ${row.field_id} ${smsFieldIdsFieldId} %j` , request);
+                        util.logInfo(request,`smsFieldIdsFieldId ${row.field_id} %j` , smsFieldIdsFieldId);
                         if(Number(row.field_value) > smsFieldIdsValue[0]) {
-                            util.logInfo(request,`Got invalid value validatingSMSValues ${Number(row.field_value)} ${smsFieldIdsValue} %j` , request);
+                            util.logInfo(request,`Got invalid value validatingSMSValues ${Number(row.field_value)} %j` , smsFieldIdsValue);
                             return response
                         }
                         response.push(monthlyQuota[i][smsFieldIdsValue[0]]);
@@ -13751,7 +13751,7 @@ if(workflowActivityData.length==0){
                 }
             }
         }
-        util.logInfo(request,`Final Response in validatingSMSValues ${response} %j` , request);
+        util.logInfo(request,`Final Response in validatingSMSValues %j` , response);
         return response;
     }
 
@@ -13763,13 +13763,13 @@ if(workflowActivityData.length==0){
                     if(row.field_id == minFieldIds[i]) {
                         if(minQuota[i] == '' ) {
                             response.push('');
-                            util.logInfo(request,`Got Empty Value in validateMins for plan ${(i + 1)} %j` , request);
+                            util.logInfo(request,`Got Empty Value in validateMins for plan ${(i + 1)}`);
                             continue;
                         }
                         let minValue = Object.keys(minQuota[i]);
-                        util.logInfo(request,`Field ids ${row.field_id} ${minFieldIds[i]} ${minValue} ${row.field_value} ${minQuota[i][row.field_value]} %j` , request);
+                        util.logInfo(request,`Field ids ${row.field_id} ${minFieldIds[i]} ${minValue} ${row.field_value} ${minQuota[i][row.field_value]}`);
                         if(row.field_value < Number(minValue[0])) {
-                            util.logInfo(request,`Got nothing for ${minQuota[i]} ${row.field_value} %j` , request);
+                            util.logInfo(request,`Got nothing for ${minQuota[i]} ${row.field_value}`);
                             return [];
                         } else {
                             response.push(minQuota[i]);
@@ -13811,7 +13811,7 @@ if(workflowActivityData.length==0){
         let IllForm = await getFormInlineData(request, 1);
         let IllFormData = JSON.parse(IllForm.data_entity_inline).form_submitted;
 
-        util.logInfo(request,`IllFormData ---- ${JSON.stringify(IllFormData)} %j` , request);
+        util.logInfo(request,`IllFormData ---- %j` , JSON.stringify(IllFormData));
 
         let segmentFieldIds =  inlineData.segmentFieldIds;
         let netCash =  inlineData.netCash;;
@@ -13879,14 +13879,14 @@ if(workflowActivityData.length==0){
             }
         }
 
-        util.logInfo(request,`activationDataOfLinks ${JSON.stringify(activationDataOfLinks)} %j` , request);
+        util.logInfo(request,`activationDataOfLinks %j` , JSON.stringify(activationDataOfLinks));
         illFormDataWithLiks.push(temp);
 
         for(let row of illFormDataWithLiks) {
             row.push(paybackData);
         }
 
-        util.logInfo(request,`illFormDataWithLiks ${JSON.stringify(illFormDataWithLiks)} %j` , request);
+        util.logInfo(request,`illFormDataWithLiks %j` , JSON.stringify(illFormDataWithLiks));
 
         for(let i = 0; i < illFormDataWithLiks.length; i++) {
             if(!checkValues(illFormDataWithLiks[i], productFieldIds[i], segmentFieldIds[0], orderTypeFieldIds[i], bwFieldIds[i], otcFieldIds[i], arcFields[i], contractTermsFieldIds[i], netCash[0], capexValue, opexValue, i, inlineData, activationDataOfLinks[i], paybackFieldId)) {
@@ -13899,7 +13899,7 @@ if(workflowActivityData.length==0){
         }
 
         let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
-        util.logInfo(request,`wfActivityDetails ${JSON.stringify(wfActivityDetails)} %j` , request);
+        util.logInfo(request,`wfActivityDetails %j` , JSON.stringify(wfActivityDetails));
 
 
         try{
@@ -13913,7 +13913,7 @@ if(workflowActivityData.length==0){
                 asset_id : wfActivityDetails[0].activity_creator_asset_id
             });
         }catch(e) {
-            util.logInfo(request,`Error while adding participant %j`, request);
+            util.logInfo(request,`Error while adding participant`);
             util.logError(request,`Error while adding participant %j`, { type: 'bot_engine', e });
         }
 
@@ -14014,11 +14014,11 @@ if(workflowActivityData.length==0){
         createWorkflowRequest.form_transaction_id = targetFormTransactionID;
         createWorkflowRequest.data_entity_inline        = createWorkflowRequest.activity_inline_data;
 
-        util.logInfo(request,`createWorkflowRequest ${JSON.stringify(createWorkflowRequest)} %j` , request);
+        util.logInfo(request,`createWorkflowRequest %j` , JSON.stringify(createWorkflowRequest));
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
-        util.logInfo(request,`activityInsertedDetails----> ${activityInsertedDetails} %j` , request);
+        util.logInfo(request,`activityInsertedDetails----> %j` , activityInsertedDetails);
 
 
         let activityTimelineCollection =  JSON.stringify({
@@ -14057,7 +14057,7 @@ if(workflowActivityData.length==0){
                 organization_id : request.organization_id
             });
         }catch(e) {
-            util.logInfo(request,`Error while adding participant %j`, request);
+            util.logInfo(request,`Error while adding participant`);
             util.logError(request,`Error while adding participant `, { type: 'bot_engine', e });
         }
 
@@ -14067,40 +14067,40 @@ if(workflowActivityData.length==0){
             for(let value of inlineData.smeConstants) {
                 let productF = 0, segementF = 0, orderTypeF = 0;
                 for(let row of linkDetails) {
-                    util.logInfo(request,`ROw Data ${row.field_id} ${row.field_value} ${productFieldId} ${segmentFieldId} ${orderTypeFieldId} ${bwFieldId} ${otcFieldId} ${arcField} ${contractTermsFieldId} ${netCash} %j`, request);
+                    util.logInfo(request,`ROw Data ${row.field_id} ${row.field_value} ${productFieldId} ${segmentFieldId} ${orderTypeFieldId} ${bwFieldId} ${otcFieldId} ${arcField} ${contractTermsFieldId} ${netCash}`);
                     if(row.field_id == productFieldId) {
                         // console.log("row.field_id == productFieldId && value['1'].toLowerCase() == row.field_value.toLowerCase()", row.field_id == productFieldId && value['1'].toLowerCase() == row.field_value.toLowerCase())
-                        util.logInfo(request,`Product Matched ${row.field_id} expected ${value['1']} got this ${row.field_value.toLowerCase()} %j` , request);
+                        util.logInfo(request,`Product Matched ${row.field_id} expected ${value['1']} got this ${row.field_value.toLowerCase()}`);
                         value['1'].toLowerCase() == row.field_value.toLowerCase() ? productF = 1 : 0;
                         row.field_value == '' ? productF = 1 : 0;
                         continue;
                     } else if(row.field_id == segmentFieldId) {
-                        util.logInfo(request,`Segment Matched ${row.field_id} expected ${value['2']} got this ${row.field_value.toLowerCase()} %j` , request);
+                        util.logInfo(request,`Segment Matched ${row.field_id} expected ${value['2']} got this ${row.field_value.toLowerCase()}`);
                         value['2'].toLowerCase() == row.field_value.toLowerCase() ? segementF = 1 : 0;
                         row.field_value == '' ? segementF = 1 : 0;
                         continue;
                     } else if(row.field_id == orderTypeFieldId) {
                         if(row.field_value.toLowerCase() == 'new link' || row.field_value.toLowerCase() == 'upgrade with capex/ opex') {
-                            util.logInfo(request,`Matched Order Type capexValue, opexValue ${capexValue} ${opexValue} %j` , request);
+                            util.logInfo(request,`Matched Order Type capexValue, opexValue ${capexValue} ${opexValue}`);
                             orderTypeF = 1;
 
                             if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
-                                util.logInfo(request,`Sheet Selected Sheet 1 %j`, request);
+                                util.logInfo(request,`Sheet Selected Sheet 1`);
                                 sheetSelected = inlineData.smeSheet1;
                             } else if(opexValue > 0){
-                                util.logInfo(request,`Sheet Selected Sheet 3 %j`, request);
+                                util.logInfo(request,`Sheet Selected Sheet 3`);
                                 sheetSelected = inlineData.smeSheet3;
                             }
                         } else if(row.field_value.toLowerCase() == 'price revision' || row.field_value.toLowerCase() == 'downgrade') {
-                            util.logInfo(request,`Matched Order Type capexValue, opexValue ${capexValue} ${opexValue} %j` , request);
+                            util.logInfo(request,`Matched Order Type capexValue, opexValue ${capexValue} ${opexValue}`);
                             orderTypeF = 1;
 
                             if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
-                                util.logInfo(request,`Sheet Selected Sheet 2 %j`, request);
+                                util.logInfo(request,`Sheet Selected Sheet 2`);
                                 checkActivationDateFlag = 1;
                                 sheetSelected = inlineData.smeSheet2;
                             } else if(opexValue > 0){
-                                util.logInfo(request,`Sheet Selected Sheet 4 %j`, request);
+                                util.logInfo(request,`Sheet Selected Sheet 4`);
                                 checkActivationDateFlag = 1;
                                 sheetSelected = inlineData.smeSheet4;
                             }
@@ -14108,10 +14108,10 @@ if(workflowActivityData.length==0){
                             console.error("Got Empty values while checking capexValue opexValue");
                             orderTypeF = 1;
                             if(capexValue > 0 || (capexValue > 0 && opexValue > 0)) {
-                                util.logInfo(request,`Sheet Selected Sheet 2 %j`, request);
+                                util.logInfo(request,`Sheet Selected Sheet 2`);
                                 sheetSelected = inlineData.smeSheet2;
                             } else if(opexValue > 0){
-                                util.logInfo(request,`Sheet Selected Sheet 4 %j`, request);
+                                util.logInfo(request,`Sheet Selected Sheet 4`);
                                 sheetSelected = inlineData.smeSheet4;
                             }
                         }
@@ -14119,15 +14119,15 @@ if(workflowActivityData.length==0){
                     }
                 }
 
-                util.logInfo(request,`productF && segementF && orderTypeF ${productF} ${segementF} ${orderTypeF} %j` , request);
+                util.logInfo(request,`productF && segementF && orderTypeF ${productF} ${segementF} ${orderTypeF}`);
                 if(productF && segementF && orderTypeF){
-                    util.logInfo(request,`Got match in phase 1 %j`, request);
+                    util.logInfo(request,`Got match in phase 1`);
                     phase1 = {productF, segementF, orderTypeF};
                     break;
                 }
                 else {
                     productF = 0, segementF = 0, orderTypeF = 0;
-                    util.logInfo(request,`Reset Params phase 1. Checking for new %j`, request);
+                    util.logInfo(request,`Reset Params phase 1. Checking for new`);
                 }
 
             }
@@ -14137,32 +14137,32 @@ if(workflowActivityData.length==0){
                 return false;
             }
 
-            util.logInfo(request,`Executing new sheet ${sheetSelected} %j` , request);
+            util.logInfo(request,`Executing new sheet %j` , sheetSelected);
             for(let value of sheetSelected) {
 
                 let bwF = 0, otcF = 0, arcF = 0, contractF = 0, netCashF = 0, paybackF = 0;
                 for(let row of linkDetails) {
-                    util.logInfo(request,`bwF && otcF && arcF && contractF && netCashF loop ${row.field_id} ${row.field_name} ${row.field_value} %j` , request);
+                    util.logInfo(request,`bwF && otcF && arcF && contractF && netCashF loop ${row.field_id} ${row.field_name} ${row.field_value}`);
                     if(row.field_id == bwFieldId) {
-                        util.logInfo(request,`BW Match ) ${row.field_id} ${bwFieldId} ${Number(row.field_value)} ${Number(value['4'])} %j` , request);
+                        util.logInfo(request,`BW Match ) ${row.field_id} ${bwFieldId} ${Number(row.field_value)} ${Number(value['4'])}`);
                         Number(row.field_value) == Number(value['4']) ? bwF = 1 : 0;
                         row.field_value == '' ? bwF = 1 : 0;
                         continue;
                     } else if(row.field_id == otcFieldId) {
-                        util.logInfo(request,`otcF ${row.field_id} ${otcFieldId} ${Number(row.field_value)} ${Number(value['5'])} %j` , request);
+                        util.logInfo(request,`otcF ${row.field_id} ${otcFieldId} ${Number(row.field_value)} ${Number(value['5'])}`);
                         Number(row.field_value) >= Number(value['5']) ? otcF = 1 : 0;
                         row.field_value == '' ? otcF = 1 : 0;
                         continue;
                     } else if(row.field_id == arcField) {
-                        util.logInfo(request,`arcF ${row.field_id} ${arcField} ${Number(row.field_value)} ${Number(value['6'])} %j` , request);
+                        util.logInfo(request,`arcF ${row.field_id} ${arcField} ${Number(row.field_value)} ${Number(value['6'])}`);
                         Number(row.field_value) >= Number(value['6']) ? arcF = 1 : 0;
                         row.field_value == '' ? arcF = 1 : 0;
                         continue;
                     } else if(row.field_id == contractTermsFieldId) {
-                        util.logInfo(request,`contractF ${row.field_id} ${contractTermsFieldId} ${Number(row.field_value)} ${Number(value['7'])} %j` , request);
+                        util.logInfo(request,`contractF ${row.field_id} ${contractTermsFieldId} ${Number(row.field_value)} ${Number(value['7'])}`);
                         if(checkActivationDateFlag) {
                             let yearsDiff = moment(new Date()).diff(new Date(activationDataOfLinks.field_value), 'years', true);
-                            util.logInfo(request,`Months Difference is ${yearsDiff} ${new Date()} ${new Date(activationDataOfLinks.field_value)} ${activationDataOfLinks.field_value} %j` , request);
+                            util.logInfo(request,`Months Difference is ${yearsDiff} ${new Date()} ${new Date(activationDataOfLinks.field_value)} ${activationDataOfLinks.field_value}`);
                             yearsDiff >= Number(value['7']) ? contractF = 1 : 0;
 
                         } else {
@@ -14171,15 +14171,15 @@ if(workflowActivityData.length==0){
                         row.field_value == '' ? contractF = 1 : 0;
                         continue;
                     } else if(row.field_id == netCash) {
-                        util.logInfo(request,`netCashF ${row.field_id} ${netCash} ${Number(row.field_value)} ${Number(value['8'])} %j` , request);
+                        util.logInfo(request,`netCashF ${row.field_id} ${netCash} ${Number(row.field_value)} ${Number(value['8'])}`);
                         Number(row.field_value) >= Number(value['8']) ? netCashF = 1 : 0;
                         row.field_value == '' ? netCashF = 1 : 0;
                         continue;
                     } else if(row.field_id == paybackFieldId) {
-                        util.logInfo(request,`Checking for Pay back fields %j`, request);
+                        util.logInfo(request,`Checking for Pay back fields`);
 
                         if(row.field_value <= value['9']) {
-                            util.logInfo(request,`Value matched in pay back value %j`, request);
+                            util.logInfo(request,`Value matched in pay back value`);
                             paybackF = 1;
                         }
                         row.field_value == '' ? paybackF = 1 : 0;
@@ -14187,13 +14187,13 @@ if(workflowActivityData.length==0){
                     }
                 }
 
-                util.logInfo(request,`bwF && otcF && arcF && contractF && netCashF && paybackF ${bwF} ${otcF} ${arcF} ${contractF} ${netCashF} ${paybackF} %j` , request);
+                util.logInfo(request,`bwF && otcF && arcF && contractF && netCashF && paybackF ${bwF} ${otcF} ${arcF} ${contractF} ${netCashF} ${paybackF}`);
                 if(bwF && otcF && arcF && contractF && netCashF && paybackF) {
-                    util.logInfo(request,`Got match in phase 2 link ${linkId} %j` , request);
+                    util.logInfo(request,`Got match in phase 2 link ${linkId}`);
                     phase2 = {bwF, otcF, arcF, contractF, netCashF, paybackF};
                     return true;
                 } else {
-                    util.logInfo(request,`Reset In phase 2. Checking for new %j`, request);
+                    util.logInfo(request,`Reset In phase 2. Checking for new`);
                     bwF = 0, otcF = 0, arcF = 0, contractF = 0, netCashF = 0, paybackF = 0;
                 }
             }
@@ -14345,7 +14345,7 @@ if(workflowActivityData.length==0){
             }
         }
         
-        util.logInfo(request,`activityDetails---- ${activityDetails} %j` , request);
+        util.logInfo(request,`activityDetails---- %j` , activityDetails);
         let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
 
         if(activityTypeDetails.length) {
@@ -14640,7 +14640,7 @@ if(workflowActivityData.length==0){
     }
 
     async function submitRejectionForm(request, reason, deskAssetData, inlineData) {
-        util.logInfo(request,`Processing Rejection Form %j`, request);
+        util.logInfo(request,`Processing Rejection Form`);
         try {
             let planConfig = {}, activityDetails = '', activityTypeId = '', aovValue = '', productId = '';
 
@@ -14659,7 +14659,7 @@ if(workflowActivityData.length==0){
                 }
             }
             
-            util.logInfo(request,`activityDetails---- ${activityDetails} %j` , request);
+            util.logInfo(request,`activityDetails---- %j` , activityDetails);
             let activityTypeDetails = await getActivityTypeIdBasedOnActivityId(request, request.organization_id, activityDetails.split('|')[0]);
     
             if(activityTypeDetails.length) {
@@ -14670,7 +14670,7 @@ if(workflowActivityData.length==0){
             }
     
             let fieldValue = planConfig.data_type_combo_id == 3 ? "New Plan Configuration" : (activityTypeId == '149752' ? 'Bid / Tender' : 'Other workflow');
-            util.logInfo(request,`Will be assigned to the required team %j`, request);
+            util.logInfo(request,`Will be assigned to the required team`);
     
             request.team_title = "commercial L1";
             request.decision_type_value = fieldValue;
@@ -14709,7 +14709,7 @@ if(workflowActivityData.length==0){
                     }
                 }
 
-                util.logInfo(request,`botData--- ${botData} %j` , request);
+                util.logInfo(request,`botData--- %j` , botData);
 
                 if(!botData) {
                     console.error("Bot data was not found so lead would not be added before form submission");
@@ -14717,9 +14717,9 @@ if(workflowActivityData.length==0){
 
                 botData = JSON.parse(botData.bot_operation_inline_data).bot_operations.participant_add.static;
 
-                util.logInfo(request,`Final=----- ${botData} %j` , request);
+                util.logInfo(request,`Final=----- %j` , botData);
                 let wfActivityDetails = await activityCommonService.getActivityDetailsPromise({ organization_id : request.organization_id }, request.workflow_activity_id);
-                util.logInfo(request,`wfActivityDetails ${JSON.stringify(wfActivityDetails)} %j` , request);
+                util.logInfo(request,`wfActivityDetails %j` , JSON.stringify(wfActivityDetails));
 
 
                 await addParticipantStep({
@@ -14787,11 +14787,11 @@ if(workflowActivityData.length==0){
             createWorkflowRequest.form_transaction_id = targetFormTransactionID;
             createWorkflowRequest.data_entity_inline        = createWorkflowRequest.activity_inline_data;
 
-            util.logInfo(request,`createWorkflowRequest ${JSON.stringify(createWorkflowRequest)} %j` , request);
+            util.logInfo(request,`createWorkflowRequest %j` , JSON.stringify(createWorkflowRequest));
             const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
             let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
-            util.logInfo(request,`activityInsertedDetails----> ${activityInsertedDetails} %j` , request);
+            util.logInfo(request,`activityInsertedDetails----> %j` , activityInsertedDetails);
 
 
             let activityTimelineCollection =  JSON.stringify({
@@ -14846,7 +14846,7 @@ if(workflowActivityData.length==0){
                 });
             }
 
-            util.logInfo(request,`activityInlineData ${JSON.stringify(activityInlineData)} %j` , request);
+            util.logInfo(request,`activityInlineData %j` , JSON.stringify(activityInlineData));
 
             let finalInlineData = [];
             for(let formInline of activityInlineData) {
@@ -14864,12 +14864,12 @@ if(workflowActivityData.length==0){
             }
 
             if(!finalInlineData.length) {
-                util.logInfo(request,`Got No field to copy %j`, request);
+                util.logInfo(request,`Got No field to copy`);
                 request.debug_info.push('Got No field to copy' + JSON.stringify(inlineData), "Data from db " + formData[0].field_inline_data);
                 return;
             }
 
-            util.logInfo(request,`After Alteration ${finalInlineData} %j` , request);
+            util.logInfo(request,`After Alteration %j` , finalInlineData);
 
             await sleep(30 * 1000);
             let formId = row.target_form_id;
@@ -14909,12 +14909,12 @@ if(workflowActivityData.length==0){
             createWorkflowRequest.form_transaction_id = targetFormTransactionID;
             createWorkflowRequest.data_entity_inline  = createWorkflowRequest.activity_inline_data;
 
-            util.logInfo(request,`createWorkflowRequest ${JSON.stringify(createWorkflowRequest)} %j` , request);
+            util.logInfo(request,`createWorkflowRequest %j` , JSON.stringify(createWorkflowRequest));
             request.debug_info.push('createWorkflowRequest: ' + createWorkflowRequest);
             const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
             let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
-            util.logInfo(request,`activityInsertedDetails----> ${activityInsertedDetails} %j` , request);
+            util.logInfo(request,`activityInsertedDetails----> %j` , activityInsertedDetails);
             request.debug_info.push('activityInsertedDetails: ' + activityInsertedDetails);
 
 
@@ -15105,11 +15105,11 @@ if(workflowActivityData.length==0){
 
 
     async function getFieldValueUsingFieldIdV1(request,formID,fieldID) {
-        util.logInfo(request,` %j`, request);
-        util.logInfo(request,`************************* %j`, request);
-        util.logInfo(request,`request.form_id - ${request.form_id} %j` , request);
-        util.logInfo(request,`formID - ${formID} %j` , request);
-        util.logInfo(request,`fieldID - ${fieldID} %j` , request);
+        util.logInfo(request,` `);
+        util.logInfo(request,`*************************`);
+        util.logInfo(request,`request.form_id - ${request.form_id}`);
+        util.logInfo(request,`formID - ${formID}`);
+        util.logInfo(request,`fieldID - ${fieldID}`);
 
         let fieldValue = "";
         let formData;
@@ -15139,7 +15139,7 @@ if(workflowActivityData.length==0){
         for(const fieldData of formData) {
             if(Number(fieldData.field_id) === Number(fieldID)) {
                
-                util.logInfo(request,`fieldData.field_data_type_id : ${fieldData.field_data_type_id} %j` , request);
+                util.logInfo(request,`fieldData.field_data_type_id : ${fieldData.field_data_type_id}`);
                 switch(Number(fieldData.field_data_type_id)) {
                     //Need Single selection and Drop Down
                     //circle/ state
@@ -15159,10 +15159,10 @@ if(workflowActivityData.length==0){
             }
         }
     
-        util.logInfo(request,`Field Value B4: ${fieldValue} %j` , request);
+        util.logInfo(request,`Field Value B4: ${fieldValue}`);
         fieldValue = fieldValue.split(" ").join("");
-        util.logInfo(request,`Field Value After: ${fieldValue} %j` , request);
-        util.logInfo(request,`************************* $j`, request);
+        util.logInfo(request,`Field Value After: ${fieldValue}`);
+        util.logInfo(request,`*************************`);
         return fieldValue;
     }
 
@@ -15257,7 +15257,7 @@ if(workflowActivityData.length==0){
             childOpportunitiesCountOffset = Number(childOpportunitiesCount[0].count) + 1;
         }
 
-        util.logInfo(request,`bulkUploadFieldData[0].data_entity_text_1: ${bulkUploadFieldData[0].data_entity_text_1} %j` , request);
+        util.logInfo(request,`bulkUploadFieldData[0].data_entity_text_1: %j` , bulkUploadFieldData[0].data_entity_text_1);
         request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: " + bulkUploadFieldData[0].data_entity_text_1);
         const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
         if (xlsxDataBodyError) {
@@ -15308,7 +15308,7 @@ if(workflowActivityData.length==0){
         let errorMessage = "";
         for (let i = 1; i < OpportunitiesArray.length; i++) {
             const Opportunity = OpportunitiesArray[i];
-            util.logInfo(request,`teSR: serialNum: ${Opportunity.serialNumber} %j`, request);
+            util.logInfo(request,`teSR: serialNum: %j`, Opportunity.serialNumber);
             let errorFoundForAnyColumn = false;
             for (const header of mandatoryHeaders) {
                 if (Opportunity[header] == undefined || Opportunity[header] === "") {
@@ -15585,7 +15585,7 @@ if(workflowActivityData.length==0){
             url: "/r1/activity/add/v1",
             
         };
-        util.logInfo(request,`addActivityRequest ${JSON.stringify(addActivityRequest)} %j` , request);
+        util.logInfo(request,`addActivityRequest %j` , JSON.stringify(addActivityRequest));
         const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
         await addActivityAsync(addActivityRequest);
         // console.log('xdxd',xx);
@@ -15605,7 +15605,7 @@ if(workflowActivityData.length==0){
             childWorkflow705Request.track_gps_datetime = util.getCurrentUTCTime();
             childWorkflow705Request.activity_datetime_end=util.getCurrentUTCTime();
             // childWorkflow705Request.activity_timeline_collection = activityTimelineCollection;
-            util.logInfo(request,`timeline entry ${childWorkflow705Request} %j` , request);
+            util.logInfo(request,`timeline entry %j` , childWorkflow705Request);
             // const addTimelineTransactionAsync = nodeUtil.promisify(activityTimelineService.addTimelineTransaction);
             // await addTimelineTransactionAsync(childWorkflow705Request);
             
@@ -15994,7 +15994,7 @@ if(workflowActivityData.length==0){
                 throw new Error("Field to fetch the bulk upload excel file not submitted");
             }
 
-            util.logInfo(request,`bulkUploadFieldData[0].data_entity_text_1: ${bulkUploadFieldData[0].data_entity_text_1} %j` , request);
+            util.logInfo(request,`bulkUploadFieldData[0].data_entity_text_1: %j` , bulkUploadFieldData[0].data_entity_text_1);
             request.debug_info.push("bulkUploadFieldData[0].data_entity_text_1: " + bulkUploadFieldData[0].data_entity_text_1);
             const [xlsxDataBodyError, xlsxDataBody] = await util.getXlsxDataBodyFromS3Url(request, bulkUploadFieldData[0].data_entity_text_1);
             if (xlsxDataBodyError) {
@@ -16044,7 +16044,7 @@ if(workflowActivityData.length==0){
             let errorMessage = "";
             for (let i = 1; i < excelRows.length; i++) {
                 const row = excelRows[i];
-                util.logInfo(request,`NewThirdPartyOpexFR: serialNum: ${row.SerialNo} %j`, request);
+                util.logInfo(request,`NewThirdPartyOpexFR: serialNum: ${row.SerialNo}`);
                 let errorFoundForAnyColumn = false;
                 for (const header of mandatoryHeaders) {
                     if (row[header] == undefined || row[header] === "") {
@@ -16060,7 +16060,7 @@ if(workflowActivityData.length==0){
                         let fridtype = "";
                         let childActivityId = 0;
                         for (const childOpty of childOpportunitiesData) {
-                            util.logInfo(request,`childOpty : ${childOpty} %j` , request);
+                            util.logInfo(request,`childOpty : %j` , childOpty);
                             if (
                                 String(row.currentBusinessFR).toUpperCase() === String(childOpty.activity_cuid_2).toUpperCase() ||
                                 String(row.currentBusinessFR).toUpperCase() === String(childOpty.activity_cuid_3).toUpperCase()
@@ -16204,7 +16204,7 @@ if(workflowActivityData.length==0){
           organization_id: request.organization_id,
           email: request.emails[i].email,
         });
-        util.logInfo(request,`assetData : ${assetDetails} %j` , request);
+        util.logInfo(request,`assetData : %j` , assetDetails);
         if(assetDetails.length>0){
             deskAssetData = assetDetails[0];
         }
@@ -16255,7 +16255,7 @@ if(workflowActivityData.length==0){
         let formDataFrom713Entry = await activityCommonService.getActivityTimelineTransactionByFormId713(request,request.workflow_activity_id,request.form_id);
         if(!formDataFrom713Entry.length > 0) {
             responseData.push({'message': `${i_iterator.form_id} is not submitted`});
-            util.logInfo(request,`responseData : ${responseData} %j` , request);
+            util.logInfo(request,`responseData : %j` , responseData);
             return [true,responseData];
         }
 
@@ -16283,7 +16283,7 @@ if(workflowActivityData.length==0){
           return [false,[]]
       }
       let activity_type_inline_data = typeof activityTypeConfig[0].activity_type_inline_data == 'string' ? JSON.parse(activityTypeConfig[0].activity_type_inline_data) : activityTypeConfig[0].activity_type_inline_data;
-      util.logInfo(request,`activity_type_inline_data : ${activity_type_inline_data} %j` , request);
+      util.logInfo(request,`activity_type_inline_data : %j` , activity_type_inline_data);
       //Getting Activity Details
       let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
 
@@ -16590,7 +16590,7 @@ if(workflowActivityData.length==0){
             //     });
             // }
 
-            util.logInfo(request,`activityInlineData : ${JSON.stringify(activityInlineData)} %j` , request);
+            util.logInfo(request,`activityInlineData : %j` , JSON.stringify(activityInlineData));
 
 
             let formId = formData[0].form_id;
@@ -16617,12 +16617,12 @@ if(workflowActivityData.length==0){
             createWorkflowRequest.message_unique_id = util.getMessageUniqueId(100);
             createWorkflowRequest.log_message_unique_id = util.getMessageUniqueId(100);
 
-            util.logInfo(request,`createWorkflowRequest ${JSON.stringify(createWorkflowRequest)} %j` , request);
+            util.logInfo(request,`createWorkflowRequest %j` , JSON.stringify(createWorkflowRequest));
             // request.debug_info.push('createWorkflowRequest: ' + createWorkflowRequest);
             const addActivityAsync = nodeUtil.promisify(activityService.addActivity);
             let activityInsertedDetails = await addActivityAsync(createWorkflowRequest);
 
-            util.logInfo(request,`activityInsertedDetails----> ${activityInsertedDetails} %j` , request);
+            util.logInfo(request,`activityInsertedDetails----> %j` , activityInsertedDetails);
             // request.debug_info.push('activityInsertedDetails: ' + activityInsertedDetails);
 
 
@@ -16739,8 +16739,8 @@ if(workflowActivityData.length==0){
             let inputTypeFormID = inputJSON.input_type.form_id;
             let inputTypeFieldID = inputJSON.input_type.field_id;
 
-            util.logInfo(request,`inputTypeFormID : ${inputTypeFormID} %j` , request);
-            util.logInfo(request,`inputTypeFieldID ${inputTypeFieldID} %j` , request);
+            util.logInfo(request,`inputTypeFormID : ${inputTypeFormID}`);
+            util.logInfo(request,`inputTypeFieldID ${inputTypeFieldID}`);
 
             const inputTypeFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
                 organization_id: request.organization_id,
@@ -16780,7 +16780,7 @@ if(workflowActivityData.length==0){
             let fieldIdValueMap = new Map();
             for (let key of Object.keys(inputFields)) {
                 for (let field of inputFields[key]) {
-                    util.logInfo(request,`field : ${field} %j` , request);
+                    util.logInfo(request,`field : %j` , field);
 
                     const inputFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
                         organization_id: request.organization_id,
@@ -16927,7 +16927,7 @@ if(workflowActivityData.length==0){
         let formData = inlineData.target_form_data;
         let activityInlineData = formData.fields;
         activityInlineData[0].field_value = `Opportunity Closed - ${sourceFieldValue}`;
-        util.logInfo(request,`activityInlineData ${JSON.stringify(activityInlineData)} %j` , request);
+        util.logInfo(request,`activityInlineData %j` , JSON.stringify(activityInlineData));
         let formId = formData.form_id;
 
         let targetFormctivityTypeID = formData.form_activity_type_id;
@@ -16984,7 +16984,7 @@ if(workflowActivityData.length==0){
             const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
             const body = JSON.parse(response.body);
             if (Number(body.status) === 200) {
-                util.logInfo(request,`createActivity | addActivityAsync | Body: ${body} %j` , request);
+                util.logInfo(request,`createActivity | addActivityAsync | Body: %j` , body);
                 let activityTimelineCollection =  JSON.stringify({
                     "content"            : `Form Submitted`,
                     "subject"            : `Form Submitted`,
