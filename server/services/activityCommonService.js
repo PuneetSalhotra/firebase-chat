@@ -7203,7 +7203,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         return [error, responseData];
     };
 
-    this.BOTMessageTransactionIdInsertAsync = async function (request) {
+    this.BOTMessageTransactionInsertAsync = async function (request) {
         let responseData = [],
             error = true;
             
@@ -7236,7 +7236,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         return [error, responseData];
     };
 
-    this.BOTMessageTransactionIdUpdateErrorAsync = async function (request) {
+    this.BOTMessageTransactionUpdateErrorAsync = async function (request) {
         let responseData = [],
             error = true;
             
@@ -7261,7 +7261,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         return [error, responseData];
     };
 
-    this.BOTMessageTransactionIdUpdateStatusAsync = async function (request) {
+    this.BOTMessageTransactionUpdateStatusAsync = async function (request) {
         let responseData = [],
             error = true;
 
@@ -7290,7 +7290,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         return [error, responseData];
     };
 
-    this.BOTOperationMessageTransactionIdInsertAsync = async function (request) {
+    this.BOTOperationMessageTransactionInsertAsync = async function (request) {
         let responseData = [],
             error = true;
           
