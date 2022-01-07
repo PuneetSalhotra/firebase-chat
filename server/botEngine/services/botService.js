@@ -1264,6 +1264,7 @@ function BotService(objectCollection) {
         util.logInfo(request,`🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
 
         for (let i of wfSteps) {
+            request.debug_info = [];
             // Adding bot_operation_id into request for logs
             request["bot_operation_id"] = i.bot_operation_id;
 
@@ -1380,6 +1381,8 @@ function BotService(objectCollection) {
                     request.debug_info.push('PARTICIPANT ADD');
                     try {
                         await addParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
+
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         util.logError(request,`Error in executing addParticipant Step`, { type: 'add_participant', error: serializeError(err) });
                         i.bot_operation_status_id = 2;
@@ -1387,6 +1390,7 @@ function BotService(objectCollection) {
                             "err": err
                         });                        
                         //return Promise.reject(err);
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     util.logInfo(request,`****************************************************************`);
                     break;
@@ -1402,6 +1406,9 @@ function BotService(objectCollection) {
                             i.bot_operation_inline_data = JSON.stringify({
                                 "err": result[1]
                             });
+                            await handleBotOperationMessageUpdate(request, i, 4, result[1]);
+                        } else {
+                            await handleBotOperationMessageUpdate(request, i, 3);
                         }
                     } catch (err) {
                         util.logError(request,`serverError | Error in executing changeStatus Step`, { type: "bot_engine", error: serializeError(err) });
@@ -1410,6 +1417,7 @@ function BotService(objectCollection) {
                             "err": err
                         });                        
                         //return Promise.reject(err);
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     util.logInfo(request,`****************************************************************`);
                     break;
@@ -1423,6 +1431,8 @@ function BotService(objectCollection) {
                         // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
                         request.debug_info.push('form_field_copy | Request Params received by BOT ENGINE'+ request);
                         await copyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
+
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         util.logError(request,`Error in executing copyFields Step`, { type: "bot_engine", error: serializeError(err) });
                         i.bot_operation_status_id = 2;
@@ -1430,6 +1440,7 @@ function BotService(objectCollection) {
                             "err": err
                         });
                         //return Promise.reject(err);
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     util.logInfo(request,`****************************************************************`);
                     break;
@@ -1447,6 +1458,9 @@ function BotService(objectCollection) {
                             i.bot_operation_inline_data = JSON.stringify({
                                 "err": result[1]
                             });
+                            await handleBotOperationMessageUpdate(request, i, 4, result[1]);
+                        } else {
+                            await handleBotOperationMessageUpdate(request, i, 3);
                         }
                     } catch (err) {
                         logger.error("serverError | Error in executing alterWFCompletionPercentage Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
@@ -1455,6 +1469,7 @@ function BotService(objectCollection) {
                             "err": err
                         });
                         //return Promise.reject(err);
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
@@ -1466,6 +1481,7 @@ function BotService(objectCollection) {
                     request.debug_info.push('FIRE API ');
                     try {
                         await fireApi(request, botOperationsJson.bot_operations.fire_api);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         global.logger.write('conLog', 'Error in executing fireApi Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
@@ -1474,6 +1490,7 @@ function BotService(objectCollection) {
                             "err": err
                         });
                         //return Promise.reject(err);
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
@@ -1486,6 +1503,7 @@ function BotService(objectCollection) {
                     ) {
                         // Do not fire this bot step on form edits
                         logger.verbose(`Do Not Fire Email On Form Edit`, { type: 'bot_engine', request_body: request, error: null });
+                        await handleBotOperationMessageUpdate(request, i, 3, "Do Not Fire Send Text Message On Form Edit");
                         continue;
                         // break;
                     }
@@ -1494,6 +1512,8 @@ function BotService(objectCollection) {
                     request.debug_info.push('FIRE TEXT');
                     try {
                         await fireTextMsg(request, botOperationsJson.bot_operations.fire_text);
+
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         util.logError(request,`Error in executing fireTextMsg Step | Error: `, { type: 'bot_engine', err });
                         global.logger.write('serverError', err, {}, {});
@@ -1502,6 +1522,7 @@ function BotService(objectCollection) {
                             "err": err
                         });
                         //return Promise.reject(err);
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
@@ -1514,6 +1535,7 @@ function BotService(objectCollection) {
                     ) {
                         // Do not fire this bot step on form edits
                         logger.verbose(`Do Not Fire Email On Form Edit`, { type: 'bot_engine', request_body: request, error: null });
+                        await handleBotOperationMessageUpdate(request, i, 3, "Do Not Fire Email On Form Edit");
                         continue;
                         // break;
                     }
@@ -1522,6 +1544,7 @@ function BotService(objectCollection) {
                     request.debug_info.push('FIRE EMAIL ');
                     try {
                         await fireEmail(request, botOperationsJson.bot_operations.fire_email);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         global.logger.write('conLog', 'Error in executing fireEmail Step', {}, {});
                         util.logError(request,`Error in executing fireEmail Step: `, { type: 'bot_engine', err });
@@ -1530,6 +1553,7 @@ function BotService(objectCollection) {
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                         //return Promise.reject(err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
@@ -1543,12 +1567,14 @@ function BotService(objectCollection) {
                     request.debug_info.push('add_comment | Request Params received by BOT ENGINE'+ request);
                     try {
                         await addComment(request, botOperationsJson.bot_operations.add_comment);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         util.logError(request,`add_comment | Error`, { type: 'bot_engine', error });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     util.logInfo(request,`****************************************************************`);
                     break;
@@ -1579,12 +1605,15 @@ function BotService(objectCollection) {
                         util.logInfo(request,`try add_attachment_with_attestation`);
                         
                          await addAttachmentWithAttestation(request, botOperationsJson.bot_operations.add_attachment_with_attestation);
+
+                         await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         util.logError(request,`add_attachment_with_attestation  | Error`, { type: 'bot_engine', err });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     util.logInfo(request,`****************************************************************`);
                     break;
@@ -1614,12 +1643,14 @@ function BotService(objectCollection) {
                         util.logInfo(request,`form_pdf`);
                         // commenting to get hummus error
                         // await addPdfFromHtmlTemplate(request, botOperationsJson.bot_operations.form_pdf);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         logger.error("serverError | Error in executing form_pdf Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     util.logInfo(request,`****************************************************************`);
                     break;
@@ -1631,8 +1662,10 @@ function BotService(objectCollection) {
                     logger.silly("LEDGER TRANSACTION");
                     try {
                         await ledgerOpsService.ledgerCreditDebitNetTransactionUpdate(request);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error) {
                         util.logError(request,`LEDGER TRANSACTION Error: `, { type: 'bot_engine', error });
+                        await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     break;
 
@@ -1643,13 +1676,16 @@ function BotService(objectCollection) {
                     ) {
                         // Do not fire this bot step on form edits
                         logger.silly(`Do Not Fire Create Customer On Form Edit`, { type: 'bot_engine', error: null });
+                        await handleBotOperationMessageUpdate(request, i, 3, "Do Not Fire Create Customer On Form Edit");
                         continue;
                     }
                     logger.silly("CREATE CUSTOMER");
                     try {
                         await createCustomerAsset(request, botOperationsJson.bot_operations.create_customer);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error) {
                         util.logError(request,`CREATE CUSTOMER Error: `, { type: 'bot_engine', error });
+                        await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     break;
                 
@@ -1657,8 +1693,10 @@ function BotService(objectCollection) {
                     logger.silly("Workflow Reference Bot");
                     try {
                         //await createCustomerAsset(request, botOperationsJson.bot_operations.create_customer);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error) {
                         util.logError(request,`Workflow Reference Bot: `, { type: 'bot_engine', error });
+                        await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     break;
 
@@ -1687,6 +1725,7 @@ function BotService(objectCollection) {
                         }                        
                     } catch (error) {
                         logger.error("Error parsing inline JSON for workbook bot", { type: 'bot_engine', error, request_body: request });
+                        await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
 
                     util.logInfo(request,` `);
@@ -1740,6 +1779,7 @@ function BotService(objectCollection) {
 
                     if (wfActivityDetails.length > 0) {
                         if (wfActivityDetails[0].parent_activity_id > 0) {
+                            await handleBotOperationMessageUpdate(request, i, 3, "Avoiding workbook mapping bot on child opportunity");
                             break;
                         }
                     }
@@ -1803,7 +1843,7 @@ function BotService(objectCollection) {
                                 }, (error, data) => {
                                     if (error) {
                                         logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
-
+                                        await handleBotOperationMessageUpdate(request, i, 4, error);
                                         activityCommonService.workbookTrxUpdate({
                                             activity_workbook_transaction_id: workbookTxnID,
                                             flag_generated: -1, //Error pushing to SQS Queue
@@ -1824,8 +1864,10 @@ function BotService(objectCollection) {
                             } else {
                                 // await workbookOpsService.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
                             }
+                            
                         } catch (error) {
                             logger.error("Error running the Workbook Mapping Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            await handleBotOperationMessageUpdate(request, i, 4, error);
                         }
                     } else {
                         util.logInfo(request,`Its not a custom Variant. Hence not triggering the Bot!`);
@@ -1836,7 +1878,7 @@ function BotService(objectCollection) {
                         
                         await addTimelineEntry({...request,content:`BC excel mapping is not configured for this opportunity as it is a standard plan`,subject:"sample",mail_body:request.mail_body,attachment:[],timeline_stream_type_id:request.timeline_stream_type_id},1);
                     }
-                    
+                    await handleBotOperationMessageUpdate(request, i, 3);
                     break;
 
                 case 19: // Update CUID Bot
@@ -1874,8 +1916,10 @@ function BotService(objectCollection) {
 
                     try {
                         await updateCUIDBotOperation(request, formInlineDataMap, updateCuids);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error) {
                         logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     break;
 
@@ -1884,8 +1928,10 @@ function BotService(objectCollection) {
                     logger.silly("Due date edit Bot - ESMS: %j", request);
                     try {
                         await this.setDueDateOfWorkflow(request, formInlineDataMap, botOperationsJson.bot_operations.due_date_edit, botOperationsJson.bot_operations.condition);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error) {
                         logger.error("Error running the setDueDateOfWorkflow", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     break;
 
@@ -1893,12 +1939,14 @@ function BotService(objectCollection) {
                     logger.silly("[participant_remove] Params received from Request: %j", request);
                     try {
                         await removeParticipant(request, botOperationsJson.bot_operations.participant_remove, formInlineDataMap);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error) {
                         logger.error("[participant_remove] Error removing participant", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "error": error
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     break;
                     
@@ -1915,12 +1963,14 @@ function BotService(objectCollection) {
                             form_transaction_id: Number(request.form_transaction_id),
                             payload: request
                         }, esmsIntegrationsTopicName, request.workflow_activity_id || request.activity_id);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error) {
                         logger.error("[ESMS Integrations- Consume] Error during consuming", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "error": error
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     break;
 
@@ -1930,12 +1980,14 @@ function BotService(objectCollection) {
                             util.logInfo(request,`botOperationsJson in Arithmetic Bot: %j` , botOperationsJson);
                             request.debug_info.push('botOperationsJson in Arithmetic Bot: '+ botOperationsJson);
                             await arithmeticBot(request, formInlineDataMap, botOperationsJson.bot_operations.arithmetic_calculation);
+                            await handleBotOperationMessageUpdate(request, i, 3);
                         } catch (error) {
                             logger.error("[Arithmetic Bot] Error in Arithmetic Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                             i.bot_operation_status_id = 2;
                             i.bot_operation_inline_data = JSON.stringify({
                                 "error": error
                             });
+                            await handleBotOperationMessageUpdate(request, i, 4, error);
                         }
                         break;
 
@@ -1943,12 +1995,14 @@ function BotService(objectCollection) {
                         logger.silly("Reminder Bot Params received from Request: %j", request);
                             try {
                                 await reminderBot(request, formInlineDataMap, botOperationsJson.bot_operations.date_reminder);
+                                await handleBotOperationMessageUpdate(request, i, 3);
                             } catch (error) {
                                 logger.error("[Reminder Bot] Error in Reminder Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                                 i.bot_operation_status_id = 2;
                                 i.bot_operation_inline_data = JSON.stringify({
                                     "error": error
                             });
+                            await handleBotOperationMessageUpdate(request, i, 4, error);
                         }                
                         break;
 
@@ -1963,12 +2017,14 @@ function BotService(objectCollection) {
                             inlineJSON: botOperationsJson.bot_operations.bulk_feasibility
                         }
                         sendToSqsPdfGeneration(requestForSQS);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error) {
                         logger.error("[Bulk Feasibility Excel Parser Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "error": error
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     break;
                 
@@ -1981,6 +2037,7 @@ function BotService(objectCollection) {
                         util.logInfo(request,`workflow start | Request Params received by BOT ENGINE`);
                         request.debug_info.push('workflow start | Request Params received by BOT ENGINE'+ request);
                         await workFlowCopyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         global.logger.write('conLog', 'Error in executing workflow start Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
@@ -1988,6 +2045,7 @@ function BotService(objectCollection) {
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                         //return Promise.reject(err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
@@ -2000,6 +2058,7 @@ function BotService(objectCollection) {
                     request.debug_info.push(request.workflow_activity_id+': GLOBAL PARTICIPANT ADD');
                     try {
                         await globalAddParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         global.logger.write(request.workflow_activity_id+':serverError', 'Error in executing Global addParticipant Step', {}, {});
                         global.logger.write(request.workflow_activity_id+':serverError', err, {}, {});
@@ -2007,6 +2066,7 @@ function BotService(objectCollection) {
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                         //return Promise.reject(err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
@@ -2019,6 +2079,7 @@ function BotService(objectCollection) {
                     request.debug_info.push(request.workflow_activity_id+': ARPBot');
                     try{
                         await arpBot(request, botOperationsJson.bot_operations);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     }catch(err){
                         global.logger.write(request.workflow_activity_id+': serverError', 'Error in executing ARPBot Step', {}, {});
                         global.logger.write(request.workflow_activity_id+': serverError', err, {}, {});
@@ -2026,7 +2087,8 @@ function BotService(objectCollection) {
                         i.bot_operation_inline_data = JSON.stringify({
                             "log":request.debug_info,
                             "err": err
-                        });                    
+                        });
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
 
@@ -2081,6 +2143,7 @@ function BotService(objectCollection) {
                                     flag_generated: -1, //Error pushing to SQS Queue
                                     url: ''
                                 });
+                                await handleBotOperationMessageUpdate(request, i, 4, error);
                             } else {
                                 logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });                                        
                             }                                    
@@ -2093,7 +2156,7 @@ function BotService(objectCollection) {
                         // });
 
                         // await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
-                    
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         global.logger.write(request.workflow_activity_id+': serverError', 'Error in executing checkCustomBot Step', {}, {});
                         global.logger.write(request.workflow_activity_id+': serverError', err, {}, {});
@@ -2103,6 +2166,7 @@ function BotService(objectCollection) {
                             "err": err
                         });
                         //return Promise.reject(err);
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
@@ -2114,6 +2178,7 @@ function BotService(objectCollection) {
                     request.debug_info.push('SME ILL Bot');
                     try {
                         // await checkSmeBot(request, botOperationsJson.bot_operations.bot_inline);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         global.logger.write('serverError', 'Error in executing SME ILL Bot Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
@@ -2121,6 +2186,7 @@ function BotService(objectCollection) {
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                         //return Promise.reject(err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
@@ -2132,7 +2198,7 @@ function BotService(objectCollection) {
                     request.generate_pdf = 1;
                     request.bot_operation_id=37;
                     sendToSqsPdfGeneration(request);
-                    
+                    await handleBotOperationMessageUpdate(request, i, 3);
                     
                     // try{
                     // let pdf_json = JSON.parse(i.bot_operation_inline_data);
@@ -2195,6 +2261,7 @@ function BotService(objectCollection) {
                     request.debug_info.push('Static copy field bot ');
                     try {
                         staticCopyField(request, botOperationsJson.bot_operations.static_form_field_copy);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         global.logger.write('serverError', 'Error in executing Static copy field bot Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
@@ -2202,6 +2269,7 @@ function BotService(objectCollection) {
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
@@ -2212,20 +2280,27 @@ function BotService(objectCollection) {
                     //JSON.parse(i.bot_operation_inline_data)
                     let approveJson = JSON.parse(i.bot_operation_inline_data).bot_operations.condition;
 
-                    let [err1,data]=await assetApprovalWorkflow(request,approveJson)
-
+                    try {
+                        let [err1,data]=await assetApprovalWorkflow(request,approveJson);
+                        await handleBotOperationMessageUpdate(request, i, 3);
+                    } catch(error) {
+                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                    }
+                    
                     global.logger.write('conLog', '****************************************************************', {}, {});
                     break;
                 case 40: // Bulk Create SR Bot
                     logger.silly("Bulk Create SR Bot params received from request: %j", request);
                     try {
                         await bulkCreateSRBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_create_sr);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error) {
                         logger.error("[Bulk Create SR Bot Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "error": error
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     break;
 
@@ -2243,6 +2318,7 @@ function BotService(objectCollection) {
                         }
                             
                         await applyLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                        // await applyWorkflowLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
                     } catch (error) {
                         logger.error("[Leave Aplication Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
@@ -2250,6 +2326,7 @@ function BotService(objectCollection) {
                         i.bot_operation_inline_data = JSON.stringify({
                         "error": error
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                 break;
                 
@@ -2257,7 +2334,8 @@ function BotService(objectCollection) {
                     logger.info(request.workflow_activity_id+": FTP Bot params received from request: %j", request);
                     let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
                     let s3url = await getFormFieldValue(request,ftpJson.field_id)
-                    sendToSqsPdfGeneration({...request,sqs_switch_flag:2,s3url,ftpJson,bot_operation_id:44})
+                    sendToSqsPdfGeneration({...request,sqs_switch_flag:2,s3url,ftpJson,bot_operation_id:44});
+                    await handleBotOperationMessageUpdate(request, i, 3);
                     // try {
                     //     let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
                     //     let s3url = await getFormFieldValue(request,ftpJson.field_id)
@@ -2296,6 +2374,7 @@ function BotService(objectCollection) {
                     logger.info("Remove CUID BOT : " + JSON.stringify(botOperationsJson.bot_operations))
                     try {
                         await removeCUIDs(request, botOperationsJson.bot_operations);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error) {
                         logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
@@ -2303,6 +2382,7 @@ function BotService(objectCollection) {
                             "error"      : error,
                             "error_stack" : error.stack
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     break;
 
@@ -2319,6 +2399,7 @@ function BotService(objectCollection) {
                         //}
                         let fieldValue = await getFormFieldValue(request, botOperationsJson.bot_operations.field_id);    
                         await activitySearchListUpdateAddition(request, botOperationsJson.bot_operations.column_flag,fieldValue);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error) {
                         util.logError(request,`[Widget drilldown additional fields] Error: `, { type: 'bot_engine', error: serializeError(error) });
                         i.bot_operation_status_id = 2;
@@ -2326,6 +2407,7 @@ function BotService(objectCollection) {
                             "log":request.debug_info,
                             "error": error
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     break;    
                     
@@ -2337,12 +2419,14 @@ function BotService(objectCollection) {
                     util.logInfo(request,`botOperationsJson : %j` , botOperationsJson);
                     try {
                         await editPDF(request, JSON.parse(i.bot_operation_inline_data));
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         logger.error("serverError | Error in executing pdf_edit Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     util.logInfo(request,`****************************************************************`);
                     break;
@@ -2350,12 +2434,14 @@ function BotService(objectCollection) {
                     logger.silly("Bulk Third party opex Bot params received from request: %j", request);
                     try {
                         await bulkThirdPartyOpexBot(request, formInlineDataMap, botOperationsJson.bot_operations.third_party_opex_bulk);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error) {
                         logger.error("[Bulk Third party opex Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "error": error
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     break;
 
@@ -2366,12 +2452,14 @@ function BotService(objectCollection) {
                     request.debug_info.push('pdf_edit');
                     try {
                         await activityUpdateCustomerData(request,botOperationsJson.bot_operations );
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         logger.error("serverError | Error in executing Activity Update customer data  Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     util.logInfo(request,`****************************************************************`);
                     break;
@@ -2384,12 +2472,14 @@ function BotService(objectCollection) {
                     try {
                         util.logInfo(request,`botOperationsJson.bot_operations.condition.form_id ${botOperationsJson.bot_operations.condition.form_id}`);
                         sendToSqsPdfGeneration({ ...request, sqs_switch_flag: 3, bot_operation_id: 51, third_party_opex_form_id:botOperationsJson.bot_operations.condition.form_id  });
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         logger.error("Autopopulate | Error in pushing sqs message for autopopulate", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     util.logInfo(request,`****************************************************************`);
                 break;
@@ -2401,12 +2491,14 @@ function BotService(objectCollection) {
                     try {
                         util.logInfo(request,`came in auto submit`);
                         autoFormSubmission(request,botOperationsJson.bot_operations);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         logger.error("Auto form submission | Error ", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     util.logInfo(request,`****************************************************************`);
                 break;
@@ -2477,6 +2569,7 @@ function BotService(objectCollection) {
                             if (error) {
                                 logger.error(request.workflow_activity_id+": Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
                                 util.logError(request,request.workflow_activity_id + `: Error sending excel job to SQS queue`, { type: 'bot_engine', error });
+                                await handleBotOperationMessageUpdate(request, i, 4, error);
                             } else {
                                 logger.info(request.workflow_activity_id+": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });    
                                 util.logInfo(request, `${request.workflow_activity_id} : Successfully sent excel job to SQS queue:  %j` , data);
@@ -2511,7 +2604,7 @@ function BotService(objectCollection) {
                                 }
                             }
                         });
-
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         global.logger.write('conLog', 'Error in executing Child Order creation BOT Step', {}, {});
                         global.logger.write('serverError', err, {}, {});
@@ -2519,6 +2612,7 @@ function BotService(objectCollection) {
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, err);
                         //return Promise.reject(err);
                     }
                     global.logger.write('conLog', '****************************************************************', {}, {});
@@ -2534,12 +2628,14 @@ function BotService(objectCollection) {
                             inlineJSON: botOperationsJson.bot_operations.non_ascii_check
                         }
                         sendToSqsPdfGeneration(requestForSQS);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error) {
                         logger.error("[Non Ascci Check Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "error": error
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     break;
 
@@ -2547,12 +2643,14 @@ function BotService(objectCollection) {
                     logger.silly("Midmile Excel Generation Bot: %j", request);
                     try {
                         await midmileExcelCreationBot(request, botOperationsJson.bot_operations);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error) {
                         logger.error("[Midmile Excel Generation Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "error": error
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     break;
                 
@@ -2560,12 +2658,14 @@ function BotService(objectCollection) {
                     
                     try{
                         await addCUIDs(request, botOperationsJson.bot_operations);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error){
                         logger.error("[Add Pan to elastic Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "error": error
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     break;
 
@@ -2573,12 +2673,14 @@ function BotService(objectCollection) {
                     
                     try{
                         await closeRefferedOutActivities(request, botOperationsJson.bot_operations);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error){
                         logger.error("[Close Reffered Out Activities Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "error": error
                         });
+                        await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     break;
 
@@ -2587,8 +2689,10 @@ function BotService(objectCollection) {
                     logger.silly("Due date remove Bot - ESMS: %j", request);
                     try {
                         await this.removeDueDateOfWorkflow(request, botOperationsJson.bot_operations.due_date_edit);
+                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error) {
                         logger.error("Error running the removeDueDateOfWorkflow", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     break;
             }
@@ -17106,6 +17210,31 @@ if(workflowActivityData.length==0){
         return [error, responseData];
     }
 
+    async function handleBotOperationMessageUpdate(request, i, statusID, error = {}) {
+        try {
+            let requestForBotTransactionUpdate = {};
+            requestForBotTransactionUpdate.sqs_bot_transaction_id = request.sqs_bot_transaction_id;
+            requestForBotTransactionUpdate.message_id = request.message_id;
+            requestForBotTransactionUpdate.bot_operation_id = i.bot_operation_id;
+            requestForBotTransactionUpdate.bot_operation_type_id = i.bot_operation_type_id;
+            requestForBotTransactionUpdate.workflow_activity_id = request.workflow_activity_id || 0;
+            requestForBotTransactionUpdate.form_activity_id = request.activity_id || 0;
+            requestForBotTransactionUpdate.form_trasnaction_id = request.form_trasnaction_id || 0;
+            requestForBotTransactionUpdate.form_id = i.form_id || 0;
+            requestForBotTransactionUpdate.field_id = i.field_id || 0;
+            requestForBotTransactionUpdate.status_id = statusID;
+            requestForBotTransactionUpdate.bot_operation_start_datetime = util.getCurrentUTCTime();
+            requestForBotTransactionUpdate.bot_operation_end_datetime = util.getCurrentUTCTime();
+            requestForBotTransactionUpdate.error_failed_json = JSON.stringify({ logs: request.debug_info, error: error });
+            requestForBotTransactionUpdate.organization_id = request.organization_id || 0;
+            requestForBotTransactionUpdate.log_datetime = util.getCurrentUTCTime();
+
+            await util.BOTOperationMessageTransactionInsertAsync(requestForBotTransactionUpdate);
+        } catch (e) {
+            util.logError(request, `Error inserting bot operation message ` { type: "bot_consumer", error: serializeError(e) })
+        }
+
+    }
 
 }
 
