@@ -1483,8 +1483,7 @@ function BotService(objectCollection) {
                         await fireApi(request, botOperationsJson.bot_operations.fire_api);
                         await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
-                        util.logInfo(request, 'Error in executing fireApi Step');
-                        util.logError(request, 'serverError', { err })
+                        util.logError(request, 'Error in executing fireApi Step', { err })
                         i.bot_operation_status_id = 3;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
