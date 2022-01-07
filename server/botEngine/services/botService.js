@@ -1515,7 +1515,7 @@ function BotService(objectCollection) {
                         await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         util.logError(request,`Error in executing fireTextMsg Step | Error: `, { type: 'bot_engine', err });
-                        util.logInfo(request, 'serverError', { err });
+                        util.logError(request, 'serverError', { err });
                         i.bot_operation_status_id = 4;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -1545,9 +1545,8 @@ function BotService(objectCollection) {
                         await fireEmail(request, botOperationsJson.bot_operations.fire_email);
                         await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
-                        util.logInfo(request, 'Error in executing fireEmail Step');
                         util.logError(request,`Error in executing fireEmail Step: `, { type: 'bot_engine', err });
-                        util.logInfo(request, 'serverError', { err });
+                        util.logError(request, 'Error in executing fireEmail Step', { err });
                         i.bot_operation_status_id = 4;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -2039,7 +2038,7 @@ function BotService(objectCollection) {
                         await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         util.logInfo(request, 'Error in executing workflow start Step');
-                        util.logInfo(request, 'serverError', { err });
+                        util.logError(request, 'serverError', { err });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -2176,8 +2175,7 @@ function BotService(objectCollection) {
                         // await checkSmeBot(request, botOperationsJson.bot_operations.bot_inline);
                         await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
-                        util.logInfo(request, 'serverError', 'Error in executing SME ILL Bot Step');
-                        util.logInfo(request, 'serverError', { err });
+                        util.logError(request, 'Error in executing SME ILL Bot Step',{ err });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -2259,8 +2257,7 @@ function BotService(objectCollection) {
                         staticCopyField(request, botOperationsJson.bot_operations.static_form_field_copy);
                         await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
-                        util.logInfo(request, 'serverError', 'Error in executing Static copy field bot Step');
-                        util.logInfo(request, 'serverError', { err });
+                        util.logError(request, 'Error in executing Static copy field bot Step', { err });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -7129,7 +7126,7 @@ else{
         fire716OnWFOrderFileRequest.data_activity_id = request.activity_id;
         fire716OnWFOrderFileRequest.log_asset_id = 100;
 
-        util.logInfo(request, 'fire716OnWFOrderFileRequest %:', fire716OnWFOrderFileRequest, {});
+        util.logInfo(request, 'fire716OnWFOrderFileRequest: %j', fire716OnWFOrderFileRequest);
         request.debug_info.push('fire716OnWFOrderFileRequest: ' + fire716OnWFOrderFileRequest);
         return new Promise((resolve, reject) => {
             activityTimelineService.addTimelineTransaction(fire716OnWFOrderFileRequest, (err, resp) => {
@@ -7437,7 +7434,7 @@ else{
             //request.email_sender_name = 'Vodafoneidea';
 
             util.logInfo(request, 'sendEmail emailSubject %j', emailSubject);
-            util.logInfo(request, 'sendEmail emailSubject %j', Template);            
+            util.logInfo(request, 'sendEmail Template %j', Template);            
 
             if(Number(request.organization_id) === 868) {
                 util.logInfo(request,`Its vodafone request`);
@@ -7478,7 +7475,7 @@ else{
                     Template,
                     (err, data) => {
                         if (err) {
-                            until.logError(request, '[Send Email On Form Submission | Error]', {err })
+                            until.logError(request, '[Send Email On Form Submission | Error]', { err })
                         } else {
                             utill.logInfo(request, "[Send Email On Form Submission | Response]: " + "Email Sent", data);
                         }                        
