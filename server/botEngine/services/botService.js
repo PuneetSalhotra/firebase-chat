@@ -1107,6 +1107,8 @@ function BotService(objectCollection) {
         //bot_flag_trigger_on_field_edit
         if(Number(request.is_from_field_alter) === 1) { //Request has come from field alter       
             util.logInfo(request,`In form_field_alter`);
+            
+            
             util.logInfo(request,`formInlineDataMap:  %j`, formInlineDataMap);
 
             /*In case of Refill 
@@ -1132,6 +1134,20 @@ function BotService(objectCollection) {
             //console.log('formLevelWFSteps : ', formLevelWFSteps);
 
             //To trigger only field level Bots
+            if(request.is_bulk_edit == 1){
+            for(let lk=0;lk<formInlineData.length;lk++){
+            let eachFieldLevelWFSteps = await this.getBotworkflowStepsByForm({
+                "organization_id": 0,
+                "form_id": request.form_id,
+                "field_id": formInlineData[lk].field_id,
+                "bot_id": 0, // request.bot_id,
+                "page_start": 0,
+                "page_limit": 50
+            });
+            fieldLevelWFSteps = [...fieldLevelWFSteps,...eachFieldLevelWFSteps];
+        }
+        }
+        else {
             fieldLevelWFSteps = await this.getBotworkflowStepsByForm({
                 "organization_id": 0,
                 "form_id": request.form_id,
@@ -1140,12 +1156,14 @@ function BotService(objectCollection) {
                 "page_start": 0,
                 "page_limit": 50
             });
+        }
+        // console.log(fieldLevelWFSteps)
 
             if(formLevelWFSteps.length > 0) {
                 wfSteps = fieldLevelWFSteps.concat(formLevelWFSteps);
             } else {
                 wfSteps = fieldLevelWFSteps;
-            }            
+            }    
 
         } else if(Number(request.is_refill) === 1) { 
             util.logInfo(request,`This is smart form - Refill case`);
