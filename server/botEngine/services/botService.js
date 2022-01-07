@@ -3391,7 +3391,7 @@ return [error, responseData];
             request.debug_info.push('inlineData: ' + JSON.stringify(inlineData));
 
             let type = Object.keys(inlineData);
-                util.logInfo(request, 'removeParticipant type', type);
+                util.logInfo(request, 'removeParticipant type: %j', type);
                 request.debug_info.push('type: ' + type);
 
             //console.log('type[0]: ', type[0]);
@@ -7476,7 +7476,7 @@ else{
                         if (err) {
                             until.logError(request, '[Send Email On Form Submission | Error]', { err })
                         } else {
-                            utill.logInfo(request, "[Send Email On Form Submission | Response]: " + "Email Sent", data);
+                            util.logInfo(request, "[Send Email On Form Submission | Response]: " + "Email Sent", data);
                         }                        
                     });
             }
