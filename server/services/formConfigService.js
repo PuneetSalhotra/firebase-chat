@@ -1142,6 +1142,7 @@ function FormConfigService(objCollection) {
                         let workflowRequest = Object.assign({}, request);
                             workflowRequest.activity_inline_data = JSON.stringify(activityInlineData);
                             workflowRequest.is_from_field_alter = 1;
+                            workflowRequest.is_bulk_edit = 1;
                         try {
                             self.workflowOnFormEdit(workflowRequest);
                         } catch (error) {
@@ -1243,7 +1244,7 @@ function FormConfigService(objCollection) {
                 var params = new Array(
                     request.form_transaction_id, //0
                     request.form_id, //1
-                    request.field_id, //2
+                    row.field_id, //2
                     dataTypeComboId,
                     //request.data_type_combo_id || 0, //3
                     //request.data_type_combo_id || row.data_type_combo_id, //3
@@ -5823,6 +5824,33 @@ function FormConfigService(objCollection) {
             request.field_id
         );
         const queryString = util.getQueryString('ds_p1_activity_form_transaction_select_trans_field_history', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.insertFormFieldsHistoryV1 = async function(request) {
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_id,
+            request.organization_id,
+            request.form_transaction_id,
+            request.form_id,
+            request.field_id
+        );
+        const queryString = util.getQueryString('ds_p1_1_activity_form_transaction_select_trans_field_history', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)

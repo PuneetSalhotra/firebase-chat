@@ -11355,9 +11355,13 @@ if (queryString !== '') {
             error = true;
 
         const paramsArr = new Array(
-            request.tag_type_filter_label, 
+            request.tag_type_filter_label,
+            request.tag_type_filter_name,
+            request.tag_type_filter_options,
             request.tag_type_id,
             request.filter_id,
+            request.filter_name,
+            request.filter_type_id,
             request.filter_sequence_id,
             request.filter_inline_data,
             request.filter_access_flag,
