@@ -11933,6 +11933,34 @@ if (queryString !== '') {
         return [error, responseData];
     };
 
+     this.workforceActivityTypeMapiingDashboardUpdate = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_id,
+            request.dashboard_config_fields,
+            request.dashboard_config_enabled,
+            request.asset_id, 
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_update_dashboard', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
 }
 
 module.exports = AdminOpsService;
