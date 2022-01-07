@@ -2602,7 +2602,7 @@ function AnalyticsService(objectCollection)
                 //paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 paramsArray[15] = 0;
                 paramsArray[16] = 0;
-                paramsArray[1] = filter_date_type_id;
+                paramsArray[1] = request.filter_date_type_id;
                 if (widgetFlags[iteratorM] == 2) {
                     paramsArray[1] = 2;
                     paramsArray[15] = 1;
@@ -5418,7 +5418,7 @@ function AnalyticsService(objectCollection)
                 //paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 paramsArray[15] = 0;
                 paramsArray[16] = 0;
-                paramsArray[1] = filter_date_type_id;
+                paramsArray[1] = request.filter_date_type_id;
                 if (widgetFlags[iteratorM] == 2) {
                     paramsArray[1] = 2;
                     paramsArray[15] = 1;
@@ -6260,7 +6260,7 @@ function AnalyticsService(objectCollection)
                 //paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 paramsArray[15] = 0;
                 paramsArray[16] = 0;
-                paramsArray[1] = filter_date_type_id;
+                paramsArray[1] = request.filter_date_type_id;
                 if (widgetFlags[iteratorM] == 2) {
                     paramsArray[1] = 2;
                     paramsArray[15] = 1;
@@ -6420,7 +6420,7 @@ function AnalyticsService(objectCollection)
                 resourceValueFlgArrayTotal[i] = {};
                 resourceValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArray[i]);
             }
-
+            /*
             if (results.length == 1 && finalResourceMap.size == 0) {
                 let newMap = new Map();
                 for (let i = 0; i < widgetFlags.length; i++) {
@@ -6438,8 +6438,9 @@ function AnalyticsService(objectCollection)
                     finalResourceMap.set(request.filter_asset_id, newMap);
                 }
             }
+           
+            */
             console.log("finalResourceMap ", JSON.stringify(finalResourceMap));
-            
             for (let [key, value] of finalResourceMap) {
                 console.log("key:"+key+" value:"+JSON.stringify(value))
                 let newMap = value;
@@ -6681,7 +6682,7 @@ function AnalyticsService(objectCollection)
                 resourceValueFlgArrayTotal[i] = {};
                 resourceValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArray[i]);
             }
-
+            /*
             if (results.length == 1 && finalResourceMap.size == 0) {
                 let newMap = new Map();
                 for (let i = 0; i < widgetFlags.length; i++) {
@@ -6698,7 +6699,7 @@ function AnalyticsService(objectCollection)
                     newMap.set("flag_" + (iteratorM + 1) + "_value", 0);
                     finalResourceMap.set(request.filter_asset_id, newMap);
                 }
-            }
+            } */
             console.log("finalResourceMap ", JSON.stringify(finalResourceMap));
 
             for (let [key, value] of finalResourceMap) {
@@ -6980,7 +6981,7 @@ function AnalyticsService(objectCollection)
                 resourceValueFlgArrayTotal[i] = {};
                 resourceValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArray[i]);
             }
-
+            /*
             if (results.length == 1 && finalResourceMap.size == 0) {
                 let newMap = new Map();
                 for (let i = 0; i < widgetFlags.length; i++) {
@@ -6997,7 +6998,7 @@ function AnalyticsService(objectCollection)
                     newMap.set("flag_" + (iteratorM + 1) + "_value", 0);
                     finalResourceMap.set(request.filter_asset_id, newMap);
                 }
-            }
+            }*/
             console.log("finalResourceMap ",JSON.stringify(finalResourceMap));
 
             for (let [key, value] of finalResourceMap) {
