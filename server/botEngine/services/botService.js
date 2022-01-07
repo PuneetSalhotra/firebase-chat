@@ -2037,8 +2037,7 @@ function BotService(objectCollection) {
                         await workFlowCopyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
                         await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
-                        util.logInfo(request, 'Error in executing workflow start Step');
-                        util.logError(request, 'serverError', { err });
+                        util.logError(request, 'Error in executing workflow start Step', { err });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
