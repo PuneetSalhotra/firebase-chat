@@ -1447,8 +1447,8 @@ function BotService(objectCollection) {
 
                 //case 'workflow_percentage_alter': 
                 case 4: //Update Workflow Percentage
-                    global.logger.write('conLog', '****************************************************************', {}, {});
-                    global.logger.write('conLog', 'WF PERCENTAGE ALTER', {}, {});
+                    util.logInfo(request,'****************************************************************')
+                    util.logInfo(request, 'WF PERCENTAGE ALTER');
                     logger.silly("Request Params received from Request: %j", request);
                     request.debug_info.push('WF PERCENTAGE ALTER ');
                     try {
@@ -1471,20 +1471,20 @@ function BotService(objectCollection) {
                         //return Promise.reject(err);
                         await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
-                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    util.logInfo(request, '****************************************************************');
                     break;
 
                 //case 'fire_api': 
                 case 5: // External System Integration
-                    global.logger.write('conLog', '****************************************************************', {}, {});
-                    global.logger.write('conLog', 'FIRE API', {}, {});
+                    util.logInfo(request, '****************************************************************');
+                    util.logInfo(request, 'FIRE API');
                     request.debug_info.push('FIRE API ');
                     try {
                         await fireApi(request, botOperationsJson.bot_operations.fire_api);
                         await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
-                        global.logger.write('conLog', 'Error in executing fireApi Step', {}, {});
-                        global.logger.write('serverError', err, {}, {});
+                        util.logInfo(request, 'Error in executing fireApi Step');
+                        util.logError(request, 'serverError', { err })
                         i.bot_operation_status_id = 3;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -1492,7 +1492,7 @@ function BotService(objectCollection) {
                         //return Promise.reject(err);
                         await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
-                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    util.logInfo(request, '****************************************************************');
                     break;
 
                 //case 'fire_text': 
@@ -1507,8 +1507,8 @@ function BotService(objectCollection) {
                         continue;
                         // break;
                     }
-                    global.logger.write('conLog', '****************************************************************', {}, {});
-                    global.logger.write('conLog', 'FIRE TEXT', {}, {});
+                    util.logInfo(request, '****************************************************************');
+                    util.logInfo(request, 'FIRE TEXT');
                     request.debug_info.push('FIRE TEXT');
                     try {
                         await fireTextMsg(request, botOperationsJson.bot_operations.fire_text);
@@ -1516,7 +1516,7 @@ function BotService(objectCollection) {
                         await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         util.logError(request,`Error in executing fireTextMsg Step | Error: `, { type: 'bot_engine', err });
-                        global.logger.write('serverError', err, {}, {});
+                        util.logInfo(request, 'serverError', { err });
                         i.bot_operation_status_id = 4;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -1524,7 +1524,7 @@ function BotService(objectCollection) {
                         //return Promise.reject(err);
                         await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
-                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    util.logInfo(request, '****************************************************************');
                     break;
 
                 //case 'fire_email':           
@@ -1539,16 +1539,16 @@ function BotService(objectCollection) {
                         continue;
                         // break;
                     }
-                    global.logger.write('conLog', '****************************************************************', {}, {});
-                    global.logger.write('conLog', 'FIRE EMAIL', {}, {});
+                    util.logInfo(request, '****************************************************************');
+                    util.logInfo(request, 'FIRE EMAIL');
                     request.debug_info.push('FIRE EMAIL ');
                     try {
                         await fireEmail(request, botOperationsJson.bot_operations.fire_email);
                         await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
-                        global.logger.write('conLog', 'Error in executing fireEmail Step', {}, {});
+                        util.logInfo(request, 'Error in executing fireEmail Step');
                         util.logError(request,`Error in executing fireEmail Step: `, { type: 'bot_engine', err });
-                        global.logger.write('serverError', err, {}, {});
+                        util.logInfo(request, 'serverError', { err });
                         i.bot_operation_status_id = 4;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -1556,7 +1556,7 @@ function BotService(objectCollection) {
                         await handleBotOperationMessageUpdate(request, i, 4, err);
                         //return Promise.reject(err);
                     }
-                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    util.logInfo(request, '****************************************************************');
                     break;
                 
                 case 8: // add_comment
@@ -2029,18 +2029,18 @@ function BotService(objectCollection) {
                     break;
                 
                 case 31: // workflow start bot
-                    global.logger.write('conLog', '****************************************************************', {}, {});
-                    global.logger.write('conLog', 'WorkFlow Bot', {}, {});
+                    util.logInfo(request, '****************************************************************');
+                    util.logInfo(request, 'WorkFlow Bot');
                     request.debug_info.push('WorkFlow Bot');
                     try {
-                        // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
+                        // util.logInfo(request, 'Request Params received by BOT ENGINE', request, {});
                         util.logInfo(request,`workflow start | Request Params received by BOT ENGINE`);
                         request.debug_info.push('workflow start | Request Params received by BOT ENGINE'+ request);
                         await workFlowCopyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
                         await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
-                        global.logger.write('conLog', 'Error in executing workflow start Step', {}, {});
-                        global.logger.write('serverError', err, {}, {});
+                        util.logInfo(request, 'Error in executing workflow start Step');
+                        util.logInfo(request, 'serverError', { err });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -2048,20 +2048,19 @@ function BotService(objectCollection) {
                         await handleBotOperationMessageUpdate(request, i, 4, err);
                         //return Promise.reject(err);
                     }
-                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    util.logInfo(request, '****************************************************************');
                     break;
 
                 case 33: //Global Add Participant
-                    global.logger.write('conLog', '****************************************************************', {}, {});
-                    global.logger.write('conLog', 'GLOBAL PARTICIPANT ADD', {}, {});
+                    util.logInfo(request, '****************************************************************');
+                    util.logInfo(request, 'GLOBAL PARTICIPANT ADD');
                     logger.info("Request Params received from Request: %j", request);
                     request.debug_info.push(request.workflow_activity_id+': GLOBAL PARTICIPANT ADD');
                     try {
                         await globalAddParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
                         await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
-                        global.logger.write(request.workflow_activity_id+':serverError', 'Error in executing Global addParticipant Step', {}, {});
-                        global.logger.write(request.workflow_activity_id+':serverError', err, {}, {});
+                        util.logError(request, 'Error in executing Global addParticipant Step', { err });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -2069,20 +2068,19 @@ function BotService(objectCollection) {
                         await handleBotOperationMessageUpdate(request, i, 4, err);
                         //return Promise.reject(err);
                     }
-                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    util.logInfo(request, '****************************************************************');
                     break;
 
                 case 34: // ARP
-                    global.logger.write('conLog', request.workflow_activity_id+': ****************************************************************', {}, {});
-                    global.logger.write('conLog', request.workflow_activity_id+': ARPBot', {}, {});
+                    util.logInfo(request, request.workflow_activity_id+': ****************************************************************');
+                    util.logInfo(request, request.workflow_activity_id+': ARPBot');
                     logger.info(request.workflow_activity_id+": ARP: Request Params received from Request: %j", request);
                     request.debug_info.push(request.workflow_activity_id+': ARPBot');
                     try{
                         await arpBot(request, botOperationsJson.bot_operations);
                         await handleBotOperationMessageUpdate(request, i, 3);
                     }catch(err){
-                        global.logger.write(request.workflow_activity_id+': serverError', 'Error in executing ARPBot Step', {}, {});
-                        global.logger.write(request.workflow_activity_id+': serverError', err, {}, {});
+                        util.logError(request, 'Error in executing ARPBot Step', { err });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "log":request.debug_info,
@@ -2090,13 +2088,13 @@ function BotService(objectCollection) {
                         });
                         await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
-                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    util.logInfo(request, '****************************************************************');
 
                 break;
 
                 case 35: //custom bot
-                    global.logger.write('conLog', '****************************************************************', {}, {});
-                    global.logger.write('conLog', 'checkLargeDoa', {}, {});
+                    util.logInfo(request, '****************************************************************');
+                    util.logInfo(request, 'checkLargeDoa');
                     logger.info(request.workflow_activity_id+": Request Params received from Request: %j", request);
                     request.debug_info.push(request.workflow_activity_id+':checkLargeDoa');
                     try {
@@ -2157,9 +2155,8 @@ function BotService(objectCollection) {
 
                         // await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
                         await handleBotOperationMessageUpdate(request, i, 3);
-                    } catch (err) {
-                        global.logger.write(request.workflow_activity_id+': serverError', 'Error in executing checkCustomBot Step', {}, {});
-                        global.logger.write(request.workflow_activity_id+': serverError', err, {}, {});
+                    } catch (err) {                        
+                        util.logError(request, 'Error in executing checkCustomBot Step', { err });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "log":request.debug_info,
@@ -2168,20 +2165,20 @@ function BotService(objectCollection) {
                         //return Promise.reject(err);
                         await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
-                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    util.logInfo(request, '****************************************************************');
                     break;
             
                 case 36: //SME ILL DOA Bot
-                    global.logger.write('conLog', '****************************************************************', {}, {});
-                    global.logger.write('conLog', 'SME ILL Bot', {}, {});
+                    util.logInfo(request, '****************************************************************');
+                    util.logInfo(request, 'SME ILL Bot');
                     logger.info("Request Params received from Request: %j", request);
                     request.debug_info.push('SME ILL Bot');
                     try {
                         // await checkSmeBot(request, botOperationsJson.bot_operations.bot_inline);
                         await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
-                        global.logger.write('serverError', 'Error in executing SME ILL Bot Step', {}, {});
-                        global.logger.write('serverError', err, {}, {});
+                        util.logInfo(request, 'serverError', 'Error in executing SME ILL Bot Step');
+                        util.logInfo(request, 'serverError', { err });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -2189,7 +2186,7 @@ function BotService(objectCollection) {
                         await handleBotOperationMessageUpdate(request, i, 4, err);
                         //return Promise.reject(err);
                     }
-                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    util.logInfo(request, '****************************************************************');
                     break;
                 case 37: //PDF generation Bot
                     util.logInfo(request,`entered 37`);
@@ -2255,27 +2252,27 @@ function BotService(objectCollection) {
                     // }
                     break;
                 case 38:  //Static copy field bot
-                    global.logger.write('conLog', '****************************************************************', {}, {});
-                    global.logger.write('conLog', 'Static copy field bot', {}, {});
+                    util.logInfo(request, '****************************************************************');
+                    util.logInfo(request, 'Static copy field bot');
                     logger.silly("Request Params received from Request: %j", request);
                     request.debug_info.push('Static copy field bot ');
                     try {
                         staticCopyField(request, botOperationsJson.bot_operations.static_form_field_copy);
                         await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
-                        global.logger.write('serverError', 'Error in executing Static copy field bot Step', {}, {});
-                        global.logger.write('serverError', err, {}, {});
+                        util.logInfo(request, 'serverError', 'Error in executing Static copy field bot Step');
+                        util.logInfo(request, 'serverError', { err });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
                         await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
-                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    util.logInfo(request, '****************************************************************');
                     break;
                 case 39:  //Asset approval
-                    global.logger.write('conLog', '****************************************************************', {}, {});
-                    global.logger.write('conLog', 'Asset approval workflow bot', {}, {});
+                    util.logInfo(request, '****************************************************************');
+                    util.logInfo(request, 'Asset approval workflow bot');
                     logger.silly("Request Params received from Request: %j", request);
                     //JSON.parse(i.bot_operation_inline_data)
                     let approveJson = JSON.parse(i.bot_operation_inline_data).bot_operations.condition;
@@ -2287,7 +2284,7 @@ function BotService(objectCollection) {
                         await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     
-                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    util.logInfo(request, '****************************************************************');
                     break;
                 case 40: // Bulk Create SR Bot
                     logger.silly("Bulk Create SR Bot params received from request: %j", request);
@@ -2504,8 +2501,8 @@ function BotService(objectCollection) {
                 break;
 
                 case 54: // Child Order creation BOT
-                    global.logger.write('conLog', '****************************************************************', {}, {});
-                    global.logger.write('conLog', 'WorkFlow Bot', {}, {});
+                    util.logInfo(request, '****************************************************************');
+                    util.logInfo(request, 'WorkFlow Bot');
                     request.debug_info.push('WorkFlow Bot');
                     try {
                         // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
@@ -2606,8 +2603,7 @@ function BotService(objectCollection) {
                         });
                         await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
-                        global.logger.write('conLog', 'Error in executing Child Order creation BOT Step', {}, {});
-                        global.logger.write('serverError', err, {}, {});
+                        util.logError(request, 'Error in executing Child Order creation BOT Step', { err });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
@@ -2615,7 +2611,7 @@ function BotService(objectCollection) {
                         await handleBotOperationMessageUpdate(request, i, 4, err);
                         //return Promise.reject(err);
                     }
-                    global.logger.write('conLog', '****************************************************************', {}, {});
+                    util.logInfo(request, '****************************************************************');
                     break;
 
                 case 55: // Non Ascii Check Bot
@@ -3400,7 +3396,7 @@ return [error, responseData];
             request.debug_info.push('inlineData: ' + JSON.stringify(inlineData));
 
             let type = Object.keys(inlineData);
-                global.logger.write('conLog', type, {}, {});
+                util.logInfo(request, 'removeParticipant type', type);
                 request.debug_info.push('type: ' + type);
 
             //console.log('type[0]: ', type[0]);
@@ -6557,10 +6553,10 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
         let newReq = Object.assign({}, request);
         let resp;
 
-        global.logger.write('conLog', inlineData, {}, {});
+        util.logInfo(request, 'fireEmail inlineData: %j', inlineData);
         request.debug_info.push('inlineData: ' + inlineData);
         let type = Object.keys(inlineData);
-        global.logger.write('conLog', type, {}, {});
+        util.logInfo(request, 'fireEmail inlineData: %j', type);
         request.debug_info.push('type: ' + type);
 
         if (type[0] === 'static') {
@@ -6983,10 +6979,10 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
         let newReq = Object.assign({}, request);
         let resp;
         util.logInfo(request,`inline data %j` , JSON.stringify(inlineData));
-        global.logger.write('conLog', inlineData, {}, {});
+        util.logInfo(request, 'fireTextMsg inlineData: %j', inlineData);
         request.debug_info.push('inlineData: ' + inlineData);
         let type = Object.keys(inlineData);
-        global.logger.write('conLog', type, {}, {});
+        util.logInfo(request, 'fireTextMsg type: %j', type);
         request.debug_info.push('type: ' + type);
 
         if (type[0] === 'static') {
@@ -7036,7 +7032,7 @@ else{
         newReq.smsText = retrievedCommInlineData.communication_template.text.message;
         newReq.line = retrievedCommInlineData.communication_template.text.link || "";
         newReq.form = retrievedCommInlineData.communication_template.text.form || 0;
-        global.logger.write('conLog', newReq.smsText, {}, {});
+        util.logInfo(request, 'fireTextMsg smsText: %j', newReq.smsText);
         request.debug_info.push('smsText: ' + newReq.smsText);
 }
         if (newReq.line) {
@@ -7067,7 +7063,7 @@ else{
             let shortenedUrl = "";
             await new Promise((resolve, reject) => {
                 TinyURL.shorten(baseUrlApprove, function (res) {
-                    global.logger.write('conLog', res, {}, {});
+                    util.logInfo(request, 'fireTextMsg smsText: %j', res);
                     shortenedUrl = res;
                     resolve();
                 });
@@ -7079,14 +7075,14 @@ else{
         await new Promise((resolve, reject) => {
             if (Number(newReq.country_code) === 91) {
                 util.sendSmsSinfiniV1(newReq.smsText, newReq.country_code, newReq.phone_number,'GRNEOS', function (err, res) {
-                    global.logger.write('debug', 'Sinfini Error: ' + JSON.stringify(err, null, 2), {}, request);
-                    global.logger.write('debug', 'Sinfini Response: ' + JSON.stringify(res, null, 2), {}, request);
+                    util.logError(request, 'Sinfini Error: ', { err });
+                    util.logInfo(request, 'Sinfini Response: %j', res);
                     resolve();
                 });
             } else {
                 util.sendInternationalTwilioSMS(newReq.smsText, newReq.country_code, newReq.phone_number, function (err, res) {
-                    global.logger.write('debug', 'Twilio Error: ' + JSON.stringify(err, null, 2), {}, request);
-                    global.logger.write('debug', 'Twilio Response: ' + JSON.stringify(res, null, 2), {}, request);
+                    util.logError(request, 'Twilio Error: ', { err });
+                    util.logInfo(request, 'Twilio Response: %j', res);                    
                     resolve();
                 });
             }
@@ -7134,7 +7130,7 @@ else{
         fire716OnWFOrderFileRequest.data_activity_id = request.activity_id;
         fire716OnWFOrderFileRequest.log_asset_id = 100;
 
-        global.logger.write('conLog', 'fire716OnWFOrderFileRequest :', fire716OnWFOrderFileRequest, {});
+        util.logInfo(request, 'fire716OnWFOrderFileRequest %:', fire716OnWFOrderFileRequest, {});
         request.debug_info.push('fire716OnWFOrderFileRequest: ' + fire716OnWFOrderFileRequest);
         return new Promise((resolve, reject) => {
             activityTimelineService.addTimelineTransaction(fire716OnWFOrderFileRequest, (err, resp) => {
@@ -7148,10 +7144,10 @@ else{
         let newReq = Object.assign({}, request);
         let resp;
 
-        global.logger.write('conLog', inlineData, {}, {});
+        util.logInfo(request, 'fireApi inlineData: %j', inlineData);
         request.debug_info.push('inlineData: ' + inlineData);
         let type = Object.keys(inlineData);
-        global.logger.write('conLog', type, {}, {});
+        util.logInfo(request, 'fireApi inlineData: %j', type);
         request.debug_info.push('type: ' + type);
 
         if (type[0] === 'static') {
@@ -7172,7 +7168,7 @@ else{
                     "field_id": i.parameter_value.field_id,
                     "organization_id": newReq.organization_id
                 });
-                global.logger.write('conLog', resp, {}, {});
+                util.logInfo(request, 'fireApi inlineData: %j', resp);
                 request.debug_info.push('resp: ' + resp);
                 i.parameter_value = resp[0].data_entity_text_1;
             }
@@ -7216,10 +7212,10 @@ else{
     }
 
     this.alterWFCompletionPercentageMethod = async(request) => {
-        global.logger.write('conLog', '****************************************************************', {}, {});
-        global.logger.write('conLog', 'WF PERCENTAGE ALTER', {}, {});
-        global.logger.write('conLog', 'Request Params received from Request', {}, {});
-        global.logger.write('conLog', request, {}, {});
+        util.logInfo(request, '****************************************************************');
+        util.logInfo(request, 'WF PERCENTAGE ALTER');
+        util.logInfo(request, 'Request Params received from Request');
+        util.logInfo(request, 'alterWFCompletionPercentageMethod request: %j', request);
 
         let inline = {
             workflow_percentage_contribution: request.activity_status_workflow_percentage
@@ -7227,10 +7223,9 @@ else{
         try {
             let result = await alterWFCompletionPercentage(request, inline);
         } catch (err) {
-            global.logger.write('conLog', 'Error in executing alterWFCompletionPercentageMethod Step', {}, {});
-            global.logger.write('serverError', err, {}, {});
+            util.logInfo(request, 'Error in executing alterWFCompletionPercentageMethod Step: %j', err);
         }
-        global.logger.write('conLog', '****************************************************************', {}, {});
+        util.logInfo(request, '****************************************************************');
 
         return [false, {}]
     }
@@ -7240,13 +7235,13 @@ else{
         let newrequest = Object.assign({}, request);
 
         //newrequest.activity_id = request.workflow_activity_id;
-        global.logger.write('conLog', inlineData.workflow_percentage_contribution, {}, {});
+        util.logInfo(request, 'alterWFCompletionPercentage workflow_percentage_contribution: %j', inlineData.workflow_percentage_contribution);
         request.debug_info.push('inlineData.workflow_percentage_contribution: ' + inlineData.workflow_percentage_contribution);
         newrequest.workflow_completion_percentage = inlineData.workflow_percentage_contribution;
         let wfCompletionPercentage = newrequest.workflow_completion_percentage;
         //let resp = await getQueueActivity(newrequest, newrequest.workflow_activity_id);        
         let resp = await getAllQueuesBasedOnActId(newrequest, newrequest.workflow_activity_id);
-        global.logger.write('conLog', resp, {}, {});
+        util.logInfo(request, 'alterWFCompletionPercentage resp: %j', resp);
         request.debug_info.push('resp: ' + resp);
 
         if (Number(wfCompletionPercentage) !== 0) {
@@ -7313,8 +7308,7 @@ else{
                     organization_id: newrequest.organization_id
                 },
                     i.queue_id));
-                global.logger.write('conLog', 'queueActivityMappingData : ', {}, {});
-                global.logger.write('conLog', queueActivityMappingData, {}, {});
+                util.logInfo(request, 'queueActivityMappingData: %j', queueActivityMappingData);
 
                 request.debug_info.push('queueActivityMappingData: ' + queueActivityMappingData);
                 if (queueActivityMappingData.length > 0) {
@@ -7322,7 +7316,7 @@ else{
                     queueActMapInlineData = JSON.parse(queueActivityMappingData[0].queue_activity_mapping_inline_data);
                     let obj = {};
 
-                    global.logger.write('conLog', 'queueActMapInlineData.length', Object.keys(queueActMapInlineData).length, {});
+                    util.logInfo(request, 'queueActMapInlineData.length: %j', Object.keys(queueActMapInlineData).length);
                     request.debug_info.push('queueActMapInlineData.length: ' + Object.keys(queueActMapInlineData).length);
                     if (Object.keys(queueActMapInlineData).length === 0) {
                         obj.queue_sort = {};
@@ -7332,11 +7326,11 @@ else{
                         //queueActMapInlineData.queue_sort.caf_completion_percentage += wfCompletionPercentage;
                         queueActMapInlineData.queue_sort.caf_completion_percentage = wfCompletionPercentage;
                     }
-                    global.logger.write('conLog', 'Updated Queue JSON : ', queueActMapInlineData, {});
+                    util.logInfo(request, 'Updated Queue JSON : %j', queueActMapInlineData, {});
 
                     request.debug_info.push('Updated Queue JSON - queueActMapInlineData: ' + queueActMapInlineData);
                     data = await (activityCommonService.queueActivityMappingUpdateInlineData(newrequest, queueActivityMappingId, JSON.stringify(queueActMapInlineData)));
-                    global.logger.write('conLog', 'Updating the Queue Json : ', data, {});
+                    util.logInfo(request, 'Updating the Queue Json : %j', data, {});
 
                     request.debug_info.push('Updating the Queue Json -data: ' + data);
                     activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(() => { });
@@ -7436,15 +7430,15 @@ else{
 
     async function sendEmail(request, emailJson) {
         return new Promise(async (resolve, reject) => {
-            global.logger.write('conLog', "\x1b[35m [Log] Inside SendEmail \x1b[0m", {}, {});
+            util.logInfo(request, "\x1b[35m [Log] Inside SendEmail \x1b[0m", {}, {});
             const emailSubject = emailJson.subject;
             const Template = emailJson.body;
 
             //request.email_sender = 'OMT.IN1@vodafoneidea.com'; 
             //request.email_sender_name = 'Vodafoneidea';
 
-            global.logger.write('conLog', emailSubject, {}, {});
-            global.logger.write('conLog', Template, {}, {});            
+            util.logInfo(request, 'sendEmail emailSubject %j', emailSubject);
+            util.logInfo(request, 'sendEmail emailSubject %j', Template);            
 
             if(Number(request.organization_id) === 868) {
                 util.logInfo(request,`Its vodafone request`);
@@ -7485,11 +7479,9 @@ else{
                     Template,
                     (err, data) => {
                         if (err) {
-                            global.logger.write('conLog', "[Send Email On Form Submission | Error]: ", {}, {});
-                            global.logger.write('conLog', err, {}, {});
+                            until.logError(request, '[Send Email On Form Submission | Error]', {err })
                         } else {
-                            global.logger.write('conLog', "[Send Email On Form Submission | Response]: " + "Email Sent", {}, {});
-                            global.logger.write('conLog', data, {}, {});
+                            utill.logInfo(request, "[Send Email On Form Submission | Response]: " + "Email Sent", data);
                         }                        
                     });
             }
@@ -8029,9 +8021,9 @@ else{
         if (request.method === 'GET') {
             url = `${request.protocol}://${request.endpoint}`;
             makeRequest(url, function (error, response, body) {
-                global.logger.write('conLog', error, {}, {});
-                global.logger.write('conLog', response && response.statusCode, {}, {});
-                global.logger.write('conLog', body, {}, {});
+                util.logError(request, 'makeAPIRequest error', { error });
+                util.logInfo(request, 'makeAPIRequest response: %j', response && response.statusCode);
+                util.logInfo(request, 'makeAPIRequest body: %j', body);
             });
         } else if (request.method === 'POST') {
 
@@ -8039,8 +8031,7 @@ else{
                 formParams[i.parameter_key] = i.parameter_value;
             }
 
-            global.logger.write('conLog', 'formParams : ', {}, {});
-            global.logger.write('conLog', formParams, {}, {});
+            util.logInfo(request, 'makeAPIRequest formParams : %j', formParams);
             url = `${request.protocol}://${request.endpoint}`;
 
             return new Promise((resolve, reject) => {
@@ -8049,9 +8040,9 @@ else{
                     form: formParams
                 }, (err, httpResponse, body) => {
                     //global.logger.write('conLog', httpResponse,{},{});                    
-                    global.logger.write('conLog', 'error:', {}, {});
-                    global.logger.write('conLog', err, {}, {});
-                    global.logger.write('conLog', body, {}, {});
+                    
+                    util.logError(request, 'makeAPIRequest error', { err });
+                    util.logInfo(request, 'makeAPIRequest body : %j', body);
 
                     (err === null) ? resolve(body) : reject(err);
                 });
@@ -12105,8 +12096,7 @@ if(workflowActivityData.length==0){
         let resp;
         let isLead = 0, isOwner = 0, flagCreatorAsOwner = 0;
         
-        global.logger.write('conLog', inlineData, {}, {});
-        util.logInfo(request,`inlineData : %j` , inlineData);
+        util.logInfo(request,`globalAddParticipant inlineData : %j` , inlineData);
         request.debug_info.push('inlineData: ' + inlineData);
         newReq.message_unique_id = util.getMessageUniqueId(request.asset_id);
 
