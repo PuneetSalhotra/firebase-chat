@@ -256,7 +256,6 @@ function FormConfigController(objCollection) {
                 method: "alterFormActivityBulk",
                 payload: req.body
             };
-
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
                 if (err) {
                     //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
@@ -727,6 +726,16 @@ function FormConfigController(objCollection) {
             res.json(responseWrapper.getResponse({}, formFieldHistory, 200, req.body));
         } else {
             console.log("/form/fields/history | Error: ", err);
+            res.json(responseWrapper.getResponse(err, formFieldHistory, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/form/fields/history/v1', async function (req, res) {
+        const [err, formFieldHistory] = await formConfigService.insertFormFieldsHistoryV1(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, formFieldHistory, 200, req.body));
+        } else {
+            console.log("/form/fields/history/v1 | Error: ", err);
             res.json(responseWrapper.getResponse(err, formFieldHistory, -9999, req.body));
         }
     });
