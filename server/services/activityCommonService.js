@@ -7208,39 +7208,6 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         return [error, responseData];
     };
 
-    this.BOTMessageTransactionInsertAsync = async function (request) {
-        let responseData = [],
-            error = true;
-            
-        const paramsArr = new Array(
-            request.message_id,
-            request.workflow_activity_id,
-            request.form_activity_id,
-            request.form_trasnaction_id,
-            request.form_id,
-            request.field_id,
-            request.message_body,
-            request.status_id,
-            request.produced_datetime,
-            request.organization_id,
-            request.log_asset_id,
-            request.log_datetime,
-        );
-        const queryString = util.getQueryString('ds_p1_bot_message_transaction_insert', paramsArr);
-
-        if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, responseData];
-    };
-
     this.BOTMessageTransactionUpdateErrorAsync = async function (request) {
         let responseData = [],
             error = true;

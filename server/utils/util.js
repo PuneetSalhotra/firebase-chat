@@ -3635,7 +3635,7 @@ function Util(objectCollection) {
         requestForSqs.asset_id = request.asset_id || 0;
         requestForSqs.log_datetime = this.getCurrentUTCTime();
 
-        let [insertError, insertResponseData] = await activityCommonService.BOTMessageTransactionInsertAsync(requestForSqs);
+        let [insertError, insertResponseData] = await this.BOTMessageTransactionInsertAsync(requestForSqs);
 
         if (!insertError && insertResponseData.length > 0) {
             request.sqs_bot_transaction_id = insertResponseData[0].bot_transaction_id || 0;
@@ -3661,6 +3661,39 @@ function Util(objectCollection) {
             }
         });
     }
+
+    this.BOTMessageTransactionInsertAsync = async function (request) {
+        let responseData = [],
+            error = true;
+            
+        const paramsArr = new Array(
+            request.message_id,
+            request.workflow_activity_id,
+            request.form_activity_id,
+            request.form_trasnaction_id,
+            request.form_id,
+            request.field_id,
+            request.message_body,
+            request.status_id,
+            request.produced_datetime,
+            request.organization_id,
+            request.log_asset_id,
+            request.log_datetime,
+        );
+        const queryString = this.getQueryString('ds_p1_bot_message_transaction_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 }
 
 module.exports = Util;
