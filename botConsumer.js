@@ -8,11 +8,7 @@ const kafka = require('kafka-node');
 const { serializeError } = require('serialize-error');
 const KafkaProducer = kafka.Producer;
 
-AWS.config.update({
-    "accessKeyId": "AKIAWIPBVOFRSFSVJZMF",
-    "secretAccessKey": "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",
-    "region": "ap-south-1"
-});
+
 
 const forEachAsync = require('forEachAsync').forEachAsync;
 const { Consumer } = require('sqs-consumer');
@@ -48,6 +44,12 @@ async function SetMessageHandlerForConsumer() {
 
     const botService = new BotService(serviceObjectCollection);
 
+    AWS.config.update({
+        "accessKeyId": "AKIAWIPBVOFRSFSVJZMF",
+        "secretAccessKey": "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",
+        "region": "ap-south-1"
+    });
+
     const sqsConsumerOne = Consumer.create({
         queueUrl: global.config.sqsConsumerSQSQueue,
         handleMessage: async (message) => {
@@ -67,7 +69,7 @@ async function SetMessageHandlerForConsumer() {
                 request.form_transaction_id = messageBody.form_transaction_id || 0;
                 request.sqs_bot_transaction_id = messageBody.sqs_bot_transaction_id || 0;
 
-                let requestForBotEngine = JSON.parse(messageBody.message_body);
+                let requestForBotEngine = messageBody.message_body;
                 requestForBotEngine.message_id = messageID;
                 requestForBotEngine.sqs_bot_transaction_id = messageBody.sqs_bot_transaction_id || 0;
 
@@ -89,10 +91,10 @@ async function SetMessageHandlerForConsumer() {
                 request.failed_datetime = null;
                 request.log_datetime = objectCollection.util.getCurrentUTCTime();
 
-                const [errorThree, _] = await activityCommonService.BOTMessageTransactionUpdateStatusAsync(request);
+                const [errorThree, __] = await activityCommonService.BOTMessageTransactionUpdateStatusAsync(request);
 
                 botService.initBotEngine(requestForBotEngine);
-
+                return;
             } catch (e) {
                 logger.error('Bot Consumer Error', { type: 'bot_consumer', error: serializeError(e) });
             }
@@ -117,7 +119,7 @@ async function SetMessageHandlerForConsumer() {
     });
 
     sqsConsumerOne.start();
-    console.log("sqsConsumerOne started");
+    console.log("sqsConsumerOne started "+ global.config.sqsConsumerSQSQueue);
 }
 
 

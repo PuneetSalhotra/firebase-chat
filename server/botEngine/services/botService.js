@@ -1840,7 +1840,7 @@ function BotService(objectCollection) {
                                             StringValue: global.mode
                                         },
                                     }
-                                }, (error, data) => {
+                                },async (error, data) => {
                                     if (error) {
                                         logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
                                         await handleBotOperationMessageUpdate(request, i, 4, error);
@@ -2134,7 +2134,7 @@ function BotService(objectCollection) {
                                     StringValue: global.mode
                                 },
                             }
-                        }, (error, data) => {
+                        },async (error, data) => {
                             if (error) {
                                 logger.error(request.workflow_activity_id+" Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
 
@@ -2565,7 +2565,7 @@ function BotService(objectCollection) {
                                     StringValue: global.mode
                                 },
                             }
-                        }, (error, data) => {
+                        },async (error, data) => {
                             if (error) {
                                 logger.error(request.workflow_activity_id+": Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
                                 util.logError(request,request.workflow_activity_id + `: Error sending excel job to SQS queue`, { type: 'bot_engine', error });
@@ -8231,18 +8231,18 @@ else{
                     break;
                 case 27: //General Signature with asset reference
                 case 28: //General Picnature with asset reference
-                    let signatureData = row.field_value.split('|');
-                    params[18] = signatureData[0]; //image path
-                    params[13] = signatureData[1]; // asset reference
-                    params[11] = signatureData[1]; // accepted /rejected flag
+                    let signatureData1 = row.field_value.split('|');
+                    params[18] = signatureData1[0]; //image path
+                    params[13] = signatureData1[1]; // asset reference
+                    params[11] = signatureData1[1]; // accepted /rejected flag
                     break;
                 case 29: //Coworker Signature with asset reference
                 case 30: //Coworker Picnature with asset reference
                     // approvalFields.push(row.field_id);
-                    let signatureData = row.field_value.split('|');
-                    params[18] = signatureData[0]; //image path
-                    params[13] = signatureData[1]; // asset reference
-                    params[11] = signatureData[1]; // accepted /rejected flag
+                    let signatureData2 = row.field_value.split('|');
+                    params[18] = signatureData2[0]; //image path
+                    params[13] = signatureData2[1]; // asset reference
+                    params[11] = signatureData2[1]; // accepted /rejected flag
                     break;
                 case 31: //Cloud Document Link
                     params[18] = row.field_value;
@@ -17229,9 +17229,9 @@ if(workflowActivityData.length==0){
             requestForBotTransactionUpdate.organization_id = request.organization_id || 0;
             requestForBotTransactionUpdate.log_datetime = util.getCurrentUTCTime();
 
-            await util.BOTOperationMessageTransactionInsertAsync(requestForBotTransactionUpdate);
+            await activityCommonService.BOTOperationMessageTransactionInsertAsync(requestForBotTransactionUpdate);
         } catch (e) {
-            util.logError(request, `Error inserting bot operation message ` { type: "bot_consumer", error: serializeError(e) })
+            util.logError(request, `Error inserting bot operation message `, { type: "bot_consumer", error: serializeError(e) })
         }
 
     }
