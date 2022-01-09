@@ -8,8 +8,6 @@ const kafka = require('kafka-node');
 const { serializeError } = require('serialize-error');
 const KafkaProducer = kafka.Producer;
 
-
-
 const forEachAsync = require('forEachAsync').forEachAsync;
 const { Consumer } = require('sqs-consumer');
 
