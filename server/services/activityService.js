@@ -2547,13 +2547,31 @@ function ActivityService(objectCollection) {
                             let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
                             if (botsListData.length > 0) {
                                 botEngineRequest.bot_id = botsListData[0].bot_id;
-                                // await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
-                                //     .then((resp) => {
-                                //         global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
-                                //     });
+                                let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
 
-                                util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { botEngineRequest });
-                                util.pushBotRequestToSQS(botEngineRequest);
+                                util.logInfo(request,`Bot Engine request handle type ${botEngineRequestHandleType}`);
+                                switch (botEngineRequestHandleType) {
+                                    case "API":
+                                    case "api":
+                                        util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                                        await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
+                                            .then((resp) => {
+                                                global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                            });
+
+                                        break;
+                                    case "SQS":
+                                    case "sqs":
+                                        util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                                        util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { botEngineRequest });
+                                        util.pushBotRequestToSQS(botEngineRequest);
+                                        break;
+                                    default:
+                                        util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                                        util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { botEngineRequest });
+                                        util.pushBotRequestToSQS(botEngineRequest);
+                                        break;
+                                }
                             }
                         }
                     } catch (botInitError) {
