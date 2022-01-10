@@ -173,6 +173,10 @@ function FormConfigController(objCollection) {
         var deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
+        
+        if(!req.body.hasOwnProperty('asset_id')){
+            req.body.asset_id = req.body.auth_asset_id;
+        }
 
         var proceedInlineUpdate = function () {
             var event = {
@@ -181,7 +185,6 @@ function FormConfigController(objCollection) {
                 method: "alterFormActivity",
                 payload: req.body
             };
-
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
                 if (err) {
                     //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
