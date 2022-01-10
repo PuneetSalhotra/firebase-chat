@@ -2315,6 +2315,7 @@ function AnalyticsService(objectCollection)
                 let organization_List = await db.callDBProcedureR2(request, 'ds_p1_organization_list_select', params, 1);
                 request.organization_onhold = organization_List[0].organization_flag_dashboard_onhold || 0;
                 request.filter_date_type_id = request.filter_date_type_id && Number(request.filter_date_type_id) >0 ? Number(request.filter_date_type_id) : 1;
+                request.filter_organization_id = Number(request.filter_organization_id) >=0 ? Number(request.filter_organization_id) : -1;
                 paramsArray = 
                     new Array
                     (
@@ -2363,7 +2364,7 @@ function AnalyticsService(objectCollection)
                         request.filter_field_entity_5 || '',
                         request.organization_onhold || 0,
                         request.widget_activity_id || 0,
-                        request.filter_organization_id || -1,
+                        request.filter_organization_id,
                         parseInt(request.page_start) || 0,
                         parseInt(request.page_limit) || 50
                     );
@@ -2400,7 +2401,7 @@ function AnalyticsService(objectCollection)
                      //   let widgetTypes = [23,24,48,49,63,66,37,38,65,61,67,53,54, 39, 40, 41, 42];
                      //   if(widgetTypes.includes(request.widget_type_id)){
                         if(request.widget_type_id == 23 || request.widget_type_id == 24 || request.widget_type_id == 25 || request.widget_type_id == 37 || request.widget_type_id == 38
-                         || request.widget_type_id == 48 || request.widget_type_id == 49 || request.widget_type_id == 65 || request.widget_type_id == 61
+                         || request.widget_type_id == 48 || request.widget_type_id == 49 || request.widget_type_id == 65 || request.widget_type_id == 61 || request.widget_type_id == 34  || request.widget_type_id == 35
                          || request.widget_type_id == 63 || request.widget_type_id == 66 || request.widget_type_id == 67 || request.widget_type_id == 53 || request.widget_type_id == 54
                          || request.widget_type_id == 39 || request.widget_type_id == 40 || request.widget_type_id == 41 || request.widget_type_id == 42 || request.widget_type_id == 202 || request.widget_type_id == 203
                           
@@ -2601,7 +2602,7 @@ function AnalyticsService(objectCollection)
                 //paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 paramsArray[15] = 0;
                 paramsArray[16] = 0;
-                paramsArray[1] = filter_date_type_id;
+                paramsArray[1] = request.filter_date_type_id;
                 if (widgetFlags[iteratorM] == 2) {
                     paramsArray[1] = 2;
                     paramsArray[15] = 1;
@@ -3148,7 +3149,7 @@ function AnalyticsService(objectCollection)
             let organization_List = await db.callDBProcedureR2(request, 'ds_p1_organization_list_select', params, 1);
             request.organization_onhold = organization_List[0].organization_flag_dashboard_onhold || 0;
             request.filter_date_type_id = request.filter_date_type_id && Number(request.filter_date_type_id) >0 ? Number(request.filter_date_type_id):1;
-
+            request.filter_organization_id = Number(request.filter_organization_id) >=0 ? Number(request.filter_organization_id) : -1;
                  paramsArray = 
                  new Array(
                     parseInt(request.widget_type_id),
@@ -3203,7 +3204,7 @@ function AnalyticsService(objectCollection)
                      request.filter_field_entity_5 || '',
                      request.organization_onhold || 0,
                      request.widget_activity_id || 0,
-                     request.filter_organization_id || -1
+                     request.filter_organization_id
                  );
             
             let queryString = util.getQueryString('ds_v2_1_activity_search_list_select_widget_drilldown_search', paramsArray);
@@ -3321,7 +3322,7 @@ function AnalyticsService(objectCollection)
           //  for (let iteratorX = 0, arrayLengthX = arrayTagTypes.length; iteratorX < arrayLengthX; iteratorX++) 
           //  {
                 console.log('request.tag_type_id '+request.tag_type_id);
-
+                request.filter_organization_id = Number(request.filter_organization_id) >=0 ? Number(request.filter_organization_id) : -1;
                  paramsArray = 
                  new Array(
                     parseInt(request.widget_type_id),
@@ -3379,7 +3380,7 @@ function AnalyticsService(objectCollection)
                      request.filter_field_entity_5 || '',
                      request.organization_onhold || 0,
                      request.widget_activity_id || 0,
-                     request.filter_organization_id || -1
+                     request.filter_organization_id
                     );
             
             let queryString = util.getQueryString('ds_v2_1_activity_search_list_select_widget_drilldown_oppty', paramsArray);
@@ -5417,7 +5418,7 @@ function AnalyticsService(objectCollection)
                 //paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 paramsArray[15] = 0;
                 paramsArray[16] = 0;
-                paramsArray[1] = filter_date_type_id;
+                paramsArray[1] = request.filter_date_type_id;
                 if (widgetFlags[iteratorM] == 2) {
                     paramsArray[1] = 2;
                     paramsArray[15] = 1;
@@ -6259,7 +6260,7 @@ function AnalyticsService(objectCollection)
                 //paramsArray[19] = util.getLastDayOfCurrentMonthToIST();
                 paramsArray[15] = 0;
                 paramsArray[16] = 0;
-                paramsArray[1] = filter_date_type_id;
+                paramsArray[1] = request.filter_date_type_id;
                 if (widgetFlags[iteratorM] == 2) {
                     paramsArray[1] = 2;
                     paramsArray[15] = 1;
@@ -6419,7 +6420,7 @@ function AnalyticsService(objectCollection)
                 resourceValueFlgArrayTotal[i] = {};
                 resourceValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArray[i]);
             }
-
+            /*
             if (results.length == 1 && finalResourceMap.size == 0) {
                 let newMap = new Map();
                 for (let i = 0; i < widgetFlags.length; i++) {
@@ -6437,8 +6438,9 @@ function AnalyticsService(objectCollection)
                     finalResourceMap.set(request.filter_asset_id, newMap);
                 }
             }
+           
+            */
             console.log("finalResourceMap ", JSON.stringify(finalResourceMap));
-            
             for (let [key, value] of finalResourceMap) {
                 console.log("key:"+key+" value:"+JSON.stringify(value))
                 let newMap = value;
@@ -6680,7 +6682,7 @@ function AnalyticsService(objectCollection)
                 resourceValueFlgArrayTotal[i] = {};
                 resourceValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArray[i]);
             }
-
+            /*
             if (results.length == 1 && finalResourceMap.size == 0) {
                 let newMap = new Map();
                 for (let i = 0; i < widgetFlags.length; i++) {
@@ -6697,7 +6699,7 @@ function AnalyticsService(objectCollection)
                     newMap.set("flag_" + (iteratorM + 1) + "_value", 0);
                     finalResourceMap.set(request.filter_asset_id, newMap);
                 }
-            }
+            } */
             console.log("finalResourceMap ", JSON.stringify(finalResourceMap));
 
             for (let [key, value] of finalResourceMap) {
@@ -6979,7 +6981,7 @@ function AnalyticsService(objectCollection)
                 resourceValueFlgArrayTotal[i] = {};
                 resourceValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArray[i]);
             }
-
+            /*
             if (results.length == 1 && finalResourceMap.size == 0) {
                 let newMap = new Map();
                 for (let i = 0; i < widgetFlags.length; i++) {
@@ -6996,7 +6998,7 @@ function AnalyticsService(objectCollection)
                     newMap.set("flag_" + (iteratorM + 1) + "_value", 0);
                     finalResourceMap.set(request.filter_asset_id, newMap);
                 }
-            }
+            }*/
             console.log("finalResourceMap ",JSON.stringify(finalResourceMap));
 
             for (let [key, value] of finalResourceMap) {
