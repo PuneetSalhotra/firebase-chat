@@ -1262,6 +1262,16 @@ function AdminOpsController(objCollection) {
             }
         });
 
+        app.post("/" + global.config.version + "/admin/activity_type/mapping/dashboard/update", async function (req, res) {
+            const [err, result] = await adminOpsService.workforceActivityTypeMapiingDashboardUpdate(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/admin/activity_type/mapping/dashboard/update | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
 
 }
 
