@@ -3623,8 +3623,8 @@ function Util(objectCollection) {
 
         requestForSqs.message_id = null;
         requestForSqs.workflow_activity_id = request.workflow_activity_id || 0;
-        requestForSqs.form_activity_id = request.activity_id || 0;
-        requestForSqs.form_trasnaction_id = request.form_trasnaction_id || 0;
+        requestForSqs.form_activity_id = request.data_activity_id || 0;
+        requestForSqs.form_transaction_id = request.form_transaction_id || 0;
         requestForSqs.form_id = request.form_id || 0;
         requestForSqs.field_id = request.field_id || 0;
         requestForSqs.message_body = request || {};
@@ -3670,10 +3670,10 @@ function Util(objectCollection) {
             request.message_id,
             request.workflow_activity_id,
             request.form_activity_id,
-            request.form_trasnaction_id,
+            request.form_transaction_id,
             request.form_id,
             request.field_id,
-            request.message_body,
+            JSON.stringify(request.message_body),
             request.status_id,
             request.produced_datetime,
             request.organization_id,
