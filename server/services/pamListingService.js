@@ -1627,6 +1627,26 @@ function PamListingService(objectCollection) {
     }        
     return [error,responseData];
     };
+    this.getEventReservedTables = async function (request) {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.organization_id,
+            request.event_id,
+        );
+        let queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_table', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
 };
 
 module.exports = PamListingService;
