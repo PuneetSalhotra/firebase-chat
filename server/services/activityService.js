@@ -2549,7 +2549,7 @@ function ActivityService(objectCollection) {
                                 botEngineRequest.bot_id = botsListData[0].bot_id;
                                 let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
 
-                                util.logInfo(request,`Bot Engine request handle type ${botEngineRequestHandleType}`);
+                                util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: botEngineRequest });
                                 switch (botEngineRequestHandleType) {
                                     case "API":
                                     case "api":
