@@ -3617,6 +3617,83 @@ function Util(objectCollection) {
                 return [error, responseData];
     }
 
+    this.pushBotRequestToSQS = async (request) => {
+
+        let requestForSqs = {};
+
+        requestForSqs.message_id = null;
+        requestForSqs.workflow_activity_id = request.workflow_activity_id || 0;
+        requestForSqs.form_activity_id = request.activity_id || 0;
+        requestForSqs.form_trasnaction_id = request.form_trasnaction_id || 0;
+        requestForSqs.form_id = request.form_id || 0;
+        requestForSqs.field_id = request.field_id || 0;
+        requestForSqs.message_body = request || {};
+        requestForSqs.status_id = 1;
+        requestForSqs.produced_datetime = this.getCurrentUTCTime();
+        requestForSqs.organization_id = request.organization_id || 0;
+        requestForSqs.log_asset_id = request.asset_id || 0;
+        requestForSqs.asset_id = request.asset_id || 0;
+        requestForSqs.log_datetime = this.getCurrentUTCTime();
+
+        let [insertError, insertResponseData] = await this.BOTMessageTransactionInsertAsync(requestForSqs);
+
+        if (!insertError && insertResponseData.length > 0) {
+            request.sqs_bot_transaction_id = insertResponseData[0].bot_transaction_id || 0;
+            requestForSqs.sqs_bot_transaction_id = insertResponseData[0].bot_transaction_id || 0;
+        }
+
+        sqs1.sendMessage({
+            MessageBody: JSON.stringify(requestForSqs),
+            QueueUrl: global.config.sqsConsumerSQSQueue,
+            MessageGroupId: `bot-consumer-group-v1`,
+            MessageDeduplicationId: uuidv4(),
+            MessageAttributes: {
+                "Environment": {
+                    DataType: "String",
+                    StringValue: global.mode
+                },
+            }
+        }, (error, data) => {
+            if (error) {
+                this.logError(request, `[${requestForSqs.workflow_activity_id}][${requestForSqs.sqs_bot_transaction_id}] Error triggering Bot engine`, { type: 'bot_consumer', error, requestForSqs });
+            } else {
+                this.logInfo(request, `[${requestForSqs.workflow_activity_id}][${requestForSqs.sqs_bot_transaction_id}] Successfully Sent SQS Bot trigger message %j`, { requestForSqs });
+            }
+        });
+    }
+
+    this.BOTMessageTransactionInsertAsync = async function (request) {
+        let responseData = [],
+            error = true;
+            
+        const paramsArr = new Array(
+            request.message_id,
+            request.workflow_activity_id,
+            request.form_activity_id,
+            request.form_trasnaction_id,
+            request.form_id,
+            request.field_id,
+            request.message_body,
+            request.status_id,
+            request.produced_datetime,
+            request.organization_id,
+            request.log_asset_id,
+            request.log_datetime,
+        );
+        const queryString = this.getQueryString('ds_p1_bot_message_transaction_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 }
 
 module.exports = Util;

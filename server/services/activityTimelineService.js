@@ -1171,22 +1171,44 @@ function ActivityTimelineService(objectCollection) {
                     // Bot log - Bot is defined
                     activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 1);
 
-                    await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
-                        .then((resp) => {
-                            global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
-                            let temp = JSON.parse(resp);
+                    let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
 
-                            (Number(temp.status) === 200) ?
-                                botEngineRequest.bot_operation_status_id = 1 :
-                                botEngineRequest.bot_operation_status_id = 2;
+                    util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: botEngineRequest });
 
-                            botEngineRequest.bot_transaction_inline_data = JSON.stringify(resp);
-                            activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1);
-                        }).catch((err) => {
-                            // Bot log - Update Bot status with Error
-                            botEngineRequest.bot_transaction_inline_data = JSON.stringify(err);
-                            activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 2);
-                        });
+                    botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
+                    switch (botEngineRequestHandleType) {
+                        case "api":
+                            util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                            await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
+                                .then((resp) => {
+                                    global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                    let temp = JSON.parse(resp);
+
+                                    (Number(temp.status) === 200) ?
+                                        botEngineRequest.bot_operation_status_id = 1 :
+                                        botEngineRequest.bot_operation_status_id = 2;
+
+                                    botEngineRequest.bot_transaction_inline_data = JSON.stringify(resp);
+                                    activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1);
+                                }).catch((err) => {
+                                    // Bot log - Update Bot status with Error
+                                    botEngineRequest.bot_transaction_inline_data = JSON.stringify(err);
+                                    activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 2);
+                                });
+
+                            break;
+                        case "sqs":
+                            util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                            util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { botEngineRequest });
+                            util.pushBotRequestToSQS(botEngineRequest);
+                            break;
+                        default:
+                            util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                            util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { botEngineRequest });
+                            util.pushBotRequestToSQS(botEngineRequest);
+                            break;
+                    }
+
                 } else {
                     // Bot is not defined
                     activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 0);
@@ -1248,25 +1270,47 @@ function ActivityTimelineService(objectCollection) {
                     await activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 1);
 
                     util.logInfo(request,`fireBotEngineInitWorkflow | botEngineRequest: `, botEngineRequest);
-                    await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
-                        .then(async (resp) => {
-                            util.logInfo(request,`Bot Engine Trigger Response: %j`,resp);
-                            //Bot log - Update Bot status
-                            //1.SUCCESS; 2.INTERNAL ERROR; 3.EXTERNAL ERROR; 4.COMMUNICATION ERROR
-                            //activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1); 
-                            let temp = JSON.parse(resp);
 
-                            (Number(temp.status) === 200) ?
-                                botEngineRequest.bot_operation_status_id = 1 :
-                                botEngineRequest.bot_operation_status_id = 2;
+                    let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
 
-                            botEngineRequest.bot_transaction_inline_data = JSON.stringify(resp);
-                            await activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1);
-                        }).catch(async (err) => {
-                            //Bot log - Update Bot status with Error
-                            botEngineRequest.bot_transaction_inline_data = JSON.stringify(err);
-                            await activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 2);
-                        });
+                    util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: botEngineRequest });
+
+                    switch (botEngineRequestHandleType) {
+                        case "api":
+                            util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                            await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
+                                .then(async (resp) => {
+                                    util.logInfo(request, `Bot Engine Trigger Response: %j`, resp);
+                                    //Bot log - Update Bot status
+                                    //1.SUCCESS; 2.INTERNAL ERROR; 3.EXTERNAL ERROR; 4.COMMUNICATION ERROR
+                                    //activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1); 
+                                    let temp = JSON.parse(resp);
+
+                                    (Number(temp.status) === 200) ?
+                                        botEngineRequest.bot_operation_status_id = 1 :
+                                        botEngineRequest.bot_operation_status_id = 2;
+
+                                    botEngineRequest.bot_transaction_inline_data = JSON.stringify(resp);
+                                    await activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 1);
+                                }).catch(async (err) => {
+                                    //Bot log - Update Bot status with Error
+                                    botEngineRequest.bot_transaction_inline_data = JSON.stringify(err);
+                                    await activityCommonService.botOperationFlagUpdateBotSts(botEngineRequest, 2);
+                                });
+
+                            break;
+                        case "sqs":
+                            util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                            util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { botEngineRequest });
+                            util.pushBotRequestToSQS(botEngineRequest);
+                            break;
+                        default:
+                            util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                            util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { botEngineRequest });
+                            util.pushBotRequestToSQS(botEngineRequest);
+                            break;
+                    }
+
                 } else {
                     //Bot is not defined
                     util.logInfo(request,`activitytimelineService - fireBotEngineInitWorkflow - Bot is not defined`);
