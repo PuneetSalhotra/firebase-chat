@@ -3664,27 +3664,23 @@ function FormConfigService(objCollection) {
                         let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
 
                         util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: newRequest });
-    
+                        botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
                         switch (botEngineRequestHandleType) {
-                            case "API":
                             case "api":
-                                util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                                util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
                                 botService.initBotEngine(newRequest);
                                 break;
-                            case "SQS":
                             case "sqs":
-                                util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                                util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
                                 util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { newRequest });
                                 util.pushBotRequestToSQS(newRequest);
                                 break;
                             default:
-                                util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                                util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
                                 util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { newRequest });
                                 util.pushBotRequestToSQS(newRequest);
                                 break;
                         }
-
-                        
                     }, 2500);
                 } catch (error) {
                     util.logError(request,`botService.initBotEngine Error! `, { type: 'alter_form', error: serializeError(error) });
@@ -3706,14 +3702,12 @@ function FormConfigService(objCollection) {
                         let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
 
                         util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: newRequest });
-    
+                        botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
                         switch (botEngineRequestHandleType) {
-                            case "API":
                             case "api":
                                 util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
                                 botService.initBotEngine(newRequest);
                                 break;
-                            case "SQS":
                             case "sqs":
                                 util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
                                 util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { newRequest });
@@ -3788,14 +3782,12 @@ function FormConfigService(objCollection) {
                 let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
 
                 util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: initBotEngineRequest });
-
+                botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
                 switch (botEngineRequestHandleType) {
-                    case "API":
                     case "api":
                         util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
                         botService.initBotEngine(initBotEngineRequest);
                         break;
-                    case "SQS":
                     case "sqs":
                         util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
                         util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { initBotEngineRequest });

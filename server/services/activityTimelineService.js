@@ -1175,10 +1175,10 @@ function ActivityTimelineService(objectCollection) {
 
                     util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: botEngineRequest });
 
+                    botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
                     switch (botEngineRequestHandleType) {
-                        case "API":
                         case "api":
-                            util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                            util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
                             await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
                                 .then((resp) => {
                                     global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
@@ -1197,14 +1197,13 @@ function ActivityTimelineService(objectCollection) {
                                 });
 
                             break;
-                        case "SQS":
                         case "sqs":
-                            util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                            util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
                             util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { botEngineRequest });
                             util.pushBotRequestToSQS(botEngineRequest);
                             break;
                         default:
-                            util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                            util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
                             util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { botEngineRequest });
                             util.pushBotRequestToSQS(botEngineRequest);
                             break;
@@ -1277,7 +1276,6 @@ function ActivityTimelineService(objectCollection) {
                     util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: botEngineRequest });
 
                     switch (botEngineRequestHandleType) {
-                        case "API":
                         case "api":
                             util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
                             await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
@@ -1301,7 +1299,6 @@ function ActivityTimelineService(objectCollection) {
                                 });
 
                             break;
-                        case "SQS":
                         case "sqs":
                             util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
                             util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { botEngineRequest });
