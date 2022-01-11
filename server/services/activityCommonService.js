@@ -7273,7 +7273,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             request.bot_operation_type_id,
             request.workflow_activity_id,
             request.form_activity_id,
-            request.form_trasnaction_id,
+            request.form_transaction_id,
             request.form_id,
             request.field_id,
             request.status_id,

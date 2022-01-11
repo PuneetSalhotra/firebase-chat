@@ -17198,13 +17198,13 @@ if(workflowActivityData.length==0){
     async function handleBotOperationMessageUpdate(request, i, statusID, error = {}) {
         try {
             let requestForBotTransactionUpdate = {};
-            requestForBotTransactionUpdate.sqs_bot_transaction_id = request.sqs_bot_transaction_id;
-            requestForBotTransactionUpdate.message_id = request.message_id;
-            requestForBotTransactionUpdate.bot_operation_id = i.bot_operation_id;
-            requestForBotTransactionUpdate.bot_operation_type_id = i.bot_operation_type_id;
+            requestForBotTransactionUpdate.sqs_bot_transaction_id = request.sqs_bot_transaction_id || 0;
+            requestForBotTransactionUpdate.message_id = request.message_id || "";
+            requestForBotTransactionUpdate.bot_operation_id = i.bot_operation_id || 0;
+            requestForBotTransactionUpdate.bot_operation_type_id = i.bot_operation_type_id || 0;
             requestForBotTransactionUpdate.workflow_activity_id = request.workflow_activity_id || 0;
             requestForBotTransactionUpdate.form_activity_id = request.activity_id || 0;
-            requestForBotTransactionUpdate.form_trasnaction_id = request.form_trasnaction_id || 0;
+            requestForBotTransactionUpdate.form_transaction_id = request.form_transaction_id || 0;
             requestForBotTransactionUpdate.form_id = i.form_id || 0;
             requestForBotTransactionUpdate.field_id = i.field_id || 0;
             requestForBotTransactionUpdate.status_id = statusID;
