@@ -3659,8 +3659,28 @@ function FormConfigService(objCollection) {
                     }
                 });
                 try {
-                    setTimeout(() => {
-                        botService.initBotEngine(newRequest);
+                    setTimeout(async () => {
+
+                        let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
+
+                        util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: newRequest });
+                        botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
+                        switch (botEngineRequestHandleType) {
+                            case "api":
+                                util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                                botService.initBotEngine(newRequest);
+                                break;
+                            case "sqs":
+                                util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                                util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { newRequest });
+                                util.pushBotRequestToSQS(newRequest);
+                                break;
+                            default:
+                                util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                                util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { newRequest });
+                                util.pushBotRequestToSQS(newRequest);
+                                break;
+                        }
                     }, 2500);
                 } catch (error) {
                     util.logError(request,`botService.initBotEngine Error! `, { type: 'alter_form', error: serializeError(error) });
@@ -3678,8 +3698,28 @@ function FormConfigService(objCollection) {
                 newRequest.target_activity_id = targetFormActivityId;
                 newRequest.workflow_activity_id = workflowActivityId;
                 try {
-                    setTimeout(() => {
-                        botService.initBotEngine(newRequest);
+                    setTimeout(async () => {
+                        let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
+
+                        util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: newRequest });
+                        botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
+                        switch (botEngineRequestHandleType) {
+                            case "api":
+                                util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                                botService.initBotEngine(newRequest);
+                                break;
+                            case "sqs":
+                                util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                                util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { newRequest });
+                                util.pushBotRequestToSQS(newRequest);
+                                break;
+                            default:
+                                util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                                util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { newRequest });
+                                util.pushBotRequestToSQS(newRequest);
+                                break;
+                        }
+
                     }, 3000);
                 } catch (error) {
                     util.logError(request,`botService.initBotEngine Error! `, { type: 'alter_form', error: serializeError(error) });
@@ -3739,7 +3779,27 @@ function FormConfigService(objCollection) {
 
             await sleep(3000);
             try {
-                botService.initBotEngine(initBotEngineRequest);
+                let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
+
+                util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: initBotEngineRequest });
+                botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
+                switch (botEngineRequestHandleType) {
+                    case "api":
+                        util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                        botService.initBotEngine(initBotEngineRequest);
+                        break;
+                    case "sqs":
+                        util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                        util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { initBotEngineRequest });
+                        util.pushBotRequestToSQS(initBotEngineRequest);
+                        break;
+                    default:
+                        util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                        util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { initBotEngineRequest });
+                        util.pushBotRequestToSQS(initBotEngineRequest);
+                        break;
+                }
+
 
                 // [LOGGING] Bot Operation => 1. SUCCESS
                 initBotEngineRequest.bot_operation_status_id = 1;

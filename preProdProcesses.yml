@@ -11,8 +11,15 @@ apps:
     script   : ./consumer.js
     out_file: '/dev/null'
     instances: 1
-    exec_mode: fork    
-    
+    exec_mode: fork
+
+  - name : "PreProd_Bot_Consumer"
+    env: {NODE_ENV: preprod, ENABLE_CUSTOM_EXCEL_BOT: 1}
+    script   : ./botConsumer.js
+    instances: max    
+    out_file: '/dev/null'
+    exec_mode: cluster
+
 #  - name : "PreProd_Log_ConsumerZero"
 #    env: {NODE_ENV: preprod, partition: 0}
 #    script   : ./logConsumer.js

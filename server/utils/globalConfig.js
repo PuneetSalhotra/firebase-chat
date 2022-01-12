@@ -4,7 +4,7 @@
 
 //mode = process.env.mode;
 mode = process.env.NODE_ENV;
-//mode = "local";
+// mode = "local";
 //var Logger = require(`${__dirname}/logger.js`);
 //logger = new Logger();
 
@@ -33,6 +33,7 @@ config.knowledgeGraphKeywords = ["Mobile connection","GSM","Mobility"
     "IOT","M2M","Tracking system",
     "PRI","SIP","Toll-free (TFS)"
 ]
+
 config.numberOfThreadsForDiffbotProcessing = 2
 
 //docusign config
@@ -457,6 +458,10 @@ if(mode === 'local') {
     config.docusignHookBaseUrl = 'https://stagingapi.worlddesk.cloud';
 
     config.excelBotSQSQueue = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
+
+    config.sqsConsumerSQSQueue = "https://sqs.ap-south-1.amazonaws.com/430506864995/local-bot-engine-queue-v1.fifo";
+    config.sqsConsumerSQSQueueId = 69;
+
     config.whitelist = [
         "https://staging.officedesk.app",
         "https://stagingmanagement.officedesk.app",
@@ -931,6 +936,10 @@ if(mode === 'staging') {
     config.docusignHookBaseUrl = 'https://stagingapi.worlddesk.cloud';
 
     config.excelBotSQSQueue = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
+
+    config.sqsConsumerSQSQueue = "https://sqs.ap-south-1.amazonaws.com/430506864995/staging-bot-engine-queue-v1.fifo";
+    config.sqsConsumerSQSQueueId = 70;
+
     config.whitelist = [
         "https://staging.officedesk.app",
         "https://stagingmanagement.officedesk.app",
@@ -1080,6 +1089,10 @@ if(mode === 'preprod') {
     config.docusignWebApp = "https://preprodweb2.greneos.com";
 
     config.excelBotSQSQueue = 'https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-vil-excel-job-queue.fifo';
+
+    config.sqsConsumerSQSQueue = "https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-bot-engine-queue-v1.fifo";
+    config.sqsConsumerSQSQueueId = 71;
+
     config.whitelist = [
         "https://preprod.officedesk.app",
         "https://preprodmanagement.officedesk.app",
