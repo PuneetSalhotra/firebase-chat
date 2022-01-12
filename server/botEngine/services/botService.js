@@ -2879,6 +2879,7 @@ function BotService(objectCollection) {
                     break;
             }
 
+            await handleBotOperationMessageUpdate(request, i);
             //botOperationTxnInsert(request, i);
             botOperationTxnInsertV1(request, i);
             await new Promise((resolve, reject) => {
@@ -17386,22 +17387,30 @@ if(workflowActivityData.length==0){
         return [error, responseData];
     }
 
-    async function handleBotOperationMessageUpdate(request, i, statusID, error = {}) {
+    async function handleBotOperationMessageUpdate(request, i = {}) {
+
         try {
+
+            let statusID = 3;
+
+            if (i.bot_operation_error_message) {
+                statusID = 4;
+            }
+
             let requestForBotTransactionUpdate = {};
             requestForBotTransactionUpdate.sqs_bot_transaction_id = request.sqs_bot_transaction_id || 0;
             requestForBotTransactionUpdate.message_id = request.message_id || "";
             requestForBotTransactionUpdate.bot_operation_id = i.bot_operation_id || 0;
             requestForBotTransactionUpdate.bot_operation_type_id = i.bot_operation_type_id || 0;
             requestForBotTransactionUpdate.workflow_activity_id = request.workflow_activity_id || 0;
-            requestForBotTransactionUpdate.form_activity_id = request.activity_id || 0;
+            requestForBotTransactionUpdate.form_activity_id = request.data_activity_id || 0;
             requestForBotTransactionUpdate.form_transaction_id = request.form_transaction_id || 0;
             requestForBotTransactionUpdate.form_id = i.form_id || 0;
             requestForBotTransactionUpdate.field_id = i.field_id || 0;
             requestForBotTransactionUpdate.status_id = statusID;
-            requestForBotTransactionUpdate.bot_operation_start_datetime = util.getCurrentUTCTime();
-            requestForBotTransactionUpdate.bot_operation_end_datetime = util.getCurrentUTCTime();
-            requestForBotTransactionUpdate.error_failed_json = JSON.stringify({ logs: request.debug_info, error: error });
+            requestForBotTransactionUpdate.bot_operation_start_datetime = i.bot_operation_start_datetime;
+            requestForBotTransactionUpdate.bot_operation_end_datetime = i.bot_operation_end_datetime;
+            requestForBotTransactionUpdate.error_failed_json = JSON.stringify({ logs: request.debug_info, error: i.bot_operation_error_message || "" });
             requestForBotTransactionUpdate.organization_id = request.organization_id || 0;
             requestForBotTransactionUpdate.log_datetime = util.getCurrentUTCTime();
 
