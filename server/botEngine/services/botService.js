@@ -1390,7 +1390,8 @@ function BotService(objectCollection) {
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
-                        });                        
+                        });    
+                        i.bot_operation_error_message = err;                    
                         //return Promise.reject(err);
                     }
                     util.logInfo(request,`****************************************************************`);
@@ -1410,6 +1411,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, result[1]);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = result[1];
                         } else {
                             //await handleBotOperationMessageUpdate(request, i, 3);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
@@ -1469,6 +1471,7 @@ function BotService(objectCollection) {
                                 "err": result[1]
                             });
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = result[1];
                             //await handleBotOperationMessageUpdate(request, i, 4, result[1]);
                         } else {
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
@@ -1522,6 +1525,7 @@ function BotService(objectCollection) {
                         // Do not fire this bot step on form edits
                         logger.verbose(`Do Not Fire Email On Form Edit`, { type: 'bot_engine', request_body: request, error: null });
                         i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = "Do Not Fire Send Text Message On Form Edit";
                         //await handleBotOperationMessageUpdate(request, i, 3, "Do Not Fire Send Text Message On Form Edit");
                         continue;
                         // break;
@@ -1559,6 +1563,7 @@ function BotService(objectCollection) {
                         // Do not fire this bot step on form edits
                         logger.verbose(`Do Not Fire Email On Form Edit`, { type: 'bot_engine', request_body: request, error: null });
                         i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = "Do Not Fire Email On Form Edit";
                         //await handleBotOperationMessageUpdate(request, i, 3, "Do Not Fire Email On Form Edit");
                         continue;
                         // break;
@@ -1719,6 +1724,7 @@ function BotService(objectCollection) {
                         // Do not fire this bot step on form edits
                         logger.silly(`Do Not Fire Create Customer On Form Edit`, { type: 'bot_engine', error: null });
                         i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = "Do Not Fire Create Customer On Form Edit";
                         //await handleBotOperationMessageUpdate(request, i, 3, "Do Not Fire Create Customer On Form Edit");
                         continue;
                     }
@@ -1834,6 +1840,7 @@ function BotService(objectCollection) {
                         if (wfActivityDetails[0].parent_activity_id > 0) {
                             //await handleBotOperationMessageUpdate(request, i, 3, "Avoiding workbook mapping bot on child opportunity");
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = "Avoiding workbook mapping bot on child opportunity";
                             break;
                         }
                     }
@@ -1982,7 +1989,7 @@ function BotService(objectCollection) {
                         logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         //await handleBotOperationMessageUpdate(request, i, 4, error);
                         i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
+                        i.bot_operation_error_message = error;
                     }
                     break;
 
@@ -1998,7 +2005,7 @@ function BotService(objectCollection) {
                         logger.error("Error running the setDueDateOfWorkflow", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         //await handleBotOperationMessageUpdate(request, i, 4, error);
                         i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
+                        i.bot_operation_error_message = error;
                     }
                     break;
 
@@ -2149,7 +2156,7 @@ function BotService(objectCollection) {
                     try {
                         i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         await globalAddParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
                         i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (err) {
                         util.logError(request, 'Error in executing Global addParticipant Step', { err });
@@ -2157,7 +2164,7 @@ function BotService(objectCollection) {
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        //await handleBotOperationMessageUpdate(request, i, 4, err);
                         i.bot_operation_end_datetime = util.getCurrentUTCTime();
                         i.bot_operation_error_message = err;
                         //return Promise.reject(err);
@@ -2445,7 +2452,7 @@ function BotService(objectCollection) {
                         "error": error
                         });
                         i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
+                        i.bot_operation_error_message = error;
                         //await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                 break;
@@ -2537,7 +2544,7 @@ function BotService(objectCollection) {
                         });
                         //await handleBotOperationMessageUpdate(request, i, 4, error);
                         i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
+                        i.bot_operation_error_message = error;
                     }
                     break;    
                     
