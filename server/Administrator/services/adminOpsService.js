@@ -11961,6 +11961,38 @@ if (queryString !== '') {
         return [error, responseData];
     };
 
+    this.shareRoleToAnyLevel = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_type_id,
+            request.access_level_id,
+            request.access_type_id,
+            request.activity_type_id,
+            request.workforce_id,
+            request.workforce_type_id,
+            request.account_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p3_asset_type_access_mapping_insert', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
 }
 
 module.exports = AdminOpsService;

@@ -1380,17 +1380,19 @@ function BotService(objectCollection) {
                     util.logInfo(request,`PARTICIPANT ADD`);
                     request.debug_info.push('PARTICIPANT ADD');
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         await addParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
 
-                        await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                         util.logError(request,`Error in executing addParticipant Step`, { type: 'add_participant', error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
-                        });                        
+                        });    
+                        i.bot_operation_error_message = err;                    
                         //return Promise.reject(err);
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     util.logInfo(request,`****************************************************************`);
                     break;
@@ -1400,15 +1402,19 @@ function BotService(objectCollection) {
                     util.logInfo(request,`****************************************************************`);
                     util.logInfo(request,`STATUS ALTER BOT %j`, request);
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         let result = await changeStatusV1(request, botOperationsJson.bot_operations.status_alter);
                         if (result[0]) {
                             i.bot_operation_status_id = 2;
                             i.bot_operation_inline_data = JSON.stringify({
                                 "err": result[1]
                             });
-                            await handleBotOperationMessageUpdate(request, i, 4, result[1]);
+                            //await handleBotOperationMessageUpdate(request, i, 4, result[1]);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = result[1];
                         } else {
-                            await handleBotOperationMessageUpdate(request, i, 3);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
                         }
                     } catch (err) {
                         util.logError(request,`serverError | Error in executing changeStatus Step`, { type: "bot_engine", error: serializeError(err) });
@@ -1417,7 +1423,9 @@ function BotService(objectCollection) {
                             "err": err
                         });                        
                         //return Promise.reject(err);
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = err;
+                        //await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     util.logInfo(request,`****************************************************************`);
                     break;
@@ -1426,13 +1434,14 @@ function BotService(objectCollection) {
                 case 3: //Copy Form field
                     util.logInfo(request,`****************************************************************`);
                     util.logInfo(request,` FORM FIELD %j`, request);
-
+                    i.bot_operation_start_datetime = util.getCurrentUTCTime();
                     try {
                         // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
                         request.debug_info.push('form_field_copy | Request Params received by BOT ENGINE'+ request);
                         await copyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
 
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        //await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         util.logError(request,`Error in executing copyFields Step`, { type: "bot_engine", error: serializeError(err) });
                         i.bot_operation_status_id = 2;
@@ -1440,7 +1449,9 @@ function BotService(objectCollection) {
                             "err": err
                         });
                         //return Promise.reject(err);
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = err;
+                        //await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     util.logInfo(request,`****************************************************************`);
                     break;
@@ -1452,15 +1463,19 @@ function BotService(objectCollection) {
                     logger.silly("Request Params received from Request: %j", request);
                     request.debug_info.push('WF PERCENTAGE ALTER ');
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         let result = await alterWFCompletionPercentage(request, botOperationsJson.bot_operations.workflow_percentage_alter);
                         if (result[0]) {
                             i.bot_operation_status_id = 2;
                             i.bot_operation_inline_data = JSON.stringify({
                                 "err": result[1]
                             });
-                            await handleBotOperationMessageUpdate(request, i, 4, result[1]);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = result[1];
+                            //await handleBotOperationMessageUpdate(request, i, 4, result[1]);
                         } else {
-                            await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            //await handleBotOperationMessageUpdate(request, i, 3);
                         }
                     } catch (err) {
                         logger.error("serverError | Error in executing alterWFCompletionPercentage Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
@@ -1469,7 +1484,9 @@ function BotService(objectCollection) {
                             "err": err
                         });
                         //return Promise.reject(err);
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = err;
+                        //await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     util.logInfo(request, '****************************************************************');
                     break;
@@ -1480,8 +1497,10 @@ function BotService(objectCollection) {
                     util.logInfo(request, 'FIRE API');
                     request.debug_info.push('FIRE API ');
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         await fireApi(request, botOperationsJson.bot_operations.fire_api);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        //await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         util.logError(request, 'Error in executing fireApi Step', { err })
                         i.bot_operation_status_id = 3;
@@ -1489,20 +1508,25 @@ function BotService(objectCollection) {
                             "err": err
                         });
                         //return Promise.reject(err);
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = err;
+                        //await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     util.logInfo(request, '****************************************************************');
                     break;
 
                 //case 'fire_text': 
                 case 6: // Send Text Message
+                    i.bot_operation_start_datetime = util.getCurrentUTCTime();
                     if (
                         request.hasOwnProperty("activity_stream_type_id") &&
                         Number(request.activity_stream_type_id) === 713
                     ) {
                         // Do not fire this bot step on form edits
                         logger.verbose(`Do Not Fire Email On Form Edit`, { type: 'bot_engine', request_body: request, error: null });
-                        await handleBotOperationMessageUpdate(request, i, 3, "Do Not Fire Send Text Message On Form Edit");
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = "Do Not Fire Send Text Message On Form Edit";
+                        //await handleBotOperationMessageUpdate(request, i, 3, "Do Not Fire Send Text Message On Form Edit");
                         continue;
                         // break;
                     }
@@ -1512,7 +1536,8 @@ function BotService(objectCollection) {
                     try {
                         await fireTextMsg(request, botOperationsJson.bot_operations.fire_text);
 
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        //await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         util.logError(request,`Error in executing fireTextMsg Step | Error: `, { type: 'bot_engine', err });
                         util.logError(request, 'serverError', { err });
@@ -1521,20 +1546,25 @@ function BotService(objectCollection) {
                             "err": err
                         });
                         //return Promise.reject(err);
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = err;
+                        //await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     util.logInfo(request, '****************************************************************');
                     break;
 
                 //case 'fire_email':           
                 case 7: // Send email
+                    i.bot_operation_start_datetime = util.getCurrentUTCTime(); 
                     if (
                         request.hasOwnProperty("activity_stream_type_id") &&
                         Number(request.activity_stream_type_id) === 713
                     ) {
                         // Do not fire this bot step on form edits
                         logger.verbose(`Do Not Fire Email On Form Edit`, { type: 'bot_engine', request_body: request, error: null });
-                        await handleBotOperationMessageUpdate(request, i, 3, "Do Not Fire Email On Form Edit");
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = "Do Not Fire Email On Form Edit";
+                        //await handleBotOperationMessageUpdate(request, i, 3, "Do Not Fire Email On Form Edit");
                         continue;
                         // break;
                     }
@@ -1543,7 +1573,8 @@ function BotService(objectCollection) {
                     request.debug_info.push('FIRE EMAIL ');
                     try {
                         await fireEmail(request, botOperationsJson.bot_operations.fire_email);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (err) {
                         util.logError(request,`Error in executing fireEmail Step: `, { type: 'bot_engine', err });
                         util.logError(request, 'Error in executing fireEmail Step', { err });
@@ -1551,7 +1582,9 @@ function BotService(objectCollection) {
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        //await handleBotOperationMessageUpdate(request, i, 4, err);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = err;
                         //return Promise.reject(err);
                     }
                     util.logInfo(request, '****************************************************************');
@@ -1564,15 +1597,19 @@ function BotService(objectCollection) {
                     request.debug_info.push('add_comment');
                     request.debug_info.push('add_comment | Request Params received by BOT ENGINE'+ request);
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         await addComment(request, botOperationsJson.bot_operations.add_comment);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        // await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (err) {
                         util.logError(request,`add_comment | Error`, { type: 'bot_engine', error });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = err;
+                        // await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     util.logInfo(request,`****************************************************************`);
                     break;
@@ -1601,17 +1638,20 @@ function BotService(objectCollection) {
                     request.debug_info.push('add_attachment_with_attestation | Request Params received by BOT ENGINE'+ request);
                     try {
                         util.logInfo(request,`try add_attachment_with_attestation`);
-                        
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                          await addAttachmentWithAttestation(request, botOperationsJson.bot_operations.add_attachment_with_attestation);
 
-                         await handleBotOperationMessageUpdate(request, i, 3);
+                         //await handleBotOperationMessageUpdate(request, i, 3);
+                         i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (err) {
                         util.logError(request,`add_attachment_with_attestation  | Error`, { type: 'bot_engine', err });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        //await handleBotOperationMessageUpdate(request, i, 4, err);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = err;
                     }
                     util.logInfo(request,`****************************************************************`);
                     break;
@@ -1638,17 +1678,21 @@ function BotService(objectCollection) {
                     logger.silly('form_pdf | Request Params received by BOT ENGINE: %j', request);
                     request.debug_info.push('form_pdf');
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         util.logInfo(request,`form_pdf`);
                         // commenting to get hummus error
                         // await addPdfFromHtmlTemplate(request, botOperationsJson.bot_operations.form_pdf);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (err) {
                         logger.error("serverError | Error in executing form_pdf Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = err;
+                        //await handleBotOperationMessageUpdate(request, i, 4, err);
                     }
                     util.logInfo(request,`****************************************************************`);
                     break;
@@ -1659,42 +1703,56 @@ function BotService(objectCollection) {
                 case 14: // [RESERVED] Ledger Transactions Bot
                     logger.silly("LEDGER TRANSACTION");
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         await ledgerOpsService.ledgerCreditDebitNetTransactionUpdate(request);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        //await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error) {
                         util.logError(request,`LEDGER TRANSACTION Error: `, { type: 'bot_engine', error });
-                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_error_message = error;
                     }
                     break;
 
                 case 15: // Customer Creation Bot
+                    i.bot_operation_start_datetime = util.getCurrentUTCTime();    
                     if (
                         request.hasOwnProperty("activity_stream_type_id") &&
                         Number(request.activity_stream_type_id) === 713
                     ) {
                         // Do not fire this bot step on form edits
                         logger.silly(`Do Not Fire Create Customer On Form Edit`, { type: 'bot_engine', error: null });
-                        await handleBotOperationMessageUpdate(request, i, 3, "Do Not Fire Create Customer On Form Edit");
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = "Do Not Fire Create Customer On Form Edit";
+                        //await handleBotOperationMessageUpdate(request, i, 3, "Do Not Fire Create Customer On Form Edit");
                         continue;
                     }
                     logger.silly("CREATE CUSTOMER");
                     try {
                         await createCustomerAsset(request, botOperationsJson.bot_operations.create_customer);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        //await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error) {
                         util.logError(request,`CREATE CUSTOMER Error: `, { type: 'bot_engine', error });
-                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = error;
+                        //await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     break;
                 
                 case 16: // Workflow Reference Bot
                     logger.silly("Workflow Reference Bot");
+                    i.bot_operation_start_datetime = util.getCurrentUTCTime();
                     try {
                         //await createCustomerAsset(request, botOperationsJson.bot_operations.create_customer);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        //await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error) {
                         util.logError(request,`Workflow Reference Bot: `, { type: 'bot_engine', error });
-                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = error;
+                        //await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     break;
 
@@ -1709,6 +1767,7 @@ function BotService(objectCollection) {
                     let activityInlineData;
                     let product_variant_activity_title=""
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         if (!request.hasOwnProperty('activity_inline_data')) {                            
                             const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
                             activityInlineData = activityTimelineCollection.form_submitted;
@@ -1723,7 +1782,9 @@ function BotService(objectCollection) {
                         }                        
                     } catch (error) {
                         logger.error("Error parsing inline JSON for workbook bot", { type: 'bot_engine', error, request_body: request });
-                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                        //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = error;
                     }
 
                     util.logInfo(request,` `);
@@ -1777,7 +1838,9 @@ function BotService(objectCollection) {
 
                     if (wfActivityDetails.length > 0) {
                         if (wfActivityDetails[0].parent_activity_id > 0) {
-                            await handleBotOperationMessageUpdate(request, i, 3, "Avoiding workbook mapping bot on child opportunity");
+                            //await handleBotOperationMessageUpdate(request, i, 3, "Avoiding workbook mapping bot on child opportunity");
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = "Avoiding workbook mapping bot on child opportunity";
                             break;
                         }
                     }
@@ -1841,7 +1904,9 @@ function BotService(objectCollection) {
                                 },async (error, data) => {
                                     if (error) {
                                         logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                                        //await handleBotOperationMessageUpdate(request, i, 4, error);
+                                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                                        i.bot_operation_error_message = error;
                                         activityCommonService.workbookTrxUpdate({
                                             activity_workbook_transaction_id: workbookTxnID,
                                             flag_generated: -1, //Error pushing to SQS Queue
@@ -1865,7 +1930,9 @@ function BotService(objectCollection) {
                             
                         } catch (error) {
                             logger.error("Error running the Workbook Mapping Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                            await handleBotOperationMessageUpdate(request, i, 4, error);
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
                         }
                     } else {
                         util.logInfo(request,`Its not a custom Variant. Hence not triggering the Bot!`);
@@ -1876,7 +1943,8 @@ function BotService(objectCollection) {
                         
                         await addTimelineEntry({...request,content:`BC excel mapping is not configured for this opportunity as it is a standard plan`,subject:"sample",mail_body:request.mail_body,attachment:[],timeline_stream_type_id:request.timeline_stream_type_id},1);
                     }
-                    await handleBotOperationMessageUpdate(request, i, 3);
+                    //await handleBotOperationMessageUpdate(request, i, 3);
+                    i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     break;
 
                 case 19: // Update CUID Bot
@@ -1884,6 +1952,7 @@ function BotService(objectCollection) {
                     logger.silly("Update CUID Bot Request: %j", request);
                     let is_opportunity = false;
                     let updateCuids = {};
+                    i.bot_operation_start_datetime = util.getCurrentUTCTime();
                     if (request.activity_type_category_id == 48 && (request.activity_type_id == 150258
                         || request.activity_type_id == 150229 || request.activity_type_id == 150192
                         || request.activity_type_id == 149818 || request.activity_type_id == 149752
@@ -1914,10 +1983,13 @@ function BotService(objectCollection) {
 
                     try {
                         await updateCUIDBotOperation(request, formInlineDataMap, updateCuids);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (error) {
                         logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                        //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = error;
                     }
                     break;
 
@@ -1925,26 +1997,34 @@ function BotService(objectCollection) {
                     logger.silly("Due date edit Bot - ESMS");
                     logger.silly("Due date edit Bot - ESMS: %j", request);
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         await this.setDueDateOfWorkflow(request, formInlineDataMap, botOperationsJson.bot_operations.due_date_edit, botOperationsJson.bot_operations.condition);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (error) {
                         logger.error("Error running the setDueDateOfWorkflow", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                        //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = error;
                     }
                     break;
 
                 case 25: // participant_remove
                     logger.silly("[participant_remove] Params received from Request: %j", request);
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         await removeParticipant(request, botOperationsJson.bot_operations.participant_remove, formInlineDataMap);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (error) {
                         logger.error("[participant_remove] Error removing participant", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "error": error
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                        //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = error;
                     }
                     break;
                     
@@ -1953,6 +2033,7 @@ function BotService(objectCollection) {
                     let esmsIntegrationsTopicName = global.config.ESMS_INTEGRATIONS_TOPIC || "";
                     
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         if (esmsIntegrationsTopicName === "") { throw new Error("EsmsIntegrationsTopicNotDefinedForMode"); }
                         if (request.hasOwnProperty("do_not_trigger_integrations_bot") && Number(request.do_not_trigger_integrations_bot) === 1) { throw new Error("DoNotTriggerIntegrationsBot"); }
                         await queueWrapper.raiseActivityEventToTopicPromise({
@@ -1961,52 +2042,64 @@ function BotService(objectCollection) {
                             form_transaction_id: Number(request.form_transaction_id),
                             payload: request
                         }, esmsIntegrationsTopicName, request.workflow_activity_id || request.activity_id);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        // await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error) {
                         logger.error("[ESMS Integrations- Consume] Error during consuming", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "error": error
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                        //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = error;
                     }
                     break;
 
                 case 28: //Arithmetic Bot
                         logger.silly("ArithMetic Bot Params received from Request: %j", request);
                         try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
                             util.logInfo(request,`botOperationsJson in Arithmetic Bot: %j` , botOperationsJson);
                             request.debug_info.push('botOperationsJson in Arithmetic Bot: '+ botOperationsJson);
                             await arithmeticBot(request, formInlineDataMap, botOperationsJson.bot_operations.arithmetic_calculation);
-                            await handleBotOperationMessageUpdate(request, i, 3);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
                         } catch (error) {
                             logger.error("[Arithmetic Bot] Error in Arithmetic Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                             i.bot_operation_status_id = 2;
                             i.bot_operation_inline_data = JSON.stringify({
                                 "error": error
                             });
-                            await handleBotOperationMessageUpdate(request, i, 4, error);
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
                         }
                         break;
 
                 case 29: //Reminder Bot
                         logger.silly("Reminder Bot Params received from Request: %j", request);
                             try {
+                                i.bot_operation_start_datetime = util.getCurrentUTCTime();
                                 await reminderBot(request, formInlineDataMap, botOperationsJson.bot_operations.date_reminder);
-                                await handleBotOperationMessageUpdate(request, i, 3);
+                                i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                                //await handleBotOperationMessageUpdate(request, i, 3);
                             } catch (error) {
                                 logger.error("[Reminder Bot] Error in Reminder Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                                 i.bot_operation_status_id = 2;
                                 i.bot_operation_inline_data = JSON.stringify({
                                     "error": error
                             });
-                            await handleBotOperationMessageUpdate(request, i, 4, error);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
                         }                
                         break;
 
                 case 30: // Bulk Feasibility Excel Parser Bot
                     logger.silly("Bulk Feasibility Excel Parser Bot params received from request: %j", request);
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         // await bulkFeasibilityBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_feasibility);
                         let requestForSQS = {
                             request: request,
@@ -2015,14 +2108,17 @@ function BotService(objectCollection) {
                             inlineJSON: botOperationsJson.bot_operations.bulk_feasibility
                         }
                         sendToSqsPdfGeneration(requestForSQS);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (error) {
                         logger.error("[Bulk Feasibility Excel Parser Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "error": error
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                        //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = error;
                     }
                     break;
                 
@@ -2031,18 +2127,22 @@ function BotService(objectCollection) {
                     util.logInfo(request, 'WorkFlow Bot');
                     request.debug_info.push('WorkFlow Bot');
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         // util.logInfo(request, 'Request Params received by BOT ENGINE', request, {});
                         util.logInfo(request,`workflow start | Request Params received by BOT ENGINE`);
                         request.debug_info.push('workflow start | Request Params received by BOT ENGINE'+ request);
                         await workFlowCopyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (err) {
                         util.logError(request, 'Error in executing workflow start Step', { err });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        //await handleBotOperationMessageUpdate(request, i, 4, err);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = err;
                         //return Promise.reject(err);
                     }
                     util.logInfo(request, '****************************************************************');
@@ -2054,15 +2154,19 @@ function BotService(objectCollection) {
                     logger.info("Request Params received from Request: %j", request);
                     request.debug_info.push(request.workflow_activity_id+': GLOBAL PARTICIPANT ADD');
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         await globalAddParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (err) {
                         util.logError(request, 'Error in executing Global addParticipant Step', { err });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        //await handleBotOperationMessageUpdate(request, i, 4, err);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = err;
                         //return Promise.reject(err);
                     }
                     util.logInfo(request, '****************************************************************');
@@ -2074,8 +2178,10 @@ function BotService(objectCollection) {
                     logger.info(request.workflow_activity_id+": ARP: Request Params received from Request: %j", request);
                     request.debug_info.push(request.workflow_activity_id+': ARPBot');
                     try{
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         await arpBot(request, botOperationsJson.bot_operations);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     }catch(err){
                         util.logError(request, 'Error in executing ARPBot Step', { err });
                         i.bot_operation_status_id = 2;
@@ -2083,7 +2189,9 @@ function BotService(objectCollection) {
                             "log":request.debug_info,
                             "err": err
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        //await handleBotOperationMessageUpdate(request, i, 4, err);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = err;
                     }
                     util.logInfo(request, '****************************************************************');
 
@@ -2095,7 +2203,7 @@ function BotService(objectCollection) {
                     logger.info(request.workflow_activity_id+": Request Params received from Request: %j", request);
                     request.debug_info.push(request.workflow_activity_id+':checkLargeDoa');
                     try {
-                        
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         request.botOperationInlineData = botOperationsJson.bot_operations.bot_inline;
                         request.bot_operation_type_id = 35;
                         let baseURL = `http://localhost:7000`,
@@ -2138,7 +2246,9 @@ function BotService(objectCollection) {
                                     flag_generated: -1, //Error pushing to SQS Queue
                                     url: ''
                                 });
-                                await handleBotOperationMessageUpdate(request, i, 4, error);
+                                //await handleBotOperationMessageUpdate(request, i, 4, error);
+                                i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                                i.bot_operation_error_message = error;
                             } else {
                                 logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });                                        
                             }                                    
@@ -2151,7 +2261,8 @@ function BotService(objectCollection) {
                         // });
 
                         // await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (err) {                        
                         util.logError(request, 'Error in executing checkCustomBot Step', { err });
                         i.bot_operation_status_id = 2;
@@ -2160,7 +2271,9 @@ function BotService(objectCollection) {
                             "err": err
                         });
                         //return Promise.reject(err);
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        //await handleBotOperationMessageUpdate(request, i, 4, err);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = err;
                     }
                     util.logInfo(request, '****************************************************************');
                     break;
@@ -2171,15 +2284,19 @@ function BotService(objectCollection) {
                     logger.info("Request Params received from Request: %j", request);
                     request.debug_info.push('SME ILL Bot');
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         // await checkSmeBot(request, botOperationsJson.bot_operations.bot_inline);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (err) {
                         util.logError(request, 'Error in executing SME ILL Bot Step',{ err });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        //await handleBotOperationMessageUpdate(request, i, 4, err);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = err;
                         //return Promise.reject(err);
                     }
                     util.logInfo(request, '****************************************************************');
@@ -2190,8 +2307,10 @@ function BotService(objectCollection) {
                     request.pdf_json = pdf_json;
                     request.generate_pdf = 1;
                     request.bot_operation_id=37;
+                    i.bot_operation_start_datetime = util.getCurrentUTCTime();
                     sendToSqsPdfGeneration(request);
-                    await handleBotOperationMessageUpdate(request, i, 3);
+                    //await handleBotOperationMessageUpdate(request, i, 3);
+                    i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     
                     // try{
                     // let pdf_json = JSON.parse(i.bot_operation_inline_data);
@@ -2253,15 +2372,19 @@ function BotService(objectCollection) {
                     logger.silly("Request Params received from Request: %j", request);
                     request.debug_info.push('Static copy field bot ');
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         staticCopyField(request, botOperationsJson.bot_operations.static_form_field_copy);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (err) {
                         util.logError(request, 'Error in executing Static copy field bot Step', { err });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        //await handleBotOperationMessageUpdate(request, i, 4, err);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = err;
                     }
                     util.logInfo(request, '****************************************************************');
                     break;
@@ -2270,13 +2393,17 @@ function BotService(objectCollection) {
                     util.logInfo(request, 'Asset approval workflow bot');
                     logger.silly("Request Params received from Request: %j", request);
                     //JSON.parse(i.bot_operation_inline_data)
+                    i.bot_operation_start_datetime = util.getCurrentUTCTime();
                     let approveJson = JSON.parse(i.bot_operation_inline_data).bot_operations.condition;
 
                     try {
                         let [err1,data]=await assetApprovalWorkflow(request,approveJson);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        //await handleBotOperationMessageUpdate(request, i, 3);
                     } catch(error) {
-                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = error;
+                        //await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     
                     util.logInfo(request, '****************************************************************');
@@ -2284,21 +2411,26 @@ function BotService(objectCollection) {
                 case 40: // Bulk Create SR Bot
                     logger.silly("Bulk Create SR Bot params received from request: %j", request);
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         await bulkCreateSRBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_create_sr);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (error) {
                         logger.error("[Bulk Create SR Bot Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "error": error
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                        //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = error;
                     }
                     break;
 
                 case 42 : //Leave Aplication
                     logger.silly("Leave Aplication Bot params received from request: %j", request);
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         let fieldValue = await getFormFieldValue(request, botOperationsJson.bot_operations.field_id);
 
                         if(!util.checkDateFormat(fieldValue,"yyyy-MM-dd hh:mm:ss")){
@@ -2310,7 +2442,8 @@ function BotService(objectCollection) {
                         }
                             
                         await applyLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                       // await handleBotOperationMessageUpdate(request, i, 3);
                        // await applyWorkflowLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
                     } catch (error) {
                         logger.error("[Leave Aplication Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
@@ -2318,16 +2451,20 @@ function BotService(objectCollection) {
                         i.bot_operation_inline_data = JSON.stringify({
                         "error": error
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = error;
+                        //await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                 break;
                 
                 case 44 : //FTP
                     logger.info(request.workflow_activity_id+": FTP Bot params received from request: %j", request);
+                    i.bot_operation_start_datetime = util.getCurrentUTCTime();
                     let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
                     let s3url = await getFormFieldValue(request,ftpJson.field_id)
                     sendToSqsPdfGeneration({...request,sqs_switch_flag:2,s3url,ftpJson,bot_operation_id:44});
-                    await handleBotOperationMessageUpdate(request, i, 3);
+                    //await handleBotOperationMessageUpdate(request, i, 3);
+                    i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     // try {
                     //     let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
                     //     let s3url = await getFormFieldValue(request,ftpJson.field_id)
@@ -2365,8 +2502,10 @@ function BotService(objectCollection) {
                     logger.silly("Remove CUID Bot Request: %j", request);
                     logger.info("Remove CUID BOT : " + JSON.stringify(botOperationsJson.bot_operations))
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         await removeCUIDs(request, botOperationsJson.bot_operations);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (error) {
                         logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
@@ -2374,7 +2513,9 @@ function BotService(objectCollection) {
                             "error"      : error,
                             "error_stack" : error.stack
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = error;
+                        //await handleBotOperationMessageUpdate(request, i, 4, error);
                     }
                     break;
 
@@ -2384,6 +2525,7 @@ function BotService(objectCollection) {
                     util.logInfo(request,` ${request.workflow_activity_id} : Widget drilldown additional fields: Request Params received from Request: %j`, request);
                     request.debug_info.push(request.workflow_activity_id+': Widget drilldown additional fields');
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         //if(botOperationsJson.bot_operations.is_product == 1){
                             request.is_product = botOperationsJson.bot_operations.is_product;
                             request.is_cart = botOperationsJson.bot_operations.is_cart;
@@ -2391,7 +2533,8 @@ function BotService(objectCollection) {
                         //}
                         let fieldValue = await getFormFieldValue(request, botOperationsJson.bot_operations.field_id);    
                         await activitySearchListUpdateAddition(request, botOperationsJson.bot_operations.column_flag,fieldValue);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (error) {
                         util.logError(request,`[Widget drilldown additional fields] Error: `, { type: 'bot_engine', error: serializeError(error) });
                         i.bot_operation_status_id = 2;
@@ -2399,7 +2542,9 @@ function BotService(objectCollection) {
                             "log":request.debug_info,
                             "error": error
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                        //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = error;
                     }
                     break;    
                     
@@ -2410,30 +2555,38 @@ function BotService(objectCollection) {
                     request.debug_info.push('pdf_edit');
                     util.logInfo(request,`botOperationsJson : %j` , botOperationsJson);
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         await editPDF(request, JSON.parse(i.bot_operation_inline_data));
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (err) {
                         logger.error("serverError | Error in executing pdf_edit Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        //await handleBotOperationMessageUpdate(request, i, 4, err);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = err;
                     }
                     util.logInfo(request,`****************************************************************`);
                     break;
                 case 49: // Bulk Third Party Bot
                     logger.silly("Bulk Third party opex Bot params received from request: %j", request);
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         await bulkThirdPartyOpexBot(request, formInlineDataMap, botOperationsJson.bot_operations.third_party_opex_bulk);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (error) {
                         logger.error("[Bulk Third party opex Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "error": error
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                        //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = error;
                     }
                     break;
 
@@ -2443,15 +2596,19 @@ function BotService(objectCollection) {
                     logger.silly('Activity Update customer data | Request Params received by BOT ENGINE: %j', request);
                     request.debug_info.push('pdf_edit');
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         await activityUpdateCustomerData(request,botOperationsJson.bot_operations );
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (err) {
                         logger.error("serverError | Error in executing Activity Update customer data  Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        //await handleBotOperationMessageUpdate(request, i, 4, err);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = err;
                     }
                     util.logInfo(request,`****************************************************************`);
                     break;
@@ -2462,16 +2619,20 @@ function BotService(objectCollection) {
                     logger.silly('Autopopulate BC excel | Request Params received by BOT ENGINE: %j', request);
                     request.debug_info.push('bc_auto_populate');
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         util.logInfo(request,`botOperationsJson.bot_operations.condition.form_id ${botOperationsJson.bot_operations.condition.form_id}`);
                         sendToSqsPdfGeneration({ ...request, sqs_switch_flag: 3, bot_operation_id: 51, third_party_opex_form_id:botOperationsJson.bot_operations.condition.form_id  });
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (err) {
                         logger.error("Autopopulate | Error in pushing sqs message for autopopulate", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        //await handleBotOperationMessageUpdate(request, i, 4, err);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = err;
                     }
                     util.logInfo(request,`****************************************************************`);
                 break;
@@ -2481,16 +2642,20 @@ function BotService(objectCollection) {
                     
                     request.debug_info.push('calender_auto_form_submittion');
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         util.logInfo(request,`came in auto submit`);
                         autoFormSubmission(request,botOperationsJson.bot_operations);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (err) {
                         logger.error("Auto form submission | Error ", { type: "bot_engine", request_body: request, error: serializeError(err) });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        //await handleBotOperationMessageUpdate(request, i, 4, err);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = err;
                     }
                     util.logInfo(request,`****************************************************************`);
                 break;
@@ -2500,6 +2665,7 @@ function BotService(objectCollection) {
                     util.logInfo(request, 'WorkFlow Bot');
                     request.debug_info.push('WorkFlow Bot');
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
                         util.logInfo(request,`Child Order creation BOT | Request Params received by BOT ENGINE`);
                         request.debug_info.push('Child Order creation BOT | Request Params received by BOT ENGINE' + request);
@@ -2561,7 +2727,9 @@ function BotService(objectCollection) {
                             if (error) {
                                 logger.error(request.workflow_activity_id+": Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
                                 util.logError(request,request.workflow_activity_id + `: Error sending excel job to SQS queue`, { type: 'bot_engine', error });
-                                await handleBotOperationMessageUpdate(request, i, 4, error);
+                                //await handleBotOperationMessageUpdate(request, i, 4, error);
+                                i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                                i.bot_operation_error_message = error;
                             } else {
                                 logger.info(request.workflow_activity_id+": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });    
                                 util.logInfo(request, `${request.workflow_activity_id} : Successfully sent excel job to SQS queue:  %j` , data);
@@ -2596,14 +2764,17 @@ function BotService(objectCollection) {
                                 }
                             }
                         });
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (err) {
                         util.logError(request, 'Error in executing Child Order creation BOT Step', { err });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "err": err
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, err);
+                        //await handleBotOperationMessageUpdate(request, i, 4, err);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = err;
                         //return Promise.reject(err);
                     }
                     util.logInfo(request, '****************************************************************');
@@ -2612,6 +2783,7 @@ function BotService(objectCollection) {
                 case 55: // Non Ascii Check Bot
                     logger.silly("Non Ascci Check Bot params received from request: %j", request);
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         let requestForSQS = {
                             request: request,
                             sqs_switch_flag: 5,
@@ -2619,59 +2791,74 @@ function BotService(objectCollection) {
                             inlineJSON: botOperationsJson.bot_operations.non_ascii_check
                         }
                         sendToSqsPdfGeneration(requestForSQS);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (error) {
                         logger.error("[Non Ascci Check Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "error": error
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                        //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = error;
                     }
                     break;
 
                 case 56: // Midmile Excel Generation Bot
                     logger.silly("Midmile Excel Generation Bot: %j", request);
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         await midmileExcelCreationBot(request, botOperationsJson.bot_operations);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        //await handleBotOperationMessageUpdate(request, i, 3);
                     } catch (error) {
                         logger.error("[Midmile Excel Generation Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "error": error
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                        //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = error;
                     }
                     break;
                 
                 case 57: // Add Pan to elastic
                     
                     try{
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         await addCUIDs(request, botOperationsJson.bot_operations);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (error){
                         logger.error("[Add Pan to elastic Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "error": error
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                        //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = error;
                     }
                     break;
 
                 case 58: // Close All Business case's when reffered optty is closed 
                     
                     try{
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         await closeRefferedOutActivities(request, botOperationsJson.bot_operations);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (error){
                         logger.error("[Close Reffered Out Activities Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                         i.bot_operation_status_id = 2;
                         i.bot_operation_inline_data = JSON.stringify({
                             "error": error
                         });
-                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                        //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = error;
                     }
                     break;
 
@@ -2679,15 +2866,20 @@ function BotService(objectCollection) {
                     logger.silly("Due date remove Bot - ESMS");
                     logger.silly("Due date remove Bot - ESMS: %j", request);
                     try {
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
                         await this.removeDueDateOfWorkflow(request, botOperationsJson.bot_operations.due_date_edit);
-                        await handleBotOperationMessageUpdate(request, i, 3);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
                     } catch (error) {
                         logger.error("Error running the removeDueDateOfWorkflow", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                        await handleBotOperationMessageUpdate(request, i, 4, error);
+                        //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        i.bot_operation_error_message = error;
                     }
                     break;
             }
 
+            await handleBotOperationMessageUpdate(request, i);
             //botOperationTxnInsert(request, i);
             botOperationTxnInsertV1(request, i);
             await new Promise((resolve, reject) => {
@@ -17195,22 +17387,30 @@ if(workflowActivityData.length==0){
         return [error, responseData];
     }
 
-    async function handleBotOperationMessageUpdate(request, i, statusID, error = {}) {
+    async function handleBotOperationMessageUpdate(request, i = {}) {
+
         try {
+
+            let statusID = 3;
+
+            if (i.bot_operation_error_message) {
+                statusID = 4;
+            }
+
             let requestForBotTransactionUpdate = {};
             requestForBotTransactionUpdate.sqs_bot_transaction_id = request.sqs_bot_transaction_id || 0;
             requestForBotTransactionUpdate.message_id = request.message_id || "";
             requestForBotTransactionUpdate.bot_operation_id = i.bot_operation_id || 0;
             requestForBotTransactionUpdate.bot_operation_type_id = i.bot_operation_type_id || 0;
             requestForBotTransactionUpdate.workflow_activity_id = request.workflow_activity_id || 0;
-            requestForBotTransactionUpdate.form_activity_id = request.activity_id || 0;
+            requestForBotTransactionUpdate.form_activity_id = request.data_activity_id || 0;
             requestForBotTransactionUpdate.form_transaction_id = request.form_transaction_id || 0;
             requestForBotTransactionUpdate.form_id = i.form_id || 0;
             requestForBotTransactionUpdate.field_id = i.field_id || 0;
             requestForBotTransactionUpdate.status_id = statusID;
-            requestForBotTransactionUpdate.bot_operation_start_datetime = util.getCurrentUTCTime();
-            requestForBotTransactionUpdate.bot_operation_end_datetime = util.getCurrentUTCTime();
-            requestForBotTransactionUpdate.error_failed_json = JSON.stringify({ logs: request.debug_info, error: error });
+            requestForBotTransactionUpdate.bot_operation_start_datetime = i.bot_operation_start_datetime;
+            requestForBotTransactionUpdate.bot_operation_end_datetime = i.bot_operation_end_datetime;
+            requestForBotTransactionUpdate.error_failed_json = JSON.stringify({ logs: request.debug_info, error: i.bot_operation_error_message || "" });
             requestForBotTransactionUpdate.organization_id = request.organization_id || 0;
             requestForBotTransactionUpdate.log_datetime = util.getCurrentUTCTime();
 
