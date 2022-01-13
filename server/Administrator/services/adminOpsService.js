@@ -11971,7 +11971,7 @@ if (queryString !== '') {
             request.access_type_id,
             request.activity_type_id,
             request.workforce_id,
-            request.workforce_type_id,
+            request.workforce_tag_id,
             request.account_id,
             request.organization_id,
             request.asset_id,
@@ -11982,6 +11982,31 @@ if (queryString !== '') {
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.reportTypeMasterSelect = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_report_type_master_select', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
