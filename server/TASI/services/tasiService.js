@@ -2999,6 +2999,175 @@ function TasiService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    //Add parameter mapping details
+    this.addParameterMappingDetails = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.parameter_mapping_name,
+            request.parameter_mapping_desc,
+            request.parameter_mapping_url,
+            request.financial_year,
+            request.timeline_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.workforce_tag_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_parameter_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    //Remove parameter mapping details
+    this.deleteParameterMappingDetails = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.parameter_mapping_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_parameter_mapping_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    //List parameter mapping details
+    this.listParameterMappingDetails = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.timeline_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.start_from,
+            request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p1_parameter_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    //Add Organization level module details
+    this.addOrganiztionLevelModuleDetails = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.admin_access_type_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_admin_access_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    //Remove Organization level module details
+    this.deleteOrganiztionLevelModuleDetails = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.admin_access_type_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_admin_access_mapping_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    //Get Organization level module details
+    this.listOrganiztionLevelModuleDetails = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.admin_access_type_id,
+            request.organization_id
+        );
+
+        const queryString = util.getQueryString('ds_p1_admin_access_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = TasiService;
