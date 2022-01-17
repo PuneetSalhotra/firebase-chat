@@ -1090,7 +1090,7 @@ function BotService(objectCollection) {
             util.logError(request,`Error parsing inline JSON and/or preparing the form data map`, { type: 'bot_engine', error });
 
             let errorStatusUpdateRequest = Object.assign({}, request);
-            errorStatusUpdateRequest.status_id = 3;
+            errorStatusUpdateRequest.status_id = 4;
             errorStatusUpdateRequest.log_asset_id = request.asset_id || 0;
             errorStatusUpdateRequest.consumed_datetime = null;
             errorStatusUpdateRequest.processed_datetime = null;
@@ -2901,7 +2901,7 @@ function BotService(objectCollection) {
         }
 
         let processedStatusUpdateRequest = Object.assign({}, request);
-        processedStatusUpdateRequest.status_id = 4;
+        processedStatusUpdateRequest.status_id = 3;
         processedStatusUpdateRequest.log_asset_id = request.asset_id || 0;
         processedStatusUpdateRequest.consumed_datetime = null;
         processedStatusUpdateRequest.processed_datetime = util.getCurrentUTCTime();
