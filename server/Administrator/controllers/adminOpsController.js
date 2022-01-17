@@ -1282,6 +1282,16 @@ function AdminOpsController(objCollection) {
             }
         });
 
+        app.post("/" + global.config.version + "/admin/report/type/master/list", async function (req, res) {
+            const [err, result] = await adminOpsService.reportTypeMasterSelect(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/admin/report/type.master/list | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
 
 }
 
