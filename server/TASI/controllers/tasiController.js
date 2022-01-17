@@ -879,6 +879,72 @@ function TasiController(objCollection) {
         }
     });
 
+    //Add parameter mapping details
+    app.post('/' + global.config.version + '/tasi/parameter/mapping/add', async function (req, res) {
+        const [err, resData] = await tasiService.addParameterMappingDetails(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/parameter/mapping/add | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    //Remove parameter mapping details
+    app.post('/' + global.config.version + '/tasi/parameter/mapping/delete', async function (req, res) {
+        const [err, resData] = await tasiService.deleteParameterMappingDetails(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/parameter/mapping/delete | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    //List parameter mapping details
+    app.post('/' + global.config.version + '/tasi/parameter/mapping/list', async function (req, res) {
+        const [err, resData] = await tasiService.listParameterMappingDetails(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/parameter/mapping/list | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    //Add Organization levle module details
+    app.post('/' + global.config.version + '/tasi/org/level/module/add', async function (req, res) {
+        const [err, resData] = await tasiService.addOrganiztionLevelModuleDetails(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/org/level/module/add | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    //Remove Organization level module details
+    app.post('/' + global.config.version + '/tasi/org/level/module/delete', async function (req, res) {
+        const [err, resData] = await tasiService.deleteOrganiztionLevelModuleDetails(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/org/level/module/delete | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    //Get Organization level module details
+    app.post('/' + global.config.version + '/tasi/org/level/module/list', async function (req, res) {
+        const [err, resData] = await tasiService.listOrganiztionLevelModuleDetails(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/org/level/module/list | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = TasiController;

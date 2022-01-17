@@ -4634,7 +4634,7 @@ this.addPamReservationViaPhoneNumber = async (request) => {
 
         request.activity_title = request.asset_first_name + (request.table_name||'');
         request.activity_description = request.activity_title;
-		request.activity_access_role_id=121;
+		request.activity_access_role_id=117;
 		request.activity_channel_category_id= 0;
 		request.activity_channel_id=0;
         
