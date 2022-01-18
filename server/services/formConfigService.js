@@ -3671,11 +3671,13 @@ function FormConfigService(objCollection) {
                                 botService.initBotEngine(newRequest);
                                 break;
                             case "sqs":
+                                newRequest.bot_trigger_source_id = 7;
                                 util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
                                 util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { newRequest });
                                 util.pushBotRequestToSQS(newRequest);
                                 break;
                             default:
+                                newRequest.bot_trigger_source_id = 8;
                                 util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
                                 util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { newRequest });
                                 util.pushBotRequestToSQS(newRequest);
@@ -3709,11 +3711,13 @@ function FormConfigService(objCollection) {
                                 botService.initBotEngine(newRequest);
                                 break;
                             case "sqs":
+                                newRequest.bot_trigger_source_id = 9;
                                 util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
                                 util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { newRequest });
                                 util.pushBotRequestToSQS(newRequest);
                                 break;
                             default:
+                                newRequest.bot_trigger_source_id = 10;
                                 util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
                                 util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { newRequest });
                                 util.pushBotRequestToSQS(newRequest);
@@ -3789,11 +3793,13 @@ function FormConfigService(objCollection) {
                         botService.initBotEngine(initBotEngineRequest);
                         break;
                     case "sqs":
+                        initBotEngineRequest.bot_trigger_source_id = 11;
                         util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
                         util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { initBotEngineRequest });
                         util.pushBotRequestToSQS(initBotEngineRequest);
                         break;
                     default:
+                        initBotEngineRequest.bot_trigger_source_id = 12;
                         util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
                         util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { initBotEngineRequest });
                         util.pushBotRequestToSQS(initBotEngineRequest);

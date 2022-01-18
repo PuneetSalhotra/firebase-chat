@@ -1198,11 +1198,13 @@ function ActivityTimelineService(objectCollection) {
 
                             break;
                         case "sqs":
+                            botEngineRequest.bot_trigger_source_id = 3;
                             util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
                             util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { botEngineRequest });
                             util.pushBotRequestToSQS(botEngineRequest);
                             break;
                         default:
+                            botEngineRequest.bot_trigger_source_id = 4;
                             util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
                             util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { botEngineRequest });
                             util.pushBotRequestToSQS(botEngineRequest);
@@ -1300,11 +1302,13 @@ function ActivityTimelineService(objectCollection) {
 
                             break;
                         case "sqs":
+                            botEngineRequest.bot_trigger_source_id = 5;
                             util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
                             util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { botEngineRequest });
                             util.pushBotRequestToSQS(botEngineRequest);
                             break;
                         default:
+                            botEngineRequest.bot_trigger_source_id = 6;
                             util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
                             util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { botEngineRequest });
                             util.pushBotRequestToSQS(botEngineRequest);

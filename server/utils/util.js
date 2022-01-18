@@ -3634,7 +3634,7 @@ function Util(objectCollection) {
         requestForSqs.log_asset_id = request.asset_id || 0;
         requestForSqs.asset_id = request.asset_id || 0;
         requestForSqs.log_datetime = this.getCurrentUTCTime();
-
+        requestForSqs.bot_trigger_source_id = request.bot_trigger_source_id || 0;
         let [insertError, insertResponseData] = await this.BOTMessageTransactionInsertAsync(requestForSqs);
 
         if (!insertError && insertResponseData.length > 0) {
@@ -3667,6 +3667,7 @@ function Util(objectCollection) {
             error = true;
             
         const paramsArr = new Array(
+            request.bot_trigger_source_id,
             request.message_id,
             request.workflow_activity_id,
             request.form_activity_id,

@@ -7606,6 +7606,7 @@ this.getQrBarcodeFeeback = async(request) => {
             await db.executeQueryPromise(0, queryString, request)
               .then((data) => {
                   error = false;
+                  assetListHistoryInsert(request,request.asset_id,request.organization_id,224,util.getCurrentUTCTime(),(err,dat)=>{})
               })
               .catch((err) => {
                   error = err;
