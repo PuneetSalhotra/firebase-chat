@@ -2555,6 +2555,10 @@ function ActivityService(objectCollection) {
                                 switch (botEngineRequestHandleType) {
                                     case "api":
                                         util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                                        botEngineRequest.bot_trigger_source_id = 13;
+                                        const [botTransactionId, messageID] = await util.handleBotTransactionInsertForApi(botEngineRequest);
+                                        botEngineRequest.sqs_bot_transaction_id = botTransactionId;
+                                        botEngineRequest.message_id = messageID;
                                         await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
                                             .then((resp) => {
                                                 global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);

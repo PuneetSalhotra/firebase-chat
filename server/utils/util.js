@@ -3617,6 +3617,35 @@ function Util(objectCollection) {
                 return [error, responseData];
     }
 
+    this.handleBotTransactionInsertForApi = async (request) => {
+
+        let messageId = uuidv4() || "";
+        let requestForBotTransactionInsert = {};
+
+        requestForBotTransactionInsert.message_id = messageId;
+        requestForBotTransactionInsert.workflow_activity_id = request.workflow_activity_id || 0;
+        requestForBotTransactionInsert.form_activity_id = request.data_activity_id || 0;
+        requestForBotTransactionInsert.form_transaction_id = request.form_transaction_id || 0;
+        requestForBotTransactionInsert.form_id = request.form_id || 0;
+        requestForBotTransactionInsert.field_id = request.field_id || 0;
+        requestForBotTransactionInsert.message_body = request || {};
+        requestForBotTransactionInsert.status_id = 5;
+        requestForBotTransactionInsert.produced_datetime = this.getCurrentUTCTime();
+        requestForBotTransactionInsert.organization_id = request.organization_id || 0;
+        requestForBotTransactionInsert.log_asset_id = request.asset_id || 0;
+        requestForBotTransactionInsert.asset_id = request.asset_id || 0;
+        requestForBotTransactionInsert.log_datetime = this.getCurrentUTCTime();
+        requestForBotTransactionInsert.bot_trigger_source_id = request.bot_trigger_source_id || 0;
+
+        let [insertError, insertResponseData] = await this.BOTMessageTransactionInsertAsync(requestForBotTransactionInsert);
+
+        if (!insertError && insertResponseData.length > 0) {
+            return [insertResponseData[0].bot_transaction_id || 0, messageId];
+        } else {
+            return [0, messageId];
+        }
+    }
+
     this.pushBotRequestToSQS = async (request) => {
 
         let requestForSqs = {};
@@ -3681,6 +3710,7 @@ function Util(objectCollection) {
             request.log_asset_id,
             request.log_datetime,
         );
+
         const queryString = this.getQueryString('ds_p1_bot_message_transaction_insert', paramsArr);
 
         if (queryString !== '') {

@@ -1179,6 +1179,10 @@ function ActivityTimelineService(objectCollection) {
                     switch (botEngineRequestHandleType) {
                         case "api":
                             util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                            botEngineRequest.bot_trigger_source_id = 14;
+                            const [botTransactionId, messageID] = await util.handleBotTransactionInsertForApi(botEngineRequest);
+                            botEngineRequest.sqs_bot_transaction_id = botTransactionId;
+                            botEngineRequest.message_id = messageID;
                             await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
                                 .then((resp) => {
                                     global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
@@ -1276,10 +1280,14 @@ function ActivityTimelineService(objectCollection) {
                     let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
 
                     util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: botEngineRequest });
-
+                    botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
                     switch (botEngineRequestHandleType) {
                         case "api":
                             util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                            botEngineRequest.bot_trigger_source_id = 15;
+                            const [botTransactionId, messageID] = await util.handleBotTransactionInsertForApi(botEngineRequest);
+                            botEngineRequest.sqs_bot_transaction_id = botTransactionId;
+                            botEngineRequest.message_id = messageID;
                             await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
                                 .then(async (resp) => {
                                     util.logInfo(request, `Bot Engine Trigger Response: %j`, resp);
