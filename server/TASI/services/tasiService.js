@@ -207,6 +207,7 @@ function TasiService(objectCollection) {
             request.asset_type_flag_form_access || 0,
             request.asset_type_flag_line_manager || 0,
             request.asset_type_flag_target_only || 0,
+            request.asset_type_flag_omit_consolidation || 0,
             request.organization_id,
             request.flag,
             util.getCurrentUTCTime(),

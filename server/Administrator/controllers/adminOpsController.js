@@ -1292,6 +1292,26 @@ function AdminOpsController(objCollection) {
             }
         });
 
+        app.post("/" + global.config.version + "/admin/report/type/master/insert", async function (req, res) {
+            const [err, result] = await adminOpsService.reportTypeMasterInsert(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/admin/activity_type/mapping/dashboard/update | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
+        app.post("/" + global.config.version + "/admin/report/type/master/delete", async function (req, res) {
+            const [err, result] = await adminOpsService.reportTypeMasterDelete(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/admin/report/type.master/list | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
 
 }
 
