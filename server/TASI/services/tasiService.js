@@ -3072,6 +3072,8 @@ function TasiService(objectCollection) {
             request.timeline_id,
             request.period_start_datetime,
             request.period_end_datetime,
+            request.financial_year,
+            request.workforce_tag_id,
             request.start_from,
             request.limit_value
         );
