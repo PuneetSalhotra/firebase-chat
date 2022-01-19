@@ -3668,6 +3668,10 @@ function FormConfigService(objCollection) {
                         switch (botEngineRequestHandleType) {
                             case "api":
                                 util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                                newRequest.bot_trigger_source_id = 16;
+                                const [botTransactionId, messageID] = await util.handleBotTransactionInsertForApi(newRequest);
+                                newRequest.sqs_bot_transaction_id = botTransactionId;
+                                newRequest.message_id = messageID;
                                 botService.initBotEngine(newRequest);
                                 break;
                             case "sqs":
@@ -3708,6 +3712,10 @@ function FormConfigService(objCollection) {
                         switch (botEngineRequestHandleType) {
                             case "api":
                                 util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                                newRequest.bot_trigger_source_id = 17;
+                                const [botTransactionId, messageID] = await util.handleBotTransactionInsertForApi(newRequest);
+                                newRequest.sqs_bot_transaction_id = botTransactionId;
+                                newRequest.message_id = messageID;
                                 botService.initBotEngine(newRequest);
                                 break;
                             case "sqs":
@@ -3790,6 +3798,10 @@ function FormConfigService(objCollection) {
                 switch (botEngineRequestHandleType) {
                     case "api":
                         util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                        initBotEngineRequest.bot_trigger_source_id = 18;
+                        const [botTransactionId, messageID] = await util.handleBotTransactionInsertForApi(initBotEngineRequest);
+                        initBotEngineRequest.sqs_bot_transaction_id = botTransactionId;
+                        initBotEngineRequest.message_id = messageID;
                         botService.initBotEngine(initBotEngineRequest);
                         break;
                     case "sqs":
