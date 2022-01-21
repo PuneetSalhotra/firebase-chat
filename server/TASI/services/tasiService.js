@@ -3085,7 +3085,16 @@ function TasiService(objectCollection) {
     this.addOrganiztionLevelModuleDetails = async function (request) {
         let responseData = [],
             error = true;
+     let adminAccessTypes = typeof request.admin_access_type_id == 'string' ? JSON.parse(request.admin_access_type_id) :request.admin_access_type_id;
+     for(let i=0;i<adminAccessTypes.length;i++){
+        addEachOrganiztionLevelModuleDetails({...request,admin_access_type_id:adminAccessTypes[i]})
+     }
+        return [error, responseData];
+    }
 
+   async function addEachOrganiztionLevelModuleDetails(request){
+        let responseData = [],
+            error = true;
         const paramsArr = new Array(
             request.admin_access_type_id,
             request.organization_id,
