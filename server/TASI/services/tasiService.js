@@ -183,37 +183,17 @@ function TasiService(objectCollection) {
             error = true;
 
         const paramsArr = new Array(
-            request.asset_type_id,
-            request.asset_type_name || "",
-            request.asset_type_flag_enable_approval || 0,
-            request.asset_type_approval_max_levels || 0,
-            request.asset_type_approval_wait_duration || "0",
-            request.asset_type_approval_activity_type_id || "",
-            request.asset_type_approval_activity_type_name || "",
-            request.asset_type_approval_origin_form_id || 0,
-            request.asset_type_approval_field_id || 0,
-            request.asset_type_attendance_type_id || 0,
-            request.asset_type_attendance_type_name || "",
-            request.asset_type_flag_enable_suspension || 0,
-            request.asset_type_suspension_activity_type_id || 0,
-            request.asset_type_suspension_activity_type_name || "",
-            request.asset_type_suspension_wait_duration || "0",
-            request.asset_type_flag_hide_organization_details || 0,
-            request.asset_type_flag_sip_enabled || 0,
-            request.asset_type_flag_enable_send_sms || 0,
-            request.asset_type_flag_sip_admin_access || 0,
-            request.asset_type_flag_frontline || 0,
-            request.asset_type_flag_email_login || 0,
-            request.asset_type_flag_form_access || 0,
-            request.asset_type_flag_line_manager || 0,
-            request.asset_type_flag_target_only || 0,
-            request.asset_type_flag_omit_consolidation || 0,
             request.organization_id,
+            request.asset_type_id,
+            request.asset_type_flag_frontline || 0,
+            request.asset_type_flag_sip_target || 0,
+            request.asset_type_flag_omit_consolidation || 0,
+            request.asset_type_ta_notes || "",
             request.flag,
             util.getCurrentUTCTime(),
-            request.log_asset_id,
+            request.log_asset_id
         );
-        const queryString = util.getQueryString('ds_p6_workforce_asset_type_mapping_update', paramsArr);
+        const queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_update_ta', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -2699,8 +2679,10 @@ function TasiService(objectCollection) {
             request.period_start_datetime,
             request.period_end_datetime,
             request.product_id,
+            request.target_setting_flag_channel,
+            request.workforce_tag_id,
             request.organization_id,
-            request.asset_id,
+            request.log_asset_id,
             util.getCurrentUTCTime()            
         );
 
