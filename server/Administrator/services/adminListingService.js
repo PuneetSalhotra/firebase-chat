@@ -1346,6 +1346,8 @@ function AdminListingService(objectCollection) {
             request.organization_id,
             request.account_id,
             request.workforce_id,
+            request.asset_type_flag_frontline || 0,
+            request.asset_type_flag_sip_target || -1,
             request.page_start || 0,
             request.page_limit || 50
         );
