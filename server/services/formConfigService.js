@@ -3661,8 +3661,8 @@ function FormConfigService(objCollection) {
                 try {
                     setTimeout(async () => {
 
-                        let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
-
+                        // let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
+                        let botEngineRequestHandleType = "API";
                         util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: newRequest });
                         botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
                         switch (botEngineRequestHandleType) {
@@ -3705,8 +3705,8 @@ function FormConfigService(objCollection) {
                 newRequest.workflow_activity_id = workflowActivityId;
                 try {
                     setTimeout(async () => {
-                        let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
-
+                        // let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
+                        let botEngineRequestHandleType = "API";
                         util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: newRequest });
                         botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
                         switch (botEngineRequestHandleType) {
@@ -3791,8 +3791,8 @@ function FormConfigService(objCollection) {
 
             await sleep(3000);
             try {
-                let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
-
+                // let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
+                let botEngineRequestHandleType = "API";
                 util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: initBotEngineRequest });
                 botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
                 switch (botEngineRequestHandleType) {
