@@ -12251,6 +12251,7 @@ if(workflowActivityData.length==0){
             asset_id : 100
         }
         await activityCommonService.setAtivityOwnerFlag(params);
+        activityCommonService.actAssetSearchMappingUpdate({...request,asset_id:assetID})
 
         // const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
         //     organization_id: request.organization_id,
