@@ -1337,6 +1337,11 @@ function AdminListingService(objectCollection) {
         let responseData = [],
             error = true;
 
+        let asset_type_flag_sip_target = -1;
+        if (request.hasOwnProperty('asset_type_flag_sip_target')) {
+            asset_type_flag_sip_target = request.asset_type_flag_sip_target;
+        }
+
         // NEEDS WORK
         const paramsArr = new Array(
             request.flag || 0,
@@ -1347,7 +1352,7 @@ function AdminListingService(objectCollection) {
             request.account_id,
             request.workforce_id,
             request.asset_type_flag_frontline || 0,
-            request.asset_type_flag_sip_target || -1,
+            asset_type_flag_sip_target,
             request.page_start || 0,
             request.page_limit || 50
         );
