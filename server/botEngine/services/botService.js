@@ -6202,7 +6202,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
             const body = JSON.parse(response.body);
             if (Number(body.status) === 200) {
-                util.logInfo(request,`createActivity | addActivityAsync | Body: %j` , body);
+                util.logInfo({},`createActivity | addActivityAsync | Body: %j` , body);
                 let activityTimelineCollection =  JSON.stringify({
                     "content"            : `Form Submitted`,
                     "subject"            : `Form Submitted`,
@@ -6232,7 +6232,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                 return [false, body];
             }
         } catch (error) {
-            util.logError(request,`createActivity | addActivityAsync | Error: `, { type: 'bot_engine', error });
+            util.logError({},`createActivity | addActivityAsync | Error: `, { type: 'bot_engine', error });
             return [true, {}];
         }
         return;
@@ -6422,7 +6422,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                 return 'data_entity_text_2';
             case 64: //JSON                
                 return 'data_entity_inline';
-            default: util.logInfo(request,`In default Case : getFielDataValueColumnName`);
+            default: util.logInfo({},`In default Case : getFielDataValueColumnName`);
         }
     }    
     
@@ -12251,6 +12251,7 @@ if(workflowActivityData.length==0){
             asset_id : 100
         }
         await activityCommonService.setAtivityOwnerFlag(params);
+        activityCommonService.actAssetSearchMappingUpdate({...request,asset_id:assetID})
 
         // const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
         //     organization_id: request.organization_id,
