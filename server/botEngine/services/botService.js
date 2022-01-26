@@ -15282,7 +15282,7 @@ if(workflowActivityData.length==0){
         let key = "_0";
         let isEnd = false;
 
-        if ((Number(request.is_refill) == 1 || Number(request.is_cloned) == 1) && Number(request.lead_asset_id)) {
+        if (Number(request.is_refill) == 1 && Number(request.lead_asset_id)) {
             request.target_asset_id = request.lead_asset_id;
             request.target_asset_first_name = request.lead_asset_first_name;
             request.asset_type_id = request.lead_asset_type_id;
