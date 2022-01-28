@@ -2537,24 +2537,28 @@ function TasiService(objectCollection) {
             error = true;
 
         const paramsArr = new Array(
-          request.organization_id,
-          request.input_type_id,
-          request.flag,
-          request.period_start_datetime,
-          request.period_end_datetime,
-          request.input_period_type_id,
-          request.workforce_tag_id,
-          request.widget_type_id,
-          request.widget_type_category_id,
-          request.product_id,
-          request.level_id,
-          request.asset_id,
-          request.asset_type_id,
-          request.start_from,
-          request.limit_value
+            request.organization_id,
+            request.input_type_id,
+            request.flag,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.input_period_type_id,
+            request.widget_type_id,
+            request.widget_type_category_id,
+            request.product_id,
+            request.level_id,
+            request.asset_id,
+            request.asset_type_id,
+            request.asset_tag_id_1,
+            request.asset_tag_id_2,
+            request.asset_tag_id_3,
+            request.workforce_tag_id,
+            request.cluster_tag_id,
+            request.start_from,
+            request.limit_value
         );
 
-        const queryString = util.getQueryString('ds_p1_input_list_select_filter', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_input_list_select_filter', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
@@ -2582,16 +2586,20 @@ function TasiService(objectCollection) {
             request.period_end_datetime,
             request.level_id,
             request.workforce_tag_id,
+            request.asset_tag_id_1,
+            request.asset_tag_id_2,
+            request.asset_tag_id_3,
             request.product_id,
             request.widget_type_id,
             request.widget_type_category_id,
             request.workforce_id,
             request.account_id,
+            request.cluster_tag_id,
             request.start_form, 
             request.limit_value
         );
 
-        const queryString = util.getQueryString('ds_v1_report_list_select_simulation', paramsArr);
+        const queryString = util.getQueryString('ds_v1_1_report_list_select_simulation', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
