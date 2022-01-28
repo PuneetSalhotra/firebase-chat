@@ -1938,6 +1938,11 @@ function TasiService(objectCollection) {
             error = true;
 
         const paramsArr = new Array(
+            request.tag_id_1,
+            request.tag_id_2,
+            request.tag_id_3,
+            request.tag_id_4,
+            request.tag_id_5,
             request.entity_target_setting_inline,
             request.level_id,
             request.flag_is_freeze,
@@ -1945,24 +1950,18 @@ function TasiService(objectCollection) {
             request.period_type_id,
             request.period_start_datetime,
             request.period_end_datetime,
-            request.asset_id,
+            request.target_asset_id,
             request.asset_type_id,
             request.widget_type_id,
-            request.widget_type_code,
             request.product_id,
             request.workforce_id,
             request.account_id,
             request.organization_id,
-            request.workforce_tag_id,
-            request.cluster_tag_id,
-            request.asset_tag_id_1,
-            request.asset_tag_id_2,
-            request.asset_tag_id_3,
-            request.log_asset_id,
+            request.asset_id,
             util.getCurrentUTCTime()
         );
 
-        const queryString = util.getQueryString('ds_p1_1_entity_target_setting_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_entity_target_setting_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -2055,28 +2054,28 @@ function TasiService(objectCollection) {
             error = true;
 
         const paramsArr = new Array(
-            request.organization_id,
-            request.flag,
-            request.is_freeze,
-            request.level_id,
-            request.asset_id,
-            request.asset_type_id,
-            request.workforce_tag_id,
+          request.organization_id,
+          request.flag,
+          request.is_freeze,
+          request.level_id,
+          request.asset_id,
+          request.asset_type_id,
+          request.workforce_tag_id,
             request.asset_tag_id_1,
             request.asset_tag_id_2,
             request.asset_tag_id_3,
             request.cluster_tag_id,
             request.account_id,
-            request.widget_type_id,
-            request.widget_type_category_id,
+          request.widget_type_id,
+          request.widget_type_category_id,
             request.widget_type_code,
-            request.product_id,
-            request.timeline_id,
-            request.period_type_id,
-            request.start_datetime,
-            request.end_datetime,
-            request.start_from,
-            request.limit_value
+          request.product_id,
+          request.timeline_id,
+          request.period_type_id,
+          request.start_datetime,
+          request.end_datetime,
+          request.start_from || 0,
+          request.limit_value || 50
         );
 
         const queryString = util.getQueryString('ds_p1_entity_target_setting_select', paramsArr);
