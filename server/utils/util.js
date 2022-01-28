@@ -2765,7 +2765,7 @@ function Util(objectCollection) {
                 "ewsMailAttachment": attachment
             }
 
-            if(emailProviderDetails.email === "vibs.selfcaresupport@vodafoneidea.com") {
+            if (emailProviderDetails.hasOwnProperty("email") && emailProviderDetails.email === "vibs.selfcaresupport@vodafoneidea.com") {
                 emailSQSQueueUrl = global.config.smpEmailSQSQueueUrl;
             }
 
