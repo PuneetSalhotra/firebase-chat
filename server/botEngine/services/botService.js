@@ -6409,6 +6409,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             case 6: // Decimal
                 return 'data_entity_double_1';
             case 19: // Short Text
+            case 34: // MultiSelection   
             case 21: // Label
             case 22: // Email ID
             case 23: // Phone Number
@@ -12251,7 +12252,7 @@ if(workflowActivityData.length==0){
             asset_id : 100
         }
         await activityCommonService.setAtivityOwnerFlag(params);
-        activityCommonService.actAssetSearchMappingUpdate({...request,asset_id:assetID})
+        activityCommonService.actAssetSearchMappingUpdate({...request,asset_id:assetID});
 
         // const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
         //     organization_id: request.organization_id,
