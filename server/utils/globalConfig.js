@@ -326,6 +326,7 @@ if(mode === 'local') {
     config.aws_sqs_email_secretAccessKey = "KL/WUvd/foTWNiNSPcKCz7r52fd6Ri0mCFY7HKgU";
     config.aws_sqs_email_region = "ap-south-1";
     config.emailSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/ews-engine-mail";
+    config.smpEmailSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/ews-engine-mail-smp";
 
     //Cognito
     config.cognito_region = 'ap-south-1';
@@ -808,6 +809,7 @@ if(mode === 'staging') {
     config.aws_sqs_email_secretAccessKey = "KL/WUvd/foTWNiNSPcKCz7r52fd6Ri0mCFY7HKgU";
     config.aws_sqs_email_region = "ap-south-1";
     config.emailSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/ews-engine-mail";
+    config.smpEmailSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/ews-engine-mail-smp";
 
     //Cognito
     config.cognito_region = 'ap-south-1';
@@ -978,6 +980,7 @@ if(mode === 'preprod') {
     config.aws_sqs_email_secretAccessKey = "KL/WUvd/foTWNiNSPcKCz7r52fd6Ri0mCFY7HKgU";
     config.aws_sqs_email_region = "ap-south-1";
     config.emailSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/ews-engine-mail";
+    config.smpEmailSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/ews-engine-mail-smp";
 
     //Cognito
     config.cognito_region = 'ap-south-1';

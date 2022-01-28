@@ -2547,8 +2547,7 @@ function ActivityService(objectCollection) {
                             let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
                             if (botsListData.length > 0) {
                                 botEngineRequest.bot_id = botsListData[0].bot_id;
-                                // let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
-                                let botEngineRequestHandleType = "API";
+                                let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
                                 botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
 
                                 util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: botEngineRequest });
