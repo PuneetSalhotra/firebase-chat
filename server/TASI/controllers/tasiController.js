@@ -945,6 +945,17 @@ function TasiController(objCollection) {
         }
     });
 
+    //TASI Report List Insert
+    app.post('/' + global.config.version + '/tasi/report/list/insert', async function (req, res) {
+        const [err, resData] = await tasiService.tasiReportListInsert(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/inputList/insert | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = TasiController;
