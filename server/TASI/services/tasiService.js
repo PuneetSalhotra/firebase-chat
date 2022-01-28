@@ -1028,24 +1028,40 @@ function TasiService(objectCollection) {
         let responseData = [],
             error = true;
         const paramsArr = new Array(
-          request.input_name,
-          request.input_type_id,
-          request.input_url1,
-          request.input_url2,
-          request.input_url3,
-          request.input_url4,
-          request.input_url5,
-          request.input_text,
-          request.input_data,
-          request.input_upload_datetime,
-          request.period_type_id,
-          request.period_start_datetime,
-          request.period_end_datetime,
-          request.organization_id,
-          request.asset_id,
-          util.getCurrentUTCTime()
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.report_type_id,
+            request.report_name,
+            request.report_inline_data,
+            request.report_start_time,
+            request.report_end_time,
+            request.report_description,
+            request.level_id,
+            request.widget_type_code,
+            request.workforce_tag_id,
+            request.asset_tag_id_1,
+            request.asset_tag_id_2,
+            request.asset_tag_id_3,
+            request.cluster_tag_id,
+            request.period_type_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.data_entity_bigint_1,
+            request.data_entity_bigint_2,
+            request.data_entity_bigint_3,
+            request.data_entity_bigint_4,
+            request.data_entity_bigint_5,
+            request.data_entity_url_1,
+            request.data_entity_url_2,
+            request.product_id,
+            request.widget_type_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p2_input_list_insert', paramsArr);
+
+        const queryString = util.getQueryString('ds_p2_1_input_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -3167,6 +3183,60 @@ function TasiService(objectCollection) {
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    //TASI Report List Insert
+    this.tasiReportListInsert = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.report_type_id,
+            request.report_name,
+            request.report_inline_data,
+            request.report_start_time,
+            request.report_end_time,
+            request.report_description,
+            request.level_id,
+            request.widget_type_code,
+            request.workforce_tag_id,
+            request.asset_tag_id_1,
+            request.asset_tag_id_2,
+            request.asset_tag_id_3,
+            request.cluster_tag_id,
+            request.period_type_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.data_entity_bigint_1,
+            request.data_entity_bigint_2,
+            request.data_entity_bigint_3,
+            request.data_entity_bigint_4,
+            request.data_entity_bigint_5,
+            request.data_entity_url_1,
+            request.data_entity_url_2,
+            request.product_id,
+            request.widget_type_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_v1_1_report_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
