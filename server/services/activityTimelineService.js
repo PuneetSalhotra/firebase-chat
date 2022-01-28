@@ -1171,8 +1171,7 @@ function ActivityTimelineService(objectCollection) {
                     // Bot log - Bot is defined
                     activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 1);
 
-                    // let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
-                    let botEngineRequestHandleType = "API";
+                    let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
                     util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: botEngineRequest });
 
                     botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
@@ -1277,8 +1276,7 @@ function ActivityTimelineService(objectCollection) {
 
                     util.logInfo(request,`fireBotEngineInitWorkflow | botEngineRequest: `, botEngineRequest);
 
-                    // let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
-                    let botEngineRequestHandleType = "API";
+                    let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
                     util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: botEngineRequest });
                     botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
                     switch (botEngineRequestHandleType) {
