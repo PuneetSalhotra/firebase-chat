@@ -1312,6 +1312,26 @@ function AdminOpsController(objCollection) {
             }
         });
 
+        app.post("/" + global.config.version + "/admin/workforce/asset_type/mapping/select", async function (req, res) {
+            const [err, result] = await adminOpsService.workforceAssetTypeMappingFlagSelect(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/admin/workforce/asset_type/mapping/select | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
+        app.post("/" + global.config.version + "/admin/asset_type/access/mapping/insert/v1", async function (req, res) {
+            const [err, result] = await adminOpsService.assetTypeAccessMappingInsertV1(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("//admin/asset_type/access/mapping/insert/v1 | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
 
 }
 

@@ -12098,6 +12098,70 @@ if (queryString !== '') {
         return [error, responseData];
     };
 
+    this.workforceAssetTypeMappingFlagSelect = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.flag,
+            request.level_id,
+            request.asset_type_id,
+            request.asset_type_category_id,
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.workforce_tag_id,
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_1_workforce_asset_type_mapping_select_flag', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.assetTypeAccessMappingInsertV1 = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.target_asset_id,
+            request.asset_type_id,
+            request.access_level_id,
+            request.access_type_id,
+            request.activity_type_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p4_asset_type_access_mapping_insert', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
 }
 
 module.exports = AdminOpsService;
