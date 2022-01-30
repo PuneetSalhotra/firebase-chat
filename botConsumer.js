@@ -71,14 +71,11 @@ async function SetMessageHandlerForConsumer() {
                 requestForBotEngine.message_id = messageID;
                 requestForBotEngine.sqs_bot_transaction_id = messageBody.sqs_bot_transaction_id || 0;
 
-                const [errorZero, partitionOffsetData] = await activityCommonService.checkingSQSMessageIdAsync(request);
-                if (errorZero || Number(partitionOffsetData.length) > 0) {
-                    logger.error(`Message ID already exist`, { type: "bot_consumer", error: serializeError(errorZero) });
+                const [errorTwo, _] = await activityCommonService.SQSMessageIdInsertAsync(request);
+                if (errorTwo) {
+                    logger.error(`Error recording the message ID`, { type: "bot_consumer", error: serializeError(errorTwo) });
                     return;
                 }
-
-                const [errorTwo, _] = await activityCommonService.SQSMessageIdInsertAsync(request);
-                if (errorTwo) { logger.error(`Error recording the message ID`, { type: "bot_consumer", error: serializeError(errorTwo) }) }
 
                 logger.info(`[${request.activity_id}][${request.sqs_bot_transaction_id || 0}] consuming bot engine message`, { type: "bot_consumer", messageBody })
 

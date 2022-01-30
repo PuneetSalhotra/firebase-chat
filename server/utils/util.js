@@ -2725,72 +2725,77 @@ function Util(objectCollection) {
         return [error, responseData];
     };
 
-     this.sendEmailV4ewsV1 = async function (request,emails,subject,body,attachment,emailProviderDetails,base64EncodedHtmlTemplate = ''){
+    this.sendEmailV4ewsV1 = async function (request, emails, subject, body, attachment, emailProviderDetails, base64EncodedHtmlTemplate = '') {
         let responseData = [];
         let error = false;
         let htmlTemplate = "";
-        try{
-        let ewsPassword = await cacheWrapper.getKeyValueFromCache('omt.in1@vodafoneidea.com');
-        let emailSQSQueueUrl = global.config.emailSQSQueueUrl;
-        htmlTemplate = body;
-        if (request.flag == 0) {
-            buff = new Buffer.from(base64EncodedHtmlTemplate, 'base64');
-            htmlTemplate = buff.toString('ascii');
-            // console.log('html temp',htmlTemplate)
-        } else {
+        try {
+            let ewsPassword = await cacheWrapper.getKeyValueFromCache('omt.in1@vodafoneidea.com');
+            let emailSQSQueueUrl = global.config.emailSQSQueueUrl;
             htmlTemplate = body;
-        }
-        if(request.get_email_pasword==1){
-            let [error1, assetDetails] = await this.getAssetDetails({...request,asset_id:request.email_sender_asset_id});
+            if (request.flag == 0) {
+                buff = new Buffer.from(base64EncodedHtmlTemplate, 'base64');
+                htmlTemplate = buff.toString('ascii');
+                // console.log('html temp',htmlTemplate)
+            } else {
+                htmlTemplate = body;
+            }
+            if (request.get_email_pasword == 1) {
+                let [error1, assetDetails] = await this.getAssetDetails({ ...request, asset_id: request.email_sender_asset_id });
                 console.log("assetDetails[0].asset_email_password before decrypt", assetDetails[0].asset_email_password);
                 let email_sender_password_text = assetDetails[0].asset_email_password;
                 let decrypted = CryptoJS.AES.decrypt(email_sender_password_text.toString() || "", 'lp-n5^+8M@62').toString(CryptoJS.enc.Utf8);
-            console.log('decrypted PWD : ', decrypted);
-            emailProviderDetails.email = assetDetails[0].asset_email_id;
-            emailProviderDetails.username = assetDetails[0].operating_asset_username
-            emailProviderDetails.password = decrypted; 
-        } 
-        // console.log('fg',emailProviderDetails)
-        let ewsConfig = {
-            "ewsEmail":emailProviderDetails.email || "CentralOmt.In@vodafoneidea.com",
-            "ewsUsername":emailProviderDetails.username || "COR458207",
-            "ewsPassword":emailProviderDetails.password || ewsPassword,
-            "ewsDomain":"inroot",
-            "ewsEndpoint":"https://webmail.vodafoneidea.com/ews/exchange.asmx",
-            "ewsMailReceiver":emails,
-            "ewsMailReceiverCc":[],
-            "ewsMailReceiverBcc":[],
-            "ewsMailSubject":subject,
-            "ewsMailBody":htmlTemplate,
-            "ewsMailAttachment":attachment
-         }
-         console.log(JSON.stringify(ewsConfig))
-         let sqsMessage = {
-            MessageBody: JSON.stringify(ewsConfig),
-            QueueUrl: emailSQSQueueUrl,
-            MessageAttributes: {
-                "Environment": {
-                    DataType: "String",
-                    StringValue: 'staging'
-                },
+                console.log('decrypted PWD : ', decrypted);
+                emailProviderDetails.email = assetDetails[0].asset_email_id;
+                emailProviderDetails.username = assetDetails[0].operating_asset_username
+                emailProviderDetails.password = decrypted;
             }
-        };
-        logger.info(JSON.stringify(sqsMessage));
-        sqs.sendMessage(sqsMessage, (err, data) => {
-            if (err) {
-                logger.error("Error sending email job to SQS queue => ");
-                logger.error(err);
-                responseData = { errormsg: err };
-                error = true;
-                //logger.error("Error sending email job to SQS queue", { type: 'ews-engine-mail', error: serializeError(err), request_body: emailMessageBody });
-            } else {
-                error = false;
-                responseData = { errormsg: "Successfully sent email to "  };
-                logger.info("Successfully sent email job to SQS queue: %j", data, { type: 'ews-engine-mail', request_body: ewsConfig });
+            // console.log('fg',emailProviderDetails)
+            let ewsConfig = {
+                "ewsEmail": emailProviderDetails.email || "CentralOmt.In@vodafoneidea.com",
+                "ewsUsername": emailProviderDetails.username || "COR458207",
+                "ewsPassword": emailProviderDetails.password || ewsPassword,
+                "ewsDomain": "inroot",
+                "ewsEndpoint": "https://webmail.vodafoneidea.com/ews/exchange.asmx",
+                "ewsMailReceiver": emails,
+                "ewsMailReceiverCc": [],
+                "ewsMailReceiverBcc": [],
+                "ewsMailSubject": subject,
+                "ewsMailBody": htmlTemplate,
+                "ewsMailAttachment": attachment
             }
-        });
+
+            if (emailProviderDetails.hasOwnProperty("email") && emailProviderDetails.email === "vibs.selfcaresupport@vodafoneidea.com") {
+                emailSQSQueueUrl = global.config.smpEmailSQSQueueUrl;
+            }
+
+            console.log(JSON.stringify(ewsConfig))
+            let sqsMessage = {
+                MessageBody: JSON.stringify(ewsConfig),
+                QueueUrl: emailSQSQueueUrl,
+                MessageAttributes: {
+                    "Environment": {
+                        DataType: "String",
+                        StringValue: 'staging'
+                    },
+                }
+            };
+            logger.info(JSON.stringify(sqsMessage));
+            sqs.sendMessage(sqsMessage, (err, data) => {
+                if (err) {
+                    logger.error("Error sending email job to SQS queue => ");
+                    logger.error(err);
+                    responseData = { errormsg: err };
+                    error = true;
+                    //logger.error("Error sending email job to SQS queue", { type: 'ews-engine-mail', error: serializeError(err), request_body: emailMessageBody });
+                } else {
+                    error = false;
+                    responseData = { errormsg: "Successfully sent email to " };
+                    logger.info("Successfully sent email job to SQS queue: %j", data, { type: 'ews-engine-mail', request_body: ewsConfig });
+                }
+            });
         }
-        catch(err){
+        catch (err) {
 
         }
 
@@ -3617,6 +3622,35 @@ function Util(objectCollection) {
                 return [error, responseData];
     }
 
+    this.handleBotTransactionInsertForApi = async (request) => {
+
+        let messageId = uuidv4() || "";
+        let requestForBotTransactionInsert = {};
+
+        requestForBotTransactionInsert.message_id = messageId;
+        requestForBotTransactionInsert.workflow_activity_id = request.workflow_activity_id || 0;
+        requestForBotTransactionInsert.form_activity_id = request.data_activity_id || 0;
+        requestForBotTransactionInsert.form_transaction_id = request.form_transaction_id || 0;
+        requestForBotTransactionInsert.form_id = request.form_id || 0;
+        requestForBotTransactionInsert.field_id = request.field_id || 0;
+        requestForBotTransactionInsert.message_body = request || {};
+        requestForBotTransactionInsert.status_id = 5;
+        requestForBotTransactionInsert.produced_datetime = this.getCurrentUTCTime();
+        requestForBotTransactionInsert.organization_id = request.organization_id || 0;
+        requestForBotTransactionInsert.log_asset_id = request.asset_id || 0;
+        requestForBotTransactionInsert.asset_id = request.asset_id || 0;
+        requestForBotTransactionInsert.log_datetime = this.getCurrentUTCTime();
+        requestForBotTransactionInsert.bot_trigger_source_id = request.bot_trigger_source_id || 0;
+
+        let [insertError, insertResponseData] = await this.BOTMessageTransactionInsertAsync(requestForBotTransactionInsert);
+
+        if (!insertError && insertResponseData.length > 0) {
+            return [insertResponseData[0].bot_transaction_id || 0, messageId];
+        } else {
+            return [0, messageId];
+        }
+    }
+
     this.pushBotRequestToSQS = async (request) => {
 
         let requestForSqs = {};
@@ -3634,7 +3668,7 @@ function Util(objectCollection) {
         requestForSqs.log_asset_id = request.asset_id || 0;
         requestForSqs.asset_id = request.asset_id || 0;
         requestForSqs.log_datetime = this.getCurrentUTCTime();
-
+        requestForSqs.bot_trigger_source_id = request.bot_trigger_source_id || 0;
         let [insertError, insertResponseData] = await this.BOTMessageTransactionInsertAsync(requestForSqs);
 
         if (!insertError && insertResponseData.length > 0) {
@@ -3667,6 +3701,7 @@ function Util(objectCollection) {
             error = true;
             
         const paramsArr = new Array(
+            request.bot_trigger_source_id,
             request.message_id,
             request.workflow_activity_id,
             request.form_activity_id,
@@ -3680,6 +3715,7 @@ function Util(objectCollection) {
             request.log_asset_id,
             request.log_datetime,
         );
+
         const queryString = this.getQueryString('ds_p1_bot_message_transaction_insert', paramsArr);
 
         if (queryString !== '') {

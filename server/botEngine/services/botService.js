@@ -1088,6 +1088,17 @@ function BotService(objectCollection) {
             }
         } catch (error) {
             util.logError(request,`Error parsing inline JSON and/or preparing the form data map`, { type: 'bot_engine', error });
+
+            let errorStatusUpdateRequest = Object.assign({}, request);
+            errorStatusUpdateRequest.status_id = 4;
+            errorStatusUpdateRequest.log_asset_id = request.asset_id || 0;
+            errorStatusUpdateRequest.consumed_datetime = null;
+            errorStatusUpdateRequest.processed_datetime = null;
+            errorStatusUpdateRequest.failed_datetime = util.getCurrentUTCTime();
+            errorStatusUpdateRequest.log_datetime = util.getCurrentUTCTime();
+
+            const [errorThree, __] = await activityCommonService.BOTMessageTransactionUpdateStatusAsync(errorStatusUpdateRequest);
+
         }
 
         let wfSteps;
@@ -2888,6 +2899,16 @@ function BotService(objectCollection) {
                 }, 1000);
             });
         }
+
+        let processedStatusUpdateRequest = Object.assign({}, request);
+        processedStatusUpdateRequest.status_id = 3;
+        processedStatusUpdateRequest.log_asset_id = request.asset_id || 0;
+        processedStatusUpdateRequest.consumed_datetime = null;
+        processedStatusUpdateRequest.processed_datetime = util.getCurrentUTCTime();
+        processedStatusUpdateRequest.failed_datetime = null;
+        processedStatusUpdateRequest.log_datetime = util.getCurrentUTCTime();
+
+        const [errorThree, __] = await activityCommonService.BOTMessageTransactionUpdateStatusAsync(processedStatusUpdateRequest);
 
         // Send push notification
         try {
@@ -6181,7 +6202,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             const response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
             const body = JSON.parse(response.body);
             if (Number(body.status) === 200) {
-                util.logInfo(request,`createActivity | addActivityAsync | Body: %j` , body);
+                util.logInfo({},`createActivity | addActivityAsync | Body: %j` , body);
                 let activityTimelineCollection =  JSON.stringify({
                     "content"            : `Form Submitted`,
                     "subject"            : `Form Submitted`,
@@ -6211,7 +6232,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                 return [false, body];
             }
         } catch (error) {
-            util.logError(request,`createActivity | addActivityAsync | Error: `, { type: 'bot_engine', error });
+            util.logError({},`createActivity | addActivityAsync | Error: `, { type: 'bot_engine', error });
             return [true, {}];
         }
         return;
@@ -6388,6 +6409,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             case 6: // Decimal
                 return 'data_entity_double_1';
             case 19: // Short Text
+            case 34: // MultiSelection   
             case 21: // Label
             case 22: // Email ID
             case 23: // Phone Number
@@ -6401,7 +6423,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
                 return 'data_entity_text_2';
             case 64: //JSON                
                 return 'data_entity_inline';
-            default: util.logInfo(request,`In default Case : getFielDataValueColumnName`);
+            default: util.logInfo({},`In default Case : getFielDataValueColumnName`);
         }
     }    
     
@@ -12230,6 +12252,7 @@ if(workflowActivityData.length==0){
             asset_id : 100
         }
         await activityCommonService.setAtivityOwnerFlag(params);
+        activityCommonService.actAssetSearchMappingUpdate({...request,asset_id:assetID});
 
         // const [log_error, log_assetData] = await activityCommonService.getAssetDetailsAsync({
         //     organization_id: request.organization_id,
@@ -15261,7 +15284,7 @@ if(workflowActivityData.length==0){
         let key = "_0";
         let isEnd = false;
 
-        if(Number(request.is_refill) == 1 && Number(request.lead_asset_id)) {
+        if (Number(request.is_refill) == 1 && Number(request.lead_asset_id)) {
             request.target_asset_id = request.lead_asset_id;
             request.target_asset_first_name = request.lead_asset_first_name;
             request.asset_type_id = request.lead_asset_type_id;

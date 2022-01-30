@@ -3662,20 +3662,25 @@ function FormConfigService(objCollection) {
                     setTimeout(async () => {
 
                         let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
-
                         util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: newRequest });
                         botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
                         switch (botEngineRequestHandleType) {
                             case "api":
                                 util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                                newRequest.bot_trigger_source_id = 16;
+                                const [botTransactionId, messageID] = await util.handleBotTransactionInsertForApi(newRequest);
+                                newRequest.sqs_bot_transaction_id = botTransactionId;
+                                newRequest.message_id = messageID;
                                 botService.initBotEngine(newRequest);
                                 break;
                             case "sqs":
+                                newRequest.bot_trigger_source_id = 7;
                                 util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
                                 util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { newRequest });
                                 util.pushBotRequestToSQS(newRequest);
                                 break;
                             default:
+                                newRequest.bot_trigger_source_id = 8;
                                 util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
                                 util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { newRequest });
                                 util.pushBotRequestToSQS(newRequest);
@@ -3700,20 +3705,25 @@ function FormConfigService(objCollection) {
                 try {
                     setTimeout(async () => {
                         let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
-
                         util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: newRequest });
                         botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
                         switch (botEngineRequestHandleType) {
                             case "api":
                                 util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                                newRequest.bot_trigger_source_id = 17;
+                                const [botTransactionId, messageID] = await util.handleBotTransactionInsertForApi(newRequest);
+                                newRequest.sqs_bot_transaction_id = botTransactionId;
+                                newRequest.message_id = messageID;
                                 botService.initBotEngine(newRequest);
                                 break;
                             case "sqs":
+                                newRequest.bot_trigger_source_id = 9;
                                 util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
                                 util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { newRequest });
                                 util.pushBotRequestToSQS(newRequest);
                                 break;
                             default:
+                                newRequest.bot_trigger_source_id = 10;
                                 util.logInfo(request,`Bot Engine trigerring via ${botEngineRequestHandleType}`);
                                 util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { newRequest });
                                 util.pushBotRequestToSQS(newRequest);
@@ -3780,20 +3790,25 @@ function FormConfigService(objCollection) {
             await sleep(3000);
             try {
                 let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
-
                 util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: initBotEngineRequest });
                 botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
                 switch (botEngineRequestHandleType) {
                     case "api":
                         util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
+                        initBotEngineRequest.bot_trigger_source_id = 18;
+                        const [botTransactionId, messageID] = await util.handleBotTransactionInsertForApi(initBotEngineRequest);
+                        initBotEngineRequest.sqs_bot_transaction_id = botTransactionId;
+                        initBotEngineRequest.message_id = messageID;
                         botService.initBotEngine(initBotEngineRequest);
                         break;
                     case "sqs":
+                        initBotEngineRequest.bot_trigger_source_id = 11;
                         util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
                         util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { initBotEngineRequest });
                         util.pushBotRequestToSQS(initBotEngineRequest);
                         break;
                     default:
+                        initBotEngineRequest.bot_trigger_source_id = 12;
                         util.logInfo(request, `Bot Engine trigerring via ${botEngineRequestHandleType}`);
                         util.logInfo(request, `[${request.workflow_activity_id}] Calling Bot Engine from activity service %j`, { initBotEngineRequest });
                         util.pushBotRequestToSQS(initBotEngineRequest);
