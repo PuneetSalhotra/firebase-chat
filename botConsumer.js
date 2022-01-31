@@ -20,9 +20,12 @@ const ActivityCommonService = require("./server/services/activityCommonService")
 const db = require("./server/utils/dbWrapper");
 const BotService = require("./server/botEngine/services/botService");
 
+let processingMessageCount = 0;
+let sqsConsumerOne = null;
+let cacheWrapper = null;
 async function SetMessageHandlerForConsumer() {
 
-    const cacheWrapper = await GetCacheWrapper();
+    cacheWrapper = await GetCacheWrapper();
     const kafkaProducer = await GetKafkaProducer();
 
     const objectCollection = await GetObjectCollection(kafkaProducer, cacheWrapper);
@@ -48,11 +51,12 @@ async function SetMessageHandlerForConsumer() {
         "region": "ap-south-1"
     });
 
-    const sqsConsumerOne = Consumer.create({
+    sqsConsumerOne = Consumer.create({
         queueUrl: global.config.sqsConsumerSQSQueue,
         handleMessage: async (message) => {
 
             try {
+                processingMessageCount++;
                 console.log("message", message);
 
                 const messageBody = JSON.parse(message.Body);
@@ -88,7 +92,12 @@ async function SetMessageHandlerForConsumer() {
 
                 const [errorThree, __] = await activityCommonService.BOTMessageTransactionUpdateStatusAsync(request);
 
-                botService.initBotEngine(requestForBotEngine);
+                botService.initBotEngine(requestForBotEngine).then(botResponse => {
+                    processingMessageCount--;
+                }).catch(err => {
+                    processingMessageCount--;
+                });
+
                 return;
             } catch (e) {
                 logger.error('Bot Consumer Error', { type: 'bot_consumer', error: serializeError(e) });
@@ -114,7 +123,7 @@ async function SetMessageHandlerForConsumer() {
     });
 
     sqsConsumerOne.start();
-    console.log("sqsConsumerOne started "+ global.config.sqsConsumerSQSQueue);
+    console.log("sqsConsumerOne started " + global.config.sqsConsumerSQSQueue);
 }
 
 
@@ -194,3 +203,53 @@ function GetKafkaProducer() {
         })
     });
 }
+
+
+const signalsForGracefulShutdown = [
+    'SIGTERM', 'SIGINT',
+    'SIGABRT', 'SIGALRM',
+    'SIGHUP', 'SIGPWR',
+    'SIGUNUSED', 'SIGKILL'
+]
+
+for (const signal of signalsForGracefulShutdown) {
+    process.on(signal, async (signalName) => {
+        logger.error(`${signalName} signal received ak ak ak `, { type: `${signalName}` });
+        try {
+            // Disconnecting the consumer
+            sqsConsumerOne.stop();
+            let isGracefullShutdownRequired = await cacheWrapper.getKeyValueFromCache('BOT_CONSUMER_GRACEFULL_SHUTDOWN')
+            while (processingMessageCount > 0 && isGracefullShutdownRequired == 1) {
+                await new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve();
+                    }, 2000);
+                });
+            }
+            process.exit(0);
+        } catch (error) {
+            logger.error(`${signalName} Error running chores before exit`, { type: `${signalName}`, error: serializeError(error) });
+            process.exit(1)
+        }
+    });
+}
+
+process.on('message', (message) => {
+    logger.silly("[PROCESS MESSAGE] %j", message, { type: 'message_message' });
+});
+
+process.on('uncaughtException', (error, origin) => {
+    logger.error("Uncaught Exception", { type: 'uncaught_exception', origin, error: serializeError(error) });
+    // console.log(`process.on(uncaughtException): ${err}\n`);
+    // throw new Error('uncaughtException');
+});
+
+process.on('error', (error) => {
+    // console.log(`process.on(error): ${err}\n`);
+    logger.error("Process Error", { type: 'process_error', error: serializeError(error) });
+    throw new Error('error');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    logger.error("Unhandled Promise Rejection", { type: 'unhandled_rejection', promise_at: promise, error: serializeError(reason) });
+});
