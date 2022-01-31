@@ -1,8 +1,56 @@
-const { serializeError } = require('serialize-error')
-// var Consumer = require("./server/queue/consumer.js");
-// new Consumer();
+const { serializeError } = require('serialize-error');
+
+require('./server/utils/globalConfig');
 const logger = require('./server/logger/winstonLogger');
-const { SetupAndStartConsumerGroup } = require("./server/queue/consumerUpgradeV1");
+const redis = require('redis');
+
+let consumerGroup;
+let redisClient;
+
+if (global.mode === 'local') {
+    redisClient = redis.createClient(global.config.redisConfig);
+} else {
+    redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
+}
+
+let isFirstTime = true;
+redisClient.on('connect', async function (response) {
+    logger.info('Redis Client Connected', { type: 'redis', response });
+
+    if (isFirstTime) {
+        isFirstTime = false;
+        const config = await new Promise((resolve, reject) => {
+            redisClient.get(global.config.globalConfigKey, (err, reply) => {
+                if (err) {
+                    reject(err);
+                }
+                if (reply === null) {
+                    resolve(null);
+                } else {
+                    resolve(reply);
+
+                }
+            });
+
+        });
+
+        logger.info(`[globalConfigFetched]`);
+        global.config = { ...global.config, ...JSON.parse(config) };
+
+        global.config.TOPIC_ID = 66;
+        const { SetupAndStartConsumerGroup } = require("./server/queue/consumerUpgradeV1");
+        SetupAndStartConsumerGroup()
+            .then(cg => { consumerGroup = cg })
+            .catch(error => { console.log("[START SetupAndStartConsumerGroup] Error: ", error) })
+    }
+
+
+});
+
+redisClient.on('error', function (error) {
+    logger.error('Redis Error', { type: 'redis', error: serializeError(error) });
+    // console.log(error);
+});
 
 const signalsForGracefulShutdown = [
     'SIGTERM', 'SIGINT',
@@ -11,10 +59,6 @@ const signalsForGracefulShutdown = [
     'SIGUNUSED', 'SIGKILL'
 ]
 
-let consumerGroup;
-SetupAndStartConsumerGroup()
-    .then(cg => { consumerGroup = cg })
-    .catch(error => { console.log("[START SetupAndStartConsumerGroup] Error: ", error) })
 
 for (const signal of signalsForGracefulShutdown) {
     process.on(signal, (signalName) => {
