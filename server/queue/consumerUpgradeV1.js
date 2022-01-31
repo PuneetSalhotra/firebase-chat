@@ -6,7 +6,6 @@ const tracer = require('dd-trace').init({
 const tracerScope = tracer.scope();
 const tracerFormats = require('dd-trace/ext/formats')
 
-require('../utils/globalConfig');
 require('../vodafone/utils/vodafoneConfig');
 var forEachAsync = require('forEachAsync').forEachAsync;
 const { serializeError } = require('serialize-error');
