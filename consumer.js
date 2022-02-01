@@ -37,7 +37,6 @@ redisClient.on('connect', async function (response) {
         logger.info(`[globalConfigFetched]`);
         global.config = { ...global.config, ...JSON.parse(config) };
 
-        global.config.TOPIC_ID = 66;
         const { SetupAndStartConsumerGroup } = require("./server/queue/consumerUpgradeV1");
         SetupAndStartConsumerGroup()
             .then(cg => { consumerGroup = cg })
