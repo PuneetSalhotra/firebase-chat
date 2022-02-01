@@ -865,19 +865,9 @@ function TasiService(objectCollection) {
         let responseData = [],
             error = true;
         const paramsArr = new Array(
-            request.tag_id_1,
-            request.target_value_1,
-            request.tag_id_2,
-            request.target_value_2,
-            request.tag_id_3,
-            request.target_value_3,
-            request.tag_id_4,
-            request.target_value_4,
-            request.tag_id_5,
-            request.target_value_5,
+            request.level_id,
             request.total_target_value,
             request.entity_target_inline,
-            request.level_id,
             request.flag_is_outlier,
             request.flag_is_bulk,
             request.flag_type,
@@ -891,16 +881,23 @@ function TasiService(objectCollection) {
             request.customer_account_code,
             request.customer_account_name,
             request.widget_type_id,
-            request.activity_id,
+            request.widget_type_name,
+            request.activity_id, 
             request.product_id,
             request.workforce_id,
             request.account_id,
             request.organization_id,
+            request.workforce_tag_id,
+            request.cluster_tag_id,
+            request.asset_tag_id_1,
+            request.asset_tag_id_2,
+            request.asset_tag_id_3,
             request.log_asset_id,
             util.getCurrentUTCTime()
         );
-
-        const queryString = util.getQueryString('ds_p1_entity_target_mapping_insert', paramsArr);
+        console.log("addEntityTargetMapping :");
+        console.log(paramsArr);
+        const queryString = util.getQueryString('ds_p2_1_entity_target_mapping_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
