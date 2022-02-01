@@ -3213,6 +3213,7 @@ function TasiService(objectCollection) {
             request.report_description,
             request.level_id,
             request.widget_type_code,
+            request.widget_type_name,
             request.workforce_tag_id,
             request.asset_tag_id_1,
             request.asset_tag_id_2,
