@@ -3430,7 +3430,7 @@ function AnalyticsService(objectCollection)
                 );
                 
                 queryString = util.getQueryString('ds_v1_application_tag_type_mapping_select', paramsArray);
-                await db.executeQueryPromise(0, queryString, request)
+                await db.executeQueryPromise(1, queryString, request)
                     .then((data) => {
                         responseData = data;
                         error = false;
@@ -3451,7 +3451,7 @@ function AnalyticsService(objectCollection)
                 );
                 
                 queryString = util.getQueryString('ds_v1_segment_activity_type_mapping_select', paramsArray);
-                await db.executeQueryPromise(0, queryString, request)
+                await db.executeQueryPromise(1, queryString, request)
                     .then((data) => {
                         responseData = data;
                         error = false;
@@ -5925,7 +5925,7 @@ function AnalyticsService(objectCollection)
 
         const queryString = util.getQueryString('ds_v1_9_activity_search_list_select_widget_values_oppty_vertical', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     paramsArr.pop();
                     responseData = data;
@@ -5947,7 +5947,7 @@ function AnalyticsService(objectCollection)
         const queryString = util.getQueryString('ds_v1_asset_manager_mapping_select_reportees_high_level', paramsArr);
         //const queryString = util.getQueryString('ds_v1_asset_list_select_vertical', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -7037,7 +7037,7 @@ function AnalyticsService(objectCollection)
 
         const queryString = util.getQueryString('ds_v1_9_activity_search_list_select_widget_values_oppty_ver_res', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     paramsArr.pop();
                     responseData = data;
@@ -7058,7 +7058,7 @@ function AnalyticsService(objectCollection)
 
         const queryString = util.getQueryString('ds_v1_asset_list_select_manager_vertical_resources', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -7078,7 +7078,7 @@ function AnalyticsService(objectCollection)
 
         const queryString = util.getQueryString('ds_v1_asset_manager_mapping_select_reportees_hierarchy', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -7119,7 +7119,7 @@ function AnalyticsService(objectCollection)
             paramsArr[2]=reporteeData[counter].asset_id;
             let queryString = util.getQueryString('ds_v1_1_activity_list_select_sip_widgets', paramsArr);
             if (queryString !== '') {
-                await db.executeQueryPromise(0, queryString, request)
+                await db.executeQueryPromise(1, queryString, request)
                     .then(async (data) => {
                         //responseData = data;
                         error = false;
@@ -7142,7 +7142,7 @@ function AnalyticsService(objectCollection)
         //console.log("responseData ",responseData)
         queryString = util.getQueryString('ds_v1_activity_list_select_sip_widgets', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseDataPersonal = data;
                     error = false;
@@ -7325,7 +7325,7 @@ function AnalyticsService(objectCollection)
             paramsArr[2]=reporteeData[counter].asset_id;
             let queryString = util.getQueryString('ds_v1_1_activity_list_select_sip_widgets_payout', paramsArr);
             if (queryString !== '') {
-                await db.executeQueryPromise(0, queryString, request)
+                await db.executeQueryPromise(1, queryString, request)
                     .then(async (data) => {
                         //responseData = data;
                         error = false;
@@ -7348,7 +7348,7 @@ function AnalyticsService(objectCollection)
         //console.log("responseData ",responseData)
         queryString = util.getQueryString('ds_v1_activity_list_select_sip_widgets_payout', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseDataPersonal = data;
                     error = false;
