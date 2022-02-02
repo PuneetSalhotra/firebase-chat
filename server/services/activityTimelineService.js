@@ -50,11 +50,10 @@ function ActivityTimelineService(objectCollection) {
 
         let [err, data] = await activityCommonService.workforceFormMappingSelectSuppress(request);
         util.logInfo(request,`workforceFormMappingSelectSuppress data :` +  data, request);
-        if(data)
-            {
-                activityStreamTypeId = 728;
-                request.activity_stream_type_id = 728;
-            }
+        if (data) {
+            activityStreamTypeId = 728;
+            request.activity_stream_type_id = 728;
+        }
         
         // if(supressTimelineEntries.includes(Number(request.form_id)) && Number(request.activity_stream_type_id)==713 ){
         //     activityStreamTypeId = 728;
@@ -275,12 +274,10 @@ function ActivityTimelineService(objectCollection) {
         // }
         let [err, data] = await activityCommonService.workforceFormMappingSelectSuppress(request);
         util.logInfo(request,`workforceFormMappingSelectSuppress data :` +  data, request);
-        if(data != "")
-            {
-                activityStreamTypeId = 728;
-                request.activity_stream_type_id = 728;
-            }
-        
+        if (data) {
+            activityStreamTypeId = 728;
+            request.activity_stream_type_id = 728;
+        }
 
         util.logInfo(request,` 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - ENTRY 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒`);
 
