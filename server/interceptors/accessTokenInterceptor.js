@@ -31,18 +31,18 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
         //x-grene-auth-flag = 2 - Cognito
         if(Number(req.headers['x-grene-auth-flag']) === 1 || !(req.headers['x-grene-auth-flag'])) {
         //if(Number(req.headers['x-grene-auth-flag']) === 1) {
-            console.log('Proceeding to Redis Auth coz x-grene-auth-flag is 1');
+            logger.info(req.body.log_uuid+ ' Proceeding to Redis Auth coz x-grene-auth-flag is 1');
             next();
         } else if(req.body.url.includes('/' + global.config.version + '/healthcheck')) {
             next();
         } else if (req.body.url.includes('/' + global.config.version + '/account/')) {
             req.body['module'] = 'asset';
-            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
-            global.logger.write('conLog', 'bypassing enc token checking as request is from account', {}, req.body);
+            logger.info(req.body.log_uuid+ JSON.stringify(req.body, null, 2));
+            logger.info(req.body.log_uuid+ ' bypassing enc token checking as request is from account');
             next();
         } else if (req.body.url.includes('/' + global.config.version + '/zoho/')) {
-            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
-            global.logger.write('conLog', 'bypassing enc token checking as request is for zoho services', {}, req.body);
+            logger.info(req.body.log_uuid+ JSON.stringify(req.body, null, 2));
+            logger.info(req.body.log_uuid+ ' bypassing enc token checking as request is for zoho services');
             next();
         } else {
             switch (req.url) {                        
@@ -52,58 +52,58 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                     //case '/' + global.config.version + '/sms-dlvry/nexmo':
                     //case '/' + global.config.version + '/sms-dlvry/twilio':
                     req.body['module'] = 'device';
-                    global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                    logger.info(req.body.log_uuid+ JSON.stringify(req.body, null, 2));
                     next();
                     break;
                 case '/' + global.config.version + '/asset/passcode/check':
                     req.body['module'] = 'device';
-                    global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                    logger.info(req.body.log_uuid+ JSON.stringify(req.body, null, 2));
                     next();
                     break;
                 case '/' + global.config.version + '/asset/link/set':
                     req.body['module'] = 'asset';
-                    global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                    logger.info(req.body.log_uuid+ JSON.stringify(req.body, null, 2));
                     next();
                     break;
                 case '/' + global.config.version + '/asset/phonenumber/access/organization/list':
                 case '/' + global.config.version + '/phone_number/verify/invite':
                     req.body['module'] = 'asset';
-                            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                    logger.info(req.body.log_uuid+ JSON.stringify(req.body, null, 2));
                             next();
                             break;
                 case '/' + global.config.version + '/pam/asset/cover/alter/clockin':
                     req.body['module'] = 'asset';
-                    global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                    logger.info(req.body.log_uuid+ JSON.stringify(req.body, null, 2));
                     next();
                     break;
                 case '/' + global.config.version + '/asset/status/collection':
                     req.body['module'] = 'asset';
-                    global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                    logger.info(req.body.log_uuid+ JSON.stringify(req.body, null, 2));
                     next();
                     break;
                 case '/' + global.config.version + '/pam/asset/passcode/check':
                     req.body['module'] = 'device';
-                    global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                    logger.info(req.body.log_uuid+ JSON.stringify(req.body, null, 2));
                     next();
                     break;    
                 case '/' + global.config.version + '/pam/asset/passcode/alter/v1':
                     req.body['module'] = 'device';
-                    global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                    logger.info(req.body.log_uuid+ JSON.stringify(req.body, null, 2));
                     next();
                     break;  
                 case '/' + global.config.version + '/asset/signup':
                     req.body['module'] = 'device';
-                    global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                    logger.info(req.body.log_uuid+ JSON.stringify(req.body, null, 2));
                     next();
                     break;      
                 case '/' + global.config.version + '/email/passcode/generate':
                     req.body['module'] = 'device';
-                    global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                    logger.info(req.body.log_uuid+ JSON.stringify(req.body, null, 2));
                     next();
                     break;    
                 case '/' + global.config.version + '/email/passcode/verify':
                     req.body['module'] = 'device';
-                    global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                    logger.info(req.body.log_uuid+ JSON.stringify(req.body, null, 2));
                     next();
                     break;                                                                                                                              
                 case '/' + global.config.version + '/send/email':
@@ -146,8 +146,7 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                     } else {
                         req.body['module'] = 'asset';            
                     }
-                            
-                    global.logger.write('conLog', 'Module : ' + req.body['module'], {}, req.body);
+                    logger.info(req.body.log_uuid+ ' Module : ' + req.body['module']);        
 
                     //let asset_id = req.body.auth_asset_id || req.body.asset_id;
                     token = req.headers.accesstoken;
@@ -156,21 +155,21 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                     decoded = jwt.decode(token, {complete: true});
                     //console.log('decoded : ', decoded);
                     if(decoded === null) {
-                        console.log('Invalid token');
+                        logger.info(req.body.log_uuid+ 'Invalid token');
                         res.json(responseWrapper.getResponse(null, {}, -3205, req.body));
                         return;
                     }
 
                     let userNameFromAccessToken = decoded.payload.username;
 
-                    console.log('&&&&&&&&&&&&&&&&');
-                    console.log(decoded.payload.iss);
-                    console.log('&&&&&&&&&&&&&&&&');
+                    logger.info(req.body.log_uuid+ '&&&&&&&&&&&&&&&&');
+                    logger.info(req.body.log_uuid+ decoded.payload.iss);
+                    logger.info(req.body.log_uuid+ '&&&&&&&&&&&&&&&&');
                             
                     url = `${decoded.payload.iss}/.well-known/jwks.json`;
                     //url = `https://cognito-idp.${global.config.cognito_region}.amazonaws.com/${global.config.user_pool_id}/.well-known/jwks.json`;
                     //url = `https://cognito-idp.${global.config.cognito_region}.amazonaws.com/ap-south-1_DQ3ZEJi00/.well-known/jwks.json`;
-                    console.log(url);
+                    logger.info(req.body.log_uuid+  url);
                             
                     https.get(url, (resp) => {
                         let data = '';
@@ -210,7 +209,7 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                                     phoneNumber = req.headers['x-grene-e'].toLowerCase();
                                 }
                                 //console.log('decodedToken : ', decodedToken);
-                                console.log('UserName and phoneNumber/Email from Accesstoken - ', userNameFromAccessToken,'-',phoneNumber);
+                                logger.info(req.body.log_uuid+ 'UserName and phoneNumber/Email from Accesstoken - '+ userNameFromAccessToken+'-'+phoneNumber);
                                 //console.log('PARAMS : ', params);
 
                                 //if(map.has(userNameFromAccessToken)) {
@@ -238,7 +237,7 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                                 //}
 
                                 let tempVar = await cacheWrapper.getUserNameFromAccessToken(userNameFromAccessToken);
-                                console.log('UserNameFromAccessToken - ', tempVar);
+                                logger.info(req.body.log_uuid+ 'UserNameFromAccessToken - '+tempVar);
 
                                 if(req.headers['x-grene-e-flag'] == 1) {
                                     tempVar = tempVar.toLowerCase();
@@ -246,23 +245,23 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
 
                                 if(tempVar !== 'undefined') {
                                     if(tempVar === phoneNumber) {
-                                        console.log('token verified successfully!');
+                                        logger.info(req.body.log_uuid+  'token verified successfully!');
                                         req.body.access_token_verified = 1;                                
                                         next();
                                     } else { 
-                                        console.log('#########################################');
-                                        console.log('Phone Number/Email from the Mapped Username in Redis: ', tempVar);
-                                        console.log('Phone Number/Email from Request Headers: ', phoneNumber);
-                                        console.log('');
-                                        console.log('User Name from Access Token : ', userNameFromAccessToken);                                        
-                                        console.log('');
-                                        console.log('Invalid token - UserName does not match');
-                                        console.log('#########################################');
+                                        logger.info(req.body.log_uuid+ '#########################################');
+                                        logger.info(req.body.log_uuid+ 'Phone Number/Email from the Mapped Username in Redis: '+tempVar);
+                                        logger.info(req.body.log_uuid+ 'Phone Number/Email from Request Headers: '+phoneNumber);
+                                        logger.info(req.body.log_uuid+ '');
+                                        logger.info(req.body.log_uuid+ 'User Name from Access Token : '+userNameFromAccessToken);                                        
+                                        logger.info(req.body.log_uuid+ '');
+                                        logger.info(req.body.log_uuid+ 'Invalid token - UserName does not match');
+                                        logger.info(req.body.log_uuid+ '#########################################');
                                         res.json(responseWrapper.getResponse(null, {}, -3205, req.body));
                                         return;
                                     }
                                 } else {
-                                    console.log('UserName from the accessToken is not present in the Redis');
+                                    logger.info(req.body.log_uuid+ 'UserName from the accessToken is not present in the Redis');
                                     res.json(responseWrapper.getResponse(null, {}, -3205, req.body));
                                     return;
                                 }
@@ -341,9 +340,9 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                                 
                                 
                             } else {
-                                console.log('Some error in the token Verification');
-                                global.logger.write('conLog', 'req.url : ' + req.url, {}, req.body);
-                                global.logger.write('serverError', 'Error in token verification : ' + JSON.stringify(err), {}, {});                                
+                                logger.info(req.body.log_uuid+ 'Some error in the token Verification');
+                                logger.info(req.body.log_uuid+ 'req.url : ' + req.url);
+                                logger.info(req.body.log_uuid+ 'serverError' + 'Error in token verification : ' + JSON.stringify(err));                                
                                 res.json(responseWrapper.getResponse(null, {'message':err}, -3205, req.body));
                             }
                             });
@@ -351,9 +350,9 @@ function AccessTokenInterceptor(app, responseWrapper, map, cacheWrapper) {
                         });
                             
                     }).on("error", (err) => {
-                        console.log("Error: " + err.message);
-                        global.logger.write('serverError', 'Error in token verification : ' + JSON.stringify(err), {}, {});
-                                res.json(responseWrapper.getResponse(null, {}, -3205, req.body));
+                        logger.info(req.body.log_uuid+ "Error: " + err.message);
+                        logger.info(req.body.log_uuid+ 'serverError'+'Error in token verification : ' + JSON.stringify(err));
+                        res.json(responseWrapper.getResponse(null, {}, -3205, req.body));
                         });
                     break;
                     } //switch
