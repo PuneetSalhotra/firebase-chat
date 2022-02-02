@@ -6893,6 +6893,45 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             //         resolve()
             //     }).catch(err=>resolve())})
             // }
+
+            logger.info('came for crawling delete and insert');
+                    if (request.hasOwnProperty("is_account")){
+                        if (request.is_account == 1) {
+                            await client.deleteByQuery({
+                                index: global.config.elasticCrawlingAccountTable,
+                                "body": {
+                                    "query": {            
+                                       match: {
+                                            activity_id: Number(request.activity_id)
+                                        }
+                                    },
+                                }
+                            });
+                            const paramsArr_c = [
+                                request.organization_id,
+                                request.activity_id,
+                            ];
+
+                            const queryString_c = util.getQueryString('dm_v1_activity_list_select_account', paramsArr_c);
+                            if (queryString_c !== '') {
+                                await db.executeQueryPromise(1, queryString_c, request)
+                                    .then(async (data) => {
+                                        responseData = data;    
+                                        let queryData_c = {
+                                            index: global.config.elasticCrawlingAccountTable,
+                                            body: {
+                                                ...responseData[0]
+                                            }
+                                        };
+            
+                                        let stackTrace = util.getStackTrace();   
+                                              
+                                        await util.handleElasticSearchEntries(request, "insert", queryData_c, global.config.elasticCrawlingAccountTable, stackTrace);
+                                    })
+                            }
+            
+                        }
+                 }
         
                 error = false;
             })
