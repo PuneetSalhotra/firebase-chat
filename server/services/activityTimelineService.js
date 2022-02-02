@@ -49,7 +49,7 @@ function ActivityTimelineService(objectCollection) {
         let activityStreamTypeId = Number(request.activity_stream_type_id);
 
         let [err, data] = await activityCommonService.workforceFormMappingSelectSuppress(request);
-        util.logInfo(request,`workforceFormMappingSelectSuppress data :` +  data, request);
+        util.logInfo(request, `workforceFormMappingSelectSuppress %j`, { data, request });
         if (data) {
             activityStreamTypeId = 728;
             request.activity_stream_type_id = 728;
@@ -273,7 +273,7 @@ function ActivityTimelineService(objectCollection) {
         //     request.activity_stream_type_id = 728;
         // }
         let [err, data] = await activityCommonService.workforceFormMappingSelectSuppress(request);
-        util.logInfo(request,`workforceFormMappingSelectSuppress data :` +  data, request);
+        util.logInfo(request, `workforceFormMappingSelectSuppress %j`, { data, request });
         if (data) {
             activityStreamTypeId = 728;
             request.activity_stream_type_id = 728;
