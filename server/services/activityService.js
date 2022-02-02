@@ -4295,9 +4295,15 @@ function ActivityService(objectCollection) {
 
                 queueMap = [...queueMap1];
             } else {
-                queueMap = await activityListingService.getEntityQueueMapping(request);
+                let req = Object.assign({}, request);
+                req.flag = 2;
+                queueMap = await activityListingService.getEntityQueueMapping(req);
             }
 
+            // get existing queues
+            // get new queues
+            // set log_state = 3 for uncommon queues in existing queues
+            // reactivate/ insert uncommon queues in new queues 
             if (queueMap.length > 0) {
                 // Iterate through each queue mapped to the activity type
                 for (const queue of queueMap) {
