@@ -585,63 +585,55 @@ function WorkflowQueueService(objectCollection) {
     };
 
     this.queueActivityStatusMappingInsert = async function (request) {
-        try {
-            let responseData = [],
-                error = true;
+        let responseData = [],
+            error = true;
 
-            let paramsArr = new Array(
-                request.queue_id,
-                request.activity_status_id,
-                request.organization_id,
-                request.log_asset_id,
-                request.log_datetime || moment().utc().format('YYYY-MM-DD HH:mm:ss'),
-            );
+        let paramsArr = new Array(
+            request.queue_id,
+            request.activity_status_id,
+            request.organization_id,
+            request.log_asset_id,
+            request.log_datetime || moment().utc().format('YYYY-MM-DD HH:mm:ss'),
+        );
 
-            const queryString = util.getQueryString('ds_v1_queue_activity_status_mapping_insert', paramsArr);
-            if (queryString !== '') {
-                await db.executeQueryPromise(0, queryString, request)
-                    .then((data) => {
-                        responseData = data;
-                        error = false;
-                    })
-                    .catch((err) => {
-                        error = err;
-                    });
-            }
-
-            return [error, responseData];
-        } catch (error) {
-            return Promise.reject(error);
+        const queryString = util.getQueryString('ds_v1_queue_activity_status_mapping_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
         }
+
+        return [error, responseData];
     };
 
     this.queueActivityStatusMappingDeleteQueue = async function (request) {
-        try {
-            let responseData = [],
+        let responseData = [],
             error = true;
 
-            let paramsArr = new Array(
-                request.queue_id,
-                request.organization_id,
-                request.log_asset_id,
-                request.log_datetime || moment().utc().format('YYYY-MM-DD HH:mm:ss'),
-            );
-            const queryString = util.getQueryString('ds_v1_queue_activity_status_mapping_delete_queue', paramsArr);
-            if (queryString !== '') {
-                await db.executeQueryPromise(0, queryString, request)
-                    .then((data) => {
-                        responseData = data;
-                        error = false;
-                    })
-                    .catch((err) => {
-                        error = err;
-                    });
-            }
-
-            return [error, responseData];
-        } catch (error) {
-            return Promise.reject(error);
+        let paramsArr = new Array(
+            request.queue_id,
+            request.organization_id,
+            request.log_asset_id,
+            request.log_datetime || moment().utc().format('YYYY-MM-DD HH:mm:ss'),
+        );
+        const queryString = util.getQueryString('ds_v1_queue_activity_status_mapping_delete_queue', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
         }
+
+        return [error, responseData];
     };
 
 }
