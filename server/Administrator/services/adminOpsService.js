@@ -11802,13 +11802,13 @@ if (queryString !== '') {
             error = true;
 
         const paramsArr = new Array(
-          request.asset_type_id,
+          request.flag || 0,
           request.activity_type_id,
           request.workforce_id,
           request.account_id,
           request.organization_id
         );
-        const queryString = util.getQueryString('ds_p1_asset_type_access_mapping_select_activity_type', paramsArr);
+        const queryString = util.getQueryString('ds_p2_asset_type_access_mapping_select_activity_type', paramsArr);
 
 
         if (queryString !== '') {
