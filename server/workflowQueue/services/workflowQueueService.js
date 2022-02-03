@@ -79,7 +79,7 @@ function WorkflowQueueService(objectCollection) {
                 for(const statusObject of request.queue_inline_data)
                 {
                     newRequest.activity_status_id = statusObject.activity_status_id;
-                    let res = await this.queueActivityStatusMappingInsert(newRequest);
+                    let [err, data] = await this.queueActivityStatusMappingInsert(newRequest);
                 }
 
                 try {
@@ -169,12 +169,12 @@ function WorkflowQueueService(objectCollection) {
                     // results[0] = await db.callDBProcedure(request, 'ds_p1_queue_list_update', paramsArray, 0);
                     results[0] = await db.callDBProcedure(request, 'ds_p2_queue_list_update', paramsArray, 0);
 
-                    let res = await this.queueActivityStatusMappingDeleteQueue(request);
+                    let [err, data] = await this.queueActivityStatusMappingDeleteQueue(request);
                     
                     let newRequest = Object.assign({}, request);
                     for (const statusObject of request.queue_inline_data) {
                         newRequest.activity_status_id = statusObject.activity_status_id;
-                        let res = await this.queueActivityStatusMappingInsert(newRequest);
+                        let [err, data] = await this.queueActivityStatusMappingInsert(newRequest);
                     }
 
                     paramsArray =
@@ -245,12 +245,12 @@ function WorkflowQueueService(objectCollection) {
 
                     results[0] = await db.callDBProcedure(request, 'ds_p1_queue_list_update_inline_data_status_tag', paramsArray, 0);
 
-                    let res = await this.queueActivityStatusMappingDeleteQueue(request);
+                    let [err, data] = await this.queueActivityStatusMappingDeleteQueue(request);
 
                     let newRequest = Object.assign({}, request);
                     for (const statusObject of request.queue_inline_data) {
                         newRequest.activity_status_id = statusObject.activity_status_id;
-                        let res = await this.queueActivityStatusMappingInsert(newRequest);
+                        let [err, data] = await this.queueActivityStatusMappingInsert(newRequest);
                     }
 
                     paramsArray =
@@ -295,11 +295,11 @@ function WorkflowQueueService(objectCollection) {
 
                     results[0] = await db.callDBProcedure(request, 'ds_p1_queue_list_update_inline_data', paramsArray, 0);
 
-                    let res = await this.queueActivityStatusMappingDeleteQueue(request);
+                    let [err, data] = await this.queueActivityStatusMappingDeleteQueue(request);
                     let newRequest = Object.assign({}, request);
                     for (const statusObject of request.queue_inline_data) {
                         newRequest.activity_status_id = statusObject.activity_status_id;
-                        let res = await this.queueActivityStatusMappingInsert(newRequest);
+                        let [err, data] = await this.queueActivityStatusMappingInsert(newRequest);
                     }
 
                     paramsArray =
@@ -396,7 +396,7 @@ function WorkflowQueueService(objectCollection) {
 
                 results[3] = await db.callDBProcedure(request, 'ds_p1_queue_list_update_log_state', paramsArray, 0);
 
-                let res = await this.queueActivityStatusMappingDeleteQueue(request);
+                let [err, data] = await this.queueActivityStatusMappingDeleteQueue(request);
 
                 paramsArray =
                     new Array(
