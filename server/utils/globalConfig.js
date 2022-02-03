@@ -35,10 +35,3 @@ if (mode === 'preprod') {
     config.redisPort = 6379;
     config.globalConfigKey = "global_config_new";
 }
-
-if(mode === 'prod') {
-    config.redisIp = 'cache-production.7otgcu.ng.0001.aps1.cache.amazonaws.com';
-    config.redisPort = 6379;
-    config.efsPath = "/api-data/";
-    config.globalConfigKey = "global_config";
-}
