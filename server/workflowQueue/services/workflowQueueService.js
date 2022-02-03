@@ -586,7 +586,8 @@ function WorkflowQueueService(objectCollection) {
 
     this.queueActivityStatusMappingInsert = async function (request) {
         try {
-            let results = new Array();
+            let responseData = [],
+                error = true;
 
             let paramsArr = new Array(
                 request.queue_id,
@@ -596,8 +597,19 @@ function WorkflowQueueService(objectCollection) {
                 request.log_datetime || moment().utc().format('YYYY-MM-DD HH:mm:ss'),
             );
 
-            results[0] = await db.callDBProcedure(request, 'ds_v1_queue_activity_status_mapping_insert', paramsArr, 0);
-            return results[0];
+            const queryString = util.getQueryString('ds_v1_queue_activity_status_mapping_insert', paramsArr);
+            if (queryString !== '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+
+            return [error, responseData];
         } catch (error) {
             return Promise.reject(error);
         }
@@ -605,7 +617,8 @@ function WorkflowQueueService(objectCollection) {
 
     this.queueActivityStatusMappingDeleteQueue = async function (request) {
         try {
-            let results = new Array();
+            let responseData = [],
+            error = true;
 
             let paramsArr = new Array(
                 request.queue_id,
@@ -613,9 +626,19 @@ function WorkflowQueueService(objectCollection) {
                 request.log_asset_id,
                 request.log_datetime || moment().utc().format('YYYY-MM-DD HH:mm:ss'),
             );
+            const queryString = util.getQueryString('ds_v1_queue_activity_status_mapping_delete_queue', paramsArr);
+            if (queryString !== '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
 
-            results[0] = await db.callDBProcedure(request, 'ds_v1_queue_activity_status_mapping_delete_queue', paramsArr, 0);
-            return results[0];
+            return [error, responseData];
         } catch (error) {
             return Promise.reject(error);
         }
