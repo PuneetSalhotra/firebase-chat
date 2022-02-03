@@ -76,7 +76,7 @@ function WorkflowQueueService(objectCollection) {
 
                 let newRequest = Object.assign({}, request);
                 newRequest.queue_id = results[0][0].queue_id;
-                for(const statusObject of request.queue_inline_data)
+                for(const statusObject of JSON.parse(request.queue_inline_data))
                 {
                     newRequest.activity_status_id = statusObject.activity_status_id;
                     let [err, data] = await this.queueActivityStatusMappingInsert(newRequest);
@@ -168,15 +168,6 @@ function WorkflowQueueService(objectCollection) {
                      //adding v1 to update inline in same call
                     // results[0] = await db.callDBProcedure(request, 'ds_p1_queue_list_update', paramsArray, 0);
                     results[0] = await db.callDBProcedure(request, 'ds_p2_queue_list_update', paramsArray, 0);
-
-                    let [err, data] = await this.queueActivityStatusMappingDeleteQueue(request);
-                    
-                    let newRequest = Object.assign({}, request);
-                    for (const statusObject of request.queue_inline_data) {
-                        newRequest.activity_status_id = statusObject.activity_status_id;
-                        let [err, data] = await this.queueActivityStatusMappingInsert(newRequest);
-                    }
-
                     paramsArray =
                         new Array(
                             request.queue_id,
@@ -248,7 +239,7 @@ function WorkflowQueueService(objectCollection) {
                     let [err, data] = await this.queueActivityStatusMappingDeleteQueue(request);
 
                     let newRequest = Object.assign({}, request);
-                    for (const statusObject of request.queue_inline_data) {
+                    for (const statusObject of JSON.parse(request.queue_inline_data)) {
                         newRequest.activity_status_id = statusObject.activity_status_id;
                         let [err, data] = await this.queueActivityStatusMappingInsert(newRequest);
                     }
@@ -297,7 +288,7 @@ function WorkflowQueueService(objectCollection) {
 
                     let [err, data] = await this.queueActivityStatusMappingDeleteQueue(request);
                     let newRequest = Object.assign({}, request);
-                    for (const statusObject of request.queue_inline_data) {
+                    for (const statusObject of JSON.parse(request.queue_inline_data)) {
                         newRequest.activity_status_id = statusObject.activity_status_id;
                         let [err, data] = await this.queueActivityStatusMappingInsert(newRequest);
                     }
