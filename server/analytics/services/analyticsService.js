@@ -2688,7 +2688,7 @@ function AnalyticsService(objectCollection)
                     resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
                     resultData["flag_" + cnt] = verticalValueArray[j].quantity || 0;
                     resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
-                    resultData["flag_" + cnt] = verticalValueArray[j].value || 0;
+                    resultData["flag_" + cnt] = parseFloat(verticalValueArray[j].value || 0).toFixed(2);	
                     resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
                 }
                 results.push(resultData);
@@ -2712,7 +2712,7 @@ function AnalyticsService(objectCollection)
                 resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
                 resultData["flag_" + cnt] = quantityTotal[j] || 0;
                 resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
-                resultData["flag_" + cnt] = valueTotal[j] || 0;
+                resultData["flag_" + cnt] = parseFloat(valueTotal[j] || 0).toFixed(2);
                 resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
             }
             results.push(resultData);
@@ -2774,7 +2774,7 @@ function AnalyticsService(objectCollection)
                             for (index = 0; index < data.length; index++) {
                                 let resData = {};
                                 resData.count = data[index].count;
-                                resData.quantity = data[index].quantity;
+                                resData.quantity = data[index].quantity;    
                                 resData.value = data[index].value;
                                 responseMap.set(data[index].vertical_tag_id, resData);
                             }
@@ -2830,7 +2830,7 @@ function AnalyticsService(objectCollection)
                     resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
                     resultData["flag_" + cnt] = verticalValueArray[j].quantity || 0;
                     resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
-                    resultData["flag_" + cnt] = verticalValueArray[j].value || 0;
+                    resultData["flag_" + cnt] = parseFloat(verticalValueArray[j].value || 0).toFixed(2);
                     resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
                 }
                 results.push(resultData);
@@ -2854,11 +2854,10 @@ function AnalyticsService(objectCollection)
                 resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
                 resultData["flag_" + cnt] = quantityTotal[j] || 0;
                 resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
-                resultData["flag_" + cnt] = valueTotal[j] || 0;
+                resultData["flag_" + cnt] = parseFloat(valueTotal[j] || 0).toFixed(2);
                 resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
             }
             results.push(resultData);
-
             return Promise.resolve(results);
 
         } catch (error) {
@@ -3018,7 +3017,7 @@ function AnalyticsService(objectCollection)
                     resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
                     resultData["flag_" + cnt] = verticalValueArray[j].quantity || 0;
                     resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
-                    resultData["flag_" + cnt] = verticalValueArray[j].value || 0;
+                    resultData["flag_" + cnt] = parseFloat(verticalValueArray[j].value || 0).toFixed(2);
                     resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
                 }
                 results.push(resultData);
@@ -3042,7 +3041,7 @@ function AnalyticsService(objectCollection)
                 resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
                 resultData["flag_" + cnt] = quantityTotal[j] || 0;
                 resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
-                resultData["flag_" + cnt] = valueTotal[j] || 0;
+                resultData["flag_" + cnt] = parseFloat(valueTotal[j] || 0).toFixed(2);
                 resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
             }
             results.push(resultData);
@@ -5523,15 +5522,39 @@ function AnalyticsService(objectCollection)
                     let responseData = Object.assign({}, resourceValueFlgArrayTotal[i]);
                     responseData.target_asset_id = manager_asset_id;
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_count") || 0;
+                    countTotal[i] = countTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_quantity") || 0;
+                    quantityTotal[i] = quantityTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
-                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_value") || 0;
+                    let flagValue = parseFloat(newMap.get("flag_" + (i + 1) + "_value") || 0).toFixed(2);
+                    assetRspData["flag_" + cnt] = flagValue;
+                    valueTotal[i] = parseFloat(valueTotal[i]) + parseFloat(flagValue);
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                 }
-                console.log("data ==>")
                 results.push(assetRspData);
             }
+
+            //For Total
+            let verticalValueFlgArrayTotal = new Array();
+            for (let i = 0; i < widgetFlags.length; i++) {
+                verticalValueFlgArrayTotal[i] = {};
+                verticalValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArrayTotal[i]);
+                verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
+                delete verticalValueFlgArrayTotal[i]['vertical_name'];
+            }
+            let resultData = {};
+            resultData.resource_name = "Total";
+            let cnt = 1;
+            for (let j = 0; j < widgetFlags.length; j++) {
+                resultData["flag_" + cnt] = countTotal[j] || 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = quantityTotal[j] || 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = parseFloat(valueTotal[j] || 0).toFixed(2);
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+            }
+            results.push(resultData);
 
             return Promise.resolve(results);
 
@@ -5692,14 +5715,39 @@ function AnalyticsService(objectCollection)
                     let responseData = Object.assign({}, resourceValueFlgArrayTotal[i]);
                     responseData.target_asset_id = manager_asset_id;
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_count") || 0;
+                    countTotal[i] = countTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_quantity") || 0;
+                    quantityTotal[i] = quantityTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
-                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_value") || 0;
+                    let flagValue = parseFloat(newMap.get("flag_" + (i + 1) + "_value") || 0).toFixed(2);
+                    assetRspData["flag_" + cnt] = flagValue;
+                    valueTotal[i] = parseFloat(valueTotal[i]) + parseFloat(flagValue);
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                 }
                 results.push(assetRspData);
             }
+
+            //For Total
+            let verticalValueFlgArrayTotal = new Array();
+            for (let i = 0; i < widgetFlags.length; i++) {
+                verticalValueFlgArrayTotal[i] = {};
+                verticalValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArrayTotal[i]);
+                verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
+                delete verticalValueFlgArrayTotal[i]['vertical_name'];
+            }
+            let resultData = {};
+            resultData.resource_name = "Total";
+            let cnt = 1;
+            for (let j = 0; j < widgetFlags.length; j++) {
+                resultData["flag_" + cnt] = countTotal[j] || 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = quantityTotal[j] || 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = parseFloat(valueTotal[j] || 0).toFixed(2);
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+            }
+            results.push(resultData);
 
             return Promise.resolve(results);
 
@@ -5891,6 +5939,7 @@ function AnalyticsService(objectCollection)
                 resourceValueFlgArrayTotal[i] = {};
                 resourceValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArray[i]);
             }
+
             for (let [key, value] of finalResourceMap) {
                 let newMap = value;
                 let manager_asset_id = key;
@@ -5901,16 +5950,43 @@ function AnalyticsService(objectCollection)
                     let responseData = Object.assign({}, resourceValueFlgArrayTotal[i]);
                     responseData.target_asset_id = manager_asset_id;
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_count") || 0;
+                    countTotal[i] = countTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_quantity") || 0;
+                    quantityTotal[i] = quantityTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
-                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_value") || 0;
+                    let flagValue = parseFloat(newMap.get("flag_" + (i + 1) + "_value") || 0).toFixed(2);
+                    assetRspData["flag_" + cnt] = flagValue;
+                    valueTotal[i] = parseFloat(valueTotal[i]) + parseFloat(flagValue);
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                 }
                 results.push(assetRspData);
             }
 
-            return Promise.resolve(results);
+            //For Total
+            let verticalValueFlgArrayTotal = new Array();
+            for (let i = 0; i < widgetFlags.length; i++) {
+                verticalValueFlgArrayTotal[i] = {};
+                verticalValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArrayTotal[i]);
+                verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
+                delete verticalValueFlgArrayTotal[i]['vertical_name'];
+            }
+            let resultData = {};
+            resultData.resource_name = "Total";
+            let cnt = 1;
+            for (let j = 0; j < widgetFlags.length; j++) {
+                resultData["flag_" + cnt] = countTotal[j] || 0;
+                countTotal[i] = countTotal[i] + assetRspData["flag_" + cnt];
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = quantityTotal[j] || 0;
+                quantityTotal[i] = quantityTotal[i] + assetRspData["flag_" + cnt];
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = parseFloat(valueTotal[j] || 0).toFixed(2);
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+            }
+            results.push(resultData);
+
+            return Promise.resolve(results);   
 
         } catch (error) {
             console.log("error :; ", error);
@@ -6453,16 +6529,41 @@ function AnalyticsService(objectCollection)
                     responseData.target_asset_id = manager_asset_id;
                     delete responseData["filter_asset_id"];
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_count") || 0;
+                    countTotal[i] = countTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_quantity") || 0;
+                    quantityTotal[i] = quantityTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
-                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_value") || 0;
+                    let flagValue = parseFloat(newMap.get("flag_" + (i + 1) + "_value") || 0).toFixed(2);
+                    assetRspData["flag_" + cnt] = flagValue;
+                    valueTotal[i] = parseFloat(valueTotal[i]) + parseFloat(flagValue);
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                 }
                 results.push(assetRspData);
             } 
 
-            return Promise.resolve(results);
+            //For Total
+            let verticalValueFlgArrayTotal = new Array();
+            for (let i = 0; i < widgetFlags.length; i++) {
+                verticalValueFlgArrayTotal[i] = {};
+                verticalValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArrayTotal[i]);
+                verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
+                delete verticalValueFlgArrayTotal[i]['vertical_name'];
+            }
+            let resultData = {};
+            resultData.resource_name = "Total";
+            let cnt = 1;
+            for (let j = 0; j < widgetFlags.length; j++) {
+                resultData["flag_" + cnt] = countTotal[j] || 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = quantityTotal[j] || 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = parseFloat(valueTotal[j] || 0).toFixed(2);
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+            }
+            results.push(resultData);
+
+            return Promise.resolve(results);  
 
         } catch (error) {
             console.log("error :; ", error);
@@ -6703,6 +6804,7 @@ function AnalyticsService(objectCollection)
             console.log("finalResourceMap ", JSON.stringify(finalResourceMap));
 
             for (let [key, value] of finalResourceMap) {
+                console.log("key:" + key + " value:" + JSON.stringify(value))
                 let newMap = value;
                 let manager_asset_id = key;
                 let assetRspData = {};
@@ -6713,14 +6815,39 @@ function AnalyticsService(objectCollection)
                     responseData.target_asset_id = manager_asset_id;
                     delete responseData["filter_asset_id"];
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_count") || 0;
+                    countTotal[i] = countTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_quantity") || 0;
+                    quantityTotal[i] = quantityTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
-                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_value") || 0;
+                    let flagValue = parseFloat(newMap.get("flag_" + (i + 1) + "_value") || 0).toFixed(2);
+                    assetRspData["flag_" + cnt] = flagValue;
+                    valueTotal[i] = parseFloat(valueTotal[i]) + parseFloat(flagValue);
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                 }
                 results.push(assetRspData);
             }
+
+            //For Total
+            let verticalValueFlgArrayTotal = new Array();
+            for (let i = 0; i < widgetFlags.length; i++) {
+                verticalValueFlgArrayTotal[i] = {};
+                verticalValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArrayTotal[i]);
+                verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
+                delete verticalValueFlgArrayTotal[i]['vertical_name'];
+            }
+            let resultData = {};
+            resultData.resource_name = "Total";
+            let cnt = 1;
+            for (let j = 0; j < widgetFlags.length; j++) {
+                resultData["flag_" + cnt] = countTotal[j] || 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = quantityTotal[j] || 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = parseFloat(valueTotal[j] || 0).toFixed(2);
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+            }
+            results.push(resultData);
 
             return Promise.resolve(results);
 
@@ -7013,14 +7140,39 @@ function AnalyticsService(objectCollection)
                     responseData.target_asset_id = manager_asset_id;
                     delete responseData["filter_asset_id"];
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_count") || 0;
+                    countTotal[i] = countTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_quantity") || 0;
+                    quantityTotal[i] = quantityTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
-                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_value") || 0;
+                    let flagValue = parseFloat(newMap.get("flag_" + (i + 1) + "_value") || 0).toFixed(2);
+                    assetRspData["flag_" + cnt] = flagValue;
+                    valueTotal[i] = parseFloat(valueTotal[i]) + parseFloat(flagValue);
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                 }
                 results.push(assetRspData);
             }
+
+            //For Total
+            let verticalValueFlgArrayTotal = new Array();
+            for (let i = 0; i < widgetFlags.length; i++) {
+                verticalValueFlgArrayTotal[i] = {};
+                verticalValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArrayTotal[i]);
+                verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
+                delete verticalValueFlgArrayTotal[i]['vertical_name'];
+            }
+            let resultData = {};
+            resultData.resource_name = "Total";
+            let cnt = 1;
+            for (let j = 0; j < widgetFlags.length; j++) {
+                resultData["flag_" + cnt] = countTotal[j] || 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = quantityTotal[j] || 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = parseFloat(valueTotal[j] || 0).toFixed(2);
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+            }
+            results.push(resultData);
 
             return Promise.resolve(results);
 
