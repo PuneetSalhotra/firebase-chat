@@ -3275,7 +3275,7 @@ this.getAllParticipantsAsync = async (request) => {
                 queueActivityMappingId,
                 updateTypeId,
                 request.asset_id,
-                request.datetime_log
+                util.getCurrentUTCTime()
             );
             console.log('request.asset_id in queueHistoryInsert: ', request.asset_id);
             if(request.asset_id === 0 || request.asset_id === null || request.asset_id === undefined){

@@ -4290,7 +4290,7 @@ function ActivityService(objectCollection) {
             if(isGlobalWorkflow){
                 request.is_global = 1;
             }
-/*
+
             let [err,existingQueues] = await self.getExisitngQueuesOfAnActivity(request);
             let [err1, newQueues] = await self.getQueuesMappedToAStatus(request);
 
@@ -4347,8 +4347,8 @@ function ActivityService(objectCollection) {
                 });
 
             }
-*/
-         
+
+         /*
             // ALTERNATE TO THE ABOVE LOGIC 
             let [err1, newQueues] = await self.getQueuesMappedToAStatus(request);
             util.logInfo(request, "newQueues "+JSON.stringify(newQueues));
@@ -4376,7 +4376,7 @@ function ActivityService(objectCollection) {
                 });
 
             }            
-         
+         */
 
 
 /*
