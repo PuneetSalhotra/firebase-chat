@@ -9136,6 +9136,9 @@ if (queryString !== '') {
                 let formJson = {};
                 request.form_id = formList[counter];
                 formJson.form_id = request.form_id; 
+                if(!request.hasOwnProperty("flag")){
+                    request.flag = 0;
+                }
                 if(request.flag==0){              
                 let [err, responseData] = await self.dependedFormCheck(request);                
                 if(!err){
@@ -11238,36 +11241,6 @@ if (queryString !== '') {
             logger.error("[ESMS Integrations User service trigger] Error ", { type: 'user_creation', error: serializeError(error), request_body: request });
         }
     }
-
-    this.assetTypeAccessMappingInsert = async function (request) {
-        let responseData = [],
-            error = true;
-
-        const paramsArr = new Array(
-          request.asset_type_id,
-          request.access_level_id,
-          request.workforce_id,
-          request.account_id,
-          request.organization_id,
-          request.asset_id,
-          util.getCurrentUTCTime()
-        );
-
-        const queryString = util.getQueryString('ds_p1_asset_type_access_mapping_insert', paramsArr);
-        if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                    assetTypeAccessHistoryInsert(request,3701)
-                })
-                .catch((err) => {
-                    error = err;
-                    return [error, responseData];
-                })
-        }
-        return [error, responseData];
-    }  
     
     this.assetTypeAccessMappingSelect = async function (request) {
         let responseData = [],
