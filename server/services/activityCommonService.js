@@ -2969,6 +2969,31 @@ this.getAllParticipantsAsync = async (request) => {
         });
     };
 
+    // Map the form file to the Order Validation queue
+    this.mapFileToQueueV1 = function (request, queueId, queueInlineData) {
+        return new Promise((resolve, reject) => {
+            // IN p_queue_id BIGINT(20), IN p_organization_id BIGINT(20), 
+            // IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), 
+            // IN p_queue_inline_data JSON, IN p_log_asset_id BIGINT(20), 
+            // IN p_log_datetime DATETIME
+            let paramsArr = new Array(
+                queueId,
+                request.organization_id,
+                request.activity_id,
+                request.asset_id,
+                queueInlineData,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+            const queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_insert', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };    
+
     // Unmap the form file from the Order Validation queue
     this.unmapFileFromQueue = function (request, queueActivityMappingId) {
         return new Promise((resolve, reject) => {
@@ -3250,7 +3275,7 @@ this.getAllParticipantsAsync = async (request) => {
                 queueActivityMappingId,
                 updateTypeId,
                 request.asset_id,
-                request.datetime_log
+                util.getCurrentUTCTime()
             );
             console.log('request.asset_id in queueHistoryInsert: ', request.asset_id);
             if(request.asset_id === 0 || request.asset_id === null || request.asset_id === undefined){
