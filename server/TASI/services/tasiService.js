@@ -512,27 +512,29 @@ function TasiService(objectCollection) {
         let responseData = [],
             error = false;
         const paramsArr = new Array(
-            request.payout_name, 
-            request.payout_description, 
-            request.payout_type_id, 
-            request.payout_inline_data, 
+            request.payout_name,
+            request.payout_description,
+            request.payout_type_id,
+            request.payout_inline_data,
             request.timeline_id,
-            request.payout_policy_document_url, 
-            request.payout_matrix_document_url, 
-            request.payout_accelerator_document_url, 
-            request.payout_flag_enable_penetration, 
-            request.payout_flag_enable_utilization, 
+            request.payout_policy_document_url,
+            request.payout_matrix_document_url,
+            request.payout_accelerator_document_url,
+            request.payout_flag_enable_penetration,
+            request.payout_flag_enable_utilization,
             request.period_type_id,
             request.period_start_datetime,
             request.period_end_datetime, 
+            request.financial_year,
             request.customer_account_type_id,
             request.commission_start_datetime,
             request.commission_end_datetime,
             request.organization_id, 
-            request.asset_id, 
-          util.getCurrentUTCTime()
+            request.workforce_tag_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_payout_list_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_payout_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -996,17 +998,20 @@ function TasiService(objectCollection) {
         let responseData = [],
             error = true;
         const paramsArr = new Array(
-            request.organization_id, 
+            request.organization_id,
             request.payout_type_id,
             request.flag,
             request.period_type_id,
+            request.timeline_id,
             request.period_start_datetime,
-            request.period_end_datetime, 
+            request.period_end_datetime,
+            request.financial_year,
             request.customer_account_type_id,
-            request.start_from, 
-            request.limit_value
+            request.workforce_tag_id,
+            request.start_from,
+            request.limit_value,
         );
-        const queryString = util.getQueryString('ds_p1_payout_list_select', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_payout_list_select', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
@@ -2803,13 +2808,17 @@ function TasiService(objectCollection) {
             request.period_type_id,
             request.period_start_datetime,
             request.period_end_datetime,
+            request.financial_year,
             request.product_id,
             request.organization_id,
-            request.asset_id,
+            request.widget_type_id,
+            request.widget_type_code,
+            request.workforce_tag_id,
+            request.log_asset_id,
             util.getCurrentUTCTime()  
         );
 
-        const queryString = util.getQueryString('ds_p1_account_coverage_list_insert', paramsArr);
+        const queryString = util.getQueryString('   ', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -2829,22 +2838,25 @@ function TasiService(objectCollection) {
             error = true;
 
         const paramsArr = new Array(
-          request.productive_infra_name,
-          request.productive_infra_description,
-          request.productive_infra_inline,
-          request.policy_1_url,
-          request.policy_2_url,
-          request.timeline_id,
-          request.period_type_id,
-          request.period_start_datetime,
-          request.period_end_datetime,
-          request.product_id,
-          request.organization_id,
-          request.asset_id,
-          util.getCurrentUTCTime()
+            request.productive_infra_name,
+            request.productive_infra_description,
+            request.productive_infra_inline,
+            request.policy_1_url,
+            request.policy_2_url,
+            request.timeline_id,
+            request.period_type_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.financial_year,
+            request.product_id,
+            request.organization_id,
+            request.widget_type_id,
+            request.widget_type_code,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
         );
 
-        const queryString = util.getQueryString('ds_p1_productive_infra_list_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_productive_infra_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -2922,11 +2934,13 @@ function TasiService(objectCollection) {
             request.period_type_id,
             request.period_start_datetime, 
             request.period_end_datetime,
+            request.financial_year,
+            request.workforce_tag_id,
             request.start_from, 
             request.limit_value
         );
 
-        const queryString = util.getQueryString('ds_p1_account_coverage_list_select_filter', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_account_coverage_list_select_filter', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
@@ -2946,17 +2960,18 @@ function TasiService(objectCollection) {
             error = true;
 
         const paramsArr = new Array(
-          request.organization_id,
-          request.flag,
-          request.timeline_id,
-          request.period_type_id,
-          request.period_start_datetime,
-          request.period_end_datetime,
-          request.start_from,
-          request.limit_value
+            request.organization_id,
+            request.flag,
+            request.timeline_id,
+            request.period_type_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.financial_year,
+            request.start_from,
+            request.limit_value
         );
 
-        const queryString = util.getQueryString('ds_p1_productive_infra_list_select_filter', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_productive_infra_list_select_filter', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
