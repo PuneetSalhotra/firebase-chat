@@ -2818,7 +2818,7 @@ function TasiService(objectCollection) {
             util.getCurrentUTCTime()  
         );
 
-        const queryString = util.getQueryString('   ', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_account_coverage_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
