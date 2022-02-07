@@ -512,27 +512,29 @@ function TasiService(objectCollection) {
         let responseData = [],
             error = false;
         const paramsArr = new Array(
-            request.payout_name, 
-            request.payout_description, 
-            request.payout_type_id, 
-            request.payout_inline_data, 
+            request.payout_name,
+            request.payout_description,
+            request.payout_type_id,
+            request.payout_inline_data,
             request.timeline_id,
-            request.payout_policy_document_url, 
-            request.payout_matrix_document_url, 
-            request.payout_accelerator_document_url, 
-            request.payout_flag_enable_penetration, 
-            request.payout_flag_enable_utilization, 
+            request.payout_policy_document_url,
+            request.payout_matrix_document_url,
+            request.payout_accelerator_document_url,
+            request.payout_flag_enable_penetration,
+            request.payout_flag_enable_utilization,
             request.period_type_id,
             request.period_start_datetime,
             request.period_end_datetime, 
+            request.financial_year,
             request.customer_account_type_id,
             request.commission_start_datetime,
             request.commission_end_datetime,
             request.organization_id, 
-            request.asset_id, 
-          util.getCurrentUTCTime()
+            request.workforce_tag_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_payout_list_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_payout_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -865,19 +867,9 @@ function TasiService(objectCollection) {
         let responseData = [],
             error = true;
         const paramsArr = new Array(
-            request.tag_id_1,
-            request.target_value_1,
-            request.tag_id_2,
-            request.target_value_2,
-            request.tag_id_3,
-            request.target_value_3,
-            request.tag_id_4,
-            request.target_value_4,
-            request.tag_id_5,
-            request.target_value_5,
+            request.level_id,
             request.total_target_value,
             request.entity_target_inline,
-            request.level_id,
             request.flag_is_outlier,
             request.flag_is_bulk,
             request.flag_type,
@@ -891,16 +883,23 @@ function TasiService(objectCollection) {
             request.customer_account_code,
             request.customer_account_name,
             request.widget_type_id,
-            request.activity_id,
+            request.widget_type_name,
+            request.activity_id, 
             request.product_id,
             request.workforce_id,
             request.account_id,
             request.organization_id,
+            request.workforce_tag_id,
+            request.cluster_tag_id,
+            request.asset_tag_id_1,
+            request.asset_tag_id_2,
+            request.asset_tag_id_3,
             request.log_asset_id,
             util.getCurrentUTCTime()
         );
-
-        const queryString = util.getQueryString('ds_p1_entity_target_mapping_insert', paramsArr);
+        console.log("addEntityTargetMapping :");
+        console.log(paramsArr);
+        const queryString = util.getQueryString('ds_p2_1_entity_target_mapping_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -999,17 +998,20 @@ function TasiService(objectCollection) {
         let responseData = [],
             error = true;
         const paramsArr = new Array(
-            request.organization_id, 
+            request.organization_id,
             request.payout_type_id,
             request.flag,
             request.period_type_id,
+            request.timeline_id,
             request.period_start_datetime,
-            request.period_end_datetime, 
+            request.period_end_datetime,
+            request.financial_year,
             request.customer_account_type_id,
-            request.start_from, 
-            request.limit_value
+            request.workforce_tag_id,
+            request.start_from,
+            request.limit_value,
         );
-        const queryString = util.getQueryString('ds_p1_payout_list_select', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_payout_list_select', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
@@ -1028,35 +1030,34 @@ function TasiService(objectCollection) {
         let responseData = [],
             error = true;
         const paramsArr = new Array(
-            request.organization_id,
-            request.account_id,
-            request.workforce_id,
-            request.asset_id,
-            request.report_type_id,
-            request.report_name,
-            request.report_inline_data,
-            request.report_start_time,
-            request.report_end_time,
-            request.report_description,
-            request.level_id,
-            request.widget_type_code,
+            request.input_name,
+            request.input_type_id,
+            request.input_url1,
+            request.input_url2,
+            request.input_url3,
+            request.input_url4,
+            request.input_url5,
+            request.input_text,
+            request.input_data,
+            request.input_upload_datetime,
+            request.period_type_id,
+            request.data_entity_id,
+            request.data_entity_name,
+            request.data_entity_type_id,
+            request.data_entity_type_name,
+            request.period_start_datetime,
+            request.period_end_datetime,
             request.workforce_tag_id,
+            request.level_id,
+            request.product_id,
+            request.widget_type_id,
+            request.asset_id,
+            request.asset_type_id,
+            request.cluster_tag_id,
             request.asset_tag_id_1,
             request.asset_tag_id_2,
             request.asset_tag_id_3,
-            request.cluster_tag_id,
-            request.period_type_id,
-            request.period_start_datetime,
-            request.period_end_datetime,
-            request.data_entity_bigint_1,
-            request.data_entity_bigint_2,
-            request.data_entity_bigint_3,
-            request.data_entity_bigint_4,
-            request.data_entity_bigint_5,
-            request.data_entity_url_1,
-            request.data_entity_url_2,
-            request.product_id,
-            request.widget_type_id,
+            request.organization_id, 
             request.log_asset_id,
             util.getCurrentUTCTime()
         );
@@ -1497,35 +1498,43 @@ function TasiService(objectCollection) {
     this.payoutReportInsert = async function (request) {
         let responseData = [],
             error = true;
+
         const paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
-            request.target_asset_id,
+            request.asset_id,
             request.report_type_id,
             request.report_name,
-            request.report_inline_data || '{}',
+            request.report_inline_data,
             request.report_start_time,
             request.report_end_time,
             request.report_description,
             request.level_id,
+            request.widget_type_code,
+            request.widget_type_name,
             request.workforce_tag_id,
+            request.asset_tag_id_1,
+            request.asset_tag_id_2,
+            request.asset_tag_id_3,
+            request.cluster_tag_id,
             request.period_type_id,
             request.period_start_datetime,
             request.period_end_datetime,
-            request.data_entity_1,
-            request.data_entity_2,
-            request.data_entity_3,
-            request.data_entity_4,
-            request.data_entity_5,
+            request.data_entity_bigint_1,
+            request.data_entity_bigint_2,
+            request.data_entity_bigint_3,
+            request.data_entity_bigint_4,
+            request.data_entity_bigint_5,
             request.data_entity_url_1,
             request.data_entity_url_2,
             request.product_id,
             request.widget_type_id,
-            request.asset_id,
+            request.log_asset_id,
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('dm_v2_report_list_insert', paramsArr);
+
+        const queryString = util.getQueryString('ds_v1_1_report_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -2596,6 +2605,7 @@ function TasiService(objectCollection) {
         const paramsArr = new Array(
             request.organization_id, 
             request.flag, 
+            request.is_search,
             request.report_type_id, 
             request.period_type_id,
             request.period_start_datetime, 
@@ -2611,6 +2621,7 @@ function TasiService(objectCollection) {
             request.workforce_id,
             request.account_id,
             request.cluster_tag_id,
+            request.widget_type_name,
             request.start_form, 
             request.limit_value
         );
@@ -2797,13 +2808,17 @@ function TasiService(objectCollection) {
             request.period_type_id,
             request.period_start_datetime,
             request.period_end_datetime,
+            request.financial_year,
             request.product_id,
             request.organization_id,
-            request.asset_id,
+            request.widget_type_id,
+            request.widget_type_code,
+            request.workforce_tag_id,
+            request.log_asset_id,
             util.getCurrentUTCTime()  
         );
 
-        const queryString = util.getQueryString('ds_p1_account_coverage_list_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_account_coverage_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -2823,22 +2838,25 @@ function TasiService(objectCollection) {
             error = true;
 
         const paramsArr = new Array(
-          request.productive_infra_name,
-          request.productive_infra_description,
-          request.productive_infra_inline,
-          request.policy_1_url,
-          request.policy_2_url,
-          request.timeline_id,
-          request.period_type_id,
-          request.period_start_datetime,
-          request.period_end_datetime,
-          request.product_id,
-          request.organization_id,
-          request.asset_id,
-          util.getCurrentUTCTime()
+            request.productive_infra_name,
+            request.productive_infra_description,
+            request.productive_infra_inline,
+            request.policy_1_url,
+            request.policy_2_url,
+            request.timeline_id,
+            request.period_type_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.financial_year,
+            request.product_id,
+            request.organization_id,
+            request.widget_type_id,
+            request.widget_type_code,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
         );
 
-        const queryString = util.getQueryString('ds_p1_productive_infra_list_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_productive_infra_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -2916,11 +2934,13 @@ function TasiService(objectCollection) {
             request.period_type_id,
             request.period_start_datetime, 
             request.period_end_datetime,
+            request.financial_year,
+            request.workforce_tag_id,
             request.start_from, 
             request.limit_value
         );
 
-        const queryString = util.getQueryString('ds_p1_account_coverage_list_select_filter', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_account_coverage_list_select_filter', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
@@ -2940,17 +2960,18 @@ function TasiService(objectCollection) {
             error = true;
 
         const paramsArr = new Array(
-          request.organization_id,
-          request.flag,
-          request.timeline_id,
-          request.period_type_id,
-          request.period_start_datetime,
-          request.period_end_datetime,
-          request.start_from,
-          request.limit_value
+            request.organization_id,
+            request.flag,
+            request.timeline_id,
+            request.period_type_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.financial_year,
+            request.start_from,
+            request.limit_value
         );
 
-        const queryString = util.getQueryString('ds_p1_productive_infra_list_select_filter', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_productive_infra_list_select_filter', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
@@ -3212,6 +3233,7 @@ function TasiService(objectCollection) {
             request.report_description,
             request.level_id,
             request.widget_type_code,
+            request.widget_type_name,
             request.workforce_tag_id,
             request.asset_tag_id_1,
             request.asset_tag_id_2,

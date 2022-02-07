@@ -2365,6 +2365,9 @@ function AnalyticsService(objectCollection)
                         request.organization_onhold || 0,
                         request.widget_activity_id || 0,
                         request.filter_organization_id,
+                        request.filter_asset_tag_1 || 0,
+                        request.filter_asset_tag_2 || 0,
+                        request.filter_asset_tag_3 || 0,
                         parseInt(request.page_start) || 0,
                         parseInt(request.page_limit) || 50
                     );
@@ -2376,7 +2379,7 @@ function AnalyticsService(objectCollection)
                    
                         for(let iteratorM = 0; iteratorM < counter; iteratorM++){
                              paramsArray.push(iteratorM);
-                            tempResult = await db.callDBProcedureR2(request, 'ds_v2_1_activity_search_list_select_widget_values', paramsArray, 1); 
+                            tempResult = await db.callDBProcedureR2(request, 'ds_v2_2_activity_search_list_select_widget_values', paramsArray, 1); 
                             paramsArray.pop();
                             responseArray.push(tempResult[0])
                         }
@@ -2396,7 +2399,7 @@ function AnalyticsService(objectCollection)
                     } else {
                         console.log(paramsArray);
                         paramsArray.push(0);
-                        tempResult = await db.callDBProcedureR2(request, 'ds_v2_1_activity_search_list_select_widget_values', paramsArray, 1); paramsArray.pop();
+                        tempResult = await db.callDBProcedureR2(request, 'ds_v2_2_activity_search_list_select_widget_values', paramsArray, 1); paramsArray.pop();
                         console.log(tempResult);
                      //   let widgetTypes = [23,24,48,49,63,66,37,38,65,61,67,53,54, 39, 40, 41, 42];
                      //   if(widgetTypes.includes(request.widget_type_id)){
@@ -2620,7 +2623,7 @@ function AnalyticsService(objectCollection)
                 responseJson.sequence_id = widgetFlags[iteratorM];
                 verticalResponseAdditonalMap.set(iteratorM, responseJson);
 
-                const queryString = util.getQueryString('ds_v2_1_activity_search_list_select_widget_values_oppty', paramsArray);
+                const queryString = util.getQueryString('ds_v2_2_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
                     await db.executeQueryPromise(1, queryString, request)
@@ -2688,7 +2691,7 @@ function AnalyticsService(objectCollection)
                     resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
                     resultData["flag_" + cnt] = verticalValueArray[j].quantity || 0;
                     resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
-                    resultData["flag_" + cnt] = verticalValueArray[j].value || 0;
+                    resultData["flag_" + cnt] = parseFloat(verticalValueArray[j].value || 0).toFixed(2);	
                     resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
                 }
                 results.push(resultData);
@@ -2712,7 +2715,7 @@ function AnalyticsService(objectCollection)
                 resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
                 resultData["flag_" + cnt] = quantityTotal[j] || 0;
                 resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
-                resultData["flag_" + cnt] = valueTotal[j] || 0;
+                resultData["flag_" + cnt] = parseFloat(valueTotal[j] || 0).toFixed(2);
                 resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
             }
             results.push(resultData);
@@ -2763,7 +2766,7 @@ function AnalyticsService(objectCollection)
                 responseJson.sequence_id = widgetFlags[iteratorM];
                 verticalResponseAdditonalMap.set(iteratorM, responseJson);
 
-                const queryString = util.getQueryString('ds_v2_1_activity_search_list_select_widget_values_oppty', paramsArray);
+                const queryString = util.getQueryString('ds_v2_2_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
                     await db.executeQueryPromise(1, queryString, request)
@@ -2774,7 +2777,7 @@ function AnalyticsService(objectCollection)
                             for (index = 0; index < data.length; index++) {
                                 let resData = {};
                                 resData.count = data[index].count;
-                                resData.quantity = data[index].quantity;
+                                resData.quantity = data[index].quantity;    
                                 resData.value = data[index].value;
                                 responseMap.set(data[index].vertical_tag_id, resData);
                             }
@@ -2830,7 +2833,7 @@ function AnalyticsService(objectCollection)
                     resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
                     resultData["flag_" + cnt] = verticalValueArray[j].quantity || 0;
                     resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
-                    resultData["flag_" + cnt] = verticalValueArray[j].value || 0;
+                    resultData["flag_" + cnt] = parseFloat(verticalValueArray[j].value || 0).toFixed(2);
                     resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
                 }
                 results.push(resultData);
@@ -2854,11 +2857,10 @@ function AnalyticsService(objectCollection)
                 resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
                 resultData["flag_" + cnt] = quantityTotal[j] || 0;
                 resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
-                resultData["flag_" + cnt] = valueTotal[j] || 0;
+                resultData["flag_" + cnt] = parseFloat(valueTotal[j] || 0).toFixed(2);
                 resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
             }
             results.push(resultData);
-
             return Promise.resolve(results);
 
         } catch (error) {
@@ -2950,7 +2952,7 @@ function AnalyticsService(objectCollection)
 
                 verticalResponseAdditonalMap.set(iteratorM, responseJson);
 
-                const queryString = util.getQueryString('ds_v2_1_activity_search_list_select_widget_values_oppty', paramsArray);
+                const queryString = util.getQueryString('ds_v2_2_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
                     await db.executeQueryPromise(1, queryString, request)
@@ -3018,7 +3020,7 @@ function AnalyticsService(objectCollection)
                     resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
                     resultData["flag_" + cnt] = verticalValueArray[j].quantity || 0;
                     resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
-                    resultData["flag_" + cnt] = verticalValueArray[j].value || 0;
+                    resultData["flag_" + cnt] = parseFloat(verticalValueArray[j].value || 0).toFixed(2);
                     resultData["flag_" + cnt + "_1"] = verticalValueFlgArray[j]; cnt++;
                 }
                 results.push(resultData);
@@ -3042,7 +3044,7 @@ function AnalyticsService(objectCollection)
                 resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
                 resultData["flag_" + cnt] = quantityTotal[j] || 0;
                 resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
-                resultData["flag_" + cnt] = valueTotal[j] || 0;
+                resultData["flag_" + cnt] = parseFloat(valueTotal[j] || 0).toFixed(2);
                 resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
             }
             results.push(resultData);
@@ -3204,10 +3206,13 @@ function AnalyticsService(objectCollection)
                      request.filter_field_entity_5 || '',
                      request.organization_onhold || 0,
                      request.widget_activity_id || 0,
-                     request.filter_organization_id
+                     request.filter_organization_id,
+                     request.filter_asset_tag_1 || 0,
+                     request.filter_asset_tag_2 || 0,
+                     request.filter_asset_tag_3 || 0
                  );
             
-            let queryString = util.getQueryString('ds_v2_1_activity_search_list_select_widget_drilldown_search', paramsArray);
+            let queryString = util.getQueryString('ds_v2_2_activity_search_list_select_widget_drilldown_search', paramsArray);
                 if (queryString !== '') {
                     tempResult = await (db.executeQueryPromise(1, queryString, request));
                 }
@@ -3380,10 +3385,13 @@ function AnalyticsService(objectCollection)
                      request.filter_field_entity_5 || '',
                      request.organization_onhold || 0,
                      request.widget_activity_id || 0,
-                     request.filter_organization_id
+                     request.filter_organization_id,
+                     request.filter_asset_tag_1 || 0,
+                     request.filter_asset_tag_2 || 0,
+                     request.filter_asset_tag_3 || 0
                     );
             
-            let queryString = util.getQueryString('ds_v2_1_activity_search_list_select_widget_drilldown_oppty', paramsArray);
+            let queryString = util.getQueryString('ds_v2_2_activity_search_list_select_widget_drilldown_oppty', paramsArray);
                 if (queryString !== '') {
                     tempResult = await (db.executeQueryPromise(1, queryString, request));
                 }
@@ -3430,7 +3438,7 @@ function AnalyticsService(objectCollection)
                 );
                 
                 queryString = util.getQueryString('ds_v1_application_tag_type_mapping_select', paramsArray);
-                await db.executeQueryPromise(0, queryString, request)
+                await db.executeQueryPromise(1, queryString, request)
                     .then((data) => {
                         responseData = data;
                         error = false;
@@ -3451,7 +3459,7 @@ function AnalyticsService(objectCollection)
                 );
                 
                 queryString = util.getQueryString('ds_v1_segment_activity_type_mapping_select', paramsArray);
-                await db.executeQueryPromise(0, queryString, request)
+                await db.executeQueryPromise(1, queryString, request)
                     .then((data) => {
                         responseData = data;
                         error = false;
@@ -5523,15 +5531,39 @@ function AnalyticsService(objectCollection)
                     let responseData = Object.assign({}, resourceValueFlgArrayTotal[i]);
                     responseData.target_asset_id = manager_asset_id;
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_count") || 0;
+                    countTotal[i] = countTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_quantity") || 0;
+                    quantityTotal[i] = quantityTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
-                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_value") || 0;
+                    let flagValue = parseFloat(newMap.get("flag_" + (i + 1) + "_value") || 0).toFixed(2);
+                    assetRspData["flag_" + cnt] = flagValue;
+                    valueTotal[i] = parseFloat(valueTotal[i]) + parseFloat(flagValue);
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                 }
-                console.log("data ==>")
                 results.push(assetRspData);
             }
+
+            //For Total
+            let verticalValueFlgArrayTotal = new Array();
+            for (let i = 0; i < widgetFlags.length; i++) {
+                verticalValueFlgArrayTotal[i] = {};
+                verticalValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArrayTotal[i]);
+                verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
+                delete verticalValueFlgArrayTotal[i]['vertical_name'];
+            }
+            let resultData = {};
+            resultData.resource_name = "Total";
+            let cnt = 1;
+            for (let j = 0; j < widgetFlags.length; j++) {
+                resultData["flag_" + cnt] = countTotal[j] || 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = quantityTotal[j] || 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = parseFloat(valueTotal[j] || 0).toFixed(2);
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+            }
+            results.push(resultData);
 
             return Promise.resolve(results);
 
@@ -5692,14 +5724,39 @@ function AnalyticsService(objectCollection)
                     let responseData = Object.assign({}, resourceValueFlgArrayTotal[i]);
                     responseData.target_asset_id = manager_asset_id;
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_count") || 0;
+                    countTotal[i] = countTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_quantity") || 0;
+                    quantityTotal[i] = quantityTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
-                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_value") || 0;
+                    let flagValue = parseFloat(newMap.get("flag_" + (i + 1) + "_value") || 0).toFixed(2);
+                    assetRspData["flag_" + cnt] = flagValue;
+                    valueTotal[i] = parseFloat(valueTotal[i]) + parseFloat(flagValue);
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                 }
                 results.push(assetRspData);
             }
+
+            //For Total
+            let verticalValueFlgArrayTotal = new Array();
+            for (let i = 0; i < widgetFlags.length; i++) {
+                verticalValueFlgArrayTotal[i] = {};
+                verticalValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArrayTotal[i]);
+                verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
+                delete verticalValueFlgArrayTotal[i]['vertical_name'];
+            }
+            let resultData = {};
+            resultData.resource_name = "Total";
+            let cnt = 1;
+            for (let j = 0; j < widgetFlags.length; j++) {
+                resultData["flag_" + cnt] = countTotal[j] || 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = quantityTotal[j] || 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = parseFloat(valueTotal[j] || 0).toFixed(2);
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+            }
+            results.push(resultData);
 
             return Promise.resolve(results);
 
@@ -5891,6 +5948,7 @@ function AnalyticsService(objectCollection)
                 resourceValueFlgArrayTotal[i] = {};
                 resourceValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArray[i]);
             }
+
             for (let [key, value] of finalResourceMap) {
                 let newMap = value;
                 let manager_asset_id = key;
@@ -5901,16 +5959,43 @@ function AnalyticsService(objectCollection)
                     let responseData = Object.assign({}, resourceValueFlgArrayTotal[i]);
                     responseData.target_asset_id = manager_asset_id;
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_count") || 0;
+                    countTotal[i] = countTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_quantity") || 0;
+                    quantityTotal[i] = quantityTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
-                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_value") || 0;
+                    let flagValue = parseFloat(newMap.get("flag_" + (i + 1) + "_value") || 0).toFixed(2);
+                    assetRspData["flag_" + cnt] = flagValue;
+                    valueTotal[i] = parseFloat(valueTotal[i]) + parseFloat(flagValue);
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                 }
                 results.push(assetRspData);
             }
 
-            return Promise.resolve(results);
+            //For Total
+            let verticalValueFlgArrayTotal = new Array();
+            for (let i = 0; i < widgetFlags.length; i++) {
+                verticalValueFlgArrayTotal[i] = {};
+                verticalValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArrayTotal[i]);
+                verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
+                delete verticalValueFlgArrayTotal[i]['vertical_name'];
+            }
+            let resultData = {};
+            resultData.resource_name = "Total";
+            let cnt = 1;
+            for (let j = 0; j < widgetFlags.length; j++) {
+                resultData["flag_" + cnt] = countTotal[j] || 0;
+                countTotal[i] = countTotal[i] + assetRspData["flag_" + cnt];
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = quantityTotal[j] || 0;
+                quantityTotal[i] = quantityTotal[i] + assetRspData["flag_" + cnt];
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = parseFloat(valueTotal[j] || 0).toFixed(2);
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+            }
+            results.push(resultData);
+
+            return Promise.resolve(results);   
 
         } catch (error) {
             console.log("error :; ", error);
@@ -5925,7 +6010,7 @@ function AnalyticsService(objectCollection)
 
         const queryString = util.getQueryString('ds_v1_9_activity_search_list_select_widget_values_oppty_vertical', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     paramsArr.pop();
                     responseData = data;
@@ -5947,7 +6032,7 @@ function AnalyticsService(objectCollection)
         const queryString = util.getQueryString('ds_v1_asset_manager_mapping_select_reportees_high_level', paramsArr);
         //const queryString = util.getQueryString('ds_v1_asset_list_select_vertical', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -6453,16 +6538,41 @@ function AnalyticsService(objectCollection)
                     responseData.target_asset_id = manager_asset_id;
                     delete responseData["filter_asset_id"];
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_count") || 0;
+                    countTotal[i] = countTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_quantity") || 0;
+                    quantityTotal[i] = quantityTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
-                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_value") || 0;
+                    let flagValue = parseFloat(newMap.get("flag_" + (i + 1) + "_value") || 0).toFixed(2);
+                    assetRspData["flag_" + cnt] = flagValue;
+                    valueTotal[i] = parseFloat(valueTotal[i]) + parseFloat(flagValue);
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                 }
                 results.push(assetRspData);
             } 
 
-            return Promise.resolve(results);
+            //For Total
+            let verticalValueFlgArrayTotal = new Array();
+            for (let i = 0; i < widgetFlags.length; i++) {
+                verticalValueFlgArrayTotal[i] = {};
+                verticalValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArrayTotal[i]);
+                verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
+                delete verticalValueFlgArrayTotal[i]['vertical_name'];
+            }
+            let resultData = {};
+            resultData.resource_name = "Total";
+            let cnt = 1;
+            for (let j = 0; j < widgetFlags.length; j++) {
+                resultData["flag_" + cnt] = countTotal[j] || 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = quantityTotal[j] || 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = parseFloat(valueTotal[j] || 0).toFixed(2);
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+            }
+            results.push(resultData);
+
+            return Promise.resolve(results);  
 
         } catch (error) {
             console.log("error :; ", error);
@@ -6703,6 +6813,7 @@ function AnalyticsService(objectCollection)
             console.log("finalResourceMap ", JSON.stringify(finalResourceMap));
 
             for (let [key, value] of finalResourceMap) {
+                console.log("key:" + key + " value:" + JSON.stringify(value))
                 let newMap = value;
                 let manager_asset_id = key;
                 let assetRspData = {};
@@ -6713,14 +6824,39 @@ function AnalyticsService(objectCollection)
                     responseData.target_asset_id = manager_asset_id;
                     delete responseData["filter_asset_id"];
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_count") || 0;
+                    countTotal[i] = countTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_quantity") || 0;
+                    quantityTotal[i] = quantityTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
-                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_value") || 0;
+                    let flagValue = parseFloat(newMap.get("flag_" + (i + 1) + "_value") || 0).toFixed(2);
+                    assetRspData["flag_" + cnt] = flagValue;
+                    valueTotal[i] = parseFloat(valueTotal[i]) + parseFloat(flagValue);
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                 }
                 results.push(assetRspData);
             }
+
+            //For Total
+            let verticalValueFlgArrayTotal = new Array();
+            for (let i = 0; i < widgetFlags.length; i++) {
+                verticalValueFlgArrayTotal[i] = {};
+                verticalValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArrayTotal[i]);
+                verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
+                delete verticalValueFlgArrayTotal[i]['vertical_name'];
+            }
+            let resultData = {};
+            resultData.resource_name = "Total";
+            let cnt = 1;
+            for (let j = 0; j < widgetFlags.length; j++) {
+                resultData["flag_" + cnt] = countTotal[j] || 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = quantityTotal[j] || 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = parseFloat(valueTotal[j] || 0).toFixed(2);
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+            }
+            results.push(resultData);
 
             return Promise.resolve(results);
 
@@ -7013,14 +7149,39 @@ function AnalyticsService(objectCollection)
                     responseData.target_asset_id = manager_asset_id;
                     delete responseData["filter_asset_id"];
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_count") || 0;
+                    countTotal[i] = countTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                     assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_quantity") || 0;
+                    quantityTotal[i] = quantityTotal[i] + assetRspData["flag_" + cnt];
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
-                    assetRspData["flag_" + cnt] = newMap.get("flag_" + (i + 1) + "_value") || 0;
+                    let flagValue = parseFloat(newMap.get("flag_" + (i + 1) + "_value") || 0).toFixed(2);
+                    assetRspData["flag_" + cnt] = flagValue;
+                    valueTotal[i] = parseFloat(valueTotal[i]) + parseFloat(flagValue);
                     assetRspData["flag_" + cnt + "_1"] = responseData; cnt++;
                 }
                 results.push(assetRspData);
             }
+
+            //For Total
+            let verticalValueFlgArrayTotal = new Array();
+            for (let i = 0; i < widgetFlags.length; i++) {
+                verticalValueFlgArrayTotal[i] = {};
+                verticalValueFlgArrayTotal[i] = Object.assign({}, resourceValueFlgArrayTotal[i]);
+                verticalValueFlgArrayTotal[i].vertical_tag_id = 0;
+                delete verticalValueFlgArrayTotal[i]['vertical_name'];
+            }
+            let resultData = {};
+            resultData.resource_name = "Total";
+            let cnt = 1;
+            for (let j = 0; j < widgetFlags.length; j++) {
+                resultData["flag_" + cnt] = countTotal[j] || 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = quantityTotal[j] || 0;
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+                resultData["flag_" + cnt] = parseFloat(valueTotal[j] || 0).toFixed(2);
+                resultData["flag_" + cnt + "_1"] = verticalValueFlgArrayTotal[j]; cnt++;
+            }
+            results.push(resultData);
 
             return Promise.resolve(results);
 
@@ -7037,7 +7198,7 @@ function AnalyticsService(objectCollection)
 
         const queryString = util.getQueryString('ds_v1_9_activity_search_list_select_widget_values_oppty_ver_res', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     paramsArr.pop();
                     responseData = data;
@@ -7058,7 +7219,7 @@ function AnalyticsService(objectCollection)
 
         const queryString = util.getQueryString('ds_v1_asset_list_select_manager_vertical_resources', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -7078,7 +7239,7 @@ function AnalyticsService(objectCollection)
 
         const queryString = util.getQueryString('ds_v1_asset_manager_mapping_select_reportees_hierarchy', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -7119,7 +7280,7 @@ function AnalyticsService(objectCollection)
             paramsArr[2]=reporteeData[counter].asset_id;
             let queryString = util.getQueryString('ds_v1_1_activity_list_select_sip_widgets', paramsArr);
             if (queryString !== '') {
-                await db.executeQueryPromise(0, queryString, request)
+                await db.executeQueryPromise(1, queryString, request)
                     .then(async (data) => {
                         //responseData = data;
                         error = false;
@@ -7142,7 +7303,7 @@ function AnalyticsService(objectCollection)
         //console.log("responseData ",responseData)
         queryString = util.getQueryString('ds_v1_activity_list_select_sip_widgets', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseDataPersonal = data;
                     error = false;
@@ -7325,7 +7486,7 @@ function AnalyticsService(objectCollection)
             paramsArr[2]=reporteeData[counter].asset_id;
             let queryString = util.getQueryString('ds_v1_1_activity_list_select_sip_widgets_payout', paramsArr);
             if (queryString !== '') {
-                await db.executeQueryPromise(0, queryString, request)
+                await db.executeQueryPromise(1, queryString, request)
                     .then(async (data) => {
                         //responseData = data;
                         error = false;
@@ -7348,7 +7509,7 @@ function AnalyticsService(objectCollection)
         //console.log("responseData ",responseData)
         queryString = util.getQueryString('ds_v1_activity_list_select_sip_widgets_payout', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseDataPersonal = data;
                     error = false;

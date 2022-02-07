@@ -2969,6 +2969,31 @@ this.getAllParticipantsAsync = async (request) => {
         });
     };
 
+    // Map the form file to the Order Validation queue
+    this.mapFileToQueueV1 = function (request, queueId, queueInlineData) {
+        return new Promise((resolve, reject) => {
+            // IN p_queue_id BIGINT(20), IN p_organization_id BIGINT(20), 
+            // IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), 
+            // IN p_queue_inline_data JSON, IN p_log_asset_id BIGINT(20), 
+            // IN p_log_datetime DATETIME
+            let paramsArr = new Array(
+                queueId,
+                request.organization_id,
+                request.activity_id,
+                request.asset_id,
+                queueInlineData,
+                request.asset_id,
+                util.getCurrentUTCTime()
+            );
+            const queryString = util.getQueryString('ds_p1_1_queue_activity_mapping_insert', paramsArr);
+            if (queryString !== '') {
+                db.executeQuery(0, queryString, request, function (err, data) {
+                    (err) ? reject(err): resolve(data);
+                });
+            }
+        });
+    };    
+
     // Unmap the form file from the Order Validation queue
     this.unmapFileFromQueue = function (request, queueActivityMappingId) {
         return new Promise((resolve, reject) => {
@@ -3250,7 +3275,7 @@ this.getAllParticipantsAsync = async (request) => {
                 queueActivityMappingId,
                 updateTypeId,
                 request.asset_id,
-                request.datetime_log
+                util.getCurrentUTCTime()
             );
             console.log('request.asset_id in queueHistoryInsert: ', request.asset_id);
             if(request.asset_id === 0 || request.asset_id === null || request.asset_id === undefined){
@@ -6893,6 +6918,45 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             //         resolve()
             //     }).catch(err=>resolve())})
             // }
+
+            logger.info('came for crawling delete and insert');
+                    if (request.hasOwnProperty("is_account")){
+                        if (request.is_account == 1) {
+                            await client.deleteByQuery({
+                                index: global.config.elasticCrawlingAccountTable,
+                                "body": {
+                                    "query": {            
+                                       match: {
+                                            activity_id: Number(request.activity_id)
+                                        }
+                                    },
+                                }
+                            });
+                            const paramsArr_c = [
+                                request.organization_id,
+                                request.activity_id,
+                            ];
+
+                            const queryString_c = util.getQueryString('dm_v1_activity_list_select_account', paramsArr_c);
+                            if (queryString_c !== '') {
+                                await db.executeQueryPromise(1, queryString_c, request)
+                                    .then(async (data) => {
+                                        responseData = data;    
+                                        let queryData_c = {
+                                            index: global.config.elasticCrawlingAccountTable,
+                                            body: {
+                                                ...responseData[0]
+                                            }
+                                        };
+            
+                                        let stackTrace = util.getStackTrace();   
+                                              
+                                        await util.handleElasticSearchEntries(request, "insert", queryData_c, global.config.elasticCrawlingAccountTable, stackTrace);
+                                    })
+                            }
+            
+                        }
+                 }
         
                 error = false;
             })
@@ -7287,6 +7351,30 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.workforceFormMappingSelectSuppress = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.form_id,
+        );
+
+        const queryString = util.getQueryString('ds_v1_workforce_form_mapping_select_suppress', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;

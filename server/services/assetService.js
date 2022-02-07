@@ -5727,10 +5727,11 @@ this.getQrBarcodeFeeback = async(request) => {
                 request.cluster_tag_id || 0,
                 request.vertical_tag_id || 0,
                 request.flag || 1,
+                request.resource_tag_dynamic_enabled || 0,
                 request.page_start || 0,
                 request.page_limit || 50
             );
-            const queryString = util.getQueryString('ds_p1_2_asset_access_level_mapping_select_flag', paramsArr);
+            const queryString = util.getQueryString('ds_p1_3_asset_access_level_mapping_select_flag', paramsArr);
             if (queryString !== '') {
                 db.executeQueryPromise(1, queryString, request)
                     .then((data) => {
@@ -6319,9 +6320,58 @@ this.getQrBarcodeFeeback = async(request) => {
                             responseData[1] = data;
                             resolve(responseData);
                         } else {
-                            responseData[0] = "";
-                            responseData[1] = data;
-                            resolve(responseData);
+
+                            if(!request.hasOwnProperty("resource_tag_dynamic_enabled"))
+                            {
+                                request.resource_tag_dynamic_enabled = 0;
+                            }
+                            if(request.resource_tag_dynamic_enabled == 2){ //0 = static filters, 1 = dynamic field filters, 2 = dynamic resource tags
+
+                                if (data.length == 0) {
+                                
+                                    singleData.query_status = 0;
+                                    singleData.tag_id = 0;
+                                    singleData.tag_name = "All";
+    
+                                    data.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+    
+                                } else if (data.length == 1) {
+    
+                                    if (data[0].tag_id == 0) {
+
+                                        request.tag_type_id = data[0].tag_type_id;
+                                        tagListOfTagTypeSelectV1(request).then((resData) => {
+                                            singleData.query_status = 0;
+                                            singleData.tag_id = 0;
+                                            singleData.tag_name = "All";
+    
+                                            resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                            responseData[0] = "";
+                                            responseData[1] = resData;
+                                            //console.log("responseData ", responseData);
+                                            resolve(responseData);
+    
+                                        });
+                                    } else {
+                                        responseData[0] = "";
+                                        responseData[1] = data;
+                                        resolve(responseData);
+                                    }
+                                } else {    
+                                    
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }                                
+                            }else{
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+                            }
+                            
                         }
 
                     })
@@ -6611,6 +6661,23 @@ this.getQrBarcodeFeeback = async(request) => {
                 request.page_limit
             );
             var queryString = util.getQueryString('ds_p1_tag_list_select_tag_type', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    (err === false) ? resolve(data) : reject(err);
+                });
+            }
+        });
+    };
+
+    function tagListOfTagTypeSelectV1(request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.tag_type_id,
+                request.page_start || 0,
+                request.page_limit || 50
+            );
+            var queryString = util.getQueryString('ds_v1_tag_list_select_tag_type', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);

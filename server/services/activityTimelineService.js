@@ -35,22 +35,31 @@ function ActivityTimelineService(objectCollection) {
     const sleep = nodeUtil.promisify(setTimeout);
     const io = objectCollection.io;
 
-    this.addTimelineTransaction = function (request, callback) {
+    this.addTimelineTransaction = async function (request, callback) {
 
         util.logInfo(request,`IN addTimelineTransaction :: `);
         // const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50403, 50787];
-        const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50787,50824, 51087, 51086, 50403];
-
+        //const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50787,50824, 51087, 51086, 50403];
+        
+        
         //const self = this;
         let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         let activityTypeCategoryId = Number(request.activity_type_category_id);
         let activityStreamTypeId = Number(request.activity_stream_type_id);
-        
-        if(supressTimelineEntries.includes(Number(request.form_id)) && Number(request.activity_stream_type_id)==713 ){
+
+        let [err, data] = await activityCommonService.workforceFormMappingSelectSuppress(request);
+        util.logInfo(request, `workforceFormMappingSelectSuppress ${data.length} %j`);
+        if (!err && data.length > 0) {
             activityStreamTypeId = 728;
             request.activity_stream_type_id = 728;
         }
+        
+        // if(supressTimelineEntries.includes(Number(request.form_id)) && Number(request.activity_stream_type_id)==713 ){
+        //     activityStreamTypeId = 728;
+        //     request.activity_stream_type_id = 728;
+        // }
+        
         activityCommonService.updateAssetLocation(request, function (err, data) {});
 
         if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) { // add form case
@@ -248,7 +257,7 @@ function ActivityTimelineService(objectCollection) {
         //ELSE IF | 48,50,51,54 & 705,713,715,716,726
         //ELSE
         // const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50403, 50787];
-        const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50787,50824, 51087, 51086, 50403];
+        //const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50787,50824, 51087, 51086, 50403];
         
         let responseData = [],
             error = true;
@@ -258,11 +267,18 @@ function ActivityTimelineService(objectCollection) {
         let activityStreamTypeId = Number(request.activity_stream_type_id);
         //console.log("IN addTimelineTransactionAsync form_id:: "+request.form_id + " :: "+supressTimelineEntries.includes(Number(request.form_id)));
         //console.log("IN addTimelineTransactionAsync activity_stream_type_id:: "+request.activity_stream_type_id+" : "+(Number(request.activity_stream_type_id)==713));
-        if(supressTimelineEntries.includes(Number(request.form_id)) && Number(request.activity_stream_type_id)==713){
-            //console.log("IN addTimelineTransactionAsync Suprress:: ");
+        // if(supressTimelineEntries.includes(Number(request.form_id)) && Number(request.activity_stream_type_id)==713){
+        //     //console.log("IN addTimelineTransactionAsync Suprress:: ");
+        //     activityStreamTypeId = 728;
+        //     request.activity_stream_type_id = 728;
+        // }
+        let [err, data] = await activityCommonService.workforceFormMappingSelectSuppress(request);
+        util.logInfo(request, `workforceFormMappingSelectSuppress ${data.length} %j`);
+        if (!err && data.length > 0) {
             activityStreamTypeId = 728;
             request.activity_stream_type_id = 728;
         }
+
         util.logInfo(request,` 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - ENTRY 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒`);
 
         if((activityTypeCategoryId === 48 && activityStreamTypeId === 705) || 

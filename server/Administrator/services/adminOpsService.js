@@ -9136,6 +9136,9 @@ if (queryString !== '') {
                 let formJson = {};
                 request.form_id = formList[counter];
                 formJson.form_id = request.form_id; 
+                if(!request.hasOwnProperty("flag")){
+                    request.flag = 0;
+                }
                 if(request.flag==0){              
                 let [err, responseData] = await self.dependedFormCheck(request);                
                 if(!err){
@@ -11238,36 +11241,6 @@ if (queryString !== '') {
             logger.error("[ESMS Integrations User service trigger] Error ", { type: 'user_creation', error: serializeError(error), request_body: request });
         }
     }
-
-    this.assetTypeAccessMappingInsert = async function (request) {
-        let responseData = [],
-            error = true;
-
-        const paramsArr = new Array(
-          request.asset_type_id,
-          request.access_level_id,
-          request.workforce_id,
-          request.account_id,
-          request.organization_id,
-          request.asset_id,
-          util.getCurrentUTCTime()
-        );
-
-        const queryString = util.getQueryString('ds_p1_asset_type_access_mapping_insert', paramsArr);
-        if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                    assetTypeAccessHistoryInsert(request,3701)
-                })
-                .catch((err) => {
-                    error = err;
-                    return [error, responseData];
-                })
-        }
-        return [error, responseData];
-    }  
     
     this.assetTypeAccessMappingSelect = async function (request) {
         let responseData = [],
@@ -11802,13 +11775,13 @@ if (queryString !== '') {
             error = true;
 
         const paramsArr = new Array(
-          request.asset_type_id,
+          request.flag || 0,
           request.activity_type_id,
           request.workforce_id,
           request.account_id,
           request.organization_id
         );
-        const queryString = util.getQueryString('ds_p1_asset_type_access_mapping_select_activity_type', paramsArr);
+        const queryString = util.getQueryString('ds_p2_asset_type_access_mapping_select_activity_type', paramsArr);
 
 
         if (queryString !== '') {
@@ -12083,6 +12056,70 @@ if (queryString !== '') {
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_report_type_master_delete', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.workforceAssetTypeMappingFlagSelect = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.flag,
+            request.level_id,
+            request.asset_type_id,
+            request.asset_type_category_id,
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.workforce_tag_id,
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_1_workforce_asset_type_mapping_select_flag', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.assetTypeAccessMappingInsertV1 = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.target_asset_id,
+            request.asset_type_id,
+            request.access_level_id,
+            request.access_type_id,
+            request.activity_type_id,
+            request.workforce_id,
+            request.account_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p4_asset_type_access_mapping_insert', paramsArr);
 
 
         if (queryString !== '') {
