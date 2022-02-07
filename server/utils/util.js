@@ -209,8 +209,19 @@ function Util(objectCollection) {
         });
     };
 
-    this.sendSmsSinfini = function (messageString, countryCode, phoneNumber, callback) {
+    this.sendSmsSinfini = async function (messageString, countryCode, phoneNumber, callback) {
+
         messageString = encodeURI(messageString);
+
+        let redisValdomesticSmsMode = await cacheWrapper.getSmsMode('domestic_sms_mode');
+        let domesticSmsMode = Number(redisValdomesticSmsMode);
+
+        if (domesticSmsMode === 2) {
+            let response = await this.sendtextLocalSMS(messageString, countryCode, phoneNumber, "MYTONY");
+            callback(false, response);
+            return;
+        }
+
         //var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A85da7898dc8bd4d79fdd62cd6f5cc4ec&to=" + countryCode + "" + phoneNumber + "&sender=BLUFLK&format=json&message=" + messageString;
         var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A9113d0c40f299b66cdf5cf654bfc61b8&to=" + countryCode + "" + phoneNumber + "&sender=MYTONY&format=json&message=" + messageString;
         //console.log(url);
@@ -238,8 +249,19 @@ function Util(objectCollection) {
         });
     };
 
-    this.pamSendSmsSinfini = function (messageString, countryCode, phoneNumber, callback) {
+    this.pamSendSmsSinfini = async function (messageString, countryCode, phoneNumber, callback) {
+
         messageString = encodeURI(messageString);
+
+        let redisValdomesticSmsMode = await cacheWrapper.getSmsMode('domestic_sms_mode');
+        let domesticSmsMode = Number(redisValdomesticSmsMode);
+
+        if (domesticSmsMode === 2) {
+            let response = await this.sendtextLocalSMS(messageString, countryCode, phoneNumber, "PAMAPP");
+            callback(false, response);
+            return;
+        }
+
         //var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A85da7898dc8bd4d79fdd62cd6f5cc4ec&to=" + countryCode + "" + phoneNumber + "&sender=BLUFLK&format=json&message=" + messageString;
         var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A9113d0c40f299b66cdf5cf654bfc61b8&to=" + countryCode + "" + phoneNumber + "&sender=PAMAPP&format=json&message=" + messageString;
         //console.log(url);
@@ -268,8 +290,18 @@ function Util(objectCollection) {
     };
 
     //Handling the Sender ID
-    this.sendSmsSinfiniV1 = function (messageString, countryCode, phoneNumber, senderId, callback) {
-        messageString = encodeURI(messageString);        
+    this.sendSmsSinfiniV1 = async function (messageString, countryCode, phoneNumber, senderId, callback) {
+
+        messageString = encodeURI(messageString);
+        let redisValdomesticSmsMode = await cacheWrapper.getSmsMode('domestic_sms_mode');
+        let domesticSmsMode = Number(redisValdomesticSmsMode);
+
+        if (domesticSmsMode === 2) {
+            let response = await this.sendtextLocalSMS(messageString, countryCode, phoneNumber, senderId);
+            callback(false, response);
+            return;
+        }
+
         var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A9113d0c40f299b66cdf5cf654bfc61b8&to=" + countryCode + "" + phoneNumber + "&sender="+senderId+"&format=json&message=" + messageString;
         //console.log(url);
         global.logger.write('debug', url, {}, {});
@@ -376,6 +408,39 @@ function Util(objectCollection) {
             }
         });
     };
+
+    this.sendtextLocalSMS = async function (messageString, countryCode, phoneNumber, senderId) {
+
+        let url = 'https://api.textlocal.in/send/';
+
+        let qs = {
+            apikey: 'NTg2ODM3MzA0NTUwMzc0ZjY4MzE3OTUwNzk3MTM2NTM=',
+            numbers: countryCode + '' + phoneNumber,
+            sender: senderId,
+            message: messageString
+        };
+
+        let response = await new Promise((resolve) => {
+            request({
+                url,
+                qs
+            }, (err, response, body) => {
+                if (err) {
+                    console.log("\x1b[31m[localText]\x1b[0m Error: ", err);
+                    resolve();
+                } else {
+                    let parsedBody = JSON.parse(body);
+                    console.log("\x1b[32m[localText]\x1b[0m response statusCode: ", response.statusCode);
+                    console.log("\x1b[32m[localText]\x1b[0m parsedBody: ", parsedBody);
+                    console.log("\x1b[32m[localText]\x1b[0m parsedBody.status: ", parsedBody.status);
+                    resolve(response);
+                }
+            });
+        });
+
+        return response;
+    };
+
 
     this.getPhoneNumbers = function (request, callback) {
         var accountSid = global.config.accountSid;

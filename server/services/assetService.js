@@ -268,15 +268,44 @@ function AssetService(objectCollection) {
                 //     console.log('[getPhoneNumberAssetsV1] Sinfini Error: ', err);
                 // });
 
-                if(!email) {
-                    smsEngine.emit('send-sinfini-sms', {
-                        type: 'NOTFCTN',
-                        countryCode,
-                        phoneNumber,
-                        msgString: smsMessage,
-                        failOver: true,
-                        appName: ''
-                    });
+                if (!email) {
+                    let redisValdomesticSmsMode = await cacheWrapper.getSmsMode('domestic_sms_mode');
+                    let domesticSmsMode = Number(redisValdomesticSmsMode);
+
+                    switch (domesticSmsMode) {
+                        case 1: // SinFini
+                            smsEngine.emit('send-sinfini-sms', {
+                                type: 'NOTFCTN',
+                                countryCode,
+                                phoneNumber,
+                                msgString: smsMessage,
+                                failOver: true,
+                                appName: ''
+                            });
+                            break;
+                        case 2: // textlocal
+                            smsEngine.emit('send-textlocal-sms', {
+                                type: 'NOTFCTN',
+                                countryCode,
+                                phoneNumber,
+                                msgString: smsMessage,
+                                failOver: true,
+                                appName: ''
+                            });
+                            break;
+                        default:
+                            smsEngine.emit('send-sinfini-sms', {
+                                type: 'NOTFCTN',
+                                countryCode,
+                                phoneNumber,
+                                msgString: smsMessage,
+                                failOver: true,
+                                appName: ''
+                            });
+                            break;
+                    }
+
+
                 }
 
                 return;
@@ -1302,17 +1331,17 @@ function AssetService(objectCollection) {
                                 break;
                          */
 
-                        switch (domesticSmsMode) {
-                            case 1: // SinFini
-                                smsEngine.emit('send-sinfini-sms', smsOptions);
-                                break;
-                            case 2: // mVayoo
-                                smsEngine.emit('send-mvayoo-sms', smsOptions);
-                                break;
-                            case 3: // Bulk SMS
-                                smsEngine.emit('send-bulksms-sms', smsOptions);
-                                break;
-                        }
+                    switch (domesticSmsMode) {
+                        case 1: // SinFini
+                            smsEngine.emit('send-sinfini-sms', smsOptions);
+                            break;
+                        case 2: // mVayoo
+                            smsEngine.emit('send-textlocal-sms', smsOptions);
+                            break;
+                        default: // Bulk SMS
+                            smsEngine.emit('send-sinfini-sms', smsOptions);
+                            break;
+                    }
                 
 
                     /* smsEngine.sendDomesticSms(smsOptions); */
