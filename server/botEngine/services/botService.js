@@ -2895,7 +2895,7 @@ function BotService(objectCollection) {
 
                 await handleBotOperationMessageUpdate(request, i);
                 //botOperationTxnInsert(request, i);
-                botOperationTxnInsertV1(request, i);
+                // botOperationTxnInsertV1(request, i);
                 await new Promise((resolve, reject) => {
                     setTimeout(() => {
                         resolve();
