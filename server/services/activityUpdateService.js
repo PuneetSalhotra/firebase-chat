@@ -1257,7 +1257,7 @@ function ActivityUpdateService(objectCollection) {
                     if (parsedActivityCoverData.duedate.old !== parsedActivityCoverData.duedate.new) {
                         try {
                             datetimeEndDeffered = parsedActivityCoverData.duedate.new;
-                            updateDuedateForQueueActivityMappingEntries(request, datetimeEndDeffered);
+                            ///updateDuedateForQueueActivityMappingEntries(request, datetimeEndDeffered);
 
                             //In Due Date update Case - Only update the unread to the owner of the workflow
                             request.page_start = 0;
@@ -1279,7 +1279,7 @@ function ActivityUpdateService(objectCollection) {
                             console.log("Workflow Datetime update Error: ", error);
                         }
                     }
-
+                    /*
                     //Listener - to update data in the intermediate tables for workflow reference, combo field datatypes
                     let activity_id = request.activity_id;
                     let deferred_datetime = datetimeEndDeffered;
@@ -1310,6 +1310,7 @@ function ActivityUpdateService(objectCollection) {
                             deferred_datetime
                         }, 2);
                     }
+                    */
                 }
 
                 callback(false, {}, 200);

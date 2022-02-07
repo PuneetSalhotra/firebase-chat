@@ -1051,138 +1051,141 @@ function BotService(objectCollection) {
 
     this.initBotEngine = async (request) => {
 
-        util.logInfo(request,`Initiating BOT Request Params %j`, request);
-
-        request.debug_info = [];
-        request.debug_info.push("initBotEngine" +JSON.stringify(request));
-        //Bot Log - Bot engine Triggered
-        activityCommonService.botOperationFlagUpdateTrigger(request, 1);
-
-        util.logInfo(request,`🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
-        util.logInfo(request,`🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖  ENTERED BOT ENGINE  🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
-        util.logInfo(request,`🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
-
-        request['datetime_log'] = util.getCurrentUTCTime();
-        // console.log("initBotEngine | request: ", request);
-
-        // Prepare the map equivalent for the form's inline data,
-        // for easy checks and comparisons
-        let formInlineData = [], formInlineDataMap = new Map();
+        const botInitialRequest = Object.assign({}, request);
+        const botMessageId = request.message_id || "";
         try {
-            if (!request.hasOwnProperty('activity_inline_data')) {
-                // Usually mobile apps send only activity_timeline_collection parameter in
-                // the "/activity/timeline/entry/add" call
-                const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
-                formInlineData = activityTimelineCollection.form_submitted;
-                if (
-                    Number(request.device_os_id) === 1 &&
-                    typeof activityTimelineCollection.form_submitted === "string"
-                ) {
-                    formInlineData = JSON.parse(activityTimelineCollection.form_submitted);
+            util.logInfo(request, `Initiating BOT Request Params %j`, request);
+
+            request.debug_info = [];
+            request.debug_info.push("initBotEngine" + JSON.stringify(request));
+            //Bot Log - Bot engine Triggered
+            activityCommonService.botOperationFlagUpdateTrigger(request, 1);
+
+            util.logInfo(request, `🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
+            util.logInfo(request, `🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖  ENTERED BOT ENGINE  🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
+            util.logInfo(request, `🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
+
+            request['datetime_log'] = util.getCurrentUTCTime();
+            // console.log("initBotEngine | request: ", request);
+
+            // Prepare the map equivalent for the form's inline data,
+            // for easy checks and comparisons
+            let formInlineData = [], formInlineDataMap = new Map();
+            try {
+                if (!request.hasOwnProperty('activity_inline_data')) {
+                    // Usually mobile apps send only activity_timeline_collection parameter in
+                    // the "/activity/timeline/entry/add" call
+                    const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+                    formInlineData = activityTimelineCollection.form_submitted;
+                    if (
+                        Number(request.device_os_id) === 1 &&
+                        typeof activityTimelineCollection.form_submitted === "string"
+                    ) {
+                        formInlineData = JSON.parse(activityTimelineCollection.form_submitted);
+                    }
+                } else {
+                    formInlineData = JSON.parse(request.activity_inline_data);
                 }
-            } else {
-                formInlineData = JSON.parse(request.activity_inline_data);
+                for (const field of formInlineData) {
+                    formInlineDataMap.set(Number(field.field_id), { ...field, bot_count: 1 });
+                }
+            } catch (error) {
+                util.logError(request, `Error parsing inline JSON and/or preparing the form data map`, { type: 'bot_engine', error });
+
+                let errorStatusUpdateRequest = Object.assign({}, request);
+                errorStatusUpdateRequest.status_id = 4;
+                errorStatusUpdateRequest.log_asset_id = request.asset_id || 0;
+                errorStatusUpdateRequest.consumed_datetime = null;
+                errorStatusUpdateRequest.processed_datetime = null;
+                errorStatusUpdateRequest.failed_datetime = util.getCurrentUTCTime();
+                errorStatusUpdateRequest.log_datetime = util.getCurrentUTCTime();
+
+                const [errorThree, __] = await activityCommonService.BOTMessageTransactionUpdateStatusAsync(errorStatusUpdateRequest);
+
             }
-            for (const field of formInlineData) {
-                formInlineDataMap.set(Number(field.field_id), {...field,bot_count : 1});
-            }
-        } catch (error) {
-            util.logError(request,`Error parsing inline JSON and/or preparing the form data map`, { type: 'bot_engine', error });
 
-            let errorStatusUpdateRequest = Object.assign({}, request);
-            errorStatusUpdateRequest.status_id = 4;
-            errorStatusUpdateRequest.log_asset_id = request.asset_id || 0;
-            errorStatusUpdateRequest.consumed_datetime = null;
-            errorStatusUpdateRequest.processed_datetime = null;
-            errorStatusUpdateRequest.failed_datetime = util.getCurrentUTCTime();
-            errorStatusUpdateRequest.log_datetime = util.getCurrentUTCTime();
+            let wfSteps;
+            let formLevelWFSteps = [];
+            let fieldLevelWFSteps = [];
 
-            const [errorThree, __] = await activityCommonService.BOTMessageTransactionUpdateStatusAsync(errorStatusUpdateRequest);
-
-        }
-
-        let wfSteps;
-        let formLevelWFSteps = [];
-        let fieldLevelWFSteps = [];
-
-        /*if(request.hasOwnProperty(bot_operation_id)) {
-            wfSteps = request.inline_data;
-        } else {
-            wfSteps = await this.getBotworkflowSteps({
-                "bot_id": request.bot_id,
-                "page_start": 0,
-                "page_limit": 50
-            });
-        }*/
-
-        //bot_flag_trigger_on_field_edit
-        if(Number(request.is_from_field_alter) === 1) { //Request has come from field alter       
-            util.logInfo(request,`In form_field_alter`);
-            
-            
-            util.logInfo(request,`formInlineDataMap:  %j`, formInlineDataMap);
-
-            /*In case of Refill 
-                1) trigger all form level bots 
-                2) trigger bots on the respective field i.e. altered*/
-
-            //flag = 0 = ALL bots
-            //flag = 1 = Only Field based bots
-            //flag = 2 = ONly Form Based bots
-            //flag = 3 = ONly specific Form Based bots to be triggered in field edit
-            
-            let [err, botResponse] = await activityCommonService.getMappedBotSteps({
-                organization_id: 0,
-                bot_id: 0,
-                form_id: request.form_id,
-                field_id: request.altered_field_id,
-                start_from: 0,
-                limit_value: 50
-            }, 3);
-
-            formLevelWFSteps = botResponse;
-            
-            //console.log('formLevelWFSteps : ', formLevelWFSteps);
-
-            //To trigger only field level Bots
-            if(request.is_bulk_edit == 1){
-            for(let lk=0;lk<formInlineData.length;lk++){
-            let eachFieldLevelWFSteps = await this.getBotworkflowStepsByForm({
-                "organization_id": 0,
-                "form_id": request.form_id,
-                "field_id": formInlineData[lk].field_id,
-                "bot_id": 0, // request.bot_id,
-                "page_start": 0,
-                "page_limit": 50
-            });
-            fieldLevelWFSteps = [...fieldLevelWFSteps,...eachFieldLevelWFSteps];
-        }
-        }
-        else {
-            fieldLevelWFSteps = await this.getBotworkflowStepsByForm({
-                "organization_id": 0,
-                "form_id": request.form_id,
-                "field_id": request.altered_field_id,
-                "bot_id": 0, // request.bot_id,
-                "page_start": 0,
-                "page_limit": 50
-            });
-        }
-        // console.log(fieldLevelWFSteps)
-
-            if(formLevelWFSteps.length > 0) {
-                wfSteps = fieldLevelWFSteps.concat(formLevelWFSteps);
+            /*if(request.hasOwnProperty(bot_operation_id)) {
+                wfSteps = request.inline_data;
             } else {
-                wfSteps = fieldLevelWFSteps;
-            }    
+                wfSteps = await this.getBotworkflowSteps({
+                    "bot_id": request.bot_id,
+                    "page_start": 0,
+                    "page_limit": 50
+                });
+            }*/
 
-        } else if(Number(request.is_refill) === 1) { 
-            util.logInfo(request,`This is smart form - Refill case`);
-            //This is Form refill SMART FORM 
-            //1) Retrigger all form level bots
-            //2) Retrigger all the impacted field level
-            
-            //1) Retrigger all form level bots
+            //bot_flag_trigger_on_field_edit
+            if (Number(request.is_from_field_alter) === 1) { //Request has come from field alter       
+                util.logInfo(request, `In form_field_alter`);
+
+
+                util.logInfo(request, `formInlineDataMap:  %j`, formInlineDataMap);
+
+                /*In case of Refill 
+                    1) trigger all form level bots 
+                    2) trigger bots on the respective field i.e. altered*/
+
+                //flag = 0 = ALL bots
+                //flag = 1 = Only Field based bots
+                //flag = 2 = ONly Form Based bots
+                //flag = 3 = ONly specific Form Based bots to be triggered in field edit
+
+                let [err, botResponse] = await activityCommonService.getMappedBotSteps({
+                    organization_id: 0,
+                    bot_id: 0,
+                    form_id: request.form_id,
+                    field_id: request.altered_field_id,
+                    start_from: 0,
+                    limit_value: 50
+                }, 3);
+
+                formLevelWFSteps = botResponse;
+
+                //console.log('formLevelWFSteps : ', formLevelWFSteps);
+
+                //To trigger only field level Bots
+                if (request.is_bulk_edit == 1) {
+                    for (let lk = 0; lk < formInlineData.length; lk++) {
+                        let eachFieldLevelWFSteps = await this.getBotworkflowStepsByForm({
+                            "organization_id": 0,
+                            "form_id": request.form_id,
+                            "field_id": formInlineData[lk].field_id,
+                            "bot_id": 0, // request.bot_id,
+                            "page_start": 0,
+                            "page_limit": 50
+                        });
+                        fieldLevelWFSteps = [...fieldLevelWFSteps, ...eachFieldLevelWFSteps];
+                    }
+                }
+                else {
+                    fieldLevelWFSteps = await this.getBotworkflowStepsByForm({
+                        "organization_id": 0,
+                        "form_id": request.form_id,
+                        "field_id": request.altered_field_id,
+                        "bot_id": 0, // request.bot_id,
+                        "page_start": 0,
+                        "page_limit": 50
+                    });
+                }
+                // console.log(fieldLevelWFSteps)
+
+                if (formLevelWFSteps.length > 0) {
+                    wfSteps = fieldLevelWFSteps.concat(formLevelWFSteps);
+                } else {
+                    wfSteps = fieldLevelWFSteps;
+                }
+
+            } else if (Number(request.is_refill) === 1) {
+                util.logInfo(request, `This is smart form - Refill case`);
+                //This is Form refill SMART FORM 
+                //1) Retrigger all form level bots
+                //2) Retrigger all the impacted field level
+
+                //1) Retrigger all form level bots
                 let [err, botResponse] = await activityCommonService.getMappedBotSteps({
                     organization_id: 0,
                     bot_id: 0,
@@ -1191,888 +1194,888 @@ function BotService(objectCollection) {
                     start_from: 0,
                     limit_value: 50
                 }, 2);
-                util.logInfo(request,`Number of form Level Bots form_id : ${request.form_id} %j`,botResponse.length);
+                util.logInfo(request, `Number of form Level Bots form_id : ${request.form_id} %j`, botResponse.length);
 
-            let totalBots = botResponse; //Assigning form based bots
+                let totalBots = botResponse; //Assigning form based bots
 
-            //2) Retrigger all the impacted field level
-            let fieldLevelWFSteps = [];
-            for(const i_iterator of formInlineData) {
-                let tempResponse = await this.getBotworkflowStepsByForm({
+                //2) Retrigger all the impacted field level
+                let fieldLevelWFSteps = [];
+                for (const i_iterator of formInlineData) {
+                    let tempResponse = await this.getBotworkflowStepsByForm({
+                        "organization_id": 0,
+                        "form_id": request.form_id,
+                        "field_id": i_iterator.field_id,
+                        "bot_id": 0, // request.bot_id,
+                        "page_start": 0,
+                        "page_limit": 50
+                    });
+                    util.logInfo(request, `Number of field Level Bots field_id : ${i_iterator.field_id} %j`, tempResponse.length);
+                    if (tempResponse.length > 0) {
+                        totalBots = totalBots.concat(tempResponse); //Assigning field level bots
+                    }
+                }
+
+                wfSteps = totalBots;
+
+            } else if (Number(request.is_resubmit) === 1) {
+                util.logInfo(request, `This is non-smart - Resubmit case`);
+                //This is Form resubmit NON-SMART FORM 
+                //Retrigger all form level bots
+                let [err, botResponse] = await activityCommonService.getMappedBotSteps({
+                    organization_id: 0,
+                    bot_id: 0,
+                    form_id: request.form_id,
+                    field_id: request.altered_field_id,
+                    start_from: 0,
+                    limit_value: 50
+                }, 2);
+
+                wfSteps = botResponse; //Assigning form based bots
+            } else {
+                util.logInfo(request, `This is generic case!! - First time form Submission!!`);
+                //trigger both the form level bots & field level - Normally happens for the first time form submission
+                wfSteps = await this.getBotworkflowStepsByForm({
                     "organization_id": 0,
                     "form_id": request.form_id,
-                    "field_id": i_iterator.field_id,
+                    "field_id": 0,
                     "bot_id": 0, // request.bot_id,
                     "page_start": 0,
                     "page_limit": 50
                 });
-                util.logInfo(request,`Number of field Level Bots field_id : ${i_iterator.field_id} %j`,tempResponse.length);
-                if(tempResponse.length > 0) {
-                    totalBots = totalBots.concat(tempResponse); //Assigning field level bots
-                }                
             }
 
-            wfSteps = totalBots;            
+            let botOperationsJson,
+                botSteps;
 
-        } else if(Number(request.is_resubmit) === 1) {
-            util.logInfo(request,`This is non-smart - Resubmit case`);
-            //This is Form resubmit NON-SMART FORM 
-            //Retrigger all form level bots
-            let [err, botResponse] = await activityCommonService.getMappedBotSteps({
-                organization_id: 0,
-                bot_id: 0,
-                form_id: request.form_id,
-                field_id: request.altered_field_id,
-                start_from: 0,
-                limit_value: 50
-            }, 2);
+            //console.log("formInlineDataMap: ", formInlineDataMap);
+            //console.log('wfSteps : ', wfSteps);
+            util.logInfo(request, `Attached bots list`);
+            //Print what are all the bots are there
+            util.logInfo(request, `Printing all the bots attached`);
+            for (const temp_iterator of wfSteps) {
+                util.logInfo(request, `***************************************`);
+                util.logInfo(request, `bot_operation_type_id ${temp_iterator.bot_operation_type_id}`);
+                util.logInfo(request, `bot_operation_sequence_id ${temp_iterator.bot_operation_sequence_id}`);
+                util.logInfo(request, `bot_operation_id ${temp_iterator.bot_operation_id}`);
+                util.logInfo(request, `bot_operation_type_name ${temp_iterator.bot_operation_type_name}`);
+                util.logInfo(request, `form_id ${temp_iterator.form_id}`);
+                util.logInfo(request, `field_id ${temp_iterator.field_id}`);
+                util.logInfo(request, `data_type_combo_id ${temp_iterator.data_type_combo_id}`);
+                util.logInfo(request, `data_type_combo_name ${temp_iterator.data_type_combo_name}`);
 
-            wfSteps = botResponse; //Assigning form based bots
-        } else {
-            util.logInfo(request,`This is generic case!! - First time form Submission!!`);   
-            //trigger both the form level bots & field level - Normally happens for the first time form submission
-            wfSteps = await this.getBotworkflowStepsByForm({
-                "organization_id": 0,
-                "form_id": request.form_id,
-                "field_id": 0,
-                "bot_id": 0, // request.bot_id,
-                "page_start": 0,
-                "page_limit": 50
-            });
-        }
+                console.table([{
+                    bot_operation_sequence_id: temp_iterator.bot_operation_sequence_id,
+                    bot_operation_id: temp_iterator.bot_operation_id,
+                    bot_operation_type_name: temp_iterator.bot_operation_type_name,
+                    form_id: temp_iterator.form_id,
+                    field_id: temp_iterator.field_id,
+                    data_type_combo_id: temp_iterator.data_type_combo_id,
+                    data_type_combo_name: temp_iterator.data_type_combo_name
+                }]);
+                util.logInfo(request, `***************************************`);
+            }
 
-        let botOperationsJson,
-            botSteps;
-        
-        //console.log("formInlineDataMap: ", formInlineDataMap);
-        //console.log('wfSteps : ', wfSteps);
-        util.logInfo(request,`Attached bots list`);
-        //Print what are all the bots are there
-        util.logInfo(request,`Printing all the bots attached`);
-        for (const temp_iterator of wfSteps) {
-            util.logInfo(request,`***************************************`);
-            util.logInfo(request,`bot_operation_type_id ${temp_iterator.bot_operation_type_id}`);
-            util.logInfo(request,`bot_operation_sequence_id ${temp_iterator.bot_operation_sequence_id}`);
-            util.logInfo(request,`bot_operation_id ${temp_iterator.bot_operation_id}`);
-            util.logInfo(request,`bot_operation_type_name ${temp_iterator.bot_operation_type_name}`);
-            util.logInfo(request,`form_id ${temp_iterator.form_id}`);
-            util.logInfo(request,`field_id ${temp_iterator.field_id}`);
-            util.logInfo(request,`data_type_combo_id ${temp_iterator.data_type_combo_id}`);
-            util.logInfo(request,`data_type_combo_name ${temp_iterator.data_type_combo_name}`);
+            util.logInfo(request, `🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
 
-            console.table([{
-                bot_operation_sequence_id: temp_iterator.bot_operation_sequence_id,
-                bot_operation_id: temp_iterator.bot_operation_id,
-                bot_operation_type_name: temp_iterator.bot_operation_type_name,
-                form_id: temp_iterator.form_id,
-                field_id: temp_iterator.field_id,
-                data_type_combo_id: temp_iterator.data_type_combo_id,
-                data_type_combo_name: temp_iterator.data_type_combo_name
-            }]);
-            util.logInfo(request,`***************************************`);
-        }
+            for (let i of wfSteps) {
+                request.debug_info = [];
+                // Adding bot_operation_id into request for logs
+                request["bot_operation_id"] = i.bot_operation_id;
 
-        util.logInfo(request,`🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖 🤖`);
+                util.logInfo(request, `------------START EXECUTING BOT----------------------`);
+                util.logInfo(request, ` i.bot_operation_type_id ${i.bot_operation_type_id}`);
+                util.logInfo(request, ` bot_operation_sequence_id ${i.bot_operation_sequence_id}`);
+                util.logInfo(request, ` bot_operation_type_name ${i.bot_operation_type_name}`);
+                util.logInfo(request, ` form_id ${i.form_id}`);
+                util.logInfo(request, ` field_id ${i.field_id}`);
+                util.logInfo(request, ` data_type_combo_id ${i.data_type_combo_id}`);
+                util.logInfo(request, ` data_type_combo_name ${i.data_type_combo_name}`);
 
-        for (let i of wfSteps) {
-            request.debug_info = [];
-            // Adding bot_operation_id into request for logs
-            request["bot_operation_id"] = i.bot_operation_id;
+                // Check whether the bot operation should be triggered for a specific field_id only
+                console.table([{
+                    bot_operation_sequence_id: i.bot_operation_sequence_id,
+                    //bot_operation_type_id: i.bot_operation_type_id,
+                    bot_operation_type_name: i.bot_operation_type_name,
+                    form_id: i.form_id,
+                    field_id: i.field_id,
+                    data_type_combo_id: i.data_type_combo_id,
+                    data_type_combo_name: i.data_type_combo_name
+                }]);
 
-            util.logInfo(request,`------------START EXECUTING BOT----------------------`);
-            util.logInfo(request,` i.bot_operation_type_id ${i.bot_operation_type_id}`);   
-            util.logInfo(request,` bot_operation_sequence_id ${i.bot_operation_sequence_id}`);
-            util.logInfo(request,` bot_operation_type_name ${i.bot_operation_type_name}`);
-            util.logInfo(request,` form_id ${i.form_id}`);
-            util.logInfo(request,` field_id ${i.field_id}`);
-            util.logInfo(request,` data_type_combo_id ${i.data_type_combo_id}`);
-            util.logInfo(request,` data_type_combo_name ${i.data_type_combo_name}`);
+                request.debug_info.push("bot_operation_sequence_id - " + i.bot_operation_sequence_id);
+                request.debug_info.push("bot_operation_type_id - " + i.bot_operation_type_id);
+                request.debug_info.push("bot_operation_type_name - " + i.bot_operation_type_name);
+                request.debug_info.push("form_id - " + i.form_id);
+                request.debug_info.push("field_id - " + i.field_id);
+                request.debug_info.push("data_type_combo_id - " + i.data_type_combo_id);
+                request.debug_info.push("data_type_combo_name - " + i.data_type_combo_name);
 
-            // Check whether the bot operation should be triggered for a specific field_id only
-            console.table([{
-                bot_operation_sequence_id: i.bot_operation_sequence_id,
-                //bot_operation_type_id: i.bot_operation_type_id,
-                bot_operation_type_name: i.bot_operation_type_name,
-                form_id: i.form_id,
-                field_id: i.field_id,
-                data_type_combo_id: i.data_type_combo_id,
-                data_type_combo_name: i.data_type_combo_name
-            }]);            
+                // Update bot trigger details
+                request.trigger_form_id = Number(i.form_id);
+                request.trigger_form_name = i.form_name || "";
+                request.trigger_field_id = Number(i.field_id);
+                request.trigger_field_name = i.field_name || "";
 
-            request.debug_info.push("bot_operation_sequence_id - " + i.bot_operation_sequence_id);
-            request.debug_info.push("bot_operation_type_id - " + i.bot_operation_type_id);
-            request.debug_info.push("bot_operation_type_name - " + i.bot_operation_type_name);
-            request.debug_info.push("form_id - " + i.form_id);
-            request.debug_info.push("field_id - " + i.field_id);
-            request.debug_info.push("data_type_combo_id - " + i.data_type_combo_id);
-            request.debug_info.push("data_type_combo_name - " + i.data_type_combo_name);
-            
-            // Update bot trigger details
-            request.trigger_form_id = Number(i.form_id);
-            request.trigger_form_name = i.form_name || "";
-            request.trigger_field_id = Number(i.field_id);
-            request.trigger_field_name = i.field_name || "";
+                try {
+                    // Check if the bot operation is field specific
+                    let botOperationFieldID = Number(i.field_id);
+                    if (
+                        botOperationFieldID > 0 &&
+                        !formInlineDataMap.has(botOperationFieldID)
+                    ) {
+                        util.logInfo(request, `Not triggering bot`);
+                        util.logInfo(request, `\x1b[31mThis bot operation is field specific & cannot be applied.\x1b[0m`);
+                        request.debug_info.push('This bot operation is field specific & cannot be applied.');
+                        continue;
+                    }
+                    // 
+                    // Check if the bot operation is field + data_type_combo_id specific
+                    if (
+                        botOperationFieldID > 0 &&
+                        Number(i.data_type_combo_id) > 0 &&
+                        formInlineDataMap.has(botOperationFieldID) &&
+                        !(Number(i.data_type_combo_id) === Number(formInlineDataMap.get(botOperationFieldID).data_type_combo_id))
+                    ) {
+                        util.logInfo(request, `Not triggering bot`);
+                        util.logInfo(request, `\x1b[31mThis bot operation is field and data_type_combo_id specific & cannot be applied.\x1b[0m`);
+                        request.debug_info.push('This bot operation is field and data_type_combo_id specific & cannot be applied.');
+                        continue;
+                    }
+                } catch (error) {
+                    util.logError(request, `Error checking field/data_type_combo_id trigger specificity`, { type: 'bot_service', error: serializeError(error) });
+                    request.debug_info.push('Error checking field/data_type_combo_id trigger specificity');
+                    request.debug_info.push(error);
+                }
 
-            try {
-                // Check if the bot operation is field specific
-                let botOperationFieldID = Number(i.field_id);
-                if (
-                    botOperationFieldID > 0 &&
-                    !formInlineDataMap.has(botOperationFieldID)
-                ) {
-                    util.logInfo(request,`Not triggering bot`);
-                    util.logInfo(request,`\x1b[31mThis bot operation is field specific & cannot be applied.\x1b[0m`);
-                    request.debug_info.push('This bot operation is field specific & cannot be applied.');
+                util.logInfo(request, `i.bot_operation_inline_data : %j`, i.bot_operation_inline_data);
+                util.logInfo(request, `Value of i :  %j`, i);
+                util.logInfo(request, `~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
+
+                // Skipping form enable bot because it is causing other to fail
+                if (Number(i.bot_operation_type_id) === 20) {
+                    util.logInfo(request, "Skipping form enable bot because it is causing other to fail")
                     continue;
                 }
-                // 
-                // Check if the bot operation is field + data_type_combo_id specific
-                if (
-                    botOperationFieldID > 0 &&
-                    Number(i.data_type_combo_id) > 0 &&
-                    formInlineDataMap.has(botOperationFieldID) &&
-                    !(Number(i.data_type_combo_id) === Number(formInlineDataMap.get(botOperationFieldID).data_type_combo_id))
-                ) {
-                    util.logInfo(request,`Not triggering bot`);
-                    util.logInfo(request,`\x1b[31mThis bot operation is field and data_type_combo_id specific & cannot be applied.\x1b[0m`);
-                    request.debug_info.push('This bot operation is field and data_type_combo_id specific & cannot be applied.');
+
+                try {
+                    botOperationsJson = JSON.parse(i.bot_operation_inline_data);
+                } catch (error) {
+                    util.logError(request, `[botOperationsJson] Error parsing bot_operation_inline_data`, { type: "bot_engine", error: serializeError(error) });
+                }
+                try {
+                    botSteps = Object.keys(botOperationsJson.bot_operations);
+                    util.logInfo(request, `botSteps: %j`, botSteps);
+                } catch (error) {
+                    util.logError(request, `[botSteps] Error listing bot_operations keys`, { type: "bot_engine", error: serializeError(error) });
+                }
+
+                // Check for condition, if any
+                let canPassthrough = true;
+                try {
+                    canPassthrough = await isBotOperationConditionTrue(request, botOperationsJson.bot_operations, formInlineDataMap);
+                } catch (error) {
+                    util.logError(request, `canPassthrough | isBotOperationConditionTrue | canPassthrough | Error: `, { type: "bot_engine", error: serializeError(error) });
+                }
+                if (!canPassthrough) {
+                    util.logError(request, `The bot operation condition failed, so the bot operation will not be executed.`, { type: "bot_engine" });
                     continue;
                 }
-            } catch (error) {
-                util.logError(request,`Error checking field/data_type_combo_id trigger specificity`, { type: 'bot_service', error: serializeError(error) });
-                request.debug_info.push('Error checking field/data_type_combo_id trigger specificity');
-                request.debug_info.push(error);                
-            }
 
-            util.logInfo(request,`i.bot_operation_inline_data : %j`, i.bot_operation_inline_data);
-            util.logInfo(request,`Value of i :  %j`, i);
-            util.logInfo(request,`~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~`);
+                //if(i.bot_operation_type_id === 2 || 
+                //   i.bot_operation_type_id === 17 || 
+                //   i.bot_operation_type_id === 28) {
+                //    continue;
+                //}
 
-            // Skipping form enable bot because it is causing other to fail
-            if(Number(i.bot_operation_type_id) === 20 ) {
-                util.logInfo(request,"Skipping form enable bot because it is causing other to fail")
-               continue;
-            }       
-
-            try {
-                botOperationsJson = JSON.parse(i.bot_operation_inline_data);
-            } catch (error) {
-                util.logError(request,`[botOperationsJson] Error parsing bot_operation_inline_data`, { type: "bot_engine", error: serializeError(error) });
-            }
-            try {
-                botSteps = Object.keys(botOperationsJson.bot_operations);
-                util.logInfo(request,`botSteps: %j`, botSteps);
-            } catch (error) {
-                util.logError(request,`[botSteps] Error listing bot_operations keys`, { type: "bot_engine", error: serializeError(error) });
-            }
-
-            // Check for condition, if any
-            let canPassthrough = true;
-            try {
-                canPassthrough = await isBotOperationConditionTrue(request, botOperationsJson.bot_operations, formInlineDataMap);
-            } catch (error) {
-                util.logError(request,`canPassthrough | isBotOperationConditionTrue | canPassthrough | Error: `, { type: "bot_engine", error: serializeError(error) });         
-            }
-            if (!canPassthrough) {
-                util.logError(request,`The bot operation condition failed, so the bot operation will not be executed.`, { type: "bot_engine"});
-                continue;
-            }
-
-            //if(i.bot_operation_type_id === 2 || 
-            //   i.bot_operation_type_id === 17 || 
-            //   i.bot_operation_type_id === 28) {
-            //    continue;
-            //}
-
-            switch (i.bot_operation_type_id) {
-                //case 'participant_add':
-                case 1: // Add Participant                 
-                    util.logInfo(request,`****************************************************************`);
-                    util.logInfo(request,`PARTICIPANT ADD`);
-                    request.debug_info.push('PARTICIPANT ADD');
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        await addParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-
-                    } catch (err) {
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        util.logError(request,`Error in executing addParticipant Step`, { type: 'add_participant', error: serializeError(err) });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });    
-                        i.bot_operation_error_message = err;                    
-                        //return Promise.reject(err);
-                    }
-                    util.logInfo(request,`****************************************************************`);
-                    break;
-
-                //case 'status_alter': 
-                case 2: // Alter Status
-                    util.logInfo(request,`****************************************************************`);
-                    util.logInfo(request,`STATUS ALTER BOT %j`, request);
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        let result = await changeStatusV1(request, botOperationsJson.bot_operations.status_alter);
-                        if (result[0]) {
-                            i.bot_operation_status_id = 2;
-                            i.bot_operation_inline_data = JSON.stringify({
-                                "err": result[1]
-                            });
-                            //await handleBotOperationMessageUpdate(request, i, 4, result[1]);
-                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = result[1];
-                        } else {
-                            //await handleBotOperationMessageUpdate(request, i, 3);
-                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        }
-                    } catch (err) {
-                        util.logError(request,`serverError | Error in executing changeStatus Step`, { type: "bot_engine", error: serializeError(err) });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });                        
-                        //return Promise.reject(err);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
-                        //await handleBotOperationMessageUpdate(request, i, 4, err);
-                    }
-                    util.logInfo(request,`****************************************************************`);
-                    break;
-
-                //case 'form_field_copy':
-                case 3: //Copy Form field
-                    util.logInfo(request,`****************************************************************`);
-                    util.logInfo(request,` FORM FIELD %j`, request);
-                    i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                    try {
-                        // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
-                        request.debug_info.push('form_field_copy | Request Params received by BOT ENGINE'+ request);
-                        await copyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
-
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                    } catch (err) {
-                        util.logError(request,`Error in executing copyFields Step`, { type: "bot_engine", error: serializeError(err) });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                        //return Promise.reject(err);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
-                        //await handleBotOperationMessageUpdate(request, i, 4, err);
-                    }
-                    util.logInfo(request,`****************************************************************`);
-                    break;
-
-                //case 'workflow_percentage_alter': 
-                case 4: //Update Workflow Percentage
-                    util.logInfo(request,'****************************************************************')
-                    util.logInfo(request, 'WF PERCENTAGE ALTER');
-                    logger.silly("Request Params received from Request: %j", request);
-                    request.debug_info.push('WF PERCENTAGE ALTER ');
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        let result = await alterWFCompletionPercentage(request, botOperationsJson.bot_operations.workflow_percentage_alter);
-                        if (result[0]) {
-                            i.bot_operation_status_id = 2;
-                            i.bot_operation_inline_data = JSON.stringify({
-                                "err": result[1]
-                            });
-                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = result[1];
-                            //await handleBotOperationMessageUpdate(request, i, 4, result[1]);
-                        } else {
-                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            //await handleBotOperationMessageUpdate(request, i, 3);
-                        }
-                    } catch (err) {
-                        logger.error("serverError | Error in executing alterWFCompletionPercentage Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                        //return Promise.reject(err);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
-                        //await handleBotOperationMessageUpdate(request, i, 4, err);
-                    }
-                    util.logInfo(request, '****************************************************************');
-                    break;
-
-                //case 'fire_api': 
-                case 5: // External System Integration
-                    util.logInfo(request, '****************************************************************');
-                    util.logInfo(request, 'FIRE API');
-                    request.debug_info.push('FIRE API ');
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        await fireApi(request, botOperationsJson.bot_operations.fire_api);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                    } catch (err) {
-                        util.logError(request, 'Error in executing fireApi Step', { err })
-                        i.bot_operation_status_id = 3;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                        //return Promise.reject(err);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
-                        //await handleBotOperationMessageUpdate(request, i, 4, err);
-                    }
-                    util.logInfo(request, '****************************************************************');
-                    break;
-
-                //case 'fire_text': 
-                case 6: // Send Text Message
-                    i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                    if (
-                        request.hasOwnProperty("activity_stream_type_id") &&
-                        Number(request.activity_stream_type_id) === 713
-                    ) {
-                        // Do not fire this bot step on form edits
-                        logger.verbose(`Do Not Fire Email On Form Edit`, { type: 'bot_engine', request_body: request, error: null });
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = "Do Not Fire Send Text Message On Form Edit";
-                        //await handleBotOperationMessageUpdate(request, i, 3, "Do Not Fire Send Text Message On Form Edit");
-                        continue;
-                        // break;
-                    }
-                    util.logInfo(request, '****************************************************************');
-                    util.logInfo(request, 'FIRE TEXT');
-                    request.debug_info.push('FIRE TEXT');
-                    try {
-                        await fireTextMsg(request, botOperationsJson.bot_operations.fire_text);
-
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                    } catch (err) {
-                        util.logError(request,`Error in executing fireTextMsg Step | Error: `, { type: 'bot_engine', err });
-                        util.logError(request, 'serverError', { err });
-                        i.bot_operation_status_id = 4;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                        //return Promise.reject(err);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
-                        //await handleBotOperationMessageUpdate(request, i, 4, err);
-                    }
-                    util.logInfo(request, '****************************************************************');
-                    break;
-
-                //case 'fire_email':           
-                case 7: // Send email
-                    i.bot_operation_start_datetime = util.getCurrentUTCTime(); 
-                    if (
-                        request.hasOwnProperty("activity_stream_type_id") &&
-                        Number(request.activity_stream_type_id) === 713
-                    ) {
-                        // Do not fire this bot step on form edits
-                        logger.verbose(`Do Not Fire Email On Form Edit`, { type: 'bot_engine', request_body: request, error: null });
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = "Do Not Fire Email On Form Edit";
-                        //await handleBotOperationMessageUpdate(request, i, 3, "Do Not Fire Email On Form Edit");
-                        continue;
-                        // break;
-                    }
-                    util.logInfo(request, '****************************************************************');
-                    util.logInfo(request, 'FIRE EMAIL');
-                    request.debug_info.push('FIRE EMAIL ');
-                    try {
-                        await fireEmail(request, botOperationsJson.bot_operations.fire_email);
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (err) {
-                        util.logError(request,`Error in executing fireEmail Step: `, { type: 'bot_engine', err });
-                        util.logError(request, 'Error in executing fireEmail Step', { err });
-                        i.bot_operation_status_id = 4;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, err);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
-                        //return Promise.reject(err);
-                    }
-                    util.logInfo(request, '****************************************************************');
-                    break;
-                
-                case 8: // add_comment
-                    util.logInfo(request,`****************************************************************`);
-                    util.logInfo(request,`add_comment`);
-                    util.logInfo(request,`add_comment | Request Params received by BOT ENGINE`);
-                    request.debug_info.push('add_comment');
-                    request.debug_info.push('add_comment | Request Params received by BOT ENGINE'+ request);
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        await addComment(request, botOperationsJson.bot_operations.add_comment);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        // await handleBotOperationMessageUpdate(request, i, 3);
-                    } catch (err) {
-                        util.logError(request,`add_comment | Error`, { type: 'bot_engine', error });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
-                        // await handleBotOperationMessageUpdate(request, i, 4, err);
-                    }
-                    util.logInfo(request,`****************************************************************`);
-                    break;
-                
-                // case 9: // add_attachment
-                //     console.log('****************************************************************');
-                //     console.log('add_attachment');
-                //     console.log('add_attachment | Request Params received by BOT ENGINE', request);
-                //     try {
-                //         await addAttachment(request, botOperationsJson.bot_operations.add_attachment);
-                //     } catch (err) {
-                //         console.log('add_attachment  | Error', err);
-                //         i.bot_operation_status_id = 2;
-                //         i.bot_operation_inline_data = JSON.stringify({
-                //             "err": err
-                //         });
-                //     }
-                //     console.log('****************************************************************');
-                //     break;
-                
-                case 10: // add_attachment_with_attestation
-                    util.logInfo(request,`****************************************************************`);
-                    util.logInfo(request,`add_attachment_with_attestation`);
-                    util.logInfo(request,`add_attachment_with_attestation | Request Params received by BOT ENGINE`);
-                    request.debug_info.push('add_attachment_with_attestation ');
-                    request.debug_info.push('add_attachment_with_attestation | Request Params received by BOT ENGINE'+ request);
-                    try {
-                        util.logInfo(request,`try add_attachment_with_attestation`);
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                         await addAttachmentWithAttestation(request, botOperationsJson.bot_operations.add_attachment_with_attestation);
-
-                         //await handleBotOperationMessageUpdate(request, i, 3);
-                         i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (err) {
-                        util.logError(request,`add_attachment_with_attestation  | Error`, { type: 'bot_engine', err });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, err);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
-                    }
-                    util.logInfo(request,`****************************************************************`);
-                    break;
-                
-                // case 11: // add_form_as_pdf
-                //     console.log('****************************************************************');
-                //     console.log('add_form_as_pdf');
-                //     console.log('add_form_as_pdf | Request Params received by BOT ENGINE', request);
-                //     try {
-                //         await addFormAsPdf(request, botOperationsJson.bot_operations.add_form_as_pdf);
-                //     } catch (err) {
-                //         console.log('add_form_as_pdf  | Error', err);
-                //         i.bot_operation_status_id = 2;
-                //         i.bot_operation_inline_data = JSON.stringify({
-                //             "err": err
-                //         });
-                //     }
-                //     console.log('****************************************************************');
-                //     break;
-                
-                case 12: // form_pdf
-                    util.logInfo(request,`****************************************************************`);
-                    util.logInfo(request,`form_pdf`);
-                    logger.silly('form_pdf | Request Params received by BOT ENGINE: %j', request);
-                    request.debug_info.push('form_pdf');
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        util.logInfo(request,`form_pdf`);
-                        // commenting to get hummus error
-                        // await addPdfFromHtmlTemplate(request, botOperationsJson.bot_operations.form_pdf);
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (err) {
-                        logger.error("serverError | Error in executing form_pdf Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
-                        //await handleBotOperationMessageUpdate(request, i, 4, err);
-                    }
-                    util.logInfo(request,`****************************************************************`);
-                    break;
-                
-                case 13: // [RESERVED] Time Slot Bot
-                    break;
-
-                case 14: // [RESERVED] Ledger Transactions Bot
-                    logger.silly("LEDGER TRANSACTION");
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        await ledgerOpsService.ledgerCreditDebitNetTransactionUpdate(request);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                    } catch (error) {
-                        util.logError(request,`LEDGER TRANSACTION Error: `, { type: 'bot_engine', error });
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                        i.bot_operation_error_message = error;
-                    }
-                    break;
-
-                case 15: // Customer Creation Bot
-                    i.bot_operation_start_datetime = util.getCurrentUTCTime();    
-                    if (
-                        request.hasOwnProperty("activity_stream_type_id") &&
-                        Number(request.activity_stream_type_id) === 713
-                    ) {
-                        // Do not fire this bot step on form edits
-                        logger.silly(`Do Not Fire Create Customer On Form Edit`, { type: 'bot_engine', error: null });
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = "Do Not Fire Create Customer On Form Edit";
-                        //await handleBotOperationMessageUpdate(request, i, 3, "Do Not Fire Create Customer On Form Edit");
-                        continue;
-                    }
-                    logger.silly("CREATE CUSTOMER");
-                    try {
-                        await createCustomerAsset(request, botOperationsJson.bot_operations.create_customer);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                    } catch (error) {
-                        util.logError(request,`CREATE CUSTOMER Error: `, { type: 'bot_engine', error });
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = error;
-                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                    }
-                    break;
-                
-                case 16: // Workflow Reference Bot
-                    logger.silly("Workflow Reference Bot");
-                    i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                    try {
-                        //await createCustomerAsset(request, botOperationsJson.bot_operations.create_customer);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                    } catch (error) {
-                        util.logError(request,`Workflow Reference Bot: `, { type: 'bot_engine', error });
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = error;
-                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                    }
-                    break;
-
-                case 17: // Combo Field Selection Bot
-                    logger.silly("Combo Field Selection Bot");
-                    break;
-
-                case 18: // Workbook Mapping Bot
-                    logger.silly("[Implemented] Workbook Mapping Bot: %j", request);
-                    //Only if product variant is selected then only trigger the bot
-                    let flag = 0;                    
-                    let activityInlineData;
-                    let product_variant_activity_title=""
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        if (!request.hasOwnProperty('activity_inline_data')) {                            
-                            const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
-                            activityInlineData = activityTimelineCollection.form_submitted;
-                            if (
-                                Number(request.device_os_id) === 1 &&
-                                typeof activityTimelineCollection.form_submitted === "string"
-                            ) {
-                                activityInlineData = JSON.parse(activityTimelineCollection.form_submitted);
-                            }
-                        } else {
-                            activityInlineData = JSON.parse(request.activity_inline_data);
-                        }                        
-                    } catch (error) {
-                        logger.error("Error parsing inline JSON for workbook bot", { type: 'bot_engine', error, request_body: request });
-                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = error;
-                    }
-
-                    util.logInfo(request,` `);
-                    util.logInfo(request,`activityInlineData : %j`,activityInlineData);
-                    request.debug_info.push('activityInlineData: ' + activityInlineData);
-
-                    let activityProductSelection;
-                    for(const i of activityInlineData) {
-                        if(Number(i.field_data_type_id) === 71) {
-                            activityProductSelection = i.field_value;
-
-                            let fieldValue = JSON.parse(i.field_value);
-                            let cartItems = fieldValue.cart_items;
-                            util.logInfo(request,`typeof Cart Items : %j`, typeof cartItems);
-                            util.logInfo(request,`Cart Items :  %j`, cartItems);
-                            request.debug_info.push('typeof Cart Items: ' + typeof cartItems);
-                            request.debug_info.push('Cart Items: ' + cartItems);
-
-                            cartItems = (typeof cartItems === 'string') ? JSON.parse(cartItems) : cartItems;
-
-                            if(cartItems.length > 0) {
-                                util.logInfo(request,`Searching for custom variant %j`, request);
-                                request.debug_info.push('Searching for custom variant');
-                                for(j of cartItems) {
-                                    util.logInfo(request,`product_variant_activity_title : ${(j.product_variant_activity_title).toLowerCase()}`);
-                                    request.debug_info.push('product_variant_activity_title: ' + (j.product_variant_activity_title).toLowerCase());
-                                    if((j.product_variant_activity_title).toLowerCase() == 'custom variant' ||
-                                        (j.product_variant_activity_title).toLowerCase() == 'custom') {
-                                        flag = 1
-                                    }
-                                    else{
-                                        product_variant_activity_title = j.product_variant_activity_title;
-                                    }
-                                }
-                            } //End of If
-                        }
-                    }
-
-                    if(Number(request.activity_type_id) === 152184) {
-                        flag = 1;
-                    }
-
-                    util.logInfo(request,`Number(request.parent_activity_id) - ${Number(request.parent_activity_id)}`);
-                    request.debug_info.push('Number(request.parent_activity_id): ' + Number(request.parent_activity_id));
-                    if(request.hasOwnProperty('parent_activity_id') && Number(request.parent_activity_id) > 0) {
-                        flag = 0;
-                    }
-
-                    let workflowActivityID = request.workflow_activity_id;
-                    let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
-
-                    if (wfActivityDetails.length > 0) {
-                        if (wfActivityDetails[0].parent_activity_id > 0) {
-                            //await handleBotOperationMessageUpdate(request, i, 3, "Avoiding workbook mapping bot on child opportunity");
-                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = "Avoiding workbook mapping bot on child opportunity";
-                            break;
-                        }
-                    }
-
-                    //For Workbook logs
-                    request.activity_product_selection = (typeof activityProductSelection === 'object') ? JSON.stringify(activityProductSelection) : activityProductSelection;
-                    let[err, response] = await activityCommonService.workbookTrxInsert(request);
-                    util.logInfo(request,`response : %j`,response);
-                    request.debug_info.push('response: ' + response);
-                                
-                    let workbookTxnID = (response.length > 0) ? response[0].transaction_id : 0;
-                    request.activity_workbook_transaction_id = workbookTxnID;
-                    ///////////////////////////
-
-                    if(Number(flag) === 1) {
-                        if(Number(request.activity_type_id) === 152184) {
-                            util.logInfo(request,`Its a BC workflow Form : ${request.form_id} -- ${request.form_name}`);
-                            request.debug_info.push('request.form_id: ' + request.form_id);
-                            request.debug_info.push('request.form_name: ' + request.form_name);
-                        }
-                        
+                switch (i.bot_operation_type_id) {
+                    //case 'participant_add':
+                    case 1: // Add Participant                 
+                        util.logInfo(request, `****************************************************************`);
+                        util.logInfo(request, `PARTICIPANT ADD`);
+                        request.debug_info.push('PARTICIPANT ADD');
                         try {
-                            if (
-                                Number(request.organization_id) === 868 ||
-                                Number(request.organization_id) === 912
-                            ) {
-                                request.bot_id = i.bot_id;
-                                request.bot_operation_id = i.bot_operation_id;
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await addParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
 
-                                let baseURL = `http://localhost:7000`,
-                                //sqsQueueUrl = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
-                                sqsQueueUrl = global.config.excelBotSQSQueue;
-                                if (global.mode === "sprint" || global.mode === "staging") {
-                                    baseURL = `http://10.0.2.49:4000`;
-                                    //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo`;
-                                    sqsQueueUrl = global.config.excelBotSQSQueue;
-                                } else if (global.mode === "preprod") {
-                                    baseURL = null;
-                                    //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-vil-excel-job-queue.fifo`;
-                                    sqsQueueUrl = global.config.excelBotSQSQueue;
-                                } else if(global.mode === "prod") {
-                                    baseURL = null;
-                                    //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/prod-vil-excel-job-queue.fifo`;
-                                    sqsQueueUrl = global.config.excelBotSQSQueue;
-                                }
-                                logger.info(request.workflow_activity_id+": inserting status into database %j", [], { type: 'bot_engine', request_body: request });
-                                let [sqsInserErr,insertData]= await insertSqsStatus({...request,bot_operation_id:18});
-                                request.bot_excel_log_transaction = insertData;
-                                sqs.sendMessage({
-                                    // DelaySeconds: 5,
-                                    MessageBody: JSON.stringify(request),
-                                    QueueUrl: sqsQueueUrl,
-                                    MessageGroupId: `excel-processing-job-queue-v1`,
-                                    MessageDeduplicationId: uuidv4(),
-                                    MessageAttributes: {
-                                        "Environment": {
-                                            DataType: "String",
-                                            StringValue: global.mode
-                                        },
-                                    }
-                                },async (error, data) => {
-                                    if (error) {
-                                        logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                                        i.bot_operation_error_message = error;
-                                        activityCommonService.workbookTrxUpdate({
-                                            activity_workbook_transaction_id: workbookTxnID,
-                                            flag_generated: -1, //Error pushing to SQS Queue
-                                            url: ''
-                                        });
-                                    } else {
-                                        logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });                                        
-                                    }                                    
+                        } catch (err) {
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            util.logError(request, `Error in executing addParticipant Step`, { type: 'add_participant', error: serializeError(err) });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "err": err
+                            });
+                            i.bot_operation_error_message = err;
+                            //return Promise.reject(err);
+                        }
+                        util.logInfo(request, `****************************************************************`);
+                        break;
+
+                    //case 'status_alter': 
+                    case 2: // Alter Status
+                        util.logInfo(request, `****************************************************************`);
+                        util.logInfo(request, `STATUS ALTER BOT %j`, request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            let result = await changeStatusV1(request, botOperationsJson.bot_operations.status_alter);
+                            if (result[0]) {
+                                i.bot_operation_status_id = 2;
+                                i.bot_operation_inline_data = JSON.stringify({
+                                    "err": result[1]
                                 });
-                                // makeRequest.post(`${baseURL}/r1/bot/bot_step/trigger/vodafone_workbook_bot`, {
-                                //     form: request,
-                                // }, function (error, response, body) {
-                                //     logger.silly("[Workbook Mapping Bot] Request error: %j", error);
-                                //     logger.silly("[Workbook Mapping Bot] Request body: %j", body);
-                                // });
-    
-                                // await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                                //await handleBotOperationMessageUpdate(request, i, 4, result[1]);
+                                i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                                i.bot_operation_error_message = result[1];
                             } else {
-                                // await workbookOpsService.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                                //await handleBotOperationMessageUpdate(request, i, 3);
+                                i.bot_operation_end_datetime = util.getCurrentUTCTime();
                             }
-                            
+                        } catch (err) {
+                            util.logError(request, `serverError | Error in executing changeStatus Step`, { type: "bot_engine", error: serializeError(err) });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "err": err
+                            });
+                            //return Promise.reject(err);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = err;
+                            //await handleBotOperationMessageUpdate(request, i, 4, err);
+                        }
+                        util.logInfo(request, `****************************************************************`);
+                        break;
+
+                    //case 'form_field_copy':
+                    case 3: //Copy Form field
+                        util.logInfo(request, `****************************************************************`);
+                        util.logInfo(request, ` FORM FIELD %j`, request);
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                        try {
+                            // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
+                            request.debug_info.push('form_field_copy | Request Params received by BOT ENGINE' + request);
+                            await copyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
+
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                        } catch (err) {
+                            util.logError(request, `Error in executing copyFields Step`, { type: "bot_engine", error: serializeError(err) });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "err": err
+                            });
+                            //return Promise.reject(err);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = err;
+                            //await handleBotOperationMessageUpdate(request, i, 4, err);
+                        }
+                        util.logInfo(request, `****************************************************************`);
+                        break;
+
+                    //case 'workflow_percentage_alter': 
+                    case 4: //Update Workflow Percentage
+                        util.logInfo(request, '****************************************************************')
+                        util.logInfo(request, 'WF PERCENTAGE ALTER');
+                        logger.silly("Request Params received from Request: %j", request);
+                        request.debug_info.push('WF PERCENTAGE ALTER ');
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            let result = await alterWFCompletionPercentage(request, botOperationsJson.bot_operations.workflow_percentage_alter);
+                            if (result[0]) {
+                                i.bot_operation_status_id = 2;
+                                i.bot_operation_inline_data = JSON.stringify({
+                                    "err": result[1]
+                                });
+                                i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                                i.bot_operation_error_message = result[1];
+                                //await handleBotOperationMessageUpdate(request, i, 4, result[1]);
+                            } else {
+                                i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                                //await handleBotOperationMessageUpdate(request, i, 3);
+                            }
+                        } catch (err) {
+                            logger.error("serverError | Error in executing alterWFCompletionPercentage Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "err": err
+                            });
+                            //return Promise.reject(err);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = err;
+                            //await handleBotOperationMessageUpdate(request, i, 4, err);
+                        }
+                        util.logInfo(request, '****************************************************************');
+                        break;
+
+                    //case 'fire_api': 
+                    case 5: // External System Integration
+                        util.logInfo(request, '****************************************************************');
+                        util.logInfo(request, 'FIRE API');
+                        request.debug_info.push('FIRE API ');
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await fireApi(request, botOperationsJson.bot_operations.fire_api);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                        } catch (err) {
+                            util.logError(request, 'Error in executing fireApi Step', { err })
+                            i.bot_operation_status_id = 3;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "err": err
+                            });
+                            //return Promise.reject(err);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = err;
+                            //await handleBotOperationMessageUpdate(request, i, 4, err);
+                        }
+                        util.logInfo(request, '****************************************************************');
+                        break;
+
+                    //case 'fire_text': 
+                    case 6: // Send Text Message
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                        if (
+                            request.hasOwnProperty("activity_stream_type_id") &&
+                            Number(request.activity_stream_type_id) === 713
+                        ) {
+                            // Do not fire this bot step on form edits
+                            logger.verbose(`Do Not Fire Email On Form Edit`, { type: 'bot_engine', request_body: request, error: null });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = "Do Not Fire Send Text Message On Form Edit";
+                            //await handleBotOperationMessageUpdate(request, i, 3, "Do Not Fire Send Text Message On Form Edit");
+                            continue;
+                            // break;
+                        }
+                        util.logInfo(request, '****************************************************************');
+                        util.logInfo(request, 'FIRE TEXT');
+                        request.debug_info.push('FIRE TEXT');
+                        try {
+                            await fireTextMsg(request, botOperationsJson.bot_operations.fire_text);
+
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                        } catch (err) {
+                            util.logError(request, `Error in executing fireTextMsg Step | Error: `, { type: 'bot_engine', err });
+                            util.logError(request, 'serverError', { err });
+                            i.bot_operation_status_id = 4;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "err": err
+                            });
+                            //return Promise.reject(err);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = err;
+                            //await handleBotOperationMessageUpdate(request, i, 4, err);
+                        }
+                        util.logInfo(request, '****************************************************************');
+                        break;
+
+                    //case 'fire_email':           
+                    case 7: // Send email
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                        if (
+                            request.hasOwnProperty("activity_stream_type_id") &&
+                            Number(request.activity_stream_type_id) === 713
+                        ) {
+                            // Do not fire this bot step on form edits
+                            logger.verbose(`Do Not Fire Email On Form Edit`, { type: 'bot_engine', request_body: request, error: null });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = "Do Not Fire Email On Form Edit";
+                            //await handleBotOperationMessageUpdate(request, i, 3, "Do Not Fire Email On Form Edit");
+                            continue;
+                            // break;
+                        }
+                        util.logInfo(request, '****************************************************************');
+                        util.logInfo(request, 'FIRE EMAIL');
+                        request.debug_info.push('FIRE EMAIL ');
+                        try {
+                            await fireEmail(request, botOperationsJson.bot_operations.fire_email);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (err) {
+                            util.logError(request, `Error in executing fireEmail Step: `, { type: 'bot_engine', err });
+                            util.logError(request, 'Error in executing fireEmail Step', { err });
+                            i.bot_operation_status_id = 4;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "err": err
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, err);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = err;
+                            //return Promise.reject(err);
+                        }
+                        util.logInfo(request, '****************************************************************');
+                        break;
+
+                    case 8: // add_comment
+                        util.logInfo(request, `****************************************************************`);
+                        util.logInfo(request, `add_comment`);
+                        util.logInfo(request, `add_comment | Request Params received by BOT ENGINE`);
+                        request.debug_info.push('add_comment');
+                        request.debug_info.push('add_comment | Request Params received by BOT ENGINE' + request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await addComment(request, botOperationsJson.bot_operations.add_comment);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            // await handleBotOperationMessageUpdate(request, i, 3);
+                        } catch (err) {
+                            util.logError(request, `add_comment | Error`, { type: 'bot_engine', error });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "err": err
+                            });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = err;
+                            // await handleBotOperationMessageUpdate(request, i, 4, err);
+                        }
+                        util.logInfo(request, `****************************************************************`);
+                        break;
+
+                    // case 9: // add_attachment
+                    //     console.log('****************************************************************');
+                    //     console.log('add_attachment');
+                    //     console.log('add_attachment | Request Params received by BOT ENGINE', request);
+                    //     try {
+                    //         await addAttachment(request, botOperationsJson.bot_operations.add_attachment);
+                    //     } catch (err) {
+                    //         console.log('add_attachment  | Error', err);
+                    //         i.bot_operation_status_id = 2;
+                    //         i.bot_operation_inline_data = JSON.stringify({
+                    //             "err": err
+                    //         });
+                    //     }
+                    //     console.log('****************************************************************');
+                    //     break;
+
+                    case 10: // add_attachment_with_attestation
+                        util.logInfo(request, `****************************************************************`);
+                        util.logInfo(request, `add_attachment_with_attestation`);
+                        util.logInfo(request, `add_attachment_with_attestation | Request Params received by BOT ENGINE`);
+                        request.debug_info.push('add_attachment_with_attestation ');
+                        request.debug_info.push('add_attachment_with_attestation | Request Params received by BOT ENGINE' + request);
+                        try {
+                            util.logInfo(request, `try add_attachment_with_attestation`);
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await addAttachmentWithAttestation(request, botOperationsJson.bot_operations.add_attachment_with_attestation);
+
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (err) {
+                            util.logError(request, `add_attachment_with_attestation  | Error`, { type: 'bot_engine', err });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "err": err
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, err);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = err;
+                        }
+                        util.logInfo(request, `****************************************************************`);
+                        break;
+
+                    // case 11: // add_form_as_pdf
+                    //     console.log('****************************************************************');
+                    //     console.log('add_form_as_pdf');
+                    //     console.log('add_form_as_pdf | Request Params received by BOT ENGINE', request);
+                    //     try {
+                    //         await addFormAsPdf(request, botOperationsJson.bot_operations.add_form_as_pdf);
+                    //     } catch (err) {
+                    //         console.log('add_form_as_pdf  | Error', err);
+                    //         i.bot_operation_status_id = 2;
+                    //         i.bot_operation_inline_data = JSON.stringify({
+                    //             "err": err
+                    //         });
+                    //     }
+                    //     console.log('****************************************************************');
+                    //     break;
+
+                    case 12: // form_pdf
+                        util.logInfo(request, `****************************************************************`);
+                        util.logInfo(request, `form_pdf`);
+                        logger.silly('form_pdf | Request Params received by BOT ENGINE: %j', request);
+                        request.debug_info.push('form_pdf');
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            util.logInfo(request, `form_pdf`);
+                            // commenting to get hummus error
+                            // await addPdfFromHtmlTemplate(request, botOperationsJson.bot_operations.form_pdf);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (err) {
+                            logger.error("serverError | Error in executing form_pdf Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "err": err
+                            });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = err;
+                            //await handleBotOperationMessageUpdate(request, i, 4, err);
+                        }
+                        util.logInfo(request, `****************************************************************`);
+                        break;
+
+                    case 13: // [RESERVED] Time Slot Bot
+                        break;
+
+                    case 14: // [RESERVED] Ledger Transactions Bot
+                        logger.silly("LEDGER TRANSACTION");
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await ledgerOpsService.ledgerCreditDebitNetTransactionUpdate(request);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            //await handleBotOperationMessageUpdate(request, i, 3);
                         } catch (error) {
-                            logger.error("Error running the Workbook Mapping Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            util.logError(request, `LEDGER TRANSACTION Error: `, { type: 'bot_engine', error });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                            i.bot_operation_error_message = error;
+                        }
+                        break;
+
+                    case 15: // Customer Creation Bot
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                        if (
+                            request.hasOwnProperty("activity_stream_type_id") &&
+                            Number(request.activity_stream_type_id) === 713
+                        ) {
+                            // Do not fire this bot step on form edits
+                            logger.silly(`Do Not Fire Create Customer On Form Edit`, { type: 'bot_engine', error: null });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = "Do Not Fire Create Customer On Form Edit";
+                            //await handleBotOperationMessageUpdate(request, i, 3, "Do Not Fire Create Customer On Form Edit");
+                            continue;
+                        }
+                        logger.silly("CREATE CUSTOMER");
+                        try {
+                            await createCustomerAsset(request, botOperationsJson.bot_operations.create_customer);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                        } catch (error) {
+                            util.logError(request, `CREATE CUSTOMER Error: `, { type: 'bot_engine', error });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        }
+                        break;
+
+                    case 16: // Workflow Reference Bot
+                        logger.silly("Workflow Reference Bot");
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                        try {
+                            //await createCustomerAsset(request, botOperationsJson.bot_operations.create_customer);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                        } catch (error) {
+                            util.logError(request, `Workflow Reference Bot: `, { type: 'bot_engine', error });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        }
+                        break;
+
+                    case 17: // Combo Field Selection Bot
+                        logger.silly("Combo Field Selection Bot");
+                        break;
+
+                    case 18: // Workbook Mapping Bot
+                        logger.silly("[Implemented] Workbook Mapping Bot: %j", request);
+                        //Only if product variant is selected then only trigger the bot
+                        let flag = 0;
+                        let activityInlineData;
+                        let product_variant_activity_title = ""
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            if (!request.hasOwnProperty('activity_inline_data')) {
+                                const activityTimelineCollection = JSON.parse(request.activity_timeline_collection);
+                                activityInlineData = activityTimelineCollection.form_submitted;
+                                if (
+                                    Number(request.device_os_id) === 1 &&
+                                    typeof activityTimelineCollection.form_submitted === "string"
+                                ) {
+                                    activityInlineData = JSON.parse(activityTimelineCollection.form_submitted);
+                                }
+                            } else {
+                                activityInlineData = JSON.parse(request.activity_inline_data);
+                            }
+                        } catch (error) {
+                            logger.error("Error parsing inline JSON for workbook bot", { type: 'bot_engine', error, request_body: request });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
                             i.bot_operation_error_message = error;
                         }
-                    } else {
-                        util.logInfo(request,`Its not a custom Variant. Hence not triggering the Bot!`);
-                        util.logInfo(request,`OR It has non-zero parent activity ID - ${Number(request.parent_activity_id)}`);
-                        util.logInfo(request,`---------- TIMELINE ENTRY -----------`);
-                        request.debug_info.push('Its not a custom Variant. Hence not triggering the Bot!');
-                        request.debug_info.push('OR It has non-zero parent activity ID: ' +  Number(request.parent_activity_id));
-                        
-                        await addTimelineEntry({...request,content:`BC excel mapping is not configured for this opportunity as it is a standard plan`,subject:"sample",mail_body:request.mail_body,attachment:[],timeline_stream_type_id:request.timeline_stream_type_id},1);
-                    }
-                    //await handleBotOperationMessageUpdate(request, i, 3);
-                    i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    break;
 
-                case 19: // Update CUID Bot
-                    logger.silly("Update CUID Bot");
-                    logger.silly("Update CUID Bot Request: %j", request);
-                    let is_opportunity = false;
-                    let updateCuids = {};
-                    i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                    if (request.activity_type_category_id == 48 && (request.activity_type_id == 150258
-                        || request.activity_type_id == 150229 || request.activity_type_id == 150192
-                        || request.activity_type_id == 149818 || request.activity_type_id == 149752
-                        || request.activity_type_id == 149058 || request.activity_type_id == 151728 || request.activity_type_id == 151727
-                        || request.activity_type_id == 151729 || request.activity_type_id == 151730)) {
-                        util.logInfo(request,`OPPORTUNITY :: ${request.activity_type_category_id} :: ${request.activity_type_id}`);
-                        request.debug_info.push('activity_type_category_id: ' + request.activity_type_category_id);
-                        request.debug_info.push('activity_type_id: ' + request.activity_type_id);
+                        util.logInfo(request, ` `);
+                        util.logInfo(request, `activityInlineData : %j`, activityInlineData);
+                        request.debug_info.push('activityInlineData: ' + activityInlineData);
 
-                        request.opportunity_update = true;
-                        updateCuids = botOperationsJson.bot_operations.update_cuids;
+                        let activityProductSelection;
+                        for (const i of activityInlineData) {
+                            if (Number(i.field_data_type_id) === 71) {
+                                activityProductSelection = i.field_value;
 
-                    } else if (Number(request.activity_type_category_id) === 63 && Number(request.activity_type_id) === 190798) {
+                                let fieldValue = JSON.parse(i.field_value);
+                                let cartItems = fieldValue.cart_items;
+                                util.logInfo(request, `typeof Cart Items : %j`, typeof cartItems);
+                                util.logInfo(request, `Cart Items :  %j`, cartItems);
+                                request.debug_info.push('typeof Cart Items: ' + typeof cartItems);
+                                request.debug_info.push('Cart Items: ' + cartItems);
 
-                        let formID = request.form_id;
-                        let activityId = request.workflow_activity_id || request.activity_id;
+                                cartItems = (typeof cartItems === 'string') ? JSON.parse(cartItems) : cartItems;
 
-                        const momPointsData = await activityCommonService.getActivityTimelineTransactionByFormId713({
-                            organization_id: request.organization_id,
-                            account_id: request.account_id
-                        }, activityId, formID);
-
-                        if (momPointsData.length === 1) {
-                            request.calendar_event_id_update = true;
-                            updateCuids = request.updateCuids;
+                                if (cartItems.length > 0) {
+                                    util.logInfo(request, `Searching for custom variant %j`, request);
+                                    request.debug_info.push('Searching for custom variant');
+                                    for (j of cartItems) {
+                                        util.logInfo(request, `product_variant_activity_title : ${(j.product_variant_activity_title).toLowerCase()}`);
+                                        request.debug_info.push('product_variant_activity_title: ' + (j.product_variant_activity_title).toLowerCase());
+                                        if ((j.product_variant_activity_title).toLowerCase() == 'custom variant' ||
+                                            (j.product_variant_activity_title).toLowerCase() == 'custom') {
+                                            flag = 1
+                                        }
+                                        else {
+                                            product_variant_activity_title = j.product_variant_activity_title;
+                                        }
+                                    }
+                                } //End of If
+                            }
                         }
-                    }
 
-                    try {
-                        await updateCUIDBotOperation(request, formInlineDataMap, updateCuids);
+                        if (Number(request.activity_type_id) === 152184) {
+                            flag = 1;
+                        }
+
+                        util.logInfo(request, `Number(request.parent_activity_id) - ${Number(request.parent_activity_id)}`);
+                        request.debug_info.push('Number(request.parent_activity_id): ' + Number(request.parent_activity_id));
+                        if (request.hasOwnProperty('parent_activity_id') && Number(request.parent_activity_id) > 0) {
+                            flag = 0;
+                        }
+
+                        let workflowActivityID = request.workflow_activity_id;
+                        let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, workflowActivityID);
+
+                        if (wfActivityDetails.length > 0) {
+                            if (wfActivityDetails[0].parent_activity_id > 0) {
+                                //await handleBotOperationMessageUpdate(request, i, 3, "Avoiding workbook mapping bot on child opportunity");
+                                i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                                i.bot_operation_error_message = "Avoiding workbook mapping bot on child opportunity";
+                                break;
+                            }
+                        }
+
+                        //For Workbook logs
+                        request.activity_product_selection = (typeof activityProductSelection === 'object') ? JSON.stringify(activityProductSelection) : activityProductSelection;
+                        let [err, response] = await activityCommonService.workbookTrxInsert(request);
+                        util.logInfo(request, `response : %j`, response);
+                        request.debug_info.push('response: ' + response);
+
+                        let workbookTxnID = (response.length > 0) ? response[0].transaction_id : 0;
+                        request.activity_workbook_transaction_id = workbookTxnID;
+                        ///////////////////////////
+
+                        if (Number(flag) === 1) {
+                            if (Number(request.activity_type_id) === 152184) {
+                                util.logInfo(request, `Its a BC workflow Form : ${request.form_id} -- ${request.form_name}`);
+                                request.debug_info.push('request.form_id: ' + request.form_id);
+                                request.debug_info.push('request.form_name: ' + request.form_name);
+                            }
+
+                            try {
+                                if (
+                                    Number(request.organization_id) === 868 ||
+                                    Number(request.organization_id) === 912
+                                ) {
+                                    request.bot_id = i.bot_id;
+                                    request.bot_operation_id = i.bot_operation_id;
+
+                                    let baseURL = `http://localhost:7000`,
+                                        //sqsQueueUrl = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
+                                        sqsQueueUrl = global.config.excelBotSQSQueue;
+                                    if (global.mode === "sprint" || global.mode === "staging") {
+                                        baseURL = `http://10.0.2.49:4000`;
+                                        //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo`;
+                                        sqsQueueUrl = global.config.excelBotSQSQueue;
+                                    } else if (global.mode === "preprod") {
+                                        baseURL = null;
+                                        //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-vil-excel-job-queue.fifo`;
+                                        sqsQueueUrl = global.config.excelBotSQSQueue;
+                                    } else if (global.mode === "prod") {
+                                        baseURL = null;
+                                        //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/prod-vil-excel-job-queue.fifo`;
+                                        sqsQueueUrl = global.config.excelBotSQSQueue;
+                                    }
+                                    logger.info(request.workflow_activity_id + ": inserting status into database %j", [], { type: 'bot_engine', request_body: request });
+                                    let [sqsInserErr, insertData] = await insertSqsStatus({ ...request, bot_operation_id: 18 });
+                                    request.bot_excel_log_transaction = insertData;
+                                    sqs.sendMessage({
+                                        // DelaySeconds: 5,
+                                        MessageBody: JSON.stringify(request),
+                                        QueueUrl: sqsQueueUrl,
+                                        MessageGroupId: `excel-processing-job-queue-v1`,
+                                        MessageDeduplicationId: uuidv4(),
+                                        MessageAttributes: {
+                                            "Environment": {
+                                                DataType: "String",
+                                                StringValue: global.mode
+                                            },
+                                        }
+                                    }, async (error, data) => {
+                                        if (error) {
+                                            logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                                            i.bot_operation_error_message = error;
+                                            activityCommonService.workbookTrxUpdate({
+                                                activity_workbook_transaction_id: workbookTxnID,
+                                                flag_generated: -1, //Error pushing to SQS Queue
+                                                url: ''
+                                            });
+                                        } else {
+                                            logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
+                                        }
+                                    });
+                                    // makeRequest.post(`${baseURL}/r1/bot/bot_step/trigger/vodafone_workbook_bot`, {
+                                    //     form: request,
+                                    // }, function (error, response, body) {
+                                    //     logger.silly("[Workbook Mapping Bot] Request error: %j", error);
+                                    //     logger.silly("[Workbook Mapping Bot] Request body: %j", body);
+                                    // });
+
+                                    // await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                                } else {
+                                    // await workbookOpsService.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                                }
+
+                            } catch (error) {
+                                logger.error("Error running the Workbook Mapping Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                                //await handleBotOperationMessageUpdate(request, i, 4, error);
+                                i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                                i.bot_operation_error_message = error;
+                            }
+                        } else {
+                            util.logInfo(request, `Its not a custom Variant. Hence not triggering the Bot!`);
+                            util.logInfo(request, `OR It has non-zero parent activity ID - ${Number(request.parent_activity_id)}`);
+                            util.logInfo(request, `---------- TIMELINE ENTRY -----------`);
+                            request.debug_info.push('Its not a custom Variant. Hence not triggering the Bot!');
+                            request.debug_info.push('OR It has non-zero parent activity ID: ' + Number(request.parent_activity_id));
+
+                            await addTimelineEntry({ ...request, content: `BC excel mapping is not configured for this opportunity as it is a standard plan`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                        }
                         //await handleBotOperationMessageUpdate(request, i, 3);
                         i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (error) {
-                        logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = error;
-                    }
-                    break;
+                        break;
 
-                case 24: // Due date edit Bot - ESMS
-                    logger.silly("Due date edit Bot - ESMS");
-                    logger.silly("Due date edit Bot - ESMS: %j", request);
-                    try {
+                    case 19: // Update CUID Bot
+                        logger.silly("Update CUID Bot");
+                        logger.silly("Update CUID Bot Request: %j", request);
+                        let is_opportunity = false;
+                        let updateCuids = {};
                         i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        await this.setDueDateOfWorkflow(request, formInlineDataMap, botOperationsJson.bot_operations.due_date_edit, botOperationsJson.bot_operations.condition);
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (error) {
-                        logger.error("Error running the setDueDateOfWorkflow", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = error;
-                    }
-                    break;
+                        if (request.activity_type_category_id == 48 && (request.activity_type_id == 150258
+                            || request.activity_type_id == 150229 || request.activity_type_id == 150192
+                            || request.activity_type_id == 149818 || request.activity_type_id == 149752
+                            || request.activity_type_id == 149058 || request.activity_type_id == 151728 || request.activity_type_id == 151727
+                            || request.activity_type_id == 151729 || request.activity_type_id == 151730)) {
+                            util.logInfo(request, `OPPORTUNITY :: ${request.activity_type_category_id} :: ${request.activity_type_id}`);
+                            request.debug_info.push('activity_type_category_id: ' + request.activity_type_category_id);
+                            request.debug_info.push('activity_type_id: ' + request.activity_type_id);
 
-                case 25: // participant_remove
-                    logger.silly("[participant_remove] Params received from Request: %j", request);
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        await removeParticipant(request, botOperationsJson.bot_operations.participant_remove, formInlineDataMap);
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (error) {
-                        logger.error("[participant_remove] Error removing participant", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "error": error
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = error;
-                    }
-                    break;
-                    
-                case 26: // ESMS Integrations- Consume Part - Bot
-                    logger.silly("[ESMS Integrations- Consume] Params received from Request: %j", request);
-                    let esmsIntegrationsTopicName = global.config.ESMS_INTEGRATIONS_TOPIC || "";
-                    
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        if (esmsIntegrationsTopicName === "") { throw new Error("EsmsIntegrationsTopicNotDefinedForMode"); }
-                        if (request.hasOwnProperty("do_not_trigger_integrations_bot") && Number(request.do_not_trigger_integrations_bot) === 1) { throw new Error("DoNotTriggerIntegrationsBot"); }
-                        await queueWrapper.raiseActivityEventToTopicPromise({
-                            type: "VIL_ESMS_IBMMQ_INTEGRATION",
-                            trigger_form_id: Number(request.trigger_form_id),
-                            form_transaction_id: Number(request.form_transaction_id),
-                            payload: request
-                        }, esmsIntegrationsTopicName, request.workflow_activity_id || request.activity_id);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        // await handleBotOperationMessageUpdate(request, i, 3);
-                    } catch (error) {
-                        logger.error("[ESMS Integrations- Consume] Error during consuming", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "error": error
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = error;
-                    }
-                    break;
+                            request.opportunity_update = true;
+                            updateCuids = botOperationsJson.bot_operations.update_cuids;
 
-                case 28: //Arithmetic Bot
+                        } else if (Number(request.activity_type_category_id) === 63 && Number(request.activity_type_id) === 190798) {
+
+                            let formID = request.form_id;
+                            let activityId = request.workflow_activity_id || request.activity_id;
+
+                            const momPointsData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                                organization_id: request.organization_id,
+                                account_id: request.account_id
+                            }, activityId, formID);
+
+                            if (momPointsData.length === 1) {
+                                request.calendar_event_id_update = true;
+                                updateCuids = request.updateCuids;
+                            }
+                        }
+
+                        try {
+                            await updateCUIDBotOperation(request, formInlineDataMap, updateCuids);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                        }
+                        break;
+
+                    case 24: // Due date edit Bot - ESMS
+                        logger.silly("Due date edit Bot - ESMS");
+                        logger.silly("Due date edit Bot - ESMS: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await this.setDueDateOfWorkflow(request, formInlineDataMap, botOperationsJson.bot_operations.due_date_edit, botOperationsJson.bot_operations.condition);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("Error running the setDueDateOfWorkflow", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                        }
+                        break;
+
+                    case 25: // participant_remove
+                        logger.silly("[participant_remove] Params received from Request: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await removeParticipant(request, botOperationsJson.bot_operations.participant_remove, formInlineDataMap);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[participant_remove] Error removing participant", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                        }
+                        break;
+
+                    case 26: // ESMS Integrations- Consume Part - Bot
+                        logger.silly("[ESMS Integrations- Consume] Params received from Request: %j", request);
+                        let esmsIntegrationsTopicName = global.config.ESMS_INTEGRATIONS_TOPIC || "";
+
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            if (esmsIntegrationsTopicName === "") { throw new Error("EsmsIntegrationsTopicNotDefinedForMode"); }
+                            if (request.hasOwnProperty("do_not_trigger_integrations_bot") && Number(request.do_not_trigger_integrations_bot) === 1) { throw new Error("DoNotTriggerIntegrationsBot"); }
+                            await queueWrapper.raiseActivityEventToTopicPromise({
+                                type: "VIL_ESMS_IBMMQ_INTEGRATION",
+                                trigger_form_id: Number(request.trigger_form_id),
+                                form_transaction_id: Number(request.form_transaction_id),
+                                payload: request
+                            }, esmsIntegrationsTopicName, request.workflow_activity_id || request.activity_id);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            // await handleBotOperationMessageUpdate(request, i, 3);
+                        } catch (error) {
+                            logger.error("[ESMS Integrations- Consume] Error during consuming", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                        }
+                        break;
+
+                    case 28: //Arithmetic Bot
                         logger.silly("ArithMetic Bot Params received from Request: %j", request);
                         try {
                             i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                            util.logInfo(request,`botOperationsJson in Arithmetic Bot: %j` , botOperationsJson);
-                            request.debug_info.push('botOperationsJson in Arithmetic Bot: '+ botOperationsJson);
+                            util.logInfo(request, `botOperationsJson in Arithmetic Bot: %j`, botOperationsJson);
+                            request.debug_info.push('botOperationsJson in Arithmetic Bot: ' + botOperationsJson);
                             await arithmeticBot(request, formInlineDataMap, botOperationsJson.bot_operations.arithmetic_calculation);
                             //await handleBotOperationMessageUpdate(request, i, 3);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
@@ -2088,848 +2091,853 @@ function BotService(objectCollection) {
                         }
                         break;
 
-                case 29: //Reminder Bot
+                    case 29: //Reminder Bot
                         logger.silly("Reminder Bot Params received from Request: %j", request);
-                            try {
-                                i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                                await reminderBot(request, formInlineDataMap, botOperationsJson.bot_operations.date_reminder);
-                                i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                                //await handleBotOperationMessageUpdate(request, i, 3);
-                            } catch (error) {
-                                logger.error("[Reminder Bot] Error in Reminder Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                                i.bot_operation_status_id = 2;
-                                i.bot_operation_inline_data = JSON.stringify({
-                                    "error": error
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await reminderBot(request, formInlineDataMap, botOperationsJson.bot_operations.date_reminder);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                        } catch (error) {
+                            logger.error("[Reminder Bot] Error in Reminder Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
                             });
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
                             i.bot_operation_error_message = error;
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
-                        }                
+                        }
                         break;
 
-                case 30: // Bulk Feasibility Excel Parser Bot
-                    logger.silly("Bulk Feasibility Excel Parser Bot params received from request: %j", request);
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        // await bulkFeasibilityBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_feasibility);
-                        let requestForSQS = {
-                            request: request,
-                            sqs_switch_flag: 4,
-                            formInlineDataMap: formInlineDataMap,
-                            inlineJSON: botOperationsJson.bot_operations.bulk_feasibility
-                        }
-                        sendToSqsPdfGeneration(requestForSQS);
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (error) {
-                        logger.error("[Bulk Feasibility Excel Parser Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "error": error
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = error;
-                    }
-                    break;
-                
-                case 31: // workflow start bot
-                    util.logInfo(request, '****************************************************************');
-                    util.logInfo(request, 'WorkFlow Bot');
-                    request.debug_info.push('WorkFlow Bot');
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        // util.logInfo(request, 'Request Params received by BOT ENGINE', request, {});
-                        util.logInfo(request,`workflow start | Request Params received by BOT ENGINE`);
-                        request.debug_info.push('workflow start | Request Params received by BOT ENGINE'+ request);
-                        await workFlowCopyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (err) {
-                        util.logError(request, 'Error in executing workflow start Step', { err });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, err);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
-                        //return Promise.reject(err);
-                    }
-                    util.logInfo(request, '****************************************************************');
-                    break;
-
-                case 33: //Global Add Participant
-                    util.logInfo(request, '****************************************************************');
-                    util.logInfo(request, 'GLOBAL PARTICIPANT ADD');
-                    logger.info("Request Params received from Request: %j", request);
-                    request.debug_info.push(request.workflow_activity_id+': GLOBAL PARTICIPANT ADD');
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        await globalAddParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (err) {
-                        util.logError(request, 'Error in executing Global addParticipant Step', { err });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, err);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
-                        //return Promise.reject(err);
-                    }
-                    util.logInfo(request, '****************************************************************');
-                    break;
-
-                case 34: // ARP
-                    util.logInfo(request, request.workflow_activity_id+': ****************************************************************');
-                    util.logInfo(request, request.workflow_activity_id+': ARPBot');
-                    logger.info(request.workflow_activity_id+": ARP: Request Params received from Request: %j", request);
-                    request.debug_info.push(request.workflow_activity_id+': ARPBot');
-                    try{
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        await arpBot(request, botOperationsJson.bot_operations);
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    }catch(err){
-                        util.logError(request, 'Error in executing ARPBot Step', { err });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "log":request.debug_info,
-                            "err": err
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, err);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
-                    }
-                    util.logInfo(request, '****************************************************************');
-
-                break;
-
-                case 35: //custom bot
-                    util.logInfo(request, '****************************************************************');
-                    util.logInfo(request, 'checkLargeDoa');
-                    logger.info(request.workflow_activity_id+": Request Params received from Request: %j", request);
-                    request.debug_info.push(request.workflow_activity_id+':checkLargeDoa');
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        request.botOperationInlineData = botOperationsJson.bot_operations.bot_inline;
-                        request.bot_operation_type_id = 35;
-                        let baseURL = `http://localhost:7000`,
-                        //sqsQueueUrl = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
-                        sqsQueueUrl = global.config.excelBotSQSQueue;
-                        if (global.mode === "sprint" || global.mode === "staging") {
-                            baseURL = `http://10.0.2.49:4000`;
-                            //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo`;
-                            sqsQueueUrl = global.config.excelBotSQSQueue;
-                        } else if (global.mode === "preprod") {
-                            baseURL = null;
-                            //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-vil-excel-job-queue.fifo`;
-                            sqsQueueUrl = global.config.excelBotSQSQueue;
-                        } else if(global.mode === "prod") {
-                            baseURL = null;
-                            //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/prod-vil-excel-job-queue.fifo`;
-                            sqsQueueUrl = global.config.excelBotSQSQueue;
-                        }
-                        logger.info(request.workflow_activity_id+": inserting status into database %j " + JSON.stringify({ type: 'bot_engine', request_body: request }));
-                        let [sqsInserErr,insertData]= await insertSqsStatus({...request,bot_operation_id:35});
-                        request.bot_excel_log_transaction = insertData;
-                        sqs.sendMessage({
-                            // DelaySeconds: 5,
-                            MessageBody: JSON.stringify(request),
-                            QueueUrl: sqsQueueUrl,
-                            MessageGroupId: `excel-processing-job-queue-v1`,
-                            MessageDeduplicationId: uuidv4(),
-                            MessageAttributes: {
-                                "Environment": {
-                                    DataType: "String",
-                                    StringValue: global.mode
-                                },
+                    case 30: // Bulk Feasibility Excel Parser Bot
+                        logger.silly("Bulk Feasibility Excel Parser Bot params received from request: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            // await bulkFeasibilityBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_feasibility);
+                            let requestForSQS = {
+                                request: request,
+                                sqs_switch_flag: 4,
+                                formInlineDataMap: formInlineDataMap,
+                                inlineJSON: botOperationsJson.bot_operations.bulk_feasibility
                             }
-                        },async (error, data) => {
-                            if (error) {
-                                logger.error(request.workflow_activity_id+" Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            sendToSqsPdfGeneration(requestForSQS);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[Bulk Feasibility Excel Parser Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                        }
+                        break;
 
-                                activityCommonService.workbookTrxUpdate({
-                                    activity_workbook_transaction_id: workbookTxnID,
-                                    flag_generated: -1, //Error pushing to SQS Queue
-                                    url: ''
-                                });
-                                //await handleBotOperationMessageUpdate(request, i, 4, error);
-                                i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                                i.bot_operation_error_message = error;
-                            } else {
-                                logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });                                        
-                            }                                    
-                        });
-                        // makeRequest.post(`${baseURL}/r1/bot/bot_step/trigger/vodafone_workbook_bot`, {
-                        //     form: request,
-                        // }, function (error, response, body) {
-                        //     logger.silly("[Workbook Mapping Bot] Request error: %j", error);
-                        //     logger.silly("[Workbook Mapping Bot] Request body: %j", body);
+                    case 31: // workflow start bot
+                        util.logInfo(request, '****************************************************************');
+                        util.logInfo(request, 'WorkFlow Bot');
+                        request.debug_info.push('WorkFlow Bot');
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            // util.logInfo(request, 'Request Params received by BOT ENGINE', request, {});
+                            util.logInfo(request, `workflow start | Request Params received by BOT ENGINE`);
+                            request.debug_info.push('workflow start | Request Params received by BOT ENGINE' + request);
+                            await workFlowCopyFields(request, botOperationsJson.bot_operations.form_field_copy, botOperationsJson.bot_operations.condition);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (err) {
+                            util.logError(request, 'Error in executing workflow start Step', { err });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "err": err
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, err);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = err;
+                            //return Promise.reject(err);
+                        }
+                        util.logInfo(request, '****************************************************************');
+                        break;
+
+                    case 33: //Global Add Participant
+                        util.logInfo(request, '****************************************************************');
+                        util.logInfo(request, 'GLOBAL PARTICIPANT ADD');
+                        logger.info("Request Params received from Request: %j", request);
+                        request.debug_info.push(request.workflow_activity_id + ': GLOBAL PARTICIPANT ADD');
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await globalAddParticipant(request, botOperationsJson.bot_operations.participant_add, formInlineDataMap);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (err) {
+                            util.logError(request, 'Error in executing Global addParticipant Step', { err });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "err": err
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, err);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = err;
+                            //return Promise.reject(err);
+                        }
+                        util.logInfo(request, '****************************************************************');
+                        break;
+
+                    case 34: // ARP
+                        util.logInfo(request, request.workflow_activity_id + ': ****************************************************************');
+                        util.logInfo(request, request.workflow_activity_id + ': ARPBot');
+                        logger.info(request.workflow_activity_id + ": ARP: Request Params received from Request: %j", request);
+                        request.debug_info.push(request.workflow_activity_id + ': ARPBot');
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await arpBot(request, botOperationsJson.bot_operations);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (err) {
+                            util.logError(request, 'Error in executing ARPBot Step', { err });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "log": request.debug_info,
+                                "err": err
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, err);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = err;
+                        }
+                        util.logInfo(request, '****************************************************************');
+
+                        break;
+
+                    case 35: //custom bot
+                        util.logInfo(request, '****************************************************************');
+                        util.logInfo(request, 'checkLargeDoa');
+                        logger.info(request.workflow_activity_id + ": Request Params received from Request: %j", request);
+                        request.debug_info.push(request.workflow_activity_id + ':checkLargeDoa');
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            request.botOperationInlineData = botOperationsJson.bot_operations.bot_inline;
+                            request.bot_operation_type_id = 35;
+                            let baseURL = `http://localhost:7000`,
+                                //sqsQueueUrl = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
+                                sqsQueueUrl = global.config.excelBotSQSQueue;
+                            if (global.mode === "sprint" || global.mode === "staging") {
+                                baseURL = `http://10.0.2.49:4000`;
+                                //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo`;
+                                sqsQueueUrl = global.config.excelBotSQSQueue;
+                            } else if (global.mode === "preprod") {
+                                baseURL = null;
+                                //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/preprod-vil-excel-job-queue.fifo`;
+                                sqsQueueUrl = global.config.excelBotSQSQueue;
+                            } else if (global.mode === "prod") {
+                                baseURL = null;
+                                //sqsQueueUrl = `https://sqs.ap-south-1.amazonaws.com/430506864995/prod-vil-excel-job-queue.fifo`;
+                                sqsQueueUrl = global.config.excelBotSQSQueue;
+                            }
+                            logger.info(request.workflow_activity_id + ": inserting status into database %j " + JSON.stringify({ type: 'bot_engine', request_body: request }));
+                            let [sqsInserErr, insertData] = await insertSqsStatus({ ...request, bot_operation_id: 35 });
+                            request.bot_excel_log_transaction = insertData;
+                            sqs.sendMessage({
+                                // DelaySeconds: 5,
+                                MessageBody: JSON.stringify(request),
+                                QueueUrl: sqsQueueUrl,
+                                MessageGroupId: `excel-processing-job-queue-v1`,
+                                MessageDeduplicationId: uuidv4(),
+                                MessageAttributes: {
+                                    "Environment": {
+                                        DataType: "String",
+                                        StringValue: global.mode
+                                    },
+                                }
+                            }, async (error, data) => {
+                                if (error) {
+                                    logger.error(request.workflow_activity_id + " Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
+
+                                    activityCommonService.workbookTrxUpdate({
+                                        activity_workbook_transaction_id: workbookTxnID,
+                                        flag_generated: -1, //Error pushing to SQS Queue
+                                        url: ''
+                                    });
+                                    //await handleBotOperationMessageUpdate(request, i, 4, error);
+                                    i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                                    i.bot_operation_error_message = error;
+                                } else {
+                                    logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
+                                }
+                            });
+                            // makeRequest.post(`${baseURL}/r1/bot/bot_step/trigger/vodafone_workbook_bot`, {
+                            //     form: request,
+                            // }, function (error, response, body) {
+                            //     logger.silly("[Workbook Mapping Bot] Request error: %j", error);
+                            //     logger.silly("[Workbook Mapping Bot] Request body: %j", body);
+                            // });
+
+                            // await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (err) {
+                            util.logError(request, 'Error in executing checkCustomBot Step', { err });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "log": request.debug_info,
+                                "err": err
+                            });
+                            //return Promise.reject(err);
+                            //await handleBotOperationMessageUpdate(request, i, 4, err);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = err;
+                        }
+                        util.logInfo(request, '****************************************************************');
+                        break;
+
+                    case 36: //SME ILL DOA Bot
+                        util.logInfo(request, '****************************************************************');
+                        util.logInfo(request, 'SME ILL Bot');
+                        logger.info("Request Params received from Request: %j", request);
+                        request.debug_info.push('SME ILL Bot');
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            // await checkSmeBot(request, botOperationsJson.bot_operations.bot_inline);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (err) {
+                            util.logError(request, 'Error in executing SME ILL Bot Step', { err });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "err": err
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, err);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = err;
+                            //return Promise.reject(err);
+                        }
+                        util.logInfo(request, '****************************************************************');
+                        break;
+                    case 37: //PDF generation Bot
+                        util.logInfo(request, `entered 37`);
+                        let pdf_json = JSON.parse(i.bot_operation_inline_data);
+                        request.pdf_json = pdf_json;
+                        request.generate_pdf = 1;
+                        request.bot_operation_id = 37;
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                        sendToSqsPdfGeneration(request);
+                        //await handleBotOperationMessageUpdate(request, i, 3);
+                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
+
+                        // try{
+                        // let pdf_json = JSON.parse(i.bot_operation_inline_data);
+                        // let activity_inline_data_json = JSON.parse(request.activity_inline_data);
+
+                        // let workbook_json = activity_inline_data_json.filter((inline)=>inline.field_id == pdf_json.bot_operations.workbook_field_id);
+                        // console.log("workbook",workbook_json)
+                        // let combo_id_json = activity_inline_data_json.filter((inline)=>inline.field_id == pdf_json.bot_operations.product_field_id);
+                        // console.log("comboid json",combo_id_json)
+                        // let workbook_file_path = await util.downloadS3ObjectVil(request,workbook_json[0].field_value);
+                        // console.log("excel file path ",workbook_file_path);
+                        // let sheetIndexes = pdf_json.bot_operations[combo_id_json[0].data_type_combo_id];
+                        // await new Promise((resolve, reject) => {
+                        //     setTimeout(() => {
+                        //         resolve();
+                        //     }, 5000);
                         // });
+                        // let pathModify = workbook_file_path.replace("/\/","/")
+                        // let workbookFile =  new aspose.cells.Workbook(pathModify);
 
-                        // await workbookOpsService_VodafoneCustom.workbookMappingBotOperation(request, formInlineDataMap, botOperationsJson.bot_operations.map_workbook);
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (err) {                        
-                        util.logError(request, 'Error in executing checkCustomBot Step', { err });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "log":request.debug_info,
-                            "err": err
-                        });
-                        //return Promise.reject(err);
-                        //await handleBotOperationMessageUpdate(request, i, 4, err);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
-                    }
-                    util.logInfo(request, '****************************************************************');
-                    break;
-            
-                case 36: //SME ILL DOA Bot
-                    util.logInfo(request, '****************************************************************');
-                    util.logInfo(request, 'SME ILL Bot');
-                    logger.info("Request Params received from Request: %j", request);
-                    request.debug_info.push('SME ILL Bot');
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        // await checkSmeBot(request, botOperationsJson.bot_operations.bot_inline);
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (err) {
-                        util.logError(request, 'Error in executing SME ILL Bot Step',{ err });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, err);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
-                        //return Promise.reject(err);
-                    }
-                    util.logInfo(request, '****************************************************************');
-                    break;
-                case 37: //PDF generation Bot
-                    util.logInfo(request,`entered 37`);
-                    let pdf_json = JSON.parse(i.bot_operation_inline_data);
-                    request.pdf_json = pdf_json;
-                    request.generate_pdf = 1;
-                    request.bot_operation_id=37;
-                    i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                    sendToSqsPdfGeneration(request);
-                    //await handleBotOperationMessageUpdate(request, i, 3);
-                    i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    
-                    // try{
-                    // let pdf_json = JSON.parse(i.bot_operation_inline_data);
-                    // let activity_inline_data_json = JSON.parse(request.activity_inline_data);
-                    
-                    // let workbook_json = activity_inline_data_json.filter((inline)=>inline.field_id == pdf_json.bot_operations.workbook_field_id);
-                    // console.log("workbook",workbook_json)
-                    // let combo_id_json = activity_inline_data_json.filter((inline)=>inline.field_id == pdf_json.bot_operations.product_field_id);
-                    // console.log("comboid json",combo_id_json)
-                    // let workbook_file_path = await util.downloadS3ObjectVil(request,workbook_json[0].field_value);
-                    // console.log("excel file path ",workbook_file_path);
-                    // let sheetIndexes = pdf_json.bot_operations[combo_id_json[0].data_type_combo_id];
-                    // await new Promise((resolve, reject) => {
-                    //     setTimeout(() => {
-                    //         resolve();
-                    //     }, 5000);
-                    // });
-                    // let pathModify = workbook_file_path.replace("/\/","/")
-                    // let workbookFile =  new aspose.cells.Workbook(pathModify);
-                    
-                    // console.log("length of excel",workbookFile.getWorksheets().getCount());
-                    //  for (let i = 0; i < workbookFile.getWorksheets().getCount(); i++) {
-                         
-                         
-                    //      let index = sheetIndexes.indexOf(i);
-                    //      if (index == -1) {
-                    //      workbookFile.getWorksheets().get(i).setVisible(false);
-                    //       }
-                    //       else{
-                    //         console.log("index",i);
-                    //       }
-                    //  }
-                    // //  workbookFile.save(workbook_file_path)
-                    //  var saveOptions = aspose.cells.PdfSaveOptions();
-                    //  saveOptions.setAllColumnsInOnePagePerSheet(true);
-                     
-                    //  let fileName = util.getCurrentUTCTimestamp();
-                    //  let filePath = global.config.efsPath;
-                    //  let pdfFilePath = `${filePath}${fileName}.pdf`;
-                    //  console.log("pdf file path",pdfFilePath);
-                    //  workbookFile.save(pdfFilePath,saveOptions);
-                    
-                    //  let [error,pdfS3Link] = await util.uploadPdfFileToS3(request,pdfFilePath);
-                    //  console.log(pdfS3Link);
-                    //  fs.unlink(pdfFilePath,()=>{});
-                    //  fs.unlink(workbook_file_path,()=>{})
-                    //  request.content = "pdf entry sample test";
-                    //  request.subject = 'pdf entry sample test';
-                     
-                    //  await addTimelineEntry(request,1,[pdfS3Link[0].location]);
-                    // }
-                    // catch(err){
-                    //     console.log("error while generation pdf",err)
-                    // }
-                    break;
-                case 38:  //Static copy field bot
-                    util.logInfo(request, '****************************************************************');
-                    util.logInfo(request, 'Static copy field bot');
-                    logger.silly("Request Params received from Request: %j", request);
-                    request.debug_info.push('Static copy field bot ');
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        staticCopyField(request, botOperationsJson.bot_operations.static_form_field_copy);
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (err) {
-                        util.logError(request, 'Error in executing Static copy field bot Step', { err });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, err);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
-                    }
-                    util.logInfo(request, '****************************************************************');
-                    break;
-                case 39:  //Asset approval
-                    util.logInfo(request, '****************************************************************');
-                    util.logInfo(request, 'Asset approval workflow bot');
-                    logger.silly("Request Params received from Request: %j", request);
-                    //JSON.parse(i.bot_operation_inline_data)
-                    i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                    let approveJson = JSON.parse(i.bot_operation_inline_data).bot_operations.condition;
+                        // console.log("length of excel",workbookFile.getWorksheets().getCount());
+                        //  for (let i = 0; i < workbookFile.getWorksheets().getCount(); i++) {
 
-                    try {
-                        let [err1,data]=await assetApprovalWorkflow(request,approveJson);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                    } catch(error) {
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = error;
-                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                    }
-                    
-                    util.logInfo(request, '****************************************************************');
-                    break;
-                case 40: // Bulk Create SR Bot
-                    logger.silly("Bulk Create SR Bot params received from request: %j", request);
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        await bulkCreateSRBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_create_sr);
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (error) {
-                        logger.error("[Bulk Create SR Bot Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "error": error
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = error;
-                    }
-                    break;
 
-                case 42 : //Leave Aplication
-                    logger.silly("Leave Aplication Bot params received from request: %j", request);
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        let fieldValue = await getFormFieldValue(request, botOperationsJson.bot_operations.field_id);
+                        //      let index = sheetIndexes.indexOf(i);
+                        //      if (index == -1) {
+                        //      workbookFile.getWorksheets().get(i).setVisible(false);
+                        //       }
+                        //       else{
+                        //         console.log("index",i);
+                        //       }
+                        //  }
+                        // //  workbookFile.save(workbook_file_path)
+                        //  var saveOptions = aspose.cells.PdfSaveOptions();
+                        //  saveOptions.setAllColumnsInOnePagePerSheet(true);
 
-                        if(!util.checkDateFormat(fieldValue,"yyyy-MM-dd hh:mm:ss")){
-                            if(botOperationsJson.bot_operations.leave_flag == 2){
-                                fieldValue = util.getFormatedLogDatetime(fieldValue);
-                                fieldValue = util.addDays(fieldValue, 1);
-                                fieldValue = util.subtractUnitsFromDateTime(fieldValue,1,'seconds');
-                            }
+                        //  let fileName = util.getCurrentUTCTimestamp();
+                        //  let filePath = global.config.efsPath;
+                        //  let pdfFilePath = `${filePath}${fileName}.pdf`;
+                        //  console.log("pdf file path",pdfFilePath);
+                        //  workbookFile.save(pdfFilePath,saveOptions);
+
+                        //  let [error,pdfS3Link] = await util.uploadPdfFileToS3(request,pdfFilePath);
+                        //  console.log(pdfS3Link);
+                        //  fs.unlink(pdfFilePath,()=>{});
+                        //  fs.unlink(workbook_file_path,()=>{})
+                        //  request.content = "pdf entry sample test";
+                        //  request.subject = 'pdf entry sample test';
+
+                        //  await addTimelineEntry(request,1,[pdfS3Link[0].location]);
+                        // }
+                        // catch(err){
+                        //     console.log("error while generation pdf",err)
+                        // }
+                        break;
+                    case 38:  //Static copy field bot
+                        util.logInfo(request, '****************************************************************');
+                        util.logInfo(request, 'Static copy field bot');
+                        logger.silly("Request Params received from Request: %j", request);
+                        request.debug_info.push('Static copy field bot ');
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            staticCopyField(request, botOperationsJson.bot_operations.static_form_field_copy);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (err) {
+                            util.logError(request, 'Error in executing Static copy field bot Step', { err });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "err": err
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, err);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = err;
                         }
-                            
-                        await applyLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                       // await handleBotOperationMessageUpdate(request, i, 3);
-                       // await applyWorkflowLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
-                    } catch (error) {
-                        logger.error("[Leave Aplication Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                        "error": error
-                        });
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = error;
-                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                    }
-                break;
-                
-                case 44 : //FTP
-                    logger.info(request.workflow_activity_id+": FTP Bot params received from request: %j", request);
-                    i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                    let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
-                    let s3url = await getFormFieldValue(request,ftpJson.field_id)
-                    sendToSqsPdfGeneration({...request,sqs_switch_flag:2,s3url,ftpJson,bot_operation_id:44});
-                    //await handleBotOperationMessageUpdate(request, i, 3);
-                    i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    // try {
-                    //     let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
-                    //     let s3url = await getFormFieldValue(request,ftpJson.field_id)
-                    //     let fileName = await util.downloadS3Object(request,s3url);
-                    //     let fileData = fileName.split('/');
-                    //     let finalName = fileData[fileData.length-1]
-                    //     let dataToSend = fs.createReadStream(fileName);
-                    //     let remote = `${ftpJson.ftp_upload_location}/${finalName}`;
-                    //     let serverConfig = {
-                    //         host:ftpJson.ftp_address,
-                    //         port:ftpJson.ftp_port,
-                    //         username:ftpJson.ftp_username,
-                    //         password:ftpJson.ftp_password,
-                    //     }
-                    //     sftp.connect(serverConfig).then(() => {
-                    //       return sftp.put(dataToSend, remote);
-                    //     }).then(data => {
-                    //       console.log(data, 'the data info');
-                    //       fs.unlink(fileName);
-                    //     }).catch(err => {
-                    //       console.log(err, 'catch error');
-                    //     });
-                        
-                    // } catch (error) {
-                    //     logger.error("[FTP Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                    //     i.bot_operation_status_id = 2;
-                    //     i.bot_operation_inline_data = JSON.stringify({
-                    //     "error": error
-                    //     });
-                    // }
-                break;
-                
-                case 45 :
-                    logger.silly("Remove CUID Bot");
-                    logger.silly("Remove CUID Bot Request: %j", request);
-                    logger.info("Remove CUID BOT : " + JSON.stringify(botOperationsJson.bot_operations))
-                    try {
+                        util.logInfo(request, '****************************************************************');
+                        break;
+                    case 39:  //Asset approval
+                        util.logInfo(request, '****************************************************************');
+                        util.logInfo(request, 'Asset approval workflow bot');
+                        logger.silly("Request Params received from Request: %j", request);
+                        //JSON.parse(i.bot_operation_inline_data)
                         i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        await removeCUIDs(request, botOperationsJson.bot_operations);
+                        let approveJson = JSON.parse(i.bot_operation_inline_data).bot_operations.condition;
+
+                        try {
+                            let [err1, data] = await assetApprovalWorkflow(request, approveJson);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                        } catch (error) {
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        }
+
+                        util.logInfo(request, '****************************************************************');
+                        break;
+                    case 40: // Bulk Create SR Bot
+                        logger.silly("Bulk Create SR Bot params received from request: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await bulkCreateSRBot(request, formInlineDataMap, botOperationsJson.bot_operations.bulk_create_sr);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[Bulk Create SR Bot Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                        }
+                        break;
+
+                    case 42: //Leave Aplication
+                        logger.silly("Leave Aplication Bot params received from request: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            let fieldValue = await getFormFieldValue(request, botOperationsJson.bot_operations.field_id);
+
+                            if (!util.checkDateFormat(fieldValue, "yyyy-MM-dd hh:mm:ss")) {
+                                if (botOperationsJson.bot_operations.leave_flag == 2) {
+                                    fieldValue = util.getFormatedLogDatetime(fieldValue);
+                                    fieldValue = util.addDays(fieldValue, 1);
+                                    fieldValue = util.subtractUnitsFromDateTime(fieldValue, 1, 'seconds');
+                                }
+                            }
+
+                            await applyLeave(request, botOperationsJson.bot_operations.leave_flag, fieldValue);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            // await handleBotOperationMessageUpdate(request, i, 3);
+                            // await applyWorkflowLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
+                        } catch (error) {
+                            logger.error("[Leave Aplication Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        }
+                        break;
+
+                    case 44: //FTP
+                        logger.info(request.workflow_activity_id + ": FTP Bot params received from request: %j", request);
+                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                        let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
+                        let s3url = await getFormFieldValue(request, ftpJson.field_id)
+                        sendToSqsPdfGeneration({ ...request, sqs_switch_flag: 2, s3url, ftpJson, bot_operation_id: 44 });
                         //await handleBotOperationMessageUpdate(request, i, 3);
                         i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (error) {
-                        logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "error"      : error,
-                            "error_stack" : error.stack
-                        });
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = error;
-                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                    }
-                    break;
+                        // try {
+                        //     let ftpJson = JSON.parse(i.bot_operation_inline_data).bot_operations.ftp_upload;
+                        //     let s3url = await getFormFieldValue(request,ftpJson.field_id)
+                        //     let fileName = await util.downloadS3Object(request,s3url);
+                        //     let fileData = fileName.split('/');
+                        //     let finalName = fileData[fileData.length-1]
+                        //     let dataToSend = fs.createReadStream(fileName);
+                        //     let remote = `${ftpJson.ftp_upload_location}/${finalName}`;
+                        //     let serverConfig = {
+                        //         host:ftpJson.ftp_address,
+                        //         port:ftpJson.ftp_port,
+                        //         username:ftpJson.ftp_username,
+                        //         password:ftpJson.ftp_password,
+                        //     }
+                        //     sftp.connect(serverConfig).then(() => {
+                        //       return sftp.put(dataToSend, remote);
+                        //     }).then(data => {
+                        //       console.log(data, 'the data info');
+                        //       fs.unlink(fileName);
+                        //     }).catch(err => {
+                        //       console.log(err, 'catch error');
+                        //     });
 
-                    
-                    case 46 : //Forcast Category, Product Quantity in drilldown
-                    util.logInfo(request,`****************************************************************`);
-                    util.logInfo(request,` ${request.workflow_activity_id} : Widget drilldown additional fields: Request Params received from Request: %j`, request);
-                    request.debug_info.push(request.workflow_activity_id+': Widget drilldown additional fields');
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        //if(botOperationsJson.bot_operations.is_product == 1){
+                        // } catch (error) {
+                        //     logger.error("[FTP Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                        //     i.bot_operation_status_id = 2;
+                        //     i.bot_operation_inline_data = JSON.stringify({
+                        //     "error": error
+                        //     });
+                        // }
+                        break;
+
+                    case 45:
+                        logger.silly("Remove CUID Bot");
+                        logger.silly("Remove CUID Bot Request: %j", request);
+                        logger.info("Remove CUID BOT : " + JSON.stringify(botOperationsJson.bot_operations))
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await removeCUIDs(request, botOperationsJson.bot_operations);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error,
+                                "error_stack": error.stack
+                            });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        }
+                        break;
+
+
+                    case 46: //Forcast Category, Product Quantity in drilldown
+                        util.logInfo(request, `****************************************************************`);
+                        util.logInfo(request, ` ${request.workflow_activity_id} : Widget drilldown additional fields: Request Params received from Request: %j`, request);
+                        request.debug_info.push(request.workflow_activity_id + ': Widget drilldown additional fields');
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            //if(botOperationsJson.bot_operations.is_product == 1){
                             request.is_product = botOperationsJson.bot_operations.is_product;
                             request.is_cart = botOperationsJson.bot_operations.is_cart;
                             request.final_key = botOperationsJson.bot_operations.final_key;
-                        //}
-                        let fieldValue = await getFormFieldValue(request, botOperationsJson.bot_operations.field_id);    
-                        await activitySearchListUpdateAddition(request, botOperationsJson.bot_operations.column_flag,fieldValue);
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (error) {
-                        util.logError(request,`[Widget drilldown additional fields] Error: `, { type: 'bot_engine', error: serializeError(error) });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "log":request.debug_info,
-                            "error": error
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = error;
-                    }
-                    break;    
-                    
-                    case 48 : // pdf_edit
-                    util.logInfo(request,`****************************************************************`);
-                    util.logInfo(request,`pdf_edit`);
-                    logger.silly('pdf_edit | Request Params received by BOT ENGINE: %j', request);
-                    request.debug_info.push('pdf_edit');
-                    util.logInfo(request,`botOperationsJson : %j` , botOperationsJson);
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        await editPDF(request, JSON.parse(i.bot_operation_inline_data));
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (err) {
-                        logger.error("serverError | Error in executing pdf_edit Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, err);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
-                    }
-                    util.logInfo(request,`****************************************************************`);
-                    break;
-                case 49: // Bulk Third Party Bot
-                    logger.silly("Bulk Third party opex Bot params received from request: %j", request);
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        await bulkThirdPartyOpexBot(request, formInlineDataMap, botOperationsJson.bot_operations.third_party_opex_bulk);
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (error) {
-                        logger.error("[Bulk Third party opex Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "error": error
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = error;
-                    }
-                    break;
-
-                case 50 : // Activity Update customer data 
-                    util.logInfo(request,`****************************************************************`);
-                    util.logInfo(request,` `);
-                    logger.silly('Activity Update customer data | Request Params received by BOT ENGINE: %j', request);
-                    request.debug_info.push('pdf_edit');
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        await activityUpdateCustomerData(request,botOperationsJson.bot_operations );
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (err) {
-                        logger.error("serverError | Error in executing Activity Update customer data  Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, err);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
-                    }
-                    util.logInfo(request,`****************************************************************`);
-                    break;
-
-                case 51: // Autopopulate BC excel
-                    util.logInfo(request,`****************************************************************`);
-                    util.logInfo(request,` `);
-                    logger.silly('Autopopulate BC excel | Request Params received by BOT ENGINE: %j', request);
-                    request.debug_info.push('bc_auto_populate');
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        util.logInfo(request,`botOperationsJson.bot_operations.condition.form_id ${botOperationsJson.bot_operations.condition.form_id}`);
-                        sendToSqsPdfGeneration({ ...request, sqs_switch_flag: 3, bot_operation_id: 51, third_party_opex_form_id:botOperationsJson.bot_operations.condition.form_id  });
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (err) {
-                        logger.error("Autopopulate | Error in pushing sqs message for autopopulate", { type: "bot_engine", request_body: request, error: serializeError(err) });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, err);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
-                    }
-                    util.logInfo(request,`****************************************************************`);
-                break;
-
-                case 53: // Calender Auto form submittion
-                    util.logInfo(request,`****************************************************************`);
-                    
-                    request.debug_info.push('calender_auto_form_submittion');
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        util.logInfo(request,`came in auto submit`);
-                        autoFormSubmission(request,botOperationsJson.bot_operations);
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (err) {
-                        logger.error("Auto form submission | Error ", { type: "bot_engine", request_body: request, error: serializeError(err) });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, err);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
-                    }
-                    util.logInfo(request,`****************************************************************`);
-                break;
-
-                case 54: // Child Order creation BOT
-                    util.logInfo(request, '****************************************************************');
-                    util.logInfo(request, 'WorkFlow Bot');
-                    request.debug_info.push('WorkFlow Bot');
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
-                        util.logInfo(request,`Child Order creation BOT | Request Params received by BOT ENGINE`);
-                        request.debug_info.push('Child Order creation BOT | Request Params received by BOT ENGINE' + request);
-
-                        let formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data) : request.activity_inline_data;
-
-                        for (const fieldData of formData) {
-                            if (Number(fieldData.field_id) == 312766) {
-                                let requestParams = {
-                                    meeting_activity_id: request.workflow_activity_id,
-                                    mom_excel_path: fieldData.field_value,
-                                    status_id: 1,
-                                    organization_id: request.organization_id,
-                                    log_asset_id: request.asset_id,
-                                }
-                                let [insertError, insertResponseData] = await momBulkTransactionInsert(requestParams);
-
-                                if(!insertError && insertResponseData.length > 0) {
-                                    request.meeting_transaction_id = insertResponseData[0].meeting_transaction_id
-                                }
-                                util.logInfo(request,`insertResponseData  %j` , insertResponseData);
-                                break;
-                            }
+                            //}
+                            let fieldValue = await getFormFieldValue(request, botOperationsJson.bot_operations.field_id);
+                            await activitySearchListUpdateAddition(request, botOperationsJson.bot_operations.column_flag, fieldValue);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            util.logError(request, `[Widget drilldown additional fields] Error: `, { type: 'bot_engine', error: serializeError(error) });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "log": request.debug_info,
+                                "error": error
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
                         }
+                        break;
 
-                        util.logInfo(request, ` ${global.config.CHILD_ORDER_TOPIC_NAME} %j`, {
-                            request,
-                            requestType: "mom_child_orders",
-                            form_field_copy: botOperationsJson.bot_operations.form_field_copy,
-                            condition: botOperationsJson.bot_operations.condition
-                        });
+                    case 48: // pdf_edit
+                        util.logInfo(request, `****************************************************************`);
+                        util.logInfo(request, `pdf_edit`);
+                        logger.silly('pdf_edit | Request Params received by BOT ENGINE: %j', request);
+                        request.debug_info.push('pdf_edit');
+                        util.logInfo(request, `botOperationsJson : %j`, botOperationsJson);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await editPDF(request, JSON.parse(i.bot_operation_inline_data));
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (err) {
+                            logger.error("serverError | Error in executing pdf_edit Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "err": err
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, err);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = err;
+                        }
+                        util.logInfo(request, `****************************************************************`);
+                        break;
+                    case 49: // Bulk Third Party Bot
+                        logger.silly("Bulk Third party opex Bot params received from request: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await bulkThirdPartyOpexBot(request, formInlineDataMap, botOperationsJson.bot_operations.third_party_opex_bulk);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[Bulk Third party opex Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                        }
+                        break;
 
-                        // await kafkaProdcucerForChildOrderCreation(global.config.CHILD_ORDER_TOPIC_NAME, {
-                        //     request,
-                        //     requestType: "mom_child_orders",
-                        //     form_field_copy: botOperationsJson.bot_operations.form_field_copy,
-                        //     condition: botOperationsJson.bot_operations.condition
-                        // }).catch(global.logger.error);
+                    case 50: // Activity Update customer data 
+                        util.logInfo(request, `****************************************************************`);
+                        util.logInfo(request, ` `);
+                        logger.silly('Activity Update customer data | Request Params received by BOT ENGINE: %j', request);
+                        request.debug_info.push('pdf_edit');
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await activityUpdateCustomerData(request, botOperationsJson.bot_operations);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (err) {
+                            logger.error("serverError | Error in executing Activity Update customer data  Step", { type: "bot_engine", request_body: request, error: serializeError(err) });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "err": err
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, err);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = err;
+                        }
+                        util.logInfo(request, `****************************************************************`);
+                        break;
 
+                    case 51: // Autopopulate BC excel
+                        util.logInfo(request, `****************************************************************`);
+                        util.logInfo(request, ` `);
+                        logger.silly('Autopopulate BC excel | Request Params received by BOT ENGINE: %j', request);
+                        request.debug_info.push('bc_auto_populate');
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            util.logInfo(request, `botOperationsJson.bot_operations.condition.form_id ${botOperationsJson.bot_operations.condition.form_id}`);
+                            sendToSqsPdfGeneration({ ...request, sqs_switch_flag: 3, bot_operation_id: 51, third_party_opex_form_id: botOperationsJson.bot_operations.condition.form_id });
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (err) {
+                            logger.error("Autopopulate | Error in pushing sqs message for autopopulate", { type: "bot_engine", request_body: request, error: serializeError(err) });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "err": err
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, err);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = err;
+                        }
+                        util.logInfo(request, `****************************************************************`);
+                        break;
 
-                        sqs.sendMessage({
-                            // DelaySeconds: 5,
-                            MessageBody: JSON.stringify({
+                    case 53: // Calender Auto form submittion
+                        util.logInfo(request, `****************************************************************`);
+
+                        request.debug_info.push('calender_auto_form_submittion');
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            util.logInfo(request, `came in auto submit`);
+                            autoFormSubmission(request, botOperationsJson.bot_operations);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (err) {
+                            logger.error("Auto form submission | Error ", { type: "bot_engine", request_body: request, error: serializeError(err) });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "err": err
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, err);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = err;
+                        }
+                        util.logInfo(request, `****************************************************************`);
+                        break;
+
+                    case 54: // Child Order creation BOT
+                        util.logInfo(request, '****************************************************************');
+                        util.logInfo(request, 'WorkFlow Bot');
+                        request.debug_info.push('WorkFlow Bot');
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            // global.logger.write('conLog', 'Request Params received by BOT ENGINE', request, {});
+                            util.logInfo(request, `Child Order creation BOT | Request Params received by BOT ENGINE`);
+                            request.debug_info.push('Child Order creation BOT | Request Params received by BOT ENGINE' + request);
+
+                            let formData = (typeof request.activity_inline_data === 'string') ? JSON.parse(request.activity_inline_data) : request.activity_inline_data;
+
+                            for (const fieldData of formData) {
+                                if (Number(fieldData.field_id) == 312766) {
+                                    let requestParams = {
+                                        meeting_activity_id: request.workflow_activity_id,
+                                        mom_excel_path: fieldData.field_value,
+                                        status_id: 1,
+                                        organization_id: request.organization_id,
+                                        log_asset_id: request.asset_id,
+                                    }
+                                    let [insertError, insertResponseData] = await momBulkTransactionInsert(requestParams);
+
+                                    if (!insertError && insertResponseData.length > 0) {
+                                        request.meeting_transaction_id = insertResponseData[0].meeting_transaction_id
+                                    }
+                                    util.logInfo(request, `insertResponseData  %j`, insertResponseData);
+                                    break;
+                                }
+                            }
+
+                            util.logInfo(request, ` ${global.config.CHILD_ORDER_TOPIC_NAME} %j`, {
                                 request,
                                 requestType: "mom_child_orders",
                                 form_field_copy: botOperationsJson.bot_operations.form_field_copy,
                                 condition: botOperationsJson.bot_operations.condition
-                            }),
-                            QueueUrl: global.config.ChildOrdersSQSqueueUrl,
-                            MessageGroupId: `mom-creation-queue-v1`,
-                            MessageDeduplicationId: uuidv4(),
-                            MessageAttributes: {
-                                "Environment": {
-                                    DataType: "String",
-                                    StringValue: global.mode
-                                },
-                            }
-                        },async (error, data) => {
-                            if (error) {
-                                logger.error(request.workflow_activity_id+": Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                                util.logError(request,request.workflow_activity_id + `: Error sending excel job to SQS queue`, { type: 'bot_engine', error });
-                                //await handleBotOperationMessageUpdate(request, i, 4, error);
-                                i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                                i.bot_operation_error_message = error;
-                            } else {
-                                logger.info(request.workflow_activity_id+": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });    
-                                util.logInfo(request, `${request.workflow_activity_id} : Successfully sent excel job to SQS queue:  %j` , data);
-                            }                                    
-                        });
+                            });
 
-                        let params = {
-                            QueueUrl: global.config.ChildOrdersSQSqueueUrl,
-                            AttributeNames: ['ApproximateNumberOfMessages'],
-                        };
+                            // await kafkaProdcucerForChildOrderCreation(global.config.CHILD_ORDER_TOPIC_NAME, {
+                            //     request,
+                            //     requestType: "mom_child_orders",
+                            //     form_field_copy: botOperationsJson.bot_operations.form_field_copy,
+                            //     condition: botOperationsJson.bot_operations.condition
+                            // }).catch(global.logger.error);
 
-                        sqs.getQueueAttributes(params, function (err, data) {
-                            if (err) {
-                                util.logError(request,`Error`, { type: 'bot_engine', err });
-                            } else {
-                                util.logInfo(request,`data %j` , data);
-                                util.logInfo(request,`data.Attributes.ApproximateNumberOfMessages : ${data.Attributes.ApproximateNumberOfMessages}`);
 
-                                if (Number(data.Attributes.ApproximateNumberOfMessages) >= 20) {
-                                    addTimelineMessage(
-                                        {
-                                            activity_timeline_text: "Info",
-                                            organization_id: request.organization_id
-                                        }, request.workflow_activity_id || 0,
-                                        {
-                                            subject: 'Info: More Requests in queue',
-                                            content: "There will be a slight delay in processing your request as we have received multiple requests at a time.\nPlease wait for sometime while we are processing your request.",
-                                            mail_body: "There will be a slight delay in processing your request as we have received multiple requests at a time.\nPlease wait for sometime while we are processing your request.",
-                                            attachments: []
-                                        }
-                                    );
+                            sqs.sendMessage({
+                                // DelaySeconds: 5,
+                                MessageBody: JSON.stringify({
+                                    request,
+                                    requestType: "mom_child_orders",
+                                    form_field_copy: botOperationsJson.bot_operations.form_field_copy,
+                                    condition: botOperationsJson.bot_operations.condition
+                                }),
+                                QueueUrl: global.config.ChildOrdersSQSqueueUrl,
+                                MessageGroupId: `mom-creation-queue-v1`,
+                                MessageDeduplicationId: uuidv4(),
+                                MessageAttributes: {
+                                    "Environment": {
+                                        DataType: "String",
+                                        StringValue: global.mode
+                                    },
                                 }
-                            }
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (err) {
-                        util.logError(request, 'Error in executing Child Order creation BOT Step', { err });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "err": err
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, err);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = err;
-                        //return Promise.reject(err);
-                    }
-                    util.logInfo(request, '****************************************************************');
-                    break;
+                            }, async (error, data) => {
+                                if (error) {
+                                    logger.error(request.workflow_activity_id + ": Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                                    util.logError(request, request.workflow_activity_id + `: Error sending excel job to SQS queue`, { type: 'bot_engine', error });
+                                    //await handleBotOperationMessageUpdate(request, i, 4, error);
+                                    i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                                    i.bot_operation_error_message = error;
+                                } else {
+                                    logger.info(request.workflow_activity_id + ": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
+                                    util.logInfo(request, `${request.workflow_activity_id} : Successfully sent excel job to SQS queue:  %j`, data);
+                                }
+                            });
 
-                case 55: // Non Ascii Check Bot
-                    logger.silly("Non Ascci Check Bot params received from request: %j", request);
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        let requestForSQS = {
-                            request: request,
-                            sqs_switch_flag: 5,
-                            formInlineDataMap: formInlineDataMap,
-                            inlineJSON: botOperationsJson.bot_operations.non_ascii_check
+                            let params = {
+                                QueueUrl: global.config.ChildOrdersSQSqueueUrl,
+                                AttributeNames: ['ApproximateNumberOfMessages'],
+                            };
+
+                            sqs.getQueueAttributes(params, function (err, data) {
+                                if (err) {
+                                    util.logError(request, `Error`, { type: 'bot_engine', err });
+                                } else {
+                                    util.logInfo(request, `data %j`, data);
+                                    util.logInfo(request, `data.Attributes.ApproximateNumberOfMessages : ${data.Attributes.ApproximateNumberOfMessages}`);
+
+                                    if (Number(data.Attributes.ApproximateNumberOfMessages) >= 20) {
+                                        addTimelineMessage(
+                                            {
+                                                activity_timeline_text: "Info",
+                                                organization_id: request.organization_id
+                                            }, request.workflow_activity_id || 0,
+                                            {
+                                                subject: 'Info: More Requests in queue',
+                                                content: "There will be a slight delay in processing your request as we have received multiple requests at a time.\nPlease wait for sometime while we are processing your request.",
+                                                mail_body: "There will be a slight delay in processing your request as we have received multiple requests at a time.\nPlease wait for sometime while we are processing your request.",
+                                                attachments: []
+                                            }
+                                        );
+                                    }
+                                }
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (err) {
+                            util.logError(request, 'Error in executing Child Order creation BOT Step', { err });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "err": err
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, err);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = err;
+                            //return Promise.reject(err);
                         }
-                        sendToSqsPdfGeneration(requestForSQS);
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (error) {
-                        logger.error("[Non Ascci Check Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "error": error
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = error;
-                    }
-                    break;
+                        util.logInfo(request, '****************************************************************');
+                        break;
 
-                case 56: // Midmile Excel Generation Bot
-                    logger.silly("Midmile Excel Generation Bot: %j", request);
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        await midmileExcelCreationBot(request, botOperationsJson.bot_operations);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                    } catch (error) {
-                        logger.error("[Midmile Excel Generation Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "error": error
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = error;
-                    }
-                    break;
-                
-                case 57: // Add Pan to elastic
-                    
-                    try{
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        await addCUIDs(request, botOperationsJson.bot_operations);
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (error){
-                        logger.error("[Add Pan to elastic Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "error": error
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = error;
-                    }
-                    break;
+                    case 55: // Non Ascii Check Bot
+                        logger.silly("Non Ascci Check Bot params received from request: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            let requestForSQS = {
+                                request: request,
+                                sqs_switch_flag: 5,
+                                formInlineDataMap: formInlineDataMap,
+                                inlineJSON: botOperationsJson.bot_operations.non_ascii_check
+                            }
+                            sendToSqsPdfGeneration(requestForSQS);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[Non Ascci Check Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                        }
+                        break;
 
-                case 58: // Close All Business case's when reffered optty is closed 
-                    
-                    try{
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        await closeRefferedOutActivities(request, botOperationsJson.bot_operations);
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (error){
-                        logger.error("[Close Reffered Out Activities Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                        i.bot_operation_status_id = 2;
-                        i.bot_operation_inline_data = JSON.stringify({
-                            "error": error
-                        });
-                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = error;
-                    }
-                    break;
+                    case 56: // Midmile Excel Generation Bot
+                        logger.silly("Midmile Excel Generation Bot: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await midmileExcelCreationBot(request, botOperationsJson.bot_operations);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                        } catch (error) {
+                            logger.error("[Midmile Excel Generation Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                        }
+                        break;
 
-                case 59: // Due date remove Bot - ESMS
-                    logger.silly("Due date remove Bot - ESMS");
-                    logger.silly("Due date remove Bot - ESMS: %j", request);
-                    try {
-                        i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                        await this.removeDueDateOfWorkflow(request, botOperationsJson.bot_operations.due_date_edit);
-                        //await handleBotOperationMessageUpdate(request, i, 3);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                    } catch (error) {
-                        logger.error("Error running the removeDueDateOfWorkflow", { type: 'bot_engine', error: serializeError(error), request_body: request });
-                        //await handleBotOperationMessageUpdate(request, i, 4, error);
-                        i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                        i.bot_operation_error_message = error;
-                    }
-                    break;
-            }
+                    case 57: // Add Pan to elastic
 
-            await handleBotOperationMessageUpdate(request, i);
-            //botOperationTxnInsert(request, i);
-            botOperationTxnInsertV1(request, i);
-            await new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    resolve();
-                }, 1000);
-            });
-        }
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await addCUIDs(request, botOperationsJson.bot_operations);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[Add Pan to elastic Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                        }
+                        break;
 
-        let processedStatusUpdateRequest = Object.assign({}, request);
-        processedStatusUpdateRequest.status_id = 3;
-        processedStatusUpdateRequest.log_asset_id = request.asset_id || 0;
-        processedStatusUpdateRequest.consumed_datetime = null;
-        processedStatusUpdateRequest.processed_datetime = util.getCurrentUTCTime();
-        processedStatusUpdateRequest.failed_datetime = null;
-        processedStatusUpdateRequest.log_datetime = util.getCurrentUTCTime();
+                    case 58: // Close All Business case's when reffered optty is closed 
 
-        const [errorThree, __] = await activityCommonService.BOTMessageTransactionUpdateStatusAsync(processedStatusUpdateRequest);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await closeRefferedOutActivities(request, botOperationsJson.bot_operations);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[Close Reffered Out Activities Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                        }
+                        break;
 
-        // Send push notification
-        try {
-            if (
-                request.hasOwnProperty("activity_stream_type_id") &&
-                Number(request.activity_stream_type_id) === 713
-            ) {
-                util.sendRPACompletionAcknowledgement({
-                    organization_id: request.organization_id,
-                    target_asset_id: request.asset_id,
-                    activity_type_category_id: request.activity_type_category_id,
-                    workflow_activity_id: request.workflow_activity_id,
-                    form_id: request.form_id,
-                    field_id: formInlineData[0].field_id
+                    case 59: // Due date remove Bot - ESMS
+                        logger.silly("Due date remove Bot - ESMS");
+                        logger.silly("Due date remove Bot - ESMS: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await this.removeDueDateOfWorkflow(request, botOperationsJson.bot_operations.due_date_edit);
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("Error running the removeDueDateOfWorkflow", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                        }
+                        break;
+                }
+
+                await handleBotOperationMessageUpdate(request, i);
+                //botOperationTxnInsert(request, i);
+                // botOperationTxnInsertV1(request, i);
+                await new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        resolve();
+                    }, 1000);
                 });
             }
-        } catch (error) {
-            // console.log("sendRPACompletionAcknowledgement | Error: ", error)
+
+            let processedStatusUpdateRequest = Object.assign({}, request);
+            processedStatusUpdateRequest.status_id = 3;
+            processedStatusUpdateRequest.log_asset_id = request.asset_id || 0;
+            processedStatusUpdateRequest.consumed_datetime = null;
+            processedStatusUpdateRequest.processed_datetime = util.getCurrentUTCTime();
+            processedStatusUpdateRequest.failed_datetime = null;
+            processedStatusUpdateRequest.log_datetime = util.getCurrentUTCTime();
+
+            const [errorThree, __] = await activityCommonService.BOTMessageTransactionUpdateStatusAsync(processedStatusUpdateRequest);
+
+            // Send push notification
+            try {
+                if (
+                    request.hasOwnProperty("activity_stream_type_id") &&
+                    Number(request.activity_stream_type_id) === 713
+                ) {
+                    util.sendRPACompletionAcknowledgement({
+                        organization_id: request.organization_id,
+                        target_asset_id: request.asset_id,
+                        activity_type_category_id: request.activity_type_category_id,
+                        workflow_activity_id: request.workflow_activity_id,
+                        form_id: request.form_id,
+                        field_id: formInlineData[0].field_id
+                    });
+                }
+            } catch (error) {
+                // console.log("sendRPACompletionAcknowledgement | Error: ", error)
+            }
+
+        } catch (botException) {
+            util.logError(botInitialRequest, "[botException] Error in bot exception", { error: botException });
+        } finally {
+            return { messageId: botMessageId };
         }
 
-        return {};
     };
 
    async function sendToSqsPdfGeneration(request){
