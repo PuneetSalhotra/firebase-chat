@@ -2,8 +2,8 @@
  * author: V Nani Kalyan
  */
 
-// mode = process.env.NODE_ENV;
-mode = "local";
+mode = process.env.NODE_ENV;
+// mode = "local";
 config = {};
 
 if (mode === 'local') {
