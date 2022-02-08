@@ -10,6 +10,7 @@ require('./server/vodafone/utils/vodafoneConfig');
 
 const logger = require('./server/logger/winstonLogger');
 const redis = require('redis'); // using elasticache as redis
+const { serializeError } = require('serialize-error');
 let redisClient;
 
 if (global.mode === 'local') {
@@ -48,7 +49,6 @@ redisClient.on('connect', async function (response) {
         const AWS = require('aws-sdk');
 
         const kafka = require('kafka-node');
-        const { serializeError } = require('serialize-error');
         const KafkaProducer = kafka.Producer;
 
         const forEachAsync = require('forEachAsync').forEachAsync;
