@@ -268,15 +268,44 @@ function AssetService(objectCollection) {
                 //     console.log('[getPhoneNumberAssetsV1] Sinfini Error: ', err);
                 // });
 
-                if(!email) {
-                    smsEngine.emit('send-sinfini-sms', {
-                        type: 'NOTFCTN',
-                        countryCode,
-                        phoneNumber,
-                        msgString: smsMessage,
-                        failOver: true,
-                        appName: ''
-                    });
+                if (!email) {
+                    let redisValdomesticSmsMode = await cacheWrapper.getSmsMode('domestic_sms_mode');
+                    let domesticSmsMode = Number(redisValdomesticSmsMode);
+
+                    switch (domesticSmsMode) {
+                        case 1: // SinFini
+                            smsEngine.emit('send-sinfini-sms', {
+                                type: 'NOTFCTN',
+                                countryCode,
+                                phoneNumber,
+                                msgString: smsMessage,
+                                failOver: true,
+                                appName: ''
+                            });
+                            break;
+                        case 2: // textlocal
+                            smsEngine.emit('send-textlocal-sms', {
+                                type: 'NOTFCTN',
+                                countryCode,
+                                phoneNumber,
+                                msgString: smsMessage,
+                                failOver: true,
+                                appName: ''
+                            });
+                            break;
+                        default:
+                            smsEngine.emit('send-sinfini-sms', {
+                                type: 'NOTFCTN',
+                                countryCode,
+                                phoneNumber,
+                                msgString: smsMessage,
+                                failOver: true,
+                                appName: ''
+                            });
+                            break;
+                    }
+
+
                 }
 
                 return;
@@ -1302,17 +1331,17 @@ function AssetService(objectCollection) {
                                 break;
                          */
 
-                        switch (domesticSmsMode) {
-                            case 1: // SinFini
-                                smsEngine.emit('send-sinfini-sms', smsOptions);
-                                break;
-                            case 2: // mVayoo
-                                smsEngine.emit('send-mvayoo-sms', smsOptions);
-                                break;
-                            case 3: // Bulk SMS
-                                smsEngine.emit('send-bulksms-sms', smsOptions);
-                                break;
-                        }
+                    switch (domesticSmsMode) {
+                        case 1: // SinFini
+                            smsEngine.emit('send-sinfini-sms', smsOptions);
+                            break;
+                        case 2: // mVayoo
+                            smsEngine.emit('send-textlocal-sms', smsOptions);
+                            break;
+                        default: // SinFini
+                            smsEngine.emit('send-sinfini-sms', smsOptions);
+                            break;
+                    }
                 
 
                     /* smsEngine.sendDomesticSms(smsOptions); */
@@ -1361,60 +1390,63 @@ function AssetService(objectCollection) {
                 }
                 break;
             case 2: //Make a call                
-                fs.readFile(`${__dirname}/../utils/phoneCall.txt`, function (err, data) {
-                    (err) ? global.logger.write('debug', err, {}, request) : phoneCall = Number(data.toString());
+                // fs.readFile(`${__dirname}/../utils/phoneCall.txt`, function (err, data) {
+                //     (err) ? global.logger.write('debug', err, {}, request) : phoneCall = Number(data.toString());
 
-                    switch (phoneCall) {
-                        case 1: //Nexmo
-                            //console.log('Making Nexmo Call');
-                            global.logger.write('conLog', 'Making Nexmo Call', {}, request);
-                            var passcode = request.passcode;
-                                passcode = passcode.split("");
-                                passcode = passcode.toString();
-                                passcode = passcode.replace(/,/g, " ");
+                let redisPhoneCallMode = await cacheWrapper.getSmsMode('phone_call_mode');
+                redisPhoneCallMode = Number(redisPhoneCallMode);
 
-                            //var text = "Your passcode for Mytony App is, " + passcode + ". I repeat, your passcode for Mytony App is, " + passcode + ". Thank you.";
-                            var text = "Your passcode for " + appName + " App is, " + passcode;
-                            text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
-                            text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
-                            text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
-                            text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
-                            //console.log('Text: ' + text);
-                            global.logger.write('debug', 'Text: ' + text, {}, request);
+                switch (redisPhoneCallMode) {
+                    case 2: //Nexmo
+                        //console.log('Making Nexmo Call');
+                        global.logger.write('conLog', 'Making Nexmo Call', {}, request);
+                        var passcode = request.passcode;
+                        passcode = passcode.split("");
+                        passcode = passcode.toString();
+                        passcode = passcode.replace(/,/g, " ");
 
-                            util.makeCallNexmoV1(text, request.passcode, countryCode, phoneNumber, function (error, data) {
-                                if (error)
-                                    console.log(error);
-                                console.log(data);
-                                global.logger.write('trace', data, error, request)
-                            });
-                            break;
+                        //var text = "Your passcode for Mytony App is, " + passcode + ". I repeat, your passcode for Mytony App is, " + passcode + ". Thank you.";
+                        var text = "Your passcode for " + appName + " App is, " + passcode;
+                        text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                        text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                        text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                        text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                        //console.log('Text: ' + text);
+                        global.logger.write('debug', 'Text: ' + text, {}, request);
 
-                        case 2: //Twilio
-                            //console.log('Making Twilio Call');
-                            global.logger.write('conLog', 'Making Twilio Call', {}, request);
-                            var passcode = request.passcode;
-                            passcode = passcode.split("");
+                        util.makeCallNexmoV1(text, request.passcode, countryCode, phoneNumber, function (error, data) {
+                            if (error)
+                                console.log(error);
+                            console.log(data);
+                            global.logger.write('trace', data, error, request)
+                        });
+                        break;
 
-                            //var text = "Your passcode is " + passcode + " I repeat," + passcode + " Thank you.";
-                            //var text = "Your passcode for Mytony App is, " + passcode + ". I repeat, your passcode for Mytony App is, " + passcode + ". Thank you.";
-                            var text = "Your passcode for " + appName + " App is, " + passcode;
-                            text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
-                            text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
-                            text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
-                            text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
-                            //console.log('Text: ' + text);
-                            global.logger.write('debug', 'Text: ' + text, {}, request);
-                            util.MakeCallTwilio(text, request.passcode, countryCode, phoneNumber, function (error, data) {
-                                if (error)
-                                    console.log(error);
-                                console.log(data);
-                                global.logger.write('trace', data, error, request)
-                            });
-                            break;
-                    }
+                    case 1: //Twilio
+                        //console.log('Making Twilio Call');
+                        global.logger.write('conLog', 'Making Twilio Call', {}, request);
+                        var passcode = request.passcode;
+                        passcode = passcode.split("");
 
-                });
+                        //var text = "Your passcode is " + passcode + " I repeat," + passcode + " Thank you.";
+                        //var text = "Your passcode for Mytony App is, " + passcode + ". I repeat, your passcode for Mytony App is, " + passcode + ". Thank you.";
+                        var text = "Your passcode for " + appName + " App is, " + passcode;
+                        text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                        text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                        text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                        text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                        //console.log('Text: ' + text);
+                        global.logger.write('debug', 'Text: ' + text, {}, request);
+                        util.MakeCallTwilio(text, request.passcode, countryCode, phoneNumber, function (error, data) {
+                            if (error)
+                                console.log(error);
+                            console.log(data);
+                            global.logger.write('trace', data, error, request)
+                        });
+                        break;
+                }
+
+                // });
 
                 break;
             case 3: //email

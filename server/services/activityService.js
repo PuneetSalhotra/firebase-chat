@@ -328,7 +328,7 @@ function ActivityService(objectCollection) {
                                 let inlineData = JSON.parse(request.activity_inline_data);
                                 activityCommonService.updateAmountInInlineData({
                                     ...request,
-                                    amount : (inlineData.card || 0) + (inlineData.cash || 0)
+                                    amount : (inlineData.card || 0) + (inlineData.cash || 0) + (inlineData.upi || 0)
                                 });
                             }
 
