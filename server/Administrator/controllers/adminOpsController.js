@@ -496,7 +496,8 @@ function AdminOpsController(objCollection) {
             let result = await adminOpsService.organizationInlineDataUpdate(req.body);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
-            global.logger.write('conLog', err, {}, {});
+            //global.logger.write('conLog', err, {}, {});
+            util.logError(req,`conLog Error %j`, { err });
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
@@ -507,7 +508,8 @@ function AdminOpsController(objCollection) {
             let result = await adminOpsService.updateOrganizationFeatureInlineData(req.body);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
-            global.logger.write('conLog', err, {}, {});
+            //global.logger.write('conLog', err, {}, {});
+            util.logError(req,`conLog Error %j`, { err });
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
@@ -518,7 +520,8 @@ function AdminOpsController(objCollection) {
             let result = await adminOpsService.updateOrganizationFormTagFlag(req.body);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
-            global.logger.write('conLog', err, {}, {});
+            //global.logger.write('conLog', err, {}, {});
+            util.logError(req,`conLog Error %j`, { err });
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
@@ -539,7 +542,8 @@ function AdminOpsController(objCollection) {
             let result = await adminOpsService.updateOrganizationAIBot(req.body);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
-            global.logger.write('conLog', err, {}, {});
+            //global.logger.write('conLog', err, {}, {});
+            util.logError(req,`conLog Error %j`, { err });
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
@@ -549,7 +553,8 @@ function AdminOpsController(objCollection) {
             let result = await adminOpsService.processSignup(req.body);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
-            global.logger.write('conLog', err, err, err);
+            //global.logger.write('conLog', err, err, err);
+            util.logError(req,`conLog Error %j`, { err });
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });

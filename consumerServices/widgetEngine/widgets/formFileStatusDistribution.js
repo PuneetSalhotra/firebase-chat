@@ -47,7 +47,8 @@ class FormFileStatusDistributionWidget extends WidgetBase {
 					}).then(() => {
 						var diffArray = [];
 						forEachAsync(array, (n, x) => {
-							global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + " : " + x + " includes" + array2.includes(x), {}, data);
+							//global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + " : " + x + " includes" + array2.includes(x), {}, data);
+							util.logInfo({},`debug Distribution: %j`,{WidgetId : this.rule.widget_id,x : x,includes : array2.includes(x),data});
 							if (array2.includes(x) == false) {
 								diffArray.push(x);
 								var obj = {};
@@ -61,7 +62,8 @@ class FormFileStatusDistributionWidget extends WidgetBase {
 							}
 
 						}).then(() => {
-							global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + " StatusJsonData: " + JSON.stringify(result), {}, data);
+							//global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + " StatusJsonData: " + JSON.stringify(result), {}, data);
+							util.logInfo({},`debug Distribution: %j`,{WidgetId : this.rule.widget_id,StatusJsonData : JSON.stringify(result), data});
 							forEachAsync(result, (next, rowData) => {
 								console.log(rowData)
 								const count = rowData ? rowData.status_count : undefined;
@@ -94,7 +96,8 @@ class FormFileStatusDistributionWidget extends WidgetBase {
 								}
 							}).then(() => {
 
-								global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + ' Done', {}, data);
+								//global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + ' Done', {}, data);
+								util.logInfo({},`debug Distribution: %j`,{WidgetId : this.rule.widget_id,Done : ' Done', data});
 							});
 						})
 					});
