@@ -5878,8 +5878,8 @@ this.getChildOfAParent = async (request) => {
         const prefixPath = await util.getS3PrefixPath(request);
         const s3UploadUrlObj = await util.uploadReadableStreamToS3(request, {
             Bucket: bucketName,
-            Key: `${prefixPath}/` + Date.now() + '.pdf',
-            Body: path,
+            Key: `${prefixPath}/` + Date.now() + '.xlsx',
+            Body: fs.createReadStream(path),
             ContentType: 'application/pdf',
             ACL: 'public-read'
         }, path);
