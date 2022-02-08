@@ -2,7 +2,7 @@
  * author Nani Kalyan V
  */
 
-require('../utils/globalConfig');
+require('../utils/globalConfigV1');
 let Logger = require('../utils/logger.js');
 let kafka = require('kafka-node');
 let kafkaConsumer = kafka.Consumer;

@@ -1,4 +1,4 @@
-require('../utils/globalConfig');
+require('../utils/globalConfigV1');
 var aws = require('aws-sdk');
 //aws.config.loadFromPath('/var/www/html/node/Bharat/server/utils/config.json');
 aws.config.loadFromPath(`${__dirname}/../utils/config.json`);
