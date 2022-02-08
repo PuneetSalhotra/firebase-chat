@@ -2137,7 +2137,7 @@ function ActivityListingService(objCollection) {
 
 			var queryString = util.getQueryString('ds_v1_workforce_form_mapping_select_organization', paramsArr);
 			if (queryString != '') {
-				db.executeQuery(0, queryString, request, function (err, data) {
+				db.executeQuery(1, queryString, request, function (err, data) {
 					//console.log("err "+err);
 					if (err === false) {
 						//console.log('data: '+data.length);
@@ -4327,7 +4327,7 @@ function ActivityListingService(objCollection) {
 		const queryString = util.getQueryString('ds_p1_asset_list_select_asset', paramsArr);
 
 		if (queryString !== '') {
-			await db.executeQueryPromise(0, queryString, request)
+			await db.executeQueryPromise(1, queryString, request)
 				.then
 				(
 					(data) => {
@@ -4392,7 +4392,7 @@ function ActivityListingService(objCollection) {
 		const queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_form_field', paramsArr);
 
 		if (queryString !== '') {
-			await db.executeQueryPromise(0, queryString, request)
+			await db.executeQueryPromise(1, queryString, request)
 				.then((data) => {
 					responseData = data;
 					error = false;

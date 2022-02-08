@@ -599,7 +599,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                );
             var queryString = util.getQueryString('ds_v1_workforce_activity_status_mapping_select_status', paramsArr);
               if (queryString != '') {
-                  db.executeQuery(0, queryString, request, function (err, resp) {
+                  db.executeQuery(1, queryString, request, function (err, resp) {
                       if (err === false) {
                           if(request.activity_status_type_id != 103) {
                             //console.log('Response : ', resp);

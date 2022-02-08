@@ -262,7 +262,7 @@ function FormConfigService(objCollection) {
             );
             const queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select', paramsArr);
             if (queryString !== '') {
-                db.executeQuery(0, queryString, request, function (err, data) {
+                db.executeQuery(1, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
                 });
             }
@@ -2571,7 +2571,7 @@ function FormConfigService(objCollection) {
         const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select_workflow_form_origin', paramsArr);
         if (queryString !== '') {
 
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     formEntityData = data;
                     error = false;
@@ -2674,7 +2674,7 @@ function FormConfigService(objCollection) {
         const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select_workflow_forms', paramsArr);
         if (queryString !== '') {
 
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     workflowFormsData = data;
                     error = false;
@@ -2708,7 +2708,7 @@ function FormConfigService(objCollection) {
         const queryString = util.getQueryString('ds_p1_form_entity_mapping_select_workflow_forms', paramsArr);
         if (queryString !== '') {
 
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     workflowFormsData = data;
                     error = false;
@@ -2737,7 +2737,7 @@ function FormConfigService(objCollection) {
         const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select_workflow_form_origin', paramsArr);
         if (queryString !== '') {
 
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     workflowFormsData = data;
                     error = false;
@@ -2786,7 +2786,7 @@ function FormConfigService(objCollection) {
         const queryString = util.getQueryString('ds_p1_1_activity_timeline_transaction_select_activity_form', paramsArr);
         if (queryString !== '') {
 
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     workflowFormsTimelineTransactionData = data;
                     error = false;
@@ -3473,7 +3473,7 @@ function FormConfigService(objCollection) {
         const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select', paramsArr);
         if (queryString !== '') {
 
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     formData = data;
                     error = false;
@@ -3863,7 +3863,7 @@ function FormConfigService(objCollection) {
         const queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_refered_activity', paramsArr);
         if (queryString !== '') {
 
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     formData = data;
                     error = false;
@@ -6776,7 +6776,7 @@ function FormConfigService(objCollection) {
         const queryString = util.getQueryString('ds_p1_1_workforce_form_mapping_select_workflow_forms', paramsArr);
         if (queryString !== '') {
 
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     workflowFormsData = data;
                     error = false;
@@ -7347,7 +7347,7 @@ function FormConfigService(objCollection) {
         const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select_meeting_form_origin', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {                    
                     responseData = data;
                     error = false;
@@ -7376,7 +7376,7 @@ function FormConfigService(objCollection) {
         const queryString = util.getQueryString('ds_p1_form_entity_mapping_select_category', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {                    
                     responseData = data;
                     error = false;

@@ -1397,7 +1397,7 @@ function WorkbookOpsService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_select', paramsArr);
         if (queryString !== '') {
 
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     formData = data;
                     error = false;

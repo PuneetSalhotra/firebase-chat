@@ -1847,7 +1847,7 @@ function ActivityService(objectCollection) {
             );
             var queryString = util.getQueryString('ds_v1_asset_list_select_category', paramsArr);
             if (queryString != '') {
-                db.executeQuery(0, queryString, request, function (err, pushArns) {
+                db.executeQuery(1, queryString, request, function (err, pushArns) {
                     if (err === false) {
                         var data = new Array();
                         forEachAsync(pushArns, function (next, rowData) {
@@ -3119,7 +3119,7 @@ function ActivityService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_activity_status_change_transaction_select_asset_work_exp', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -5717,7 +5717,7 @@ function ActivityService(objectCollection) {
         const queryString = util.getQueryString('ds_v1_bot_operation_mapping_select_field', paramsArr);
         
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then(async (data) => {
                     responseData = data;
                     error = false;
@@ -5745,7 +5745,7 @@ function ActivityService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_widget_list_select_form_field_widget_type', paramsArr);
         
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then(async (data) => {
                     responseData = data;
                     error = false;
@@ -5998,7 +5998,7 @@ function ActivityService(objectCollection) {
         const queryString = util.getQueryString('ds_v1_widget_list_select_field_reference', paramsArr);
         
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then(async (data) => {
                     responseData = data;
                     error = false;

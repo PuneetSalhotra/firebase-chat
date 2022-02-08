@@ -982,7 +982,7 @@ function AdminListingService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_widget_list_select_level', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -1182,7 +1182,7 @@ function AdminListingService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_activity_list_select_workforce_category', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -1877,7 +1877,7 @@ function AdminListingService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select_workflow_forms_strict', paramsArr);
         if (queryString !== '') {
 
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     workflowFormsData = data;
                     error = false;
