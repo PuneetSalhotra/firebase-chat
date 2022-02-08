@@ -3081,6 +3081,7 @@ function TasiService(objectCollection) {
             request.parameter_mapping_name,
             request.parameter_mapping_desc,
             request.parameter_mapping_url,
+            request.parameter_mapping_inline,
             request.financial_year,
             request.timeline_id,
             request.period_start_datetime,
