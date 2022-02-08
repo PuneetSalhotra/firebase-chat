@@ -5,7 +5,7 @@ const request = require('request');
 let baseUrl = (global.mode === 'dev') ? 'http://8599f133.ngrok.io/' + global.config.version : 'https://api.worlddesk.cloud/' + global.config.version;
 let efsPath = '/api-cdci-efs/'
 
-if(global.mode === 'staging') {
+if (global.mode === 'staging') {
     baseUrl = 'http://stagingapi.worlddesk.cloud/' + global.config.version;
     efsPath = '/api-staging-efs/';
 
@@ -30,6 +30,7 @@ class SmsEngine extends EventEmitter {
 
         // Domestic
         this.on('send-sinfini-sms', sendSinfiniSms);
+        this.on('send-textlocal-sms', sendtextLocalSMS);
         this.on('send-mvayoo-sms', sendMvayooSms);
         this.on('send-bulksms-sms', sendBulkSms);
 
@@ -137,6 +138,41 @@ function sendSinfiniSms(options) {
     });
 }
 
+function sendtextLocalSMS(options) {
+
+    let url = 'https://api.textlocal.in/send/';
+
+    let msgString;
+    if (options.type === 'OTP') {
+        msgString = getOTPString(options.verificationCode, options);
+
+    } else if (options.type === 'NOTFCTN') {
+        msgString = options.msgString;
+    }
+
+    let qs = {
+        apikey: 'NTg2ODM3MzA0NTUwMzc0ZjY4MzE3OTUwNzk3MTM2NTM=',
+        numbers: options.countryCode + '' + options.phoneNumber,
+        sender: "GRNEOS",
+        message: msgString
+    };
+
+    request({
+        url,
+        qs
+    }, (err, response, body) => {
+
+        if (err) {
+            console.log("\x1b[31m[localText]\x1b[0m Error: ", err);
+        } else {
+            let parsedBody = JSON.parse(body);
+            console.log("\x1b[32m[localText]\x1b[0m response statusCode: ", response.statusCode);
+            console.log("\x1b[32m[localText]\x1b[0m parsedBody: ", parsedBody);
+            console.log("\x1b[32m[localText]\x1b[0m parsedBody.status: ", parsedBody.status);
+        }
+    });
+}
+
 // 2. mVayoo
 function sendMvayooSms(options) {
     // Inits
@@ -152,7 +188,7 @@ function sendMvayooSms(options) {
         user: 'junaid.m@grene.in:greneapple',
         //senderID: 'DESKER',
         //senderID: 'MYTONY',
-        senderID: 'GRNEOS',    
+        senderID: 'GRNEOS',
         receipientno: options.countryCode + '' + options.phoneNumber,
         dcs: 0, // Data Coding Schema. 0 => Text Message
         msgtxt: msgString,
@@ -320,7 +356,7 @@ function sendNexmoSms(options) {
 
 ////////////////////////////////////////////////////////////
 // Utility functions
-function getOTPString(verificationCode, options) {    
+function getOTPString(verificationCode, options) {
     //var msg_body = verificationCode + " is the OTP to verify your mobile number - " + options.appName;
     var msg_body = verificationCode + " is your verification code for the " + options.appName + ".";
     return msg_body;

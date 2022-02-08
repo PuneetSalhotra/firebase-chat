@@ -10,6 +10,7 @@ require('./server/vodafone/utils/vodafoneConfig');
 
 const logger = require('./server/logger/winstonLogger');
 const redis = require('redis'); // using elasticache as redis
+const { serializeError } = require('serialize-error');
 let redisClient;
 
 if (global.mode === 'local') {
@@ -19,6 +20,9 @@ if (global.mode === 'local') {
 }
 
 let isFirstTime = true;
+let processingMessageCount = 0;
+let sqsConsumerOne = null;
+let cacheWrapper = null;
 redisClient.on('connect', async function (response) {
     logger.info('Redis Client Connected', { type: 'redis', response });
 
@@ -45,7 +49,6 @@ redisClient.on('connect', async function (response) {
         const AWS = require('aws-sdk');
 
         const kafka = require('kafka-node');
-        const { serializeError } = require('serialize-error');
         const KafkaProducer = kafka.Producer;
 
         const forEachAsync = require('forEachAsync').forEachAsync;
@@ -62,7 +65,7 @@ redisClient.on('connect', async function (response) {
 
         async function SetMessageHandlerForConsumer() {
 
-            const cacheWrapper = new CacheWrapper(redisClient);
+            cacheWrapper = new CacheWrapper(redisClient);
             const kafkaProducer = await GetKafkaProducer();
 
             const objectCollection = await GetObjectCollection(kafkaProducer, cacheWrapper);
@@ -88,7 +91,7 @@ redisClient.on('connect', async function (response) {
                 "region": "ap-south-1"
             });
 
-            const sqsConsumerOne = Consumer.create({
+            sqsConsumerOne = Consumer.create({
                 queueUrl: global.config.sqsConsumerSQSQueue,
                 handleMessage: async (message) => {
 
@@ -144,8 +147,13 @@ redisClient.on('connect', async function (response) {
                             request.log_datetime = objectCollection.util.getCurrentUTCTime();
 
                             const [errorThree, __] = await activityCommonService.BOTMessageTransactionUpdateStatusAsync(request);
+                            processingMessageCount++;
+                            botService.initBotEngine(requestForBotEngine).then(botResponse => {
+                                processingMessageCount--;
+                            }).catch(err => {
+                                processingMessageCount--;
+                            });
 
-                            botService.initBotEngine(requestForBotEngine);
                         });
 
 
@@ -234,4 +242,59 @@ redisClient.on('connect', async function (response) {
 redisClient.on('error', function (error) {
     logger.error('Redis Error', { type: 'redis', error: serializeError(error) });
     // console.log(error);
+});
+
+
+
+const signalsForGracefulShutdown = [
+    'SIGTERM', 'SIGINT',
+    'SIGABRT', 'SIGALRM',
+    'SIGHUP', 'SIGPWR',
+    'SIGUNUSED', 'SIGKILL'
+]
+
+for (const signal of signalsForGracefulShutdown) {
+    process.on(signal, async (signalName) => {
+        logger.error(`${signalName} signal received for bot consumer shutdown `, { type: `${signalName}` });
+        try {
+            // Disconnecting the consumer
+            sqsConsumerOne.stop();
+            let isGracefullShutdownRequired = await cacheWrapper.getKeyValueFromCache('BOT_CONSUMER_GRACEFULL_SHUTDOWN');
+            isGracefullShutdownRequired = Number(isGracefullShutdownRequired);
+            while (processingMessageCount > 0 && isGracefullShutdownRequired > 0) {
+                await new Promise((resolve) => {
+                    setTimeout(() => {
+                        logger.error(`[WaitingToShutdown] *&*&*&*&*&*&*&*&*&*&*&*&`, { type: `${signalName}` });
+                        logger.error(`[WaitingToShutdown] processing message count ${processingMessageCount} remaining waiting time to shutdown ${isGracefullShutdownRequired}`, { type: `${signalName}` });
+                        isGracefullShutdownRequired -= 2;
+                        resolve();
+                    }, 2000);
+                });
+            }
+            process.exit(0);
+        } catch (error) {
+            logger.error(`${signalName} Error running chores before exit`, { type: `${signalName}`, error: serializeError(error) });
+            process.exit(1)
+        }
+    });
+}
+
+process.on('message', (message) => {
+    logger.silly("[PROCESS MESSAGE] %j", message, { type: 'message_message' });
+});
+
+process.on('uncaughtException', (error, origin) => {
+    logger.error("Uncaught Exception", { type: 'uncaught_exception', origin, error: serializeError(error) });
+    // console.log(`process.on(uncaughtException): ${err}\n`);
+    // throw new Error('uncaughtException');
+});
+
+process.on('error', (error) => {
+    // console.log(`process.on(error): ${err}\n`);
+    logger.error("Process Error", { type: 'process_error', error: serializeError(error) });
+    throw new Error('error');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    logger.error("Unhandled Promise Rejection", { type: 'unhandled_rejection', promise_at: promise, error: serializeError(reason) });
 });

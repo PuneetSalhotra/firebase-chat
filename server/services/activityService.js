@@ -4283,9 +4283,103 @@ function ActivityService(objectCollection) {
             util.logError(request,`updateWorkflowQueueMapping | Activity Details Fetch Error | error:  `, { type: "change_status", error: serializeError(error) });
         }
         try {
-            request.page_limit = 500;
+          //  request.page_limit = 500;
             let queueMap;
 
+            request.is_global = 0;
+            if(isGlobalWorkflow){
+                request.is_global = 1;
+            }
+
+            let [err,existingQueues] = await self.getExisitngQueuesOfAnActivity(request);
+            let [err1, newQueues] = await self.getQueuesMappedToAStatus(request);
+
+            let unMappingQueues = [];
+            let mappingQueues = [];
+
+            unMappingQueues = existingQueues.map(function(item) {
+                return item['queue_id'];
+            });
+
+            mappingQueues = newQueues.map(function(item) {
+                return item['queue_id'];
+            });
+
+            util.logInfo(request, "unMappingQueues "+JSON.stringify(unMappingQueues));
+            util.logInfo(request, "mappingQueues "+JSON.stringify(mappingQueues));            
+
+            let addQueues = mappingQueues.filter(value => !unMappingQueues.includes(value));
+            let deleteQueues = unMappingQueues.filter(value => !mappingQueues.includes(value));
+
+            util.logInfo(request, "ADDING QUEUES "+JSON.stringify(addQueues));
+            util.logInfo(request, "DELETING QUEUES "+JSON.stringify(deleteQueues));
+
+            let req = {};
+            req.organization_id = request.organization_id;
+            req.activity_id = request.activity_id;
+            req.asset_id = request.asset_id;
+            req.queue_id = 0;
+
+            for(let i = 0; i < deleteQueues.length; i ++){
+                req.queue_id = deleteQueues[i];
+                self.deleteQueueOFAnActivity(req);
+            }
+
+            for(let i = 0; i < addQueues.length; i ++){
+
+                await activityCommonService
+                .mapFileToQueueV1(request, addQueues[i], JSON.stringify({
+                    "queue_sort": {
+                        "current_status_id": request.activity_status_id,
+                        "file_creation_time": workflowActivityCreationTime,
+                        "queue_mapping_time": moment().utc().format('YYYY-MM-DD HH:mm:ss'),
+                        "current_status_name": "",
+                        "last_status_alter_time": "",
+                        "caf_completion_percentage": workflowActivityPercentage || 0
+                    }
+                }))
+                .then((queueActivityMappingData) => {
+                    util.logInfo(request,`updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping:  %j`,queueActivityMappingData);
+                    activityCommonService.queueHistoryInsert(request, 1401, queueActivityMappingData[0].queue_activity_mapping_id).then(() => {});
+                })
+                .catch((error) => {
+                    util.logError(request,`updateWorkflowQueueMapping | mapFileToQueue | Error: `, { type: "bot_engine", error: serializeError(error) });
+                });
+
+            }
+
+         /*
+            // ALTERNATE TO THE ABOVE LOGIC 
+            let [err1, newQueues] = await self.getQueuesMappedToAStatus(request);
+            util.logInfo(request, "newQueues "+JSON.stringify(newQueues));
+            await self.deleteQueueOFAnActivity(request);
+
+            for(let i = 0; i < newQueues.length; i ++){
+                
+                await activityCommonService
+                .mapFileToQueueV1(request, newQueues[i].queue_id, JSON.stringify({
+                    "queue_sort": {
+                        "current_status_id": request.activity_status_id,
+                        "file_creation_time": workflowActivityCreationTime,
+                        "queue_mapping_time": moment().utc().format('YYYY-MM-DD HH:mm:ss'),
+                        "current_status_name": "",
+                        "last_status_alter_time": "",
+                        "caf_completion_percentage": workflowActivityPercentage || 0
+                    }
+                }))
+                .then((queueActivityMappingData) => {
+                    util.logInfo(request,`updateWorkflowQueueMapping | mapFileToQueue | queueActivityMapping:  %j`,queueActivityMappingData);
+                    activityCommonService.queueHistoryInsert(request, 1401, queueActivityMappingData[0].queue_activity_mapping_id).then(() => {});
+                })
+                .catch((error) => {
+                    util.logError(request,`updateWorkflowQueueMapping | mapFileToQueue | Error: `, { type: "bot_engine", error: serializeError(error) });
+                });
+
+            }            
+         */
+
+
+/*
             if(isGlobalWorkflow) {
                 //Flag 4 It will give all the queues in the 906 organization
                 let req = Object.assign({}, request);
@@ -4412,6 +4506,7 @@ function ActivityService(objectCollection) {
             } else {
                 return [];
             }
+            */
         } catch (error) {
             util.logError(request,`updateWorkflowQueueMapping | queueMap | Error: `, { type: "bot_engine", error: serializeError(error) });
             return [];
@@ -6106,6 +6201,81 @@ function ActivityService(objectCollection) {
 
         return [error, responseData];
     }
+
+    this.getQueuesMappedToAStatus = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.activity_status_id,
+            request.is_global || 0
+        ];
+
+        const queryString = util.getQueryString('ds_v1_queue_activity_status_mapping_select_status', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, responseData];
+    }   
+
+    this.getExisitngQueuesOfAnActivity = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.activity_id
+        ];
+
+        const queryString = util.getQueryString('ds_v1_queue_activity_mapping_select_existing_queues', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }       
+
+    this.deleteQueueOFAnActivity = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.activity_id,
+            request.queue_id || 0,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_v1_queue_activity_mapping_delete', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, responseData];
+    }       
 
 }
 

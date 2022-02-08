@@ -788,19 +788,19 @@ function ActivityController(objCollection) {
    	 	res.json(responseWrapper.getResponse({}, {}, 200, req.body));
    });
     
-    // app.post('/' + global.config.version + '/test/workflow/queue/mapping/set', function (req, res) {
-    //     activityService.updateWorkflowQueueMapping(req.body)
-    //         .then((data) => {
-    //             // console.log("Data: ", data)
-    //             res.json(responseWrapper.getResponse({}, data, 200, req.body));
-    //         })
-    //         .catch((err) => {
-    //             let data = {};
-    //             res.json(responseWrapper.getResponse(err, data, -999, req.body));
-    //         });
+    app.post('/' + global.config.version + '/test/workflow/queue/mapping/set', function (req, res) {
+        activityService.updateWorkflowQueueMapping(req.body)
+            .then((data) => {
+                // console.log("Data: ", data)
+                res.json(responseWrapper.getResponse({}, data, 200, req.body));
+            })
+            .catch((err) => {
+                let data = {};
+                res.json(responseWrapper.getResponse(err, data, -999, req.body));
+            });
 
-    //     // res.json(responseWrapper.getResponse({}, {}, 200, req.body));
-    // });
+        // res.json(responseWrapper.getResponse({}, {}, 200, req.body));
+    });
 
     app.post('/' + global.config.version + '/activity/workflow/get_percentage', function (req, res) {
         activityService.getWorkflowPercentage(req.body)
