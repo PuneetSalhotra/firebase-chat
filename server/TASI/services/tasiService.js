@@ -753,7 +753,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_common_measurement_category_master_select', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -2683,21 +2683,27 @@ function TasiService(objectCollection) {
             error = true;
 
         const paramsArr = new Array(
-          request.organization_id,
-          request.asset_id,
-          request.manager_asset_id,
-          request.asset_type_id,
-          request.flag,
-          request.flag_type,
-          request.period_type_id,
-          request.period_start_datetime,
-          request.period_end_datetime,
-          request.workforce_tag_id,
-          request.widget_type_id,
-          request.widget_type_category_id,
-          request.product_id,
-          request.start_from,
-          request.limit_value
+            request.organization_id, 
+            request.asset_id, 
+            request.manager_asset_id, 
+            request.asset_type_id, 
+            request.flag,
+            request.flag_type,
+            request.asset_tag_id,
+            request.level_id,
+            request.timeline_id,
+            request.period_type_id,
+            request.period_start_datetime, 
+            request.period_end_datetime,
+            request.financial_year,
+            request.cluster_tag_id,
+            request.account_id,
+            request.workforce_tag_id,
+            request.widget_type_id,
+            request.widget_type_category_id,
+            request.product_id,
+            request.start_from, 
+            request.limit_value
         );
 
         const queryString = util.getQueryString('ds_p3_entity_target_mapping_select', paramsArr);
@@ -3375,6 +3381,33 @@ function TasiService(objectCollection) {
         );
 
         const queryString = util.getQueryString('ds_p1_payout_type_master_update_inline', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.updateAccountTargetSettings = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.target_setting_id,
+            request.target_setting_name,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_account_target_setting_update', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)

@@ -5,7 +5,7 @@ const tracer = require('dd-trace').init({
 });
 const tracerScope = tracer.scope();
 const tracerFormats = require('dd-trace/ext/formats')
-require('./server/utils/globalConfig');
+require('./server/utils/globalConfigV1');
 require('./server/vodafone/utils/vodafoneConfig');
 
 const logger = require('./server/logger/winstonLogger');

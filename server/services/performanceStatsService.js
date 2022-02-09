@@ -138,7 +138,7 @@ function PerformanceStatsService(objectCollection) {
                 );
             var queryString = util.getQueryString('ds_p1_asset_montly_summary_transaction_select_inmail_counts', paramsArr);
             if (queryString != '') {
-                db.executeQuery(0, queryString, request, function (err, data) {
+                db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? callback(false, data, 200) : callback(true, err, -9999);
                 });
             }

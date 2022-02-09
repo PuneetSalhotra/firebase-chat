@@ -41,7 +41,7 @@ function ActivityCommonService(db, util, forEachAsync) {
             );
             const queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants', paramsArr);
             if (queryString !== '') {
-                db.executeQuery(0, queryString, request, function (err, data) {
+                db.executeQuery(1, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
                 });
             }
@@ -3322,7 +3322,7 @@ this.getAllParticipantsAsync = async (request) => {
 
             var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
             if (queryString != '') {
-                db.executeQuery(0, queryString, request, function (err, data) {
+                db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log("err "+err);
                     if (err === false) {
                         console.log('data: ' + data.length);
@@ -3446,7 +3446,7 @@ this.getAllParticipantsAsync = async (request) => {
 
             var queryString = util.getQueryString('ds_v1_activity_list_select_form_transaction', paramsArr);
             if (queryString != '') {
-                db.executeQuery(0, queryString, request, function (err, data) {
+                db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log("err "+err);
                     if (err === false) {
                         // console.log('data: ' + data);
@@ -3530,7 +3530,7 @@ this.getAllParticipantsAsync = async (request) => {
         const queryString = util.getQueryString('ds_p1_workforce_form_mapping_select', paramsArr);
         if (queryString !== '') {
 
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     formData = data;
                     error = false;
@@ -3786,7 +3786,7 @@ this.getAllParticipantsAsync = async (request) => {
             let queryString = util.getQueryString('ds_p1_widget_activity_field_transaction_select_wokflow', paramsArr);
                
             if (queryString != '') {
-                db.executeQuery(0, queryString, request, function (err, data) {
+                db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {
                         resolve(data);
                     } else {
@@ -4015,7 +4015,7 @@ this.getAllParticipantsAsync = async (request) => {
         const queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_refered_activity', paramsArr);
         if (queryString !== '') {
 
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     formData = data;
                     error = false;
@@ -4050,7 +4050,7 @@ this.getAllParticipantsAsync = async (request) => {
         const queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_form_workflow', paramsArr);
         if (queryString !== '') {
 
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     formData = data;
                     error = false;
@@ -5213,7 +5213,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         let queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_id', paramsArr);
         if (queryString != '') {
             //return await db.executeQueryPromise(1, queryString, request);
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -5271,7 +5271,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         const queryString = util.getQueryString('ds_p1_activity_list_select_asset_lead_tasks', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -5793,7 +5793,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                     );
         const queryString = util.getQueryString('ds_p1_activity_activity_mapping_select', paramsArr);
         if (queryString != '') {
-                await db.executeQueryPromise(0, queryString, request)
+                await db.executeQueryPromise(1, queryString, request)
                     .then((data) => {
                         responseData = data;
                         error = false;

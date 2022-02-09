@@ -1920,7 +1920,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         const queryString = util.getQueryString('ds_p1_queue_access_mapping_select_queue_asset', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -6713,7 +6713,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
         const queryString = util.getQueryString('ds_p1_asset_list_select_manager_flag', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -8437,7 +8437,7 @@ if (queryString !== '') {
         const queryString = util.getQueryString('ds_p1_asset_manager_mapping_select', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -11173,7 +11173,7 @@ if (queryString !== '') {
 
         const queryString = util.getQueryString('ds_v1_tag_entity_mapping_select_tags_category', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     console.log("getListOfTagsUnderCategory : response = ");
                     console.log(data);
