@@ -189,6 +189,7 @@ function TasiService(objectCollection) {
             request.asset_type_flag_sip_target || 0,
             request.asset_type_flag_omit_consolidation || 0,
             request.asset_type_ta_notes || "",
+            request.asset_type_ta_applicable_date || "",
             request.flag,
             util.getCurrentUTCTime(),
             request.log_asset_id
