@@ -7446,6 +7446,67 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         }
         return [error, responseData];
     };
+
+    this.processFieldWidgetData = async function (request, fieldData) {
+        let responseData = [],
+            error = true;
+
+        let WidgetFieldRequest = Object.assign({}, request);
+        let activityTypeCategroyId = parseInt(request.activity_type_category_id);
+        WidgetFieldRequest.field_id = fieldData.field_id;
+        WidgetFieldRequest.field_name = fieldData.field_name;
+        //WidgetFieldRequest.form_id = fieldData.form_id;
+        WidgetFieldRequest.data_type_id = fieldData.field_data_type_id;
+        WidgetFieldRequest.page_start = 0;
+        WidgetFieldRequest.page_limit = 1;
+        //WidgetFieldRequest.widget_type_id = 68;
+        WidgetFieldRequest.field_value = fieldData.field_value;
+
+        if (fieldData.field_data_type_id === 57) {
+            WidgetFieldRequest.field_value = fieldData.field_value;
+            WidgetFieldRequest.mapping_activity_id = fieldData.field_value.split("\|")[0];
+            WidgetFieldRequest.mapping_type_id = 1;
+        } else if (fieldData.field_data_type_id == 33 || fieldData.field_data_type_id == 34 || fieldData.field_data_type_id == 19) {
+            WidgetFieldRequest.field_value = fieldData.field_value;
+            WidgetFieldRequest.mapping_type_id = 2;
+            WidgetFieldRequest.mapping_activity_id = 0;
+        } else {
+            WidgetFieldRequest.field_value = fieldData.field_value;
+            WidgetFieldRequest.mapping_type_id = 3;
+            WidgetFieldRequest.mapping_activity_id = 0;
+        }
+
+        let [errorWidget, responseWidget] = await this.checkFieldOrReferenceWidget(WidgetFieldRequest);
+        if (responseWidget.length > 0) {
+            util.logInfo(request, `FieldWidget exists for this Field :: ${fieldData.field_id}`);
+
+            if (activityTypeCategroyId === 48 || activityTypeCategroyId === 53 || activityTypeCategroyId === 54
+                || activityTypeCategroyId === 63 || activityTypeCategroyId === 31) {
+                await this.activtyReferenceFieldInsert(WidgetFieldRequest);
+
+            } else if (activityTypeCategroyId === 9) {
+
+                let formData = await this.getFormDetails(request);
+                if (formData.length > 0) {
+
+                    if (formData[0].form_flag_workflow_origin == 0) {
+
+                        WidgetFieldRequest.activity_id = WidgetFieldRequest.workflow_activity_id;
+                        await this.activtyReferenceFieldInsert(WidgetFieldRequest);
+
+                    } else {
+                        util.logInfo(request, `Origin Form submitted, hence no widget data insert`);
+                    }
+                } else {
+                    util.logInfo(request, `No Form Exists with this FormId`);
+                }
+            }
+        } else {
+            WidgetFieldRequest = null;
+            util.logInfo(request, `No FieldWidget for this Field ${fieldData.field_id}`);
+        }
+        return [error, responseData];
+    }
 }
 
 
