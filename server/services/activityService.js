@@ -5844,14 +5844,14 @@ function ActivityService(objectCollection) {
             WidgetFieldRequest.mapping_activity_id = 0;
         }
 
-        let [errorWidget, responseWidget] = await checkFieldOrReferenceWidget(WidgetFieldRequest); 
+        let [errorWidget, responseWidget] = await activityCommonService.checkFieldOrReferenceWidget(WidgetFieldRequest); 
         if(responseWidget.length > 0){
             util.logInfo(request,`FieldWidget exists for this Field :: ${fieldData.field_id}`);
 
             if(activityTypeCategroyId === 48 || activityTypeCategroyId === 53 || activityTypeCategroyId === 54
                 || activityTypeCategroyId === 63  || activityTypeCategroyId === 31)
             {
-                activtyReferenceFieldInsert(WidgetFieldRequest);
+                activityCommonService.activtyReferenceFieldInsert(WidgetFieldRequest);
 
             }else if(activityTypeCategroyId === 9){
 

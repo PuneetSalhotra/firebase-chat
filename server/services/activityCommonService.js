@@ -7386,7 +7386,66 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         return [error, responseData];
     };
 
-    
+    this.activtyReferenceFieldInsert = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            request.activity_type_id,
+            request.activity_type_category_id,
+            request.form_id,
+            request.field_id,
+            request.field_name,
+            request.field_value,
+            request.form_transaction_id,
+            request.mapping_activity_id,
+            request.mapping_type_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_activity_reference_field_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.checkFieldOrReferenceWidget = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.form_id,
+            request.field_id,
+            request.data_type_id,
+            request.page_start,
+            request.page_limit
+        ];
+
+        const queryString = util.getQueryString('ds_v1_widget_list_select_field_reference', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 }
 
 
