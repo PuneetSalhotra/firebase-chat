@@ -753,7 +753,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_common_measurement_category_master_select', paramsArr);
 
         if (queryString !== '') {
-            await db.1, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
