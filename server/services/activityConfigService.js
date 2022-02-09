@@ -710,7 +710,7 @@ function ActivityConfigService(db,util,objCollection) {
         const queryString = util.getQueryString('ds_v1_activity_sub_status_mapping_select',paramsArr);
 
         if(queryString !== '') {
-            await db.executeQueryPromise(0,queryString,request)
+            await db.executeQueryPromise(1,queryString,request)
                 .then((data) => {
                     responseData = data;
                     error = false;

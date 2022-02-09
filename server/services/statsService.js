@@ -169,7 +169,7 @@ function StatsService(objCollection) {
             );
             var queryString = util.getQueryString('ds_p1_asset_list_select_worlddesk_stats', paramsArr);
             if (queryString != '') {
-                db.executeQuery(0, queryString, request, function (err, data) {
+                db.executeQuery(1, queryString, request, function (err, data) {
                     (!err) ? resolve(data): reject(err);
                 });
             }
@@ -194,7 +194,7 @@ function StatsService(objCollection) {
             );
             var queryString = util.getQueryString('ds_p1_asset_timeline_transaction_select_asset_dates', paramsArr);
             if (queryString != '') {
-                db.executeQuery(0, queryString, request, function (err, data) {
+                db.executeQuery(1, queryString, request, function (err, data) {
                     (!err) ? resolve(data): reject(err);
                 });
             }
@@ -219,7 +219,7 @@ function StatsService(objCollection) {
             );
             var queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_asset_dates', paramsArr);
             if (queryString != '') {
-                db.executeQuery(0, queryString, request, function (err, data) {
+                db.executeQuery(1, queryString, request, function (err, data) {
                     (!err) ? resolve(data): reject(err);
                 });
             }

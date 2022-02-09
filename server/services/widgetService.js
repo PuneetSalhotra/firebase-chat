@@ -492,7 +492,7 @@ function WidgetService(objCollection) {
 
         var queryString = util.getQueryString('ds_v1_widget_entity_mapping_select_level_all', paramsArr);
         if (queryString != '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -553,7 +553,7 @@ function WidgetService(objCollection) {
 
         var queryString = util.getQueryString('ds_p1_widget_entity_mapping_select_asset_activity_types', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -603,7 +603,7 @@ function WidgetService(objCollection) {
 
         var queryString = util.getQueryString('ds_p1_1_widget_entity_mapping_select_asset_activity_type_widgets', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
