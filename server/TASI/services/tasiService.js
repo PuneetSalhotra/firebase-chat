@@ -1732,6 +1732,7 @@ function TasiService(objectCollection) {
             request.period_type_id,
             request.period_start_datetime,
             request.period_end_datetime,
+            request.financial_year,
             request.validation_flag_is_bulk,
             request.validation_file_upload_url,
             request.product_id,
