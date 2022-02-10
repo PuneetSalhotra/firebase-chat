@@ -71,10 +71,12 @@ function PamUpdateController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            //global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            util.logError(req,`serverError error in setting in asset parity Error %j`, { err,body : req.body });
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                            //global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                            util.logInfo(req,`conLog Asset parity is set successfully %j`,{body : req.body});
 
                                     });
                                 }
@@ -154,10 +156,12 @@ function PamUpdateController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError', "error in setting in asset parity", err, req.body);
+                                            //global.logger.write('serverError', "error in setting in asset parity", err, req.body);
+                                            util.logError(req,`serverError error in setting in asset parity Error %j`, { err,body : req.body });
                                         } else
                                             //console.log("asset parity is set successfully")
-                                        global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                        //global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                        util.logInfo(req,`conLog Asset parity is set successfully %j`,{body : req.body});
 
                                     });
                                 }

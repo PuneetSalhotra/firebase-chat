@@ -685,7 +685,8 @@ function ActivityController(objCollection) {
             queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
                 if (err) {
                     //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                    global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, req.body);
+                    //global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, req.body);
+                    util.logError(req,`serverError Error in queueWrapper raiseActivityEvent Error %j`, { err,body : req.body });
 
                     res.json(responseWrapper.getResponse(true, activityData, -5999, req.body));
                     throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
@@ -696,11 +697,13 @@ function ActivityController(objCollection) {
                             cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                 if (err) {
                                     //console.log("error in setting in asset parity");
-                                    global.logger.write('serverError', "error in setting asset parity", err, req.body);
+                                    //global.logger.write('serverError', "error in setting asset parity", err, req.body);
+                                    util.logError(req,`serverError error in setting asset parity Error %j`, { err,body : req.body });
 
                                 } else
                                     //console.log("asset parity is set successfully")
-                                    global.logger.write('debug', "asset parity is set successfully", {}, req.body);
+                                    //global.logger.write('debug', "asset parity is set successfully", {}, req.body);
+                                    util.logInfo(req,`debug asset parity is set successfully %j`,{ body : req.body, req });
 
                             });
                         }
@@ -778,7 +781,8 @@ function ActivityController(objCollection) {
     
     app.post('/' + global.config.version + '/activity/form/field/validation/set', function (req, res) {
    	 activityService.updateActivityFormFieldValidation(req.body).then((data)=>{   
-   		global.logger.write('conLog', "VALIDATION SET : RESPONSE : " + data, {}, req);
+               //global.logger.write('conLog', "VALIDATION SET : RESPONSE : " + data, {}, req);
+               util.logInfo(req, `conLog VALIDATION SET :  %j`, { RESPONSE : data, req });
    		//res.json(responseWrapper.getResponse({}, data, 200, req.body));
    	}).catch((err) => { 
    		data = {};

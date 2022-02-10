@@ -23,7 +23,8 @@ function ActivityConfigController(objCollection) {
 
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('conLog', err, {}, req.body);
+                //global.logger.write('conLog', err, {}, req.body);
+                util.logError(req,`conLog Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode,req.body));
             }
@@ -42,7 +43,8 @@ function ActivityConfigController(objCollection) {
 
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('conLog', err, {}, req.body);
+                //global.logger.write('conLog', err, {}, req.body);
+                util.logError(req,`conLog Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode,req.body));
             }
@@ -61,7 +63,8 @@ function ActivityConfigController(objCollection) {
 
             } else {
                 //console.log('did not get proper respone');
-                global.logger.write('conLog', err, {}, req.body);
+                //global.logger.write('conLog', err, {}, req.body);
+                util.logError(req,`conLog Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode,req.body));
             }

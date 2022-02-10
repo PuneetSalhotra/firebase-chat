@@ -72,7 +72,8 @@ function AccountService(objectCollection) {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
                     // console.log(data);
-                    global.logger.write('conLog', 'retrieveAccountList data: ' + JSON.stringify(data, null, 2), {}, {});
+                    //global.logger.write('conLog', 'retrieveAccountList data: ' + JSON.stringify(data, null, 2), {}, {});
+                    util.logInfo(request,`conLog retrieveAccountList data: %j`,{data: JSON.stringify(data, null, 2),request});
 
                     formatAccountAccessList(data, function (error, data) {
                         if (error === false)

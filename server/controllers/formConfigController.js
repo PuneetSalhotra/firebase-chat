@@ -26,7 +26,8 @@ function FormConfigController(objCollection) {
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('debug', 'did not get proper response', err, req.body);
+                //global.logger.write('debug', 'did not get proper response', err, req.body);
+                util.logError(req,`debug did not get proper response Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -41,7 +42,8 @@ function FormConfigController(objCollection) {
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('debug', 'did not get proper response', err, req.body);
+                //global.logger.write('debug', 'did not get proper response', err, req.body);
+                util.logError(req,`debug did not get proper response Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -56,7 +58,8 @@ function FormConfigController(objCollection) {
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('debug', 'did not get proper response', err, req.body);
+                //global.logger.write('debug', 'did not get proper response', err, req.body);
+                util.logError(req,`debug did not get proper response Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -71,7 +74,8 @@ function FormConfigController(objCollection) {
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('debug', 'did not get proper response', err, req.body);
+                //global.logger.write('debug', 'did not get proper response', err, req.body);
+                util.logError(req,`debug did not get proper response Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -86,7 +90,8 @@ function FormConfigController(objCollection) {
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('debug', 'did not get proper response', err, req.body);
+                //global.logger.write('debug', 'did not get proper response', err, req.body);
+                util.logError(req,`debug did not get proper response Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }

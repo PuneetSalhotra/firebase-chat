@@ -13,7 +13,8 @@ function statsController(objCollection) {
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log("err: ", err);
-                global.logger.write('debug', err, {}, req.body);
+                //global.logger.write('debug', err, {}, req.body);
+                util.logError(req,`debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -25,7 +26,8 @@ function statsController(objCollection) {
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log("err: ", err);
-                global.logger.write('debug', err, {}, req.body);
+                //global.logger.write('debug', err, {}, req.body);
+                util.logError(req,`debug Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -38,7 +40,8 @@ function statsController(objCollection) {
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log("err: ", err);
-                global.logger.write('debug', err, {}, req.body);
+                //global.logger.write('debug', err, {}, req.body);
+                util.logError(req,`debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -144,7 +147,8 @@ function statsController(objCollection) {
 
                 res.json(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
-                global.logger.write('debug', err, {}, req.body);
+                //global.logger.write('debug', err, {}, req.body);
+                util.logError(req,`debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -168,7 +172,8 @@ function statsController(objCollection) {
 
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                global.logger.write('debug', err, {}, req.body);
+                //global.logger.write('debug', err, {}, req.body);
+                util.logError(req,`debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -491,7 +496,8 @@ function statsController(objCollection) {
                 });
                 res.json(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
-                global.logger.write('debug', err, {}, req.body);
+                //global.logger.write('debug', err, {}, req.body);
+                util.logError(req,`debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -817,7 +823,8 @@ function statsController(objCollection) {
 
                 res.json(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
-                global.logger.write('debug', err, {}, req.body);
+                //global.logger.write('debug', err, {}, req.body);
+                util.logError(req,`debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -887,7 +894,8 @@ function statsController(objCollection) {
 
                 res.json(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
-                global.logger.write('debug', err, {}, req.body);
+                //global.logger.write('debug', err, {}, req.body);
+                util.logError(req,`debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })

@@ -43,10 +43,12 @@ function ActivityUpdateController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError', "error in setting in asset parity", err, req.body);
+                                            //global.logger.write('serverError', "error in setting in asset parity", err, req.body);
+                                            util.logError(req,`serverError error in setting in asset parity Error %j`, { err,body : req.body });
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                            //global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                            util.logInfo(req,`conLog Asset parity is set successfully %j`,{body : req.body});
 
                                     });
                                 }
@@ -60,7 +62,8 @@ function ActivityUpdateController(objCollection) {
         try {
             JSON.parse(req.body.activity_inline_data);
             // console.log('json is fine');
-            global.logger.write('conLog', "json is fine", {}, req.body);
+            //global.logger.write('conLog', "json is fine", {}, req.body);
+            util.logInfo(req,`conLog json is fine %j`,{body : req.body});
 
         } catch (exeption) {
             res.json(responseWrapper.getResponse(false, {}, -3308,req.body));
@@ -118,10 +121,12 @@ function ActivityUpdateController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            //global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            util.logError(req,`serverError error in setting in asset parity Error %j`, { err,body : req.body });
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                            //global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                            util.logInfo(req,`conLog Asset parity is set successfully %j`,{body : req.body});
 
                                     });
                                 }
@@ -187,10 +192,12 @@ function ActivityUpdateController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            //global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            util.logError(req,`serverError error in setting in asset parity Error %j`, { err,body : req.body });
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                            //global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                            util.logInfo(req,`conLog Asset parity is set successfully %j`,{body : req.body});
 
                                     });
                                 }
@@ -260,10 +267,12 @@ function ActivityUpdateController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            //global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            util.logError(req,`serverError error in setting in asset parity Error %j`, { err,body : req.body });
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                            //global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                            util.logInfo(req,`conLog Asset parity is set successfully %j`,{body : req.body});
 
                                     });
                                 }
@@ -284,7 +293,8 @@ function ActivityUpdateController(objCollection) {
                         if (status) {     // proceed                            
                             forEachAsync(activityArray, function (next, rowData) {
                                 // console.log(rowData);
-                                global.logger.write('debug', 'rowData: ' + JSON.stringify(rowData, null, 2), {}, req.body);
+                                //global.logger.write('debug', 'rowData: ' + JSON.stringify(rowData, null, 2), {}, req.body);
+                                util.logInfo(req,`debug %j`,{rowData : JSON.stringify(rowData, null, 2), body : req.body});
 
                                 proceedUnreadUpdate(rowData);
                                 next();
@@ -298,7 +308,8 @@ function ActivityUpdateController(objCollection) {
             } else if (deviceOsId === 5) {
                 forEachAsync(activityArray, function (next, rowData) {
                                 // console.log(rowData);
-                                global.logger.write('debug', 'rowData: ' + JSON.stringify(rowData, null, 2), {}, req.body);
+                                //global.logger.write('debug', 'rowData: ' + JSON.stringify(rowData, null, 2), {}, req.body);
+                                util.logInfo(req,`debug %j`,{rowData : JSON.stringify(rowData, null, 2), body : req.body});
 
                                 proceedUnreadUpdate(rowData);
                                 next();
@@ -348,10 +359,12 @@ function ActivityUpdateController(objCollection) {
                             cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                 if (err) {
                                     //console.log("error in setting in asset parity");
-                                    global.logger.write('serverError', "error in setting in asset parity", err, req.body);
+                                    //global.logger.write('serverError', "error in setting in asset parity", err, req.body);
+                                    util.logError(req,`serverError error in setting in asset parity Error %j`, { err,body : req.body });
                                 } else
                                     //console.log("asset parity is set successfully")
-                                    global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                    //global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                    util.logInfo(req,`conLog Asset parity is set successfully %j`,{body : req.body});
 
                             });
                         }
@@ -486,10 +499,12 @@ function ActivityUpdateController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            //global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            util.logError(req,`serverError error in setting in asset parity Error %j`, { err,body : req.body });
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                            //global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                            util.logInfo(req,`conLog Asset parity is set successfully %j`,{body : req.body});
 
                                     });
                                 }
@@ -553,10 +568,12 @@ function ActivityUpdateController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            //global.logger.write('serverError',"error in setting in asset parity",err,req.body);
+                                            util.logError(req,`serverError error in setting in asset parity Error %j`, { err,body : req.body });
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                            //global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                            util.logInfo(req,`conLog Asset parity is set successfully %j`,{body : req.body});
 
                                     });
                                 }
@@ -611,7 +628,8 @@ function ActivityUpdateController(objCollection) {
                 } else {
                     if (status) { // proceed
                         // console.log("calling deleteAccountFromWorkforce");
-                        global.logger.write('conLog', 'calling deleteAccountFromWorkforce', {}, req.body);
+                        //global.logger.write('conLog', 'calling deleteAccountFromWorkforce', {}, req.body);
+                        util.logInfo(req,`conLog calling deleteAccountFromWorkforce %j`,{body : req.body});
                         // Raise event
                         initiateServiceToDeleteUserFromWorkforce(req.body, function (err, data) {
                             if (!err) {
@@ -664,7 +682,8 @@ function ActivityUpdateController(objCollection) {
             queueWrapper.raiseActivityEvent(event, reqBody.asset_id, function (err, resp) {
                 if (err) {
                     // console.log('Error in queueWrapper raiseActivityEvent : ' + err)
-                    global.logger.write('serverError', 'Error in queueWrapper raiseActivityEvent', err, reqBody);
+                    //global.logger.write('serverError', 'Error in queueWrapper raiseActivityEvent', err, reqBody);
+                    util.logError({},`serverError Error in queueWrapper raiseActivityEvent Error %j`, { err,body : reqBody });
                     callback(true, {})
                 } else {
                     if (req.hasOwnProperty('device_os_id')) {
@@ -673,16 +692,19 @@ function ActivityUpdateController(objCollection) {
                             cacheWrapper.setAssetParity(reqBody.asset_id, reqBody.asset_message_counter, function (err, status) {
                                 if (err) {
                                     // console.log("error in setting in asset parity");
-                                    global.logger.write('serverError', 'error in setting in asset parity', err, reqBody);
+                                    //global.logger.write('serverError', 'error in setting in asset parity', err, reqBody);
+                                    util.logError({},`serverError error in setting in asset parity Error %j`, { err,body : reqBody });
                                 } else
                                     // console.log("asset parity is set successfully")
-                                    global.logger.write('conLog', "asset parity is set successfully", {}, reqBody);
+                                    //global.logger.write('conLog', "asset parity is set successfully", {}, reqBody);
+                                    util.logInfo({},`conLog Asset parity is set successfully %j`,{body : reqBody});
 
                             });
                         }
                     }
                     // console.log("populateDataForRemovingUserFromOrg service raised: ", event);
-                    global.logger.write('debug', "populateDataForRemovingUserFromOrg service raised: ", event, reqBody);
+                    //global.logger.write('debug', "populateDataForRemovingUserFromOrg service raised: ", event, reqBody);
+                    util.logInfo({},`debug populateDataForRemovingUserFromOrg service %j`,{raised : event, body : req.body});
                     callback(false, {});
                 }
             });

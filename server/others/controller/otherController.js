@@ -22,7 +22,8 @@
                  res.json(responseWrapper.getResponse(err, responseData, 200, req.body));
              } else {
                  //console.log('did not get proper response');
-                 global.logger.write('response', 'did not get proper response', err, {});
+                 //global.logger.write('response', 'did not get proper response', err, {});
+                 util.logError(req,`response did not get proper response Error %j`, { err });
                  res.json(responseWrapper.getResponse(err, responseData, -9999, req.body));
              }
      });
@@ -33,7 +34,8 @@
                  res.json(responseWrapper.getResponse(err, responseData, 200, req.body));
              } else {
                  //console.log('did not get proper response');
-                 global.logger.write('response', 'did not get proper response', err, {});
+                 //global.logger.write('response', 'did not get proper response', err, {});
+                 util.logError(req,`response did not get proper response Error %j`, { err });
                  res.json(responseWrapper.getResponse(err, responseData, -9999, req.body));
              }
      });
@@ -44,7 +46,8 @@
                  res.json(responseWrapper.getResponse(err, responseData, 200, req.body));
              } else {
                  //console.log('did not get proper response');
-                 global.logger.write('response', 'did not get proper response', err, {});
+                 //global.logger.write('response', 'did not get proper response', err, {});
+                 util.logError(req,`response did not get proper response Error %j`, { err });
                  res.json(responseWrapper.getResponse(err, responseData, -9999, req.body));
              }
      });

@@ -556,7 +556,8 @@ function AssetController(objCollection) {
     //Retrieve the asset Timeline Data
     app.post('/' + global.config.version + '/asset/access/timeline/list', async (req, res) => {
         try {            
-            global.logger.write('conLog', req.body, {}, {});
+            //global.logger.write('conLog', req.body, {}, {});
+            util.logInfo(req,`conLog  %j`,{body : req.body});
             let result = await assetService.getAssetTimelineData(req.body);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {
@@ -574,7 +575,8 @@ function AssetController(objCollection) {
 
     app.post('/' + global.config.version + '/asset/access/queue/list', async (req, res) => {
         try {
-            global.logger.write('conLog', req.body, {}, {});
+            //global.logger.write('conLog', req.body, {}, {});
+            util.logInfo(req,`conLog %j`,{body : req.body});
             let result = await assetService.queueAccessListSelectAsset(req.body);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
@@ -620,7 +622,8 @@ function AssetController(objCollection) {
 
     app.post('/' + global.config.version + '/asset_reference/asset_type/search', async (req, res) =>{
         try {            
-            global.logger.write('conLog', req.body, {}, {});
+            //global.logger.write('conLog', req.body, {}, {});
+            util.logInfo(req,`conLog %j`,{body : req.body});
             let result = await assetService.searchAssetRef(req.body);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {
