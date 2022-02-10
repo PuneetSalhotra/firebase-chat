@@ -457,7 +457,7 @@ function AccountService(objectCollection) {
 
         var queryString = util.getQueryString('ds_p1_communication_transaction_select', paramsArr);
         if (queryString != '') {
-            db.executeQuery(0, queryString, request, function (err, data) {
+            db.executeQuery(1, queryString, request, function (err, data) {
                 (err === false) ? callback(false, data, 200): callback(true, err, -9999);
             });
         }
@@ -608,7 +608,7 @@ function AccountService(objectCollection) {
 
         var queryString = util.getQueryString('ds_p1_workforce_list_select', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -729,7 +729,7 @@ function AccountService(objectCollection) {
 
         var queryString = util.getQueryString('ds_p1_organization_labels_select', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = JSON.parse(data[0].labels);
                     error = false;

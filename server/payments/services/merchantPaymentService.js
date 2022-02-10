@@ -1875,7 +1875,7 @@ function MerchantPaymentService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_merchant_list_select_id', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     if(data.length === 0) {
                         logger.error("MerchantPaymentService : getMerchant : Invalid parameter `merchant_id` = " + request.merchant_id);
@@ -1920,7 +1920,7 @@ function MerchantPaymentService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_payment_order_list_select', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -1951,7 +1951,7 @@ function MerchantPaymentService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_payment_log_transaction_select', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     if(data.length === 0) {
                         logger.error("MerchantPaymentService : getPaymentTransaction : merchant_id = " + merchant_id +
@@ -1989,7 +1989,7 @@ function MerchantPaymentService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_payment_log_transaction_select_auth_no', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -2017,7 +2017,7 @@ function MerchantPaymentService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_payment_log_transaction_select_auth_no', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -2425,7 +2425,7 @@ function MerchantPaymentService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_acquirer_gateway_mapping_select_status', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -2455,7 +2455,7 @@ function MerchantPaymentService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_acquirer_gateway_mapping_select', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -2484,7 +2484,7 @@ function MerchantPaymentService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_merchant_acquirer_param_mapping_select', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -2514,7 +2514,7 @@ function MerchantPaymentService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_merchant_acquirer_payment_mode_mapping_select', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -2760,7 +2760,7 @@ function MerchantPaymentService(objectCollection) {
             );
             var queryString = util.getQueryString('ds_v1_workforce_activity_status_mapping_select_status', paramsArr);
             if (queryString != '') {
-                db.executeQuery(0, queryString, request, function (err, resp) {
+                db.executeQuery(1, queryString, request, function (err, resp) {
                     if (err === false) {
                         resolve(resp);
                         } else {

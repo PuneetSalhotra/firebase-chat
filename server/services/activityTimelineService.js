@@ -3168,7 +3168,7 @@ function ActivityTimelineService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_activity_list_select_form_transaction', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;

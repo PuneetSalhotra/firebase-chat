@@ -1,6 +1,6 @@
 const { serializeError } = require('serialize-error');
 
-require('./server/utils/globalConfig');
+require('./server/utils/globalConfigV1');
 const logger = require('./server/logger/winstonLogger');
 const redis = require('redis');
 

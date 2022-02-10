@@ -1,7 +1,7 @@
 /**
  * author: SBK
  */
-const globalConfig = require('../utils/globalConfig');
+const globalConfig = require('../utils/globalConfigV1');
 let Logger = require('../utils/logger.js');
 const kafka = require('kafka-node');
 var QueueWrapper = require('./queueWrapper');

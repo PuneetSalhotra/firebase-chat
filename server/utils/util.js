@@ -1315,7 +1315,7 @@ function Util(objectCollection) {
 
         var queryString = this.getQueryString('ds_v1_1_asset_list_select', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -1444,8 +1444,10 @@ function Util(objectCollection) {
             console.log("Error fetching the app_config:emailProvider: ", error);
         }
 
+        let emailMode = await cacheWrapper.getSmsMode('email_mode');
+
         console.log("emailProvider", emailProvider);
-        if (Number(emailProvider) === 1 || request.sendRegularEmail == 1) {
+        if (Number(emailMode) === 2 || request.sendRegularEmail == 1) {
             try {
                 const responseBody = await sendEmailMailgunV1(
                     request, email, subject,
@@ -1648,7 +1650,9 @@ function Util(objectCollection) {
             console.log("Error fetching the app_config:emailProvider: ", error);
         }
 
-        if (Number(emailProvider) === 1) {
+        let emailMode = await cacheWrapper.getSmsMode('email_mode');
+
+        if (Number(emailMode) === 2) {
             try {
                 const responseBody = await sendEmailMailgunV1(
                     request, email, subject,

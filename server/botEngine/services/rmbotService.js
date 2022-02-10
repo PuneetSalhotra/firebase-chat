@@ -207,7 +207,7 @@ function RMBotService(objectCollection) {
 
         const queryString = util.getQueryString('ds_v1_1_activity_ai_bot_mapping_select_worklows_role', paramsArr);
         if (queryString != '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then(async (data) => {
                     responseData = data;
                     error = false;
@@ -1636,7 +1636,7 @@ function businessDayCheckFun(curr_date,businessDays){
         const queryString = util.getQueryString('ds_v1_workforce_activity_status_mapping_select_status_id', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -2363,7 +2363,7 @@ function businessDayCheckFun(curr_date,businessDays){
         const queryString = util.getQueryString('ds_p1_activity_list_select_asset_lead_tasks', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -3100,7 +3100,7 @@ function businessDayCheckFun(curr_date,businessDays){
         const queryString = util.getQueryString('ds_p1_1_activity_asset_mapping_select_role_participant', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -3184,7 +3184,7 @@ function businessDayCheckFun(curr_date,businessDays){
 
         const queryString = util.getQueryString('ds_v1_activity_ai_bot_transaction_select', paramsArr);
         if (queryString != '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -3241,7 +3241,7 @@ function businessDayCheckFun(curr_date,businessDays){
 
         const queryString = util.getQueryString('ds_v1_1_activity_ai_bot_mapping_select_worklows_role', paramsArr);
         if (queryString != '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData.data = data;
                     error = false;

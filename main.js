@@ -1,7 +1,7 @@
 /* 
  * author: V Nani Kalyan
  */
-var globalConfig = require('./server/utils/globalConfig');
+var globalConfig = require('./server/utils/globalConfigV1');
 const tracer = require('dd-trace').init({
     service: `${process.env.NODE_ENV}_desker_api`,
     env: process.env.NODE_ENV,

@@ -9,7 +9,7 @@ const tracer = require('dd-trace').init({
 const tracerScope = tracer.scope();
 const tracerFormats = require('dd-trace/ext/formats')
 
-require('../utils/globalConfig');
+require('../utils/globalConfigV1');
 require('../vodafone/utils/vodafoneConfig');
 let Logger = require('../utils/logger.js');
 var kafka = require('kafka-node');
