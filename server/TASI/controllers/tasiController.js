@@ -418,7 +418,7 @@ function TasiController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/tasi/payout/report/insert', async function (req, res) {
-        const [err, resData] = await tasiService.payoutReportInsert(req.body);
+        const [err, resData] = await tasiService.tasiReportListInsert(req.body);
         if (!err) {
             res.json(responseWrapper.getResponse({}, resData, 200, req.body));
         } else {
@@ -995,6 +995,16 @@ function TasiController(objCollection) {
             res.json(responseWrapper.getResponse({}, resData, 200, req.body));
         } else {
             console.log("/tasi/account/target/settings/update | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/asset_type/sip/target/list', async function (req, res) {
+        const [err, resData] = await tasiService.assetTypeFlagSipTargetSelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/asset_type/sip/target/list | Error: ", err);
             res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
         }
     });

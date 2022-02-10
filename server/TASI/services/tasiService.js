@@ -189,7 +189,7 @@ function TasiService(objectCollection) {
             request.asset_type_flag_sip_target || 0,
             request.asset_type_flag_omit_consolidation || 0,
             request.asset_type_ta_notes || "",
-            request.asset_type_ta_applicable_date || "",
+            request.asset_type_ta_applicable_date,
             request.flag,
             util.getCurrentUTCTime(),
             request.log_asset_id
@@ -1078,6 +1078,7 @@ function TasiService(objectCollection) {
             request.data_entity_type_name,
             request.period_start_datetime,
             request.period_end_datetime,
+            request.financial_year,
             request.workforce_tag_id,
             request.level_id,
             request.product_id,
@@ -2009,6 +2010,7 @@ function TasiService(objectCollection) {
             request.period_type_id,
             request.period_start_datetime,
             request.period_end_datetime,
+            request.financial_year,
             request.asset_id,
             request.asset_type_id,
             request.widget_type_id,
@@ -2139,6 +2141,7 @@ function TasiService(objectCollection) {
             request.period_type_id,
             request.start_datetime,
             request.end_datetime,
+            request.financial_year,
             request.start_from,
             request.limit_value
         );
@@ -2607,6 +2610,7 @@ function TasiService(objectCollection) {
             request.period_start_datetime,
             request.period_end_datetime,
             request.input_period_type_id,
+            request.financial_year,
             request.widget_type_id,
             request.widget_type_category_id,
             request.product_id,
@@ -2649,6 +2653,7 @@ function TasiService(objectCollection) {
             request.period_type_id,
             request.period_start_datetime, 
             request.period_end_datetime,
+            request.financial_year,
             request.level_id,
             request.workforce_tag_id,
             request.asset_tag_id_1,
@@ -2759,6 +2764,7 @@ function TasiService(objectCollection) {
             request.period_type_id,
             request.period_start_datetime,
             request.period_end_datetime,
+            request.financial_year,
             request.product_id,
             request.target_setting_flag_channel,
             request.workforce_tag_id,
@@ -2819,6 +2825,7 @@ function TasiService(objectCollection) {
           request.period_type_id,
           request.period_start_datetime,
           request.period_end_datetime,
+          request.financial_year,
           request.product_id,
           request.start_from,
           request.limit_value
@@ -3288,6 +3295,7 @@ function TasiService(objectCollection) {
             request.period_type_id,
             request.period_start_datetime,
             request.period_end_datetime,
+            request.financial_year,
             request.data_entity_bigint_1,
             request.data_entity_bigint_2,
             request.data_entity_bigint_3,
@@ -3413,6 +3421,39 @@ function TasiService(objectCollection) {
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.assetTypeFlagSipTargetSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.flag || 0,
+          request.level_id || 0,
+          request.asset_type_id,
+          request.asset_type_category_id || 0,
+          request.organization_id,
+          request.account_id,
+          request.workforce_id,
+          request.asset_type_flag_frontline || 0,
+          request.asset_type_flag_sip_target || 0,
+          request.start_from,
+          request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_select_flag_sip_target', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
