@@ -1808,6 +1808,7 @@ function TasiService(objectCollection) {
           request.period_type_id,
           request.period_start_datetime,
           request.period_end_datetime,
+            request.financial_year,
           request.workforce_tag_id,
           request.product_id,
           request.start_from,
