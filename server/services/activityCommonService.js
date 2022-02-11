@@ -7386,7 +7386,127 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         return [error, responseData];
     };
 
-    
+    this.activtyReferenceFieldInsert = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            request.activity_type_id,
+            request.activity_type_category_id,
+            request.form_id,
+            request.field_id,
+            request.field_name,
+            request.field_value,
+            request.form_transaction_id,
+            request.mapping_activity_id,
+            request.mapping_type_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_activity_reference_field_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.checkFieldOrReferenceWidget = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.form_id,
+            request.field_id,
+            request.data_type_id,
+            request.page_start,
+            request.page_limit
+        ];
+
+        const queryString = util.getQueryString('ds_v1_widget_list_select_field_reference', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.processFieldWidgetData = async function (request, fieldData) {
+        let responseData = [],
+            error = true;
+
+        let WidgetFieldRequest = Object.assign({}, request);
+        let activityTypeCategroyId = parseInt(request.activity_type_category_id);
+        WidgetFieldRequest.field_id = fieldData.field_id;
+        WidgetFieldRequest.field_name = fieldData.field_name;
+        //WidgetFieldRequest.form_id = fieldData.form_id;
+        WidgetFieldRequest.data_type_id = fieldData.field_data_type_id;
+        WidgetFieldRequest.page_start = 0;
+        WidgetFieldRequest.page_limit = 1;
+        //WidgetFieldRequest.widget_type_id = 68;
+        WidgetFieldRequest.field_value = fieldData.field_value;
+
+        if (fieldData.field_data_type_id === 57) {
+            WidgetFieldRequest.field_value = fieldData.field_value;
+            WidgetFieldRequest.mapping_activity_id = fieldData.field_value.split("\|")[0];
+            WidgetFieldRequest.mapping_type_id = 1;
+        } else if (fieldData.field_data_type_id == 33 || fieldData.field_data_type_id == 34 || fieldData.field_data_type_id == 19) {
+            WidgetFieldRequest.field_value = fieldData.field_value;
+            WidgetFieldRequest.mapping_type_id = 2;
+            WidgetFieldRequest.mapping_activity_id = 0;
+        } else {
+            WidgetFieldRequest.field_value = fieldData.field_value;
+            WidgetFieldRequest.mapping_type_id = 3;
+            WidgetFieldRequest.mapping_activity_id = 0;
+        }
+
+        let [errorWidget, responseWidget] = await this.checkFieldOrReferenceWidget(WidgetFieldRequest);
+        if (responseWidget.length > 0) {
+            util.logInfo(request, `FieldWidget exists for this Field :: ${fieldData.field_id}`);
+
+            if (activityTypeCategroyId === 48 || activityTypeCategroyId === 53 || activityTypeCategroyId === 54
+                || activityTypeCategroyId === 63 || activityTypeCategroyId === 31) {
+                await this.activtyReferenceFieldInsert(WidgetFieldRequest);
+
+            } else if (activityTypeCategroyId === 9) {
+
+                let formData = await this.getFormDetails(request);
+                if (formData.length > 0) {
+
+                    if (formData[0].form_flag_workflow_origin == 0) {
+
+                        WidgetFieldRequest.activity_id = WidgetFieldRequest.workflow_activity_id;
+                        await this.activtyReferenceFieldInsert(WidgetFieldRequest);
+
+                    } else {
+                        util.logInfo(request, `Origin Form submitted, hence no widget data insert`);
+                    }
+                } else {
+                    util.logInfo(request, `No Form Exists with this FormId`);
+                }
+            }
+        } else {
+            WidgetFieldRequest = null;
+            util.logInfo(request, `No FieldWidget for this Field ${fieldData.field_id}`);
+        }
+        return [error, responseData];
+    }
 }
 
 
