@@ -208,7 +208,8 @@ this.getAllParticipantsAsync = async (request) => {
                 updateActivityLogLastUpdatedDatetimeAsset(request, assetCollection, function (err, data) {
                     if (err !== false) {
                         //console.log(err);
-                        global.logger.write('conLog', err, err, {});
+                        //global.logger.write('conLog', err, err, {});
+                        util.logError(request,`conLog Error %j`, { err , request});
                     }
                 });
             }, this);
@@ -241,7 +242,8 @@ this.getAllParticipantsAsync = async (request) => {
                 updateActivityLogLastUpdatedDatetimeAsset(request, assetCollection, function (err, data) {
                     if (err !== false) {
                         //console.log(err);
-                        global.logger.write('conLog', err, err, {});
+                        //global.logger.write('conLog', err, err, {});
+                        util.logError(request,`conLog Error %j`, { err , request});
                     }
                 });
             
@@ -541,7 +543,8 @@ this.getAllParticipantsAsync = async (request) => {
                         return;
                     } else {
                         callback(err, false);
-                        global.logger.write('conLog', JSON.stringify(err), err, request);
+                        //global.logger.write('conLog', JSON.stringify(err), err, request);
+                        util.logError(request,`conLog Error %j`, { error : JSON.stringify(err), err , request});
                         return;
                     }
                 });
@@ -551,7 +554,8 @@ this.getAllParticipantsAsync = async (request) => {
 
     this.activityTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
 
-        global.logger.write('conLog', 'Request Params in activityCommonService timeline : ',request,{});
+        //global.logger.write('conLog', 'Request Params in activityCommonService timeline : ',request,{});
+        util.logInfo(request,`conLog Request Params in activityCommonService timeline %j`,{request});
         var assetId = request.asset_id;
         var organizationId = request.organization_id;
         var accountId = request.account_id;
@@ -607,9 +611,12 @@ this.getAllParticipantsAsync = async (request) => {
             messageUniqueId = participantData.message_unique_id;
         }
 
-        global.logger.write('conLog', 'activityTimelineTransactionInsert - streamTypeId: ' + streamTypeId, {}, request);
-        global.logger.write('conLog', 'activityTimelineTransactionInsert - typeof streamTypeId: ' + typeof streamTypeId, {}, request);
-        global.logger.write('conLog', 'activityTimelineTransactionInsert - lead_reject_reason: ' + request.lead_reject_reason, {}, request);
+        //global.logger.write('conLog', 'activityTimelineTransactionInsert - streamTypeId: ' + streamTypeId, {}, request);
+        util.logInfo(request,`conLog activityTimelineTransactionInsert -: %j`,{streamTypeId : streamTypeId, request});
+        //global.logger.write('conLog', 'activityTimelineTransactionInsert - typeof streamTypeId: ' + typeof streamTypeId, {}, request);
+        util.logInfo(request,`conLog activityTimelineTransactionInsert - %j`,{typeof_streamTypeId : typeof streamTypeId, request});
+        //global.logger.write('conLog', 'activityTimelineTransactionInsert - lead_reject_reason: ' + request.lead_reject_reason, {}, request);
+        util.logInfo(request,`conLog activityTimelineTransactionInsert %j`,{lead_reject_reason : request.lead_reject_reason, request});
 
         switch (streamTypeId) {
             case 4: // activity updated
@@ -873,7 +880,8 @@ this.getAllParticipantsAsync = async (request) => {
         //let queryString = util.getQueryString("ds_v1_6_activity_timeline_transaction_insert", paramsArr);
         let queryString = util.getQueryString("ds_v1_7_activity_timeline_transaction_insert", paramsArr);
         if(assetId === 0 || assetId === null){
-            global.logger.write('conLog', `ds_v1_7_activity_timeline_transaction_insert is not called as asset_id is ${assetId}`);
+            //global.logger.write('conLog', `ds_v1_7_activity_timeline_transaction_insert is not called as asset_id is ${assetId}`);
+            util.logInfo(request,`conLog ds_v1_7_activity_timeline_transaction_insert is not called as %j`,{asset_id : assetId, request});
             callback(false, true);
         }
         else {
@@ -888,7 +896,8 @@ this.getAllParticipantsAsync = async (request) => {
                         return;
                     } else {
                         callback(err, false);
-                        global.logger.write('conLog', JSON.stringify(err), err, request);
+                        //global.logger.write('conLog', JSON.stringify(err), err, request);
+                        util.logError(request,`conLog Error %j`, { error : JSON.stringify(err), err,request });
                         return;
                     }
                 });
@@ -938,7 +947,8 @@ this.getAllParticipantsAsync = async (request) => {
 
         var duration = util.differenceDatetimes(request.datetime_log, request.timeline_transaction_datetime);
         //console.log('Duration in Seconds : ', duration);
-        global.logger.write('conLog', 'Duration in Seconds : ' + duration, {}, request);
+        //global.logger.write('conLog', 'Duration in Seconds : ' + duration, {}, request);
+        util.logInfo(request,`conLog Duration in Seconds %j`,{duration : duration,request});
 
         var paramsArr = new Array(
             activityId,
@@ -1258,7 +1268,8 @@ this.getAllParticipantsAsync = async (request) => {
                 if (err) {
                     //console.log(err);
                     //console.log('error occured');
-                    global.logger.write('conLog', 'error occurred', err, rowData);
+                    //global.logger.write('conLog', 'error occurred', err, rowData);
+                    util.logError(rowData,`serverError error occurred Error %j`, { error : err,rowData});
                 }
                 rowDataArr.field_value = fieldValue;
                 responseData.push(rowDataArr);
@@ -1355,7 +1366,8 @@ this.getAllParticipantsAsync = async (request) => {
                 fieldValue = util.replaceDefaultNumber(rowData['data_entity_tinyint_1']);
             default:
                 //console.log('came into default for data type id: ' + dataTypeId);
-                global.logger.write('conLog', 'asset parity is set successfully', {}, {});
+                //global.logger.write('conLog', 'asset parity is set successfully', {}, {});
+                util.logInfo(rowData,`conLog asset parity is set successfully`,{});
                 fieldValue = '';
                 break;
         };
@@ -1449,7 +1461,8 @@ this.getAllParticipantsAsync = async (request) => {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
                     //console.log('DAta in inventory check : ', data);
-                    global.logger.write('conLog', 'Data in inventory check : ' + JSON.stringify(data, null, 2), {}, request);
+                    //global.logger.write('conLog', 'Data in inventory check : ' + JSON.stringify(data, null, 2), {}, request);
+                    util.logInfo(request,`conLog Data in inventory check : %j`,{data : JSON.stringify(data, null, 2),request});
                     if (data.length > 0) {
                         var ingredients = new Array();
                         forEachAsync(data, function (next, x) {
@@ -1480,8 +1493,10 @@ this.getAllParticipantsAsync = async (request) => {
                                 }).then(() => {
                                     //console.log('stationIdArrays: ', stationIdArrays);
                                     //console.log('TempArray: ', tempArray);
-                                    global.logger.write('conLog', 'stationIdArrays: ' + JSON.stringify(stationIdArrays, null, 2), {}, request);
-                                    global.logger.write('conLog', 'TempArray: ' + JSON.stringify(tempArray, null, 2), {}, request);
+                                    //global.logger.write('conLog', 'stationIdArrays: ' + JSON.stringify(stationIdArrays, null, 2), {}, request);
+                                    util.logInfo(request,`conLog stationIdArrays : %j`,{stationIdArrays : JSON.stringify(stationIdArrays, null, 2),request});
+                                    //global.logger.write('conLog', 'TempArray: ' + JSON.stringify(tempArray, null, 2), {}, request);
+                                    util.logInfo(request,`conLog TempArray: %j`,{TempArray : JSON.stringify(tempArray, null, 2),request});
                                     tempArray.forEach(function (item, index) {
                                         //console.log('util.getFrequency(item'+item+',tempArray) : ' , util.getFrequency(item, tempArray))
                                         //console.log('stationIdArrays.length : ', stationIdArrays.length)
@@ -1585,7 +1600,8 @@ this.getAllParticipantsAsync = async (request) => {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('data.length :' + data.length);                
                 //console.log('data : ', data);
-                global.logger.write('conLog', 'data : ' + JSON.stringify(data, null, 2), {}, request);
+                //global.logger.write('conLog', 'data : ' + JSON.stringify(data, null, 2), {}, request);
+                util.logInfo(request,`conLog data: %j`,{data : JSON.stringify(data, null, 2),request});
                 if (data.length > 0) {
                     callback(true, data);
                 } else {
@@ -1607,7 +1623,8 @@ this.getAllParticipantsAsync = async (request) => {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('data : ', data);
-                global.logger.write('conLog', 'data : ' + JSON.stringify(data, null, 2), {}, request);
+                //global.logger.write('conLog', 'data : ' + JSON.stringify(data, null, 2), {}, request);
+                util.logInfo(request,`conLog data: %j`,{data : JSON.stringify(data, null, 2),request});
                 if (data.length > 0) {
                     callback(true, data);
                 } else {
@@ -1632,7 +1649,8 @@ this.getAllParticipantsAsync = async (request) => {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('DAta : ', data);
-                global.logger.write('conLog', 'data : ' + JSON.stringify(data, null, 2), {}, request);
+                //global.logger.write('conLog', 'data : ' + JSON.stringify(data, null, 2), {}, request);
+                util.logInfo(request,`conLog data: %j`,{data : JSON.stringify(data, null, 2),request});
                 if (err === false) {
                     if (data.length > 0) {
                         callback(false, data);
@@ -1657,7 +1675,8 @@ this.getAllParticipantsAsync = async (request) => {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('getOccupiedDeskCounts : ', data);
-                global.logger.write('conLog', 'getOccupiedDeskCounts : ' + JSON.stringify(data, null, 2), {}, request);
+                //global.logger.write('conLog', 'getOccupiedDeskCounts : ' + JSON.stringify(data, null, 2), {}, request);
+                util.logInfo(request,`conLog getOccupiedDeskCounts: %j`,{getOccupiedDeskCounts : JSON.stringify(data, null, 2),request});
                 (err === false) ? callback(false, data): callback(true, err);
             });
         }
@@ -1822,7 +1841,8 @@ this.getAllParticipantsAsync = async (request) => {
                 } else {
                     callback(err, false, false);
                     //console.log(err);
-                    global.logger.write('conLog', err, {}, request);
+                    //global.logger.write('conLog', err, {}, request);
+                    util.logError(request,`conLog Error %j`, { err,request});
                     return;
                 }
             });
@@ -1964,7 +1984,8 @@ this.getAllParticipantsAsync = async (request) => {
                     tableNames += data[0].asset_first_name + "-";
 
                     //console.log('data[0].asset_inline_data : ' , data[0].asset_inline_data);
-                    global.logger.write('debug', 'data[0].asset_inline_data : ' + data[0].asset_inline_data, {}, {});
+                    //global.logger.write('debug', 'data[0].asset_inline_data : ' + data[0].asset_inline_data, {}, {});
+                    util.logInfo(request,`debug data[0].asset_inline_data %j`,{data_asset_inline_data : data[0].asset_inline_data,request});
                     var inlineJson = JSON.parse(data[0].asset_inline_data);
                     noOfGuests += util.replaceDefaultNumber(inlineJson.element_cover_capacity);
                     next();
@@ -1981,10 +2002,14 @@ this.getAllParticipantsAsync = async (request) => {
             //console.log('countryCode: ', countryCode);
             //console.log('phoneNumber : ', phoneNumber);
             //console.log('tableNames : ', tableNames);
-            global.logger.write('conLog', 'memberName : ' + memberName, {}, request);
-            global.logger.write('conLog', 'countryCode: ' + countryCode, {}, request);
-            global.logger.write('conLog', 'phoneNumber : ' + phoneNumber, {}, request);
-            global.logger.write('conLog', 'tableNames : ' + tableNames, {}, request);
+            //global.logger.write('conLog', 'memberName : ' + memberName, {}, request);
+            util.logInfo(request,`conLog %j`,{memberName : memberName,request});
+            //global.logger.write('conLog', 'countryCode: ' + countryCode, {}, request);
+            util.logInfo(request,`conLog %j`,{countryCode : countryCode,request});
+            //global.logger.write('conLog', 'phoneNumber : ' + phoneNumber, {}, request);
+            util.logInfo(request,`conLog %j`,{phoneNumber : phoneNumber,request});
+            //global.logger.write('conLog', 'tableNames : ' + tableNames, {}, request);
+            util.logInfo(request,`conLog %j`,{tableNames : tableNames,request});
 
             var expiryDateTime = util.addUnitsToDateTime(util.replaceDefaultDatetime(request.event_start_datetime), 5.5, 'hours');
             //expiryDateTime = util.getDatewithndrdth(expiryDateTime);
@@ -2008,18 +2033,21 @@ this.getAllParticipantsAsync = async (request) => {
 
             }
             //console.log('SMS text : \n', text);
-            global.logger.write('debug', 'SMS text : \n' + text, {}, request);
+            //global.logger.write('debug', 'SMS text : \n' + text, {}, request);
+            util.logInfo(request,`debug %j`,{SMS_text : text,request});
             phoneNumber = '9010819966';
             util.pamSendSmsMvaayoo(text, countryCode, phoneNumber, function (err, res) {
                 if (err === false) {
                     //console.log('Message sent!',res);
-                    global.logger.write('debug', 'Message sent!' + JSON.stringify(res, null, 2), {}, request);
+                    //global.logger.write('debug', 'Message sent!' + JSON.stringify(res, null, 2), {}, request);
+                    util.logInfo(request,`debug Message sent! %j`,{Message_sent : JSON.stringify(res, null, 2),request});
                 }
             });
             util.pamSendSmsMvaayoo(text, 91, 6309386175, function (err, res) {
                 if (err === false) {
                     //console.log('Message sent to Admin!', res);
-                    global.logger.write('debug', 'Message sent to Admin!' + JSON.stringify(res, null, 2), {}, request);
+                    //global.logger.write('debug', 'Message sent to Admin!' + JSON.stringify(res, null, 2), {}, request);
+                    util.logInfo(request,`debug Message sent to Admin! %j`,{Message_sent : JSON.stringify(res, null, 2),request});
                 }
             });
             return callback(false, 200);
@@ -2200,7 +2228,8 @@ this.getAllParticipantsAsync = async (request) => {
 
             //console.log('beforerefinedParticipantList : ', request);
             //console.log('beforerefinedParticipantList length: ', request.length);
-            global.logger.write('debug', 'beforerefinedParticipantList length: ' + request.length, {}, request);
+            //global.logger.write('debug', 'beforerefinedParticipantList length: ' + request.length, {}, request);
+            util.logInfo(request,`debug beforerefinedParticipantList length %j`,{length : request.length,request});
 
             forEachAsync(request, function (next, rowData) {
                 var paramsArr = new Array(
@@ -2214,8 +2243,10 @@ this.getAllParticipantsAsync = async (request) => {
                             if (data.length > 0) {
                                 //console.log("Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name +" - Active Organization is : " + data[0].organization_id);
                                 //console.log("Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name +" - Organization in participant List: " , rowData['organization_id']);
-                                global.logger.write('debug', "Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name + " - Active Organization is : " + data[0].organization_id, {}, {});
-                                global.logger.write('debug', "Asset - " + rowData.asset_id + " - " + rowData.operating_asset_first_name + " - Organization in participant List: " + rowData['organization_id'], {}, {});
+                                //global.logger.write('debug', "Asset - " + data[0].asset_id + " - " + data[0].operating_asset_first_name + " - Active Organization is : " + data[0].organization_id, {}, {});
+                                util.logInfo(request,`debug %j`,{Asset : data[0].asset_id, operating_asset_first_name : data[0].operating_asset_first_name, Active_Organization : data[0].organization_id, request});
+                                //global.logger.write('debug', "Asset - " + rowData.asset_id + " - " + rowData.operating_asset_first_name + " - Organization in participant List: " + rowData['organization_id'], {}, {});
+                                util.logInfo(request,`debug %j`,{Asset : rowData.asset_id, operating_asset_first_name: rowData.operating_asset_first_name, Organization_in_participant_List : rowData['organization_id'], request});
 
                                 if (data[0].organization_id == rowData['organization_id']) {
                                     refinedParticipantList.push(rowData);
@@ -2232,7 +2263,8 @@ this.getAllParticipantsAsync = async (request) => {
                 }
             }).then(() => {
                 //console.log('refinedParticipantList : ', refinedParticipantList.length);
-                global.logger.write('debug', 'refinedParticipantList : ' + refinedParticipantList.length, {}, {});
+                //global.logger.write('debug', 'refinedParticipantList : ' + refinedParticipantList.length, {}, {});
+                util.logInfo(request,`debug %j`,{refinedParticipantList : refinedParticipantList.length,request});
                 resolve(refinedParticipantList);
             });
         });
@@ -2330,9 +2362,12 @@ this.getAllParticipantsAsync = async (request) => {
                     //console.log('projectEndDtTime : ', projectEndDtTime);
                     //console.log('taskProjectsEndDtTime : ', taskProjectsEndDtTime);
                     //console.log('Math.sign(util.differenceDatetimes(' + taskProjectsEndDtTime+ ', ' + projectEndDtTime  + '): ', Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)));
-                    global.logger.write('debug', 'projectEndDtTime : ' + projectEndDtTime, {}, {});
-                    global.logger.write('debug', 'taskProjectsEndDtTime : ' + taskProjectsEndDtTime, {}, {});
-                    global.logger.write('debug', 'Math.sign(util.differenceDatetimes(' + taskProjectsEndDtTime + ', ' + projectEndDtTime + '): ' + Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)), {}, {});
+                    //global.logger.write('debug', 'projectEndDtTime : ' + projectEndDtTime, {}, {});
+                    util.logInfo(request, `debug %j`, { projectEndDtTime: projectEndDtTime, request });
+                    //global.logger.write('debug', 'taskProjectsEndDtTime : ' + taskProjectsEndDtTime, {}, {});
+                    util.logInfo(request, `debug %j`, { taskProjectsEndDtTime: taskProjectsEndDtTime, request });
+                    //global.logger.write('debug', 'Math.sign(util.differenceDatetimes(' + taskProjectsEndDtTime + ', ' + projectEndDtTime + '): ' + Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)), {}, {});
+                    util.logInfo(request, `debug Math.sign(util.differenceDatetimes(${taskProjectsEndDtTime}, ${projectEndDtTime})): %j`, { differenceDatetimes: Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)), request });
                     if ((Math.sign(util.differenceDatetimes(taskProjectsEndDtTime, projectEndDtTime)) !== 0)) {
                         //Call alter cover for that project
                         //Add timeline Entry
@@ -2343,7 +2378,8 @@ this.getAllParticipantsAsync = async (request) => {
                 });
             } else {
                 //console.log('There are no tasks in the project - project id - ', request.activity_parent_id);
-                global.logger.write('debug', 'There are no tasks in the project - project id - ' + request.activity_parent_id, {}, {});
+                //global.logger.write('debug', 'There are no tasks in the project - project id - ' + request.activity_parent_id, {}, {});
+                util.logInfo(request, `debug There are no tasks in the project -  %j`, { project_id: request.activity_parent_id, request });
             }
         });
     };
@@ -2366,7 +2402,8 @@ this.getAllParticipantsAsync = async (request) => {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {
                         //console.log('DATA : ', data);
-                        global.logger.write('conLog', 'DATA : ' + JSON.stringify(data, null, 2), {}, request);
+                        //global.logger.write('conLog', 'DATA : ' + JSON.stringify(data, null, 2), {}, request);
+                        util.logInfo(request,`conLog %j`,{DATA : JSON.stringify(data, null, 2),request});
                         resolve(data);
                     } else {
                         reject(err);
@@ -2450,7 +2487,8 @@ this.getAllParticipantsAsync = async (request) => {
         var queryString = util.getQueryString('ds_p1_partititon_offset_transaction_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
-                global.logger.write('conLog', data, {}, {});
+                //global.logger.write('conLog', data, {}, {});
+                util.logInfo(request,`conLog data %j`,{data , request});
                 (data.length > 0) ? callback(true, {}): callback(false, data);
             });
         }
@@ -2519,7 +2557,8 @@ this.getAllParticipantsAsync = async (request) => {
         var queryString = util.getQueryString('ds_p1_partition_offset_transaction_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
-                global.logger.write('conLog', data, {}, request);
+                //global.logger.write('conLog', data, {}, request);
+                util.logInfo(request,`conLog data %j`,{data , request});
                 (err == false) ? callback(false, data): callback(true, {});
             });
         }
@@ -2871,7 +2910,8 @@ this.getAllParticipantsAsync = async (request) => {
             } else {
                 //global.logger.write('debug', "Request Params b4 making Request : ", {}, request);
                 //global.logger.write('debug', request, {}, {});
-                global.logger.write('debug', "http://localhost:" + global.config.servicePort + "/" + global.config.version + "/" + url, {}, {});
+                //global.logger.write('debug', "http://localhost:" + global.config.servicePort + "/" + global.config.version + "/" + url, {}, {});
+                util.logInfo(request,`conLog %j`,{url : "http://localhost:" + global.config.servicePort + "/" + global.config.version + "/" + url, request});
                 makingRequest.post("http://localhost:" + global.config.servicePort + "/" + global.config.version + "/" + url, options, function (error, response, body) {
                     resolve(body);
                 });
@@ -3652,7 +3692,8 @@ this.getAllParticipantsAsync = async (request) => {
                 //global.logger.write('conLog', 'request.flag :: '+request.flag, {}, request);
                 //global.logger.write('conLog', 'request.order_logged_datetime :: '+request.order_logged_datetime, {}, request);
                 getWorkflowData(request).then((data) => {
-                    global.logger.write('conLog', 'In the workflow data length:: ' + request.flag + ' ' + JSON.stringify(data), {}, request);
+                    //global.logger.write('conLog', 'In the workflow data length:: ' + request.flag + ' ' + JSON.stringify(data), {}, request);
+                    util.logInfo(request,`conLog In the workflow data length: %j`,{length : request.flag, data : JSON.stringify(data), request});
 
                     if (data.length > 0) {
 
@@ -3661,14 +3702,16 @@ this.getAllParticipantsAsync = async (request) => {
                         activityDatetimeCreatedIST = util.addUnitsToDateTime(util.replaceDefaultDatetime(data[0].activity_datetime_created), 5.5, 'hours');
 
                         // console.log('activityDatetimeCreatedIST :: ',activityDatetimeCreatedIST);
-                        global.logger.write('conLog', '*****Update: activityDatetimeCreatedIST widget ' + request.order_po_date + ', ' + request.flag + ',*******' + activityDatetimeCreatedIST, {}, request);
+                        //global.logger.write('conLog', '*****Update: activityDatetimeCreatedIST widget ' + request.order_po_date + ', ' + request.flag + ',*******' + activityDatetimeCreatedIST, {}, request);
+                        util.logInfo(request,`conLog *****Update: activityDatetimeCreatedIST widget %j`,{order_po_date : request.order_po_date, flag : request.flag, activityDatetimeCreatedIST : activityDatetimeCreatedIST, request});
                         if (flag == 1) {
                             if (request.order_po_date == null || request.order_po_date == '') {
                                 order_po_trigger_diff = 0;
                                 order_po_log_diff = 0;
                                 order_po__order_docs_diff = 0;
                             } else {
-                                global.logger.write('conLog', '*****Update: activityDatetimeCreatedIST ELSE ' +data[0].activity_order_documents_datetime+' '+ data[0].activity_logged_datetime + ', ' + request.flag + ', *******' + activityDatetimeCreatedIST, {}, request);
+                                //global.logger.write('conLog', '*****Update: activityDatetimeCreatedIST ELSE ' +data[0].activity_order_documents_datetime+' '+ data[0].activity_logged_datetime + ', ' + request.flag + ', *******' + activityDatetimeCreatedIST, {}, request);
+                                util.logInfo(request,`conLog *****Update: activityDatetimeCreatedIST ELSE %j`,{activity_order_documents_datetime : data[0].activity_order_documents_datetime, activity_logged_datetime: data[0].activity_logged_datetime, flag : request.flag, activityDatetimeCreatedIST : activityDatetimeCreatedIST,request});
                                 if (data[0].activity_logged_datetime != null && data[0].activity_order_documents_datetime != null) {
                                     console.log("$$$1");
                                     order_po_log_diff = util.differenceDatetimes(data[0].activity_logged_datetime, request.order_po_date) / 1000;
@@ -3695,7 +3738,10 @@ this.getAllParticipantsAsync = async (request) => {
                         } else if (flag == 2) {
                             //
                         } else if (flag == 3) {
-                            global.logger.write('conLog', '*****Update: Order Logged ' +data[0].activity_order_documents_datetime+' '+ data[0].activity_caf_approval_datetime+' '+ data[0].activity_po_datetime + ', ' + request.flag + ', *******' + activityDatetimeCreatedIST, {}, request);
+                            //global.logger.write('conLog', '*****Update: Order Logged ' +data[0].activity_order_documents_datetime+' '+ data[0].activity_caf_approval_datetime+' '+ data[0].activity_po_datetime + ', ' + request.flag + ', *******' + activityDatetimeCreatedIST, {}, request);
+                            util.logInfo(request, `conLog *****Update: Order Logged %j`, { activity_order_documents_datetime: data[0].activity_order_documents_datetime, 
+                                activity_caf_approval_datetime: data[0].activity_caf_approval_datetime, activity_po_datetime: data[0].activity_po_datetime, flag: request.flag,
+                                activityDatetimeCreatedIST: activityDatetimeCreatedIST, request });
                             order_trigger_log_diff = util.differenceDatetimes(request.order_logged_datetime, activityDatetimeCreatedIST) / 1000;
                             //global.logger.write('conLog', 'request.order_trigger_log_diff :: '+order_trigger_log_diff, {}, request);
                             if(data[0].activity_order_documents_datetime !== null)
@@ -3709,12 +3755,18 @@ this.getAllParticipantsAsync = async (request) => {
                         }
                     }
 
-                    global.logger.write('conLog', 'request.order_po_trigger_diff :: ' + order_po_trigger_diff, {}, request);
-                    global.logger.write('conLog', 'request.order_trigger_log_diff :: ' + order_trigger_log_diff, {}, request);
-                    global.logger.write('conLog', 'request.order_caf_approval_log_diff :: ' + order_caf_approval_log_diff, {}, request);
-                    global.logger.write('conLog', 'request.order_po_log_diff :: ' + order_po_log_diff, {}, request);
-                    global.logger.write('conLog', 'request.order_docs__log_diff :: ' + order_docs__log_diff, {}, request);
-                    global.logger.write('conLog', 'request.order_po__order_docs_diff :: ' + order_po__order_docs_diff, {}, request);
+                    //global.logger.write('conLog', 'request.order_po_trigger_diff :: ' + order_po_trigger_diff, {}, request);
+                    util.logInfo(request, `conLog request.order_po_trigger_diff %j`, { order_po_trigger_diff: order_po_trigger_diff, request });
+                    //global.logger.write('conLog', 'request.order_trigger_log_diff :: ' + order_trigger_log_diff, {}, request);
+                    util.logInfo(request, `conLog request.order_trigger_log_diff %j`, { order_trigger_log_diff: order_trigger_log_diff, request });
+                    //global.logger.write('conLog', 'request.order_caf_approval_log_diff :: ' + order_caf_approval_log_diff, {}, request);
+                    util.logInfo(request, `conLog request.order_caf_approval_log_diff %j`, { order_caf_approval_log_diff: order_caf_approval_log_diff, request });
+                    //global.logger.write('conLog', 'request.order_po_log_diff :: ' + order_po_log_diff, {}, request);
+                    util.logInfo(request, `conLog request.order_po_log_diff %j`, { order_po_log_diff: order_po_log_diff, request });
+                    //global.logger.write('conLog', 'request.order_docs__log_diff :: ' + order_docs__log_diff, {}, request);
+                    util.logInfo(request, `conLog request.order_docs__log_diff %j`, { order_docs__log_diff: order_docs__log_diff, request });
+                    //global.logger.write('conLog', 'request.order_po__order_docs_diff :: ' + order_po__order_docs_diff, {}, request);
+                    util.logInfo(request, `conLog request.order_po__order_docs_diff %j`, { order_po__order_docs_diff: order_po__order_docs_diff, request });
 
                     var paramsArr = new Array(
                         request.organization_id,
@@ -3769,7 +3821,8 @@ this.getAllParticipantsAsync = async (request) => {
                 if (Number(newReq.widget_id) > 0) {
                     self.widgetLogTrx(newReq, 2);
                 }
-                global.logger.write('error', error, error, request);
+                //global.logger.write('error', error, error, request);
+                util.logError(request,`Error %j`, { error,request});
             }
         });
     }; 
@@ -5112,7 +5165,8 @@ async function updateAssetsLogDatetimeAsync(request, assetData) {
 
         let [err, data] = await updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetCollection);
         if(err) {
-            global.logger.write('conLog', err, err, {});
+            //global.logger.write('conLog', err, err, {});
+            util.logError(request,`conLog error %j`, { err,request});
         }
     }
 }
@@ -5181,8 +5235,10 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_updated_datetime', paramsArr);
     }
 
-    global.logger.write('conLog', "Calling updateActivityLogLastUpdatedDatetimeAssetAsync", {}, request);
-    global.logger.write('conLog', queryString, {}, request);
+    //global.logger.write('conLog', "Calling updateActivityLogLastUpdatedDatetimeAssetAsync", {}, request);
+    util.logInfo(request, `conLog Calling updateActivityLogLastUpdatedDatetimeAssetAsync %j`, { request });
+    //global.logger.write('conLog', queryString, {}, request);
+    util.logInfo(request, `conLog %j`, { queryString, request });
 
     if (queryString != '') {
         await db.executeQueryPromise(0, queryString, request)

@@ -1112,7 +1112,8 @@ function ActivityTimelineService(objectCollection) {
                                 console.log('Updating the Queue Json : ', data);
                                 activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(() => {});
                             }).catch((err) => {
-                                global.logger.write('debug', err, {}, newrequest);
+                                //global.logger.write('debug', err, {}, newrequest);
+                                util.logError(request,`debug Error %j`, { err,newrequest });
                             });
 
                         }
@@ -1141,7 +1142,8 @@ function ActivityTimelineService(objectCollection) {
                                 console.log('Updating the Queue Json : ', data);
                                 activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(() => {});
                             }).catch((err) => {
-                                global.logger.write('debug', err, {}, newrequest);
+                                //global.logger.write('debug', err, {}, newrequest);
+                                util.logError(request,`debug Error %j`, { err,newrequest });
                             });
 
                         }
@@ -1200,7 +1202,8 @@ function ActivityTimelineService(objectCollection) {
                             botEngineRequest.message_id = messageID;
                             await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
                                 .then((resp) => {
-                                    global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                    //global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                    util.logInfo(request,`debug Bot Engine Trigger Response: %j`,{Response : JSON.stringify(resp),request});
                                     let temp = JSON.parse(resp);
 
                                     (Number(temp.status) === 200) ?
@@ -1235,12 +1238,15 @@ function ActivityTimelineService(objectCollection) {
                     activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 0);
                 }
             } else {
-                global.logger.write('debug', "formConfigError: " + formConfigError, {}, request);
-                global.logger.write('debug', "formConfigData: ", {}, request);
-                global.logger.write('debug', formConfigData, {}, request);
+                //global.logger.write('debug', "formConfigError: " + formConfigError, {}, request);
+                util.logInfo(request,`debug formConfigError: %j`,{formConfigError : formConfigError,request});
+                //global.logger.write('debug', "formConfigData: ", {}, request);
+                util.logInfo(request,`debug formConfigData: %j`,{formConfigData : formConfigData,request});
+                //global.logger.write('debug', formConfigData, {}, request);
             }
         } catch (botInitError) {
-            global.logger.write('error', botInitError, botInitError, botEngineRequest);
+            //global.logger.write('error', botInitError, botInitError, botEngineRequest);
+            util.logError(request,`error Error %j`, { botInitError,botEngineRequest });
         }
     }
 
@@ -1353,7 +1359,8 @@ function ActivityTimelineService(objectCollection) {
     //This is to support the feature - Not to increase unread count during timeline entry
     this.addTimelineTransactionV1 = function (request, callback) {
         //console.log('In addTimelineTransactionV1');
-        global.logger.write('conLog', 'In addTimelineTransactionV1', {}, request);
+        //global.logger.write('conLog', 'In addTimelineTransactionV1', {}, request);
+        util.logInfo(request,`conLog In addTimelineTransactionV1 %j`,{request});
         var logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         var activityTypeCategoryId = Number(request.activity_type_category_id);
@@ -1363,13 +1370,16 @@ function ActivityTimelineService(objectCollection) {
             var formDataJson = JSON.parse(request.activity_timeline_collection);
             request.form_id = formDataJson[0]['form_id'];
             //console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
-            global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
+            //global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
+            util.logInfo(request,`debug form id extracted from json is: %j`,{form_id : formDataJson[0]['form_id'],request});
             var lastObject = formDataJson[formDataJson.length - 1];
             //console.log('Last object : ', lastObject)
-            global.logger.write('debug', 'Last object : ' + JSON.stringify(lastObject, null, 2), {}, request);
+            //global.logger.write('debug', 'Last object : ' + JSON.stringify(lastObject, null, 2), {}, request);
+            util.logInfo(request,`debug Last object :  %j`,{Last_object : JSON.stringify(lastObject, null, 2),request});
             if (lastObject.hasOwnProperty('field_value')) {
                 //console.log('Has the field value in the last object')
-                global.logger.write('conLog', 'Has the field value in the last object', {}, request);
+                //global.logger.write('conLog', 'Has the field value in the last object', {}, request);
+                util.logInfo(request,`conLog Has the field value in the last object %j`,{request});
                 //remote Analytics
                 if (request.form_id == 325) {
                     monthlySummaryTransInsert(request).then(() => {});
@@ -1390,7 +1400,8 @@ function ActivityTimelineService(objectCollection) {
             var formDataJson = JSON.parse(request.activity_timeline_collection);
         } catch (exception) {
             //console.log(exception);
-            global.logger.write('debug', exception, {}, request);
+            //global.logger.write('debug', exception, {}, request);
+            util.logError(request,`debug Error %j`, { exception,request });
         }
 
         var isAddToTimeline = true;
@@ -1423,7 +1434,8 @@ function ActivityTimelineService(objectCollection) {
                         }
                     } else {
                         //console.log('asset_reference is not availale');
-                        global.logger.write('conLog', 'asset_reference is not available', {}, request);
+                        //global.logger.write('conLog', 'asset_reference is not available', {}, request);
+                        util.logInfo(request,`conLog asset_reference is not available %j`,{request});
                     }
 
 
@@ -1679,7 +1691,8 @@ function ActivityTimelineService(objectCollection) {
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log('getFormTransTimeCardsStats : \n', data, "\n");
-                    global.logger.write('conLog', 'getFormTransTimeCardsStats : \n' + JSON.stringify(data, null, 2) + "\n", {}, request);
+                    //global.logger.write('conLog', 'getFormTransTimeCardsStats : \n' + JSON.stringify(data, null, 2) + "\n", {}, request);
+                    util.logInfo(request,`conLog getFormTransTimeCardsStats : %j`,{getFormTransTimeCardsStats : JSON.stringify(data, null, 2),request});
                     (err === false) ? resolve(data): reject(err);
                 });
             }
@@ -1868,7 +1881,8 @@ function ActivityTimelineService(objectCollection) {
             pubnubMsg.desk_asset_id = request.asset_id;
             pubnubMsg.activity_type_category_id = (Number(request.activity_type_category_id)) === 16 ? 0 : request.activity_type_category_id;
             //console.log('PubNub Message : ', pubnubMsg);
-            global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
+            //global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
+            util.logInfo(request,`debug PubNub Message : %j`,{PubNub_Message : JSON.stringify(pubnubMsg, null, 2),request});
             pubnubWrapper.push(request.asset_id, pubnubMsg, io);
             pubnubWrapper.push(request.organization_id, pubnubMsg, io, isOrgRateLimitExceeded);
 
@@ -1954,7 +1968,8 @@ function ActivityTimelineService(objectCollection) {
             pubnubMsg.desk_asset_id = request.asset_id;
             pubnubMsg.activity_type_category_id = (Number(request.activity_type_category_id)) === 16 ? 0 : request.activity_type_category_id;
             //console.log('PubNub Message : ', pubnubMsg);
-            global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
+            //global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
+            util.logInfo(request,`debug PubNub Message : %j`,{PubNub_Message : JSON.stringify(pubnubMsg, null, 2),request});
             pubnubWrapper.push(request.asset_id, pubnubMsg, io);
             //pubnubWrapper.push(request.organization_id, pubnubMsg, isOrgRateLimitExceeded);
         }
@@ -3098,7 +3113,8 @@ function ActivityTimelineService(objectCollection) {
 
     function sendRequesttoWidgetEngine(request) {
 
-        global.logger.write('conLog', '*********************************BEFORE FORM WIDGET *********************************************88 : ', {}, request);
+        //global.logger.write('conLog', '*********************************BEFORE FORM WIDGET *********************************************88 : ', {}, request);
+        util.logInfo(request,`conLog *********************************BEFORE FORM WIDGET *********************************************88 :  %j`,{request});
         if (request.activity_type_category_id == 9) { //form and submitted state                    
             activityCommonService.getActivityDetails(request, 0, function (err, activityData) { // get activity form_id and form_transaction id
                 activityCommonService.getWorkflowOfForm(request)
@@ -3133,7 +3149,8 @@ function ActivityTimelineService(objectCollection) {
                             name: "Form Based Widget Engine",
                             payload: widgetEngineQueueMessage
                         };
-                        global.logger.write('conLog', 'Hitting Widget Engine with request:' + event, {}, request);
+                        //lobal.logger.write('conLog', 'Hitting Widget Engine with request:' + event, {}, request);
+                        util.logInfo(request,`conLog Hitting Widget Engine with request: %j`,{event,request});
 
                         queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
                     });
