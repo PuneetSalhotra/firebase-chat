@@ -604,7 +604,7 @@ function ActivityService(objectCollection) {
                                         case 57: //Fire the Bot
                                                 await fireBotInsertIntTables(request, fieldData);                                                
                                                 await activityActivityMappingInsert(request, fieldData);
-                                                await processFieldWidgetData(request, fieldData);
+                                            await activityCommonService.processFieldWidgetData(request, fieldData);
                                                 if(request.activity_type_category_id == 48 && (request.activity_type_id == 150258
                                                     || request.activity_type_id == 150229 || request.activity_type_id == 150192
                                                     || request.activity_type_id == 149818 || request.activity_type_id == 149752
@@ -632,7 +632,7 @@ function ActivityService(objectCollection) {
                                                 break;
                                         case 33: //Fire the Bot                                                 
                                                 await fireBotInsertIntTables(request, fieldData);
-                                                await processFieldWidgetData(request, fieldData);
+                                            await activityCommonService.processFieldWidgetData(request, fieldData);
                                                 if(fieldData.field_reference_id > 0){
                                                     await activityActivityMappingInsert(request, fieldData);
                                                 }
@@ -642,7 +642,7 @@ function ActivityService(objectCollection) {
                                                 let multiSelectionItems = parsedFieldValue.split("\|");
                                                 for(let counter = 0; counter < multiSelectionItems.length; counter ++)
                                                   {  fieldData.field_value = multiSelectionItems[counter];
-                                                      await processFieldWidgetData(request, fieldData);
+                                                    await activityCommonService.processFieldWidgetData(request, fieldData);
                                                   }
                                                 break;
                                         case 68: //await activityActivityMappingInsert(request, fieldData);
@@ -662,7 +662,7 @@ function ActivityService(objectCollection) {
                                                  }                                                 
                                                  break;
                                         case 19:     
-                                                processFieldWidgetData(request, fieldData);   
+                                            await activityCommonService.processFieldWidgetData(request, fieldData);   
                                                 break;                                          
                                         default: break;
                                     }
@@ -5864,65 +5864,6 @@ function ActivityService(objectCollection) {
         }
     }
 
-
-    async function processFieldWidgetData(request, fieldData){
-
-        let WidgetFieldRequest = Object.assign({}, request);
-        let activityTypeCategroyId = parseInt(request.activity_type_category_id);
-        WidgetFieldRequest.field_id = fieldData.field_id;
-        WidgetFieldRequest.field_name = fieldData.field_name;
-        //WidgetFieldRequest.form_id = fieldData.form_id;
-        WidgetFieldRequest.data_type_id = fieldData.field_data_type_id;
-        WidgetFieldRequest.page_start = 0;
-        WidgetFieldRequest.page_limit = 1;
-        //WidgetFieldRequest.widget_type_id = 68;
-        WidgetFieldRequest.field_value = fieldData.field_value;
-
-        if(fieldData.field_data_type_id === 57){
-            WidgetFieldRequest.field_value = fieldData.field_value;
-            WidgetFieldRequest.mapping_activity_id = fieldData.field_value.split("\|")[0];
-            WidgetFieldRequest.mapping_type_id = 1;
-        }else if(fieldData.field_data_type_id == 33 || fieldData.field_data_type_id == 34 || fieldData.field_data_type_id == 19){
-            WidgetFieldRequest.field_value = fieldData.field_value;
-            WidgetFieldRequest.mapping_type_id = 2;
-            WidgetFieldRequest.mapping_activity_id = 0;
-        }else{
-            WidgetFieldRequest.field_value = fieldData.field_value;
-            WidgetFieldRequest.mapping_type_id = 3;
-            WidgetFieldRequest.mapping_activity_id = 0;
-        }
-
-        let [errorWidget, responseWidget] = await checkFieldOrReferenceWidget(WidgetFieldRequest); 
-        if(responseWidget.length > 0){
-            util.logInfo(request,`FieldWidget exists for this Field :: ${fieldData.field_id}`);
-
-            if(activityTypeCategroyId === 48 || activityTypeCategroyId === 53 || activityTypeCategroyId === 54
-                || activityTypeCategroyId === 63  || activityTypeCategroyId === 31)
-            {
-                activtyReferenceFieldInsert(WidgetFieldRequest);
-
-            }else if(activityTypeCategroyId === 9){
-
-                let formData = await activityCommonService.getFormDetails(request);
-                if(formData.length > 0){
-
-                    if(formData[0].form_flag_workflow_origin == 0){
-                        
-                        WidgetFieldRequest.activity_id = WidgetFieldRequest.workflow_activity_id;
-                        activtyReferenceFieldInsert(WidgetFieldRequest);
-
-                    }else{
-                        util.logInfo(request,`Origin Form submitted, hence no widget data insert`);
-                    }
-                }else{
-                    util.logInfo(request,`No Form Exists with this FormId`);
-                }
-            }
-        } else{
-            WidgetFieldRequest = null;
-            util.logInfo(request,`No FieldWidget for this Field ${fieldData.field_id}`);
-        }
-    }
     this.activityTypeMappingInsert = async function(request){
         let responseData = [],
         error = true;
@@ -6029,63 +5970,6 @@ function ActivityService(objectCollection) {
     }
     return [error,responseData]
     }
-
-    async function checkFieldOrReferenceWidget(request) {
-
-        let responseData = [],
-            error = true;
-
-        const paramsArr = [
-                request.organization_id,
-                request.form_id,
-                request.field_id,
-                request.data_type_id,                
-                request.page_start,
-                request.page_limit
-            ];
-        const queryString = util.getQueryString('ds_v1_widget_list_select_field_reference', paramsArr);
-        
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then(async (data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                });
-        }
-        return [error, responseData];
-    }   
-    
-    function activtyReferenceFieldInsert(request) {
-        return new Promise((resolve, reject) => {
-            let paramsArr = new Array(
-                request.organization_id,
-                request.activity_id,
-                request.activity_type_id,
-                request.activity_type_category_id,
-                request.form_id,
-                request.field_id,
-                request.field_name,
-                request.field_value,
-                request.form_transaction_id,
-                request.mapping_activity_id,
-                request.mapping_type_id,
-                util.getCurrentUTCTime()
-            );
-            let queryString = util.getQueryString('ds_v1_activity_reference_field_mapping_insert', paramsArr);
-            if (queryString != '') {
-               db.executeQuery(0, queryString, request, function (err, data) {
-                    if (err === false) {
-                        resolve();
-                    } else {
-                        reject(err);
-                    }
-                });
-            }
-        });
-    }  
 
     this.activityFormListInsert = async function (request) {
         let responseData = [],

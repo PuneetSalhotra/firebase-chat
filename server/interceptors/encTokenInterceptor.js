@@ -25,7 +25,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                     //global.logger.write('conLog', 'got from request body : ' + req.body.asset_token_auth, {}, req.body);
                     util.logInfo(req,`conLog got from request body : %j`,{asset_token_auth : req.body.asset_token_auth,body : req.body});
                     
-                    if(req.body.asset_token_auth === 'undefined') {
+                    if (req.body.asset_token_auth === 'undefined') {
                         //global.logger.write('conLog', 'req.url : ' + req.url, {}, req.body);
                         util.logInfo(req,`conLog %j`,{req_url : req.url, body : req.body});
                         //global.logger.write('serverError', 'Redis encToken checking failed : ' + JSON.stringify(err), {}, {});
@@ -37,7 +37,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                         util.logInfo(req,`conLog successfully redis encToken checking is done %j`,{});
                         //proceed = true;
                         next();
-                    } else {                                        
+                    } else {
                         //global.logger.write('conLog', 'req.url : ' + req.url, {}, req.body);
                         util.logInfo(req,`conLog %j`,{req_url : req.url, body : req.body});
                         //global.logger.write('serverError', 'Redis encToken checking failed : ' + JSON.stringify(err), {}, {});
@@ -254,8 +254,8 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                                     util.logInfo(req,`conLog got from cache layer %j`,{encToken : encToken, body : req.body});
                                     //global.logger.write('conLog', 'got from request body : ' + req.body.asset_token_auth, {}, req.body);
                                     util.logInfo(req,`conLog got from request body  %j`,{asset_token_auth : req.body.asset_token_auth, body : req.body});
-                                    
-                                    if(req.body.asset_token_auth === 'undefined') {
+
+                                    if (req.body.asset_token_auth === 'undefined') {
                                         //global.logger.write('conLog', 'req.url : ' + req.url, {}, req.body);
                                         util.logInfo(req,`conLog req.url %j`,{req_url : req.url, body : req.body});
                                         //global.logger.write('serverError', 'Redis encToken checking failed : ' + JSON.stringify(err), {}, {});
@@ -266,7 +266,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                                         //global.logger.write('conLog', 'successfully redis encToken checking is done', {}, {});
                                         util.logInfo(req,`conLog successfully redis encToken checking is done %j`,{});
                                         next();
-                                    } else {                                        
+                                    } else {
                                         //global.logger.write('conLog', 'req.url : ' + req.url, {}, req.body);
                                         util.logInfo(req,`conLog req.url %j`,{req_url : req.url, body : req.body});
                                         //global.logger.write('serverError', 'Redis encToken checking failed : ' + JSON.stringify(err), {}, {});
