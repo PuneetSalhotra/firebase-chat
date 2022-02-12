@@ -2632,7 +2632,7 @@ function TasiService(objectCollection) {
             request.limit_value
         );
 
-        const queryString = util.getQueryString('ds_p1_1_input_list_select_filter', paramsArr);
+        const queryString = util.getQueryString('ds_p1_2_input_list_select_filter', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
@@ -3497,6 +3497,39 @@ function TasiService(objectCollection) {
         return [error, responseData];
     }
 
+    this.widgetTypeAssetTypeMappingAssetListV1 = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_id,
+            request.organization_id, 
+            request.datetime_start,
+            request.datetime_end,
+            request.widget_type_id,
+            request.widget_type_category_id,
+            request.asset_tag_id_1,
+            request.workforce_tag_id,
+            request.account_id,
+            request.start_from, 
+            request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p1_1_widget_type_asset_type_mapping_select_asset', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     this.accountTargetSettingSelectAssetList = async function (request) {
         let responseData = [],
             error = true;
@@ -3560,6 +3593,81 @@ function TasiService(objectCollection) {
         );
 
         const queryString = util.getQueryString('ds_p3_2_entity_target_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.tasiEntityTargetMappingSelectV1 = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.asset_id, 
+            request.manager_asset_id, 
+            request.asset_type_id, 
+            request.flag,
+            request.flag_type,
+            request.asset_tag_id_1,
+            request.level_id,
+            request.timeline_id,
+            request.period_type_id,
+            request.period_start_datetime, 
+            request.period_end_datetime,
+            request.financial_year,
+            request.cluster_tag_id,
+            request.account_id,
+            request.workforce_tag_id,
+            request.widget_type_id,
+            request.widget_type_category_id,
+            request.product_id,
+            request.start_from, 
+            request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p3_3_entity_target_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.entityTargetMappingTargetUpdate = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.target_asset_id,
+          request.widget_type_id,
+          request.customer_account_code,
+          request.period_start_datetime,
+          request.period_end_datetime,
+          request.period_type_id,
+          request.target,
+          request.log_asset_id,
+          util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_2_entity_target_mapping_update_target', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
