@@ -602,9 +602,9 @@ function ActivityService(objectCollection) {
                                     
                                     switch(Number(fieldData.field_data_type_id)) {
                                         case 57: //Fire the Bot
-                                                await fireBotInsertIntTables(request, fieldData);                                                
+                                                //await fireBotInsertIntTables(request, fieldData);                                                
                                                 await activityActivityMappingInsert(request, fieldData);
-                                            await activityCommonService.processFieldWidgetData(request, fieldData);
+                                                await activityCommonService.processFieldWidgetData(request, fieldData);
                                                 if(request.activity_type_category_id == 48 && (request.activity_type_id == 150258
                                                     || request.activity_type_id == 150229 || request.activity_type_id == 150192
                                                     || request.activity_type_id == 149818 || request.activity_type_id == 149752
@@ -631,8 +631,8 @@ function ActivityService(objectCollection) {
                                                 }                                                
                                                 break;
                                         case 33: //Fire the Bot                                                 
-                                                await fireBotInsertIntTables(request, fieldData);
-                                            await activityCommonService.processFieldWidgetData(request, fieldData);
+                                                //await fireBotInsertIntTables(request, fieldData);
+                                                await activityCommonService.processFieldWidgetData(request, fieldData);
                                                 if(fieldData.field_reference_id > 0){
                                                     await activityActivityMappingInsert(request, fieldData);
                                                 }
