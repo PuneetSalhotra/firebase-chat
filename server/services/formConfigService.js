@@ -1709,8 +1709,8 @@ function FormConfigService(objCollection) {
                                     }else{
                                         util.logInfo(request,`Not a dashboard Entity Field ${row.field_id}`);
                                     }
-
                                 }
+                                activityCommonService.processFieldWidgetData(request, row);
                             });
 /*
                             const [workflowError, workflowData] = await activityCommonService.fetchReferredFormActivityIdAsyncv1(request, 0, formTransactionId, 0);
@@ -1749,36 +1749,6 @@ function FormConfigService(objCollection) {
                                             }                                            
                                         }else{
                                             util.logInfo(request,`This field is not configured to update in intermediate table ${row.field_id}`);
-                                        }
-
-                                        //New Code : Mangesh
-                                        let WidgetFieldRequest = Object.assign({}, request);
-                                        let activityTypeCategroyId = parseInt(request.activity_type_category_id);
-                                        WidgetFieldRequest.field_id = fieldData.field_id;
-                                        WidgetFieldRequest.field_name = fieldData.field_name;
-                                        //WidgetFieldRequest.form_id = fieldData.form_id;
-                                        WidgetFieldRequest.data_type_id = fieldData.field_data_type_id;
-                                        WidgetFieldRequest.page_start = 0;
-                                        WidgetFieldRequest.page_limit = 1;
-                                        //WidgetFieldRequest.widget_type_id = 68;
-                                        WidgetFieldRequest.field_value = fieldData.field_value;
-
-                                        if (fieldData.field_data_type_id === 57) {
-                                            WidgetFieldRequest.field_value = fieldData.field_value;
-                                            WidgetFieldRequest.mapping_activity_id = fieldData.field_value.split("\|")[0];
-                                            WidgetFieldRequest.mapping_type_id = 1;
-                                        } else if (fieldData.field_data_type_id == 33 || fieldData.field_data_type_id == 34 || fieldData.field_data_type_id == 19) {
-                                            WidgetFieldRequest.field_value = fieldData.field_value;
-                                            WidgetFieldRequest.mapping_type_id = 2;
-                                            WidgetFieldRequest.mapping_activity_id = 0;
-                                        } else {
-                                            WidgetFieldRequest.field_value = fieldData.field_value;
-                                            WidgetFieldRequest.mapping_type_id = 3;
-                                            WidgetFieldRequest.mapping_activity_id = 0;
-                                        }
-                                        let [errorWidget, responseWidget] = await activityCommonService.checkFieldOrReferenceWidget(WidgetFieldRequest);
-                                        if (responseWidget.length > 0) {
-                                            await activityCommonService.activtyReferenceFieldInsert(WidgetFieldRequest);
                                         }
                                     }                                
                                 });
