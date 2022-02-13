@@ -266,7 +266,7 @@ for (const signal of signalsForGracefulShutdown) {
                     setTimeout(() => {
                         logger.error(`[WaitingToShutdown] *&*&*&*&*&*&*&*&*&*&*&*&`, { type: `${signalName}` });
                         logger.error(`[WaitingToShutdown] processing message count ${processingMessageCount} remaining waiting time to shutdown ${isGracefullShutdownRequired}`, { type: `${signalName}` });
-                        isGracefullShutdownRequired -= 2;
+                        processingMessageCount -= 2;
                         resolve();
                     }, 2000);
                 });
