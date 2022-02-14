@@ -66,7 +66,8 @@ function PamUpdateService(objectCollection) {
                     }
                 } else {
                     //console.log("something is not wright in unassign a participant");
-                    global.logger.write('conLog', 'something is not wright in unassign a participant', {}, request)
+                    //global.logger.write('conLog', 'something is not wright in unassign a participant', {}, request)
+                    util.logInfo(request,`conLog something is not wright in unassign a participant %j`,{ request});
                 }
             });
         };
@@ -76,7 +77,8 @@ function PamUpdateService(objectCollection) {
             unassignAssetFromActivity(request, participantData, function (err, data) {
                 if (err === false) {
                     //console.log("participant successfully un-assigned");
-                    global.logger.write('conLog', 'participant successfully un-assigned', {}, request)
+                    //global.logger.write('conLog', 'participant successfully un-assigned', {}, request)
+                    util.logInfo(request,`conLog participant successfully un-assigned %j`,{ request});
                     var nextIndex = index + 1;
                     if (nextIndex <= maxIndex) {
                         loopUnassignParticipant(participantCollection, nextIndex, maxIndex);
@@ -84,7 +86,8 @@ function PamUpdateService(objectCollection) {
                     callback(false, true);
                 } else {
                     //console.log(err);
-                    global.logger.write('serverError', err, err, request)
+                    //global.logger.write('serverError', err, err, request)
+                    util.logError(request,`serverError Error %j`, { err, request });
                     callback(true, false);
                 }
             }.bind(this));
@@ -100,7 +103,8 @@ function PamUpdateService(objectCollection) {
                 default:
                     activityStreamTypeId = 2000;   //by default so that we know
                     //console.log('adding streamtype id 3');
-                    global.logger.write('conLog', 'adding streamtype id 3', {}, request)
+                    //global.logger.write('conLog', 'adding streamtype id 3', {}, request)
+                    util.logInfo(request,`conLog adding streamtype id 3 %j`,{ request});
                     break;
 
             }
@@ -122,7 +126,8 @@ function PamUpdateService(objectCollection) {
                 }
             } else {
                 //console.log("something is not wright in adding a participant");
-                global.logger.write('conLog', 'something is not wright in adding a participant', {}, request)
+                //global.logger.write('conLog', 'something is not wright in adding a participant', {}, request)
+                util.logInfo(request,`conLog something is not wright in adding a participant %j`,{ request});
             }
         });
     };
@@ -284,7 +289,8 @@ function PamUpdateService(objectCollection) {
                 default:
                     activityStreamTypeId = 11; //by default so that we know
                     //console.log('adding streamtype id 11');
-                    global.logger.write('conLog', 'adding streamtype id 11', {}, request)
+                    //global.logger.write('conLog', 'adding streamtype id 11', {}, request)
+                    util.logInfo(request,`conLog adding streamtype id 11 %j`,{ request});
                     break;
             }
             ;

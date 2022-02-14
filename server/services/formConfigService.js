@@ -823,7 +823,8 @@ function FormConfigService(objCollection) {
                         //The following piece of code will be executed only if it is CAF Form Edit and 
                         //the request is not fired internally device_os_id = 7 means internal call
                         if (Number(request.form_id) === CAF_FORM_ID && Number(request.device_os_id) !== 7) {
-                            global.logger.write('conLog', "\x1b[35m [Log] CAF EDIT \x1b[0m", {}, request);
+                            //global.logger.write('conLog', "\x1b[35m [Log] CAF EDIT \x1b[0m", {}, request);
+                            util.logInfo(request,`conLog \x1b[35m [Log] CAF EDIT \x1b[0m %j`,{request});
                             await fetchReferredFormActivityId(request, request.activity_id, newData.form_transaction_id, request.form_id).then((data) => {
                                 util.logInfo(request,`workflow_activity_id %j`,data[0].activity_id);
 
@@ -2024,8 +2025,10 @@ function FormConfigService(objCollection) {
         return new Promise((resolve, reject) => {
 
             fetchReferredFormActivityId(request, request.activity_id, request.form_transaction_id, request.form_id).then((data) => {
-                global.logger.write('conLog', "\x1b[35m [Log] DATA \x1b[0m", {}, request);
-                global.logger.write('conLog', data, {}, request);
+                //global.logger.write('conLog', "\x1b[35m [Log] DATA \x1b[0m", {}, request);
+                util.logInfo(request,`conLog \x1b[35m [Log] DATA \x1b[0m %j`,{request});
+                //global.logger.write('conLog', data, {}, request);
+                util.logInfo(request,`conLog %j`,{data, request});
                 if (data.length > 0) {
                     let newOrderFormActivityId = Number(data[0].activity_id);
 
@@ -2057,14 +2060,17 @@ function FormConfigService(objCollection) {
                     queueWrapper.raiseActivityEvent(fire713OnNewOrderFileEvent, request.activity_id, (err, resp) => {
                         if (err) {
 
-                            global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                            //global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                            util.logError(request,`debug Error in queueWrapper raiseActivityEvent:  %j`, {error : JSON.stringify(err), err, request });
+                            //global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                            util.logInfo(request,`debug Response from queueWrapper raiseActivityEvent:  %j`,{Response : JSON.stringify(resp), resp, request});
 
                             reject(err);
 
                         } else {
 
-                            global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                            //global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                            util.logInfo(request,`debug Response from queueWrapper raiseActivityEvent: %j`,{Response : JSON.stringify(resp), resp, request});
 
                             resolve();
                         }
@@ -2966,7 +2972,8 @@ function FormConfigService(objCollection) {
                             console.log('BOTID : is not defined for Field ID : ', data[i].field_id);
                         }
                     } catch (botInitError) {
-                        global.logger.write('error', botInitError, botInitError, request);
+                        //global.logger.write('error', botInitError, botInitError, request);
+                        util.logError(request,`debug Error %j`, { botInitError, request });
                     }
                 }
             }
@@ -3173,7 +3180,8 @@ function FormConfigService(objCollection) {
                         return [err, formConfigData];
                     });
 
-                global.logger.write('conLog', "New activityId is :" + activityId, {}, request);
+                //global.logger.write('conLog', "New activityId is :" + activityId, {}, request);
+                util.logInfo(request,`conLog New activityId is : %j`,{New_activityId : activityId, request});
 
                 // Prepare a new request object and fire the addActivity service
                 let createWorkflowRequest = Object.assign({}, request);
@@ -5058,11 +5066,15 @@ function FormConfigService(objCollection) {
 
         queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
             if (err) {
-                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                //global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                util.logError(request,`debug Error in queueWrapper raiseActivityEvent: %j`, {error : JSON.stringify(err), err, request });
                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
             } else {
-                global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
-                global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                //global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                util.logError(request,`debug Error in queueWrapper raiseActivityEvent:  %j`, {error : JSON.stringify(err), err, request });
+                //global.logger.write('debug', 'Response from queueWrapper raiseActivityEvent: ' + JSON.stringify(resp), resp, request);
+                util.logInfo(request,`debug Response from queueWrapper raiseActivityEvent: %j`,{Response : JSON.stringify(resp), resp, request});
+                
             }
         });
 

@@ -90,7 +90,8 @@ var executeQuery = function (flag, queryString, request, callback) {
     try {
         conPool.getConnection(function (err, conn) {
             if (err) {                
-                global.logger.write('serverError','ERROR WHILE GETTING CONNECTON - ' + err, err, request);                
+                //global.logger.write('serverError','ERROR WHILE GETTING CONNECTON - ' + err, err, request);
+                util.logError(request,`serverError ERROR WHILE GETTING CONNECTON - Error %j`, { err, request });                
                 /*if(flag == 1) {
                     conPool = masterDbPool;
                     global.logger.write('serverError','Connecting to Master DB - ', {}, request);
@@ -112,15 +113,18 @@ var executeQuery = function (flag, queryString, request, callback) {
                 conn.query(queryString, function (err, rows, fields) {
                     if (!err) {   
                         //console.log(queryString);
-                        global.logger.write('debug',queryString, {},request);
+                        //global.logger.write('debug',queryString, {},request);
+                        util.logInfo(request,`debug  %j`,{queryString, request});
                         conn.release();                        
                         callback(false, rows[0]);
                         return;
                     } else {
                         //console.log('SOME ERROR IN QUERY | ', queryString);
-                        global.logger.write('serverError', 'SOME ERROR IN QUERY | ' + queryString, err, request);
+                        //global.logger.write('serverError', 'SOME ERROR IN QUERY | ' + queryString, err, request);
+                        util.logError(request,`serverError SOME ERROR IN QUERY | Error %j`, { queryString : queryString, err, request });
                         //console.log(err);
-                        global.logger.write('serverError', err, err, request);
+                        //global.logger.write('serverError', err, err, request);
+                        util.logError(request,`serverError Error %j`, { err, request });
                         conn.release();
                         callback(err, false);
                     }
@@ -130,7 +134,8 @@ var executeQuery = function (flag, queryString, request, callback) {
     } catch (exception) {
         //console.log(queryString);
         //console.log(exception);        
-        global.logger.write('serverError','Exception Occurred - ' + exception, exception, request);
+        //global.logger.write('serverError','Exception Occurred - ' + exception, exception, request);
+        util.logError(request,`serverError Exception Occurred - Error %j`, { exception, request });
     }
 };
 
@@ -139,18 +144,22 @@ function retrieveFromMasterDbPool(conPool, queryString, request){
         try {
             conPool.getConnection(function (err, conn) {
                 if (err) {                    
-                    global.logger.write('serverError','ERROR WHILE GETTING CONNECTON - ' + err, err, request);                    
+                    //global.logger.write('serverError','ERROR WHILE GETTING CONNECTON - ' + err, err, request); 
+                    util.logError(request,`serverError ERROR WHILE GETTING CONNECTON - Error %j`, { err, request });                   
                     reject(err);
                     
                 } else {
                     conn.query(queryString, function (err, rows, fields) {
                         if (!err) {   
-                            global.logger.write('debug',queryString, {},request);
+                            //global.logger.write('debug',queryString, {},request);
+                            util.logInfo(request,`debug %j`,{queryString, request});
                             conn.release();
                             resolve(rows[0]);                            
                         } else {
-                            global.logger.write('serverError', 'SOME ERROR IN QUERY | ' + queryString, err, request);
-                            global.logger.write('serverError', err, err, request);
+                            //global.logger.write('serverError', 'SOME ERROR IN QUERY | ' + queryString, err, request);
+                            util.logError(request,`serverError SOME ERROR IN QUERY | Error %j`, { queryString : queryString, err, request });
+                            //global.logger.write('serverError', err, err, request);
+                            util.logError(request,`serverError Error %j`, { err, request });
                             conn.release();
                             reject(err);
                         }
@@ -158,7 +167,8 @@ function retrieveFromMasterDbPool(conPool, queryString, request){
                 }
             });
         } catch (exception) {            
-            global.logger.write('serverError','Exception Occurred - ' + exception, exception, request);
+            //global.logger.write('serverError','Exception Occurred - ' + exception, exception, request);
+            util.logError(request,`serverError Exception Occurred - Error %j`, { exception, request });
         }
     });
 }
