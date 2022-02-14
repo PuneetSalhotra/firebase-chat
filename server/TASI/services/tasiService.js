@@ -3681,6 +3681,40 @@ function TasiService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.widgetTypeAssetTypeMappingCodeSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.flag,
+            request.organization_id,
+            request.widget_type_id,
+            request.widget_type_category_id,
+            request.timeline_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.financial_year,
+            request.asset_type_id,
+            request.workforce_tag_id,
+            request.start_from,
+            request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p1_widget_type_asset_type_mapping_select_code', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = TasiService;
