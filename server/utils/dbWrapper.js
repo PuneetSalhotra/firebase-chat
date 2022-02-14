@@ -39,6 +39,11 @@ redisSubscriber.on("message", function (channel, message) {
     if (global.config.dbURLKeys.includes(message)) {
         getAndSetDbURL();
     }
+
+    if(message === "BOT_ENGINE_REQUEST_HANDLE_TYPE") {
+        logger.warn(`[BOT_ENGINE_REQUEST_HANDLE_TYPE] updated`, { type: 'mysql', db_response: null, request_body: null, error: null });
+        handleBotEngineRequestType();
+    }
 });
 
 function initiateDB() {
@@ -112,6 +117,7 @@ function initiateDB() {
 
         }
     });
+    handleBotEngineRequestType();
 }
 
 initiateDB();
@@ -726,6 +732,30 @@ let attachlogUUID = (request) => {
     }
     return text;
 }
+
+async function handleBotEngineRequestType() {
+    global.config.BOT_ENGINE_REQUEST_HANDLE_TYPE = await getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
+}
+
+//get key-value from redis cache.
+function getKeyValueFromCache(key) {
+    return new Promise((resolve, reject) => {
+
+        //To handle the first time reading case - Key will be missing then we are sending 0
+        redisClient.get(key, (err, reply) => {
+            if (err) {
+                reject(err);
+            }
+            console.log('REPLY - get ' + key + " = ", reply);
+            if (reply === null) {
+                resolve(null);
+            } else {
+                resolve(reply);
+            }
+        });
+
+    });
+};
 
 module.exports = {
     executeQuery: executeQuery,
