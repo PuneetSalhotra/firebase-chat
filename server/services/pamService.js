@@ -5526,6 +5526,10 @@ this.getChildOfAParent = async (request) => {
                                             cellStyles: true,
                                         }
                                     );
+                                    let fileSize  = stat.size;
+                                    let fileSizeKB  = Math.round((fileSize *0.001)*100) /100;
+                                    let fileSizeMB  = Math.round((fileSizeKB *0.001)*100) /100;
+                                    console.log('::::::FileSize in MB:::::::::',fileSizeMB);
                                     salesReoprt(wb, responseData);
                                 } else if (err.code === "ENOENT") {
                                     let nwb = XLSX.utils.book_new();
@@ -5552,7 +5556,8 @@ this.getChildOfAParent = async (request) => {
                                     XLSX.writeFile(
                                         nwb,
                                         `${fileName}${SaleReportType}_${request.event_activity_id}_${start_date}_${end_date}.xlsx`, {
-                                            cellStyles: true
+                                            cellStyles: true,
+                                            compression:true
                                         }
                                     );
                                     let wb = XLSX.readFile(
@@ -5876,7 +5881,8 @@ this.getChildOfAParent = async (request) => {
                                 wb,
                                 `${fileName}${SaleReportType}_${request.event_activity_id}_${start_date}_${end_date}.xlsx`, {
                                     cellDates: true,
-                                    cellStyles: true
+                                    cellStyles: true,
+                                    compression:true
                                 }
                             );
                         }

@@ -7063,7 +7063,7 @@ this.getQrBarcodeFeeback = async(request) => {
             request.start_from || 0,
             request.limit_value || 50
             ];
-
+            
             queryString = util.getQueryString('ds_p1_3_asset_list_select_asset_reference', paramsArr);
         }else{
             
@@ -8192,11 +8192,11 @@ this.getQrBarcodeFeeback = async(request) => {
         request.start_from,
         request.limit_value
         );
-        const queryString = util.getQueryString('ds_p1_1_activity_asset_mapping_select_asset_category', paramsArr);
+        const queryString = util.getQueryString('ds_p1_2_activity_asset_mapping_select_asset_category', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                    responseData = {};
+                    responseData = data;
                     error = false;
                 })
                 .catch((err) => {
@@ -8206,8 +8206,7 @@ this.getQrBarcodeFeeback = async(request) => {
 
         return [error, responseData];
     };
-
-
+    
     //organizationListInsert
     this.organization_List_Insert = async function (request) {
         let responseData = [],

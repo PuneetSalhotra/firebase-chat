@@ -7545,9 +7545,9 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 let formData = await this.getFormDetails(request);
                 if (formData.length > 0) {
 
-                    if (formData[0].form_flag_workflow_origin == 0) {
+                    if (formData[0].form_flag_workflow_origin == 0 || request.isFieldEdit == 1) {
 
-                        WidgetFieldRequest.activity_id = WidgetFieldRequest.workflow_activity_id;
+                        WidgetFieldRequest.activity_id = WidgetFieldRequest.workflow_activity_id || WidgetFieldRequest.channel_activity_id;
                         await this.activtyReferenceFieldInsert(WidgetFieldRequest);
 
                     } else {
