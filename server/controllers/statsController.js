@@ -2,10 +2,10 @@ const StatsService = require("../services/statsService");
 
 function statsController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
-    var statsService = new StatsService(objCollection);
-    var util = objCollection.util;
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
+    let statsService = new StatsService(objCollection);
+    let util = objCollection.util;
 
     app.post('/' + global.config.version + '/stats/signup/count', function statsSignUpCountReqHandler(req, res) {
         statsService.getSignUpCountStats(req.body, function statsSignUpCountCallback(err, data, statusCode) {
@@ -53,7 +53,7 @@ function statsController(objCollection) {
             if (!err) {
                 console.log("data: ", data);
 
-                var responseJSON = [{
+                let responseJSON = [{
                         "count": 0,
                         "form_id": 837,
                         "activity_status_id": 0,
@@ -184,7 +184,7 @@ function statsController(objCollection) {
         statsService.activityFormTransactionSelectVodafoneFormValueDay(req.body, function (err, data, statusCode) {
             console.log("/stats/form/orders/value/daywise: ", data);
             if (!err) {
-                var responseJSON = {
+                let responseJSON = {
                     not_set: [{
                         date: '2018-09-29 00:00:00',
                         value: 0
@@ -510,7 +510,7 @@ function statsController(objCollection) {
             console.log('/stats/form/orders/count/daywise: ', data);
 
             if (!err) {
-                var responseJSON = {
+                let responseJSON = {
                     not_set: [{
                         date: '2018-09-29 00:00:00',
                         count: 0
@@ -839,7 +839,7 @@ function statsController(objCollection) {
                 // 35	Average time on Resubmit status
                 // 36	Average time on Reinitiate status
                 // 37	TAT - Feasibility Check to Approved
-                var responseJSON = {
+                let responseJSON = {
                     TAT_DV_TO_A: {
                         monthly_summary_id: 33,
                         monthly_summary_name: 'TAT - Document Validation to approved',

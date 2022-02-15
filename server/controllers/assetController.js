@@ -3,14 +3,14 @@
  * 
  */
 
-var AssetService = require("../services/assetService");
+let AssetService = require("../services/assetService");
 
 function AssetController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
-    var activityCommonService = objCollection.activityCommonService;
-    var assetService = new AssetService(objCollection);
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
+    let activityCommonService = objCollection.activityCommonService;
+    let assetService = new AssetService(objCollection);
     app.post('/' + global.config.version + '/asset/passcode/alter', function (req, res) {
 
         assetService.getPhoneNumberAssets(req.body, function (err, data, statusCode) {

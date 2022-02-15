@@ -3,16 +3,16 @@
  * 
  */
 
-var ZohoService = require("../services/zohoService");
+let ZohoService = require("../services/zohoService");
 
 function ZohoController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
-    var zohoService = new ZohoService(objCollection);
-    var util = objCollection.util;
-    var cacheWrapper = objCollection.cacheWrapper;
-    var queueWrapper = objCollection.queueWrapper;
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
+    let zohoService = new ZohoService(objCollection);
+    let util = objCollection.util;
+    let cacheWrapper = objCollection.cacheWrapper;
+    let queueWrapper = objCollection.queueWrapper;
     
        
     //Create a Customer

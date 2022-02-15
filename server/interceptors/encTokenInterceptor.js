@@ -70,7 +70,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                 
                 
                 req.body.service_id = "";
-                var bundleTransactionId = TimeUuid.now();
+                let bundleTransactionId = TimeUuid.now();
                 req.body.bundle_transaction_id = bundleTransactionId;
                 req.body.url = req.url;
                 
@@ -240,7 +240,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                             //global.logger.write('conLog', 'Module : ' + req.body['module'], {}, req.body);
                             util.logInfo(req,`conLog %j`,{Module : req.body['module'],body : req.body});
 
-                            var asset_id = req.body.auth_asset_id || req.body.asset_id;
+                            let asset_id = req.body.auth_asset_id || req.body.asset_id;
 
                             
                             cacheWrapper.getTokenAuth(asset_id, function (err, encToken) {

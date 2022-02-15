@@ -5,9 +5,9 @@
 const TimeUuid = require('cassandra-driver').types.TimeUuid;
 
 function CassandraInterceptor(util, cassandraWrapper) {
-    var uuid = require('uuid');
+    let uuid = require('uuid');
 
-    var logLevel = {
+    let logLevel = {
         request: 1,
         response: 2,
         debug: 3,
@@ -20,7 +20,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
         cacheResponse: 10
     };
 
-    var sourceMap = {
+    let sourceMap = {
         0: "NA",
         1: "android",
         2: "IOS",
@@ -32,10 +32,10 @@ function CassandraInterceptor(util, cassandraWrapper) {
 
 
     this.logData = function (messageCollection, callback) {
-        var logTimestamp = util.getCurrentUTCTime();
-        var logDate = util.getCurrentUTCTime();
+        let logTimestamp = util.getCurrentUTCTime();
+        let logDate = util.getCurrentUTCTime();
 
-        var module = messageCollection.hasOwnProperty("request") ? messageCollection.request.module : '';
+        let module = messageCollection.hasOwnProperty("request") ? messageCollection.request.module : '';
 
 
         switch (module) {
@@ -67,7 +67,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
         const recordId = TimeUuid.now();
         console.log("recordId: ", recordId);
 
-        var logLevelId = (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0;
+        let logLevelId = (logLevel[messageCollection.level]) ? logLevel[messageCollection.level] : 0;
 
         let dbCall = '';
         let dbResponse = '';
@@ -229,9 +229,9 @@ function CassandraInterceptor(util, cassandraWrapper) {
 
 
     this.logSessionData = function (messageCollection, callback) {
-        var logTimestamp = util.getCurrentUTCTime();
-        var logDate = util.getCurrentDate();
-        var Id = uuid.v1();
+        let logTimestamp = util.getCurrentUTCTime();
+        let logDate = util.getCurrentDate();
+        let Id = uuid.v1();
 
         // Not handling SESSIONs as of now. So returning a success callback
         // so these messages don't linger in 'In Flight' mode indefinitely.
@@ -262,7 +262,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
 
     function sessionsByAsset(messageCollection, Id, tableName, callback) {
 
-        var query = "UPDATE " + tableName + " SET ";
+        let query = "UPDATE " + tableName + " SET ";
         query += "id=" + Id + ",";
         query += "dt='" + util.getFormatedLogDate(messageCollection.request.datetime_log) + "',";
         query += "month=" + util.getFormatedLogMonth(messageCollection.request.datetime_log) + ",";
@@ -307,7 +307,7 @@ function CassandraInterceptor(util, cassandraWrapper) {
 
     function sessionsByWorkHours(messageCollection, Id, tableName, callback) {
 
-        var query = "SELECT hrs FROM " + tableName +
+        let query = "SELECT hrs FROM " + tableName +
             " WHERE astid=" + messageCollection.request.asset_id +
             " and year=" + util.getFormatedLogYear(messageCollection.request.datetime_log) + ";";
         //console.log(query);
@@ -317,15 +317,15 @@ function CassandraInterceptor(util, cassandraWrapper) {
                 callback(false, data);
                 return;
             } else {
-                var hrs = messageCollection.request.hours;
-                var x = JSON.parse(JSON.stringify(data));
+                let hrs = messageCollection.request.hours;
+                let x = JSON.parse(JSON.stringify(data));
                 //console.log('x.rows.length : ' + x.rows.length)
                 if (x.rows.length > 0) {
                     //console.log('HRS : ' + (x.rows[0].hrs === 'undefined')?0:x.rows[0].hrs);
                     hrs = (x.rows[0].hrs === 'undefined') ? hrs : x.rows[0].hrs + hrs;
                 }
 
-                var query = "UPDATE " + tableName + " SET ";
+                let query = "UPDATE " + tableName + " SET ";
                 query += "id=" + Id + ",";
                 query += "dt=" + "'" + util.getFormatedLogDate(messageCollection.request.datetime_log) + "',";
                 query += "month=" + util.getFormatedLogMonth(messageCollection.request.datetime_log) + ",";

@@ -7,7 +7,7 @@ const tracerScope = tracer.scope();
 const tracerFormats = require('dd-trace/ext/formats')
 
 require('../vodafone/utils/vodafoneConfig');
-var forEachAsync = require('forEachAsync').forEachAsync;
+let forEachAsync = require('forEachAsync').forEachAsync;
 const { serializeError } = require('serialize-error');
 
 let Logger = require('../utils/logger.js');

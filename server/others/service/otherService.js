@@ -1,14 +1,14 @@
 /*
  * author: Nani Kalyan V
  */
-var makeRequest = require('request');
-var https = require('https');
+let makeRequest = require('request');
+let https = require('https');
 
 function OtherService(objectCollection) {
 
-    var db = objectCollection.db;
-    var util = objectCollection.util;
-    var activityCommonService = objectCollection.activityCommonService;
+    let db = objectCollection.db;
+    let util = objectCollection.util;
+    let activityCommonService = objectCollection.activityCommonService;
 
     
     this.meetingDurationInsert = async function(request) {

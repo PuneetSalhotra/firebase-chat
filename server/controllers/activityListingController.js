@@ -3,18 +3,18 @@
  * 
  */
 
-var ActivityListingService = require("../services/activityListingService");
+let ActivityListingService = require("../services/activityListingService");
 const moment = require('moment');
 const logger = require("../logger/winstonLogger");
 function ActivityListingController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var cacheWrapper = objCollection.cacheWrapper;
+    let responseWrapper = objCollection.responseWrapper;
+    let cacheWrapper = objCollection.cacheWrapper;
     const activityCommonService = objCollection.activityCommonService;
-    var app = objCollection.app;
-    var queueWrapper = objCollection.queueWrapper;
+    let app = objCollection.app;
+    let queueWrapper = objCollection.queueWrapper;
 
-    var activityListingService = new ActivityListingService(objCollection);
+    let activityListingService = new ActivityListingService(objCollection);
 
     app.post('/' + global.config.version + '/activity/access/asset/list', function (req, res) {
         activityListingService.getActivityListDifferential(req.body, function (err, data, statusCode) {

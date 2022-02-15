@@ -3,17 +3,17 @@
  * 
  */
 
-var AccountService = require("../services/accountService");
-var fs = require('fs');
+let AccountService = require("../services/accountService");
+let fs = require('fs');
 //const smsEngine = require('../utils/smsEngine');
 
 function AccountController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
-    var util = objCollection.util;
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
+    let util = objCollection.util;
     const db = objCollection.db;
-    var accountService = new AccountService(objCollection);
+    let accountService = new AccountService(objCollection);
 
     app.post('/' + global.config.version + '/account/access/admin-asset/list', function (req, res) {
         accountService.getAdminAssets(req.body, function (err, data, statusCode) {
@@ -196,13 +196,13 @@ function AccountController(objCollection) {
         // console.log('VNK : ' , req.body);
         //global.logger.write('conLog', 'VNK : ' + JSON.stringify(req.body, null, 2), {}, req);
         util.logInfo(req,`conLog VNK: %j`,{VNK : JSON.stringify(req.body, null, 2), req});
-        var x = req.body.url;
+        let x = req.body.url;
         x = x.split("/");
         // console.log('x[3] : ' + x[3]);
         //global.logger.write('conLog', 'x[3] : ' + x[3], {}, req);
         util.logInfo(req,`conLog x[3]: %j`,{x3 : x[3], req});
 
-        var file = global.config.efsPath + 'twiliovoicesxmlfiles/' + x[3] + '.xml';
+        let file = global.config.efsPath + 'twiliovoicesxmlfiles/' + x[3] + '.xml';
         // console.log(file);               
         //global.logger.write('conLog', 'Voice XML for TWILIO: ' + file, {}, req);
         util.logInfo(req,`conLog Voice XML for TWILIO: %j`,{Voice_XML_for_TWILIO : file, req});
@@ -226,7 +226,7 @@ function AccountController(objCollection) {
         // console.log('Request.query : ' , req.body);
         //global.logger.write('debug', 'Request.query : ' + JSON.stringify(req.body, null, 2), {}, req);
 
-        var file = global.config.efsPath + 'nexmovoicesjsonfiles/' + req.query.file;
+        let file = global.config.efsPath + 'nexmovoicesjsonfiles/' + req.query.file;
         // console.log(file);       
         //global.logger.write('debug', 'Voice JSON file for NEXMO: ' + file, {}, req);
 

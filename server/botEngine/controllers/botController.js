@@ -3,14 +3,14 @@
  * 
  */
 
-var BotService = require("../services/botService");
-var RMBotService = require("../services/rmbotService");
+let BotService = require("../services/botService");
+let RMBotService = require("../services/rmbotService");
 const WorkbookOpsService_VodafoneCustom = require("../../Workbook/services/workbookOpsService_VodafoneCustom");
 
 function BotController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
     //const util = objCollection.util;
     //const cacheWrapper = objCollection.cacheWrapper;
     //const queueWrapper = objCollection.queueWrapper;

@@ -44,7 +44,7 @@ class MultiDimensionalAggrWidget extends WidgetBase {
         activityQueryData[1] = _.merge(activityQueryData[1], data);
         activityQueryData[2] = _.merge(activityQueryData[2], data);
 
-        var promises = [
+        let promises = [
             this.services.activityFormTransactionAnalytics.getAggregateByDateRange(activityQueryData[0]),
             this.services.activityFormTransactionAnalytics.getAggregateByDateRange(activityQueryData[1]),
             this.services.activityFormTransactionAnalytics.getAggregateByDateRange(activityQueryData[2]),
@@ -99,13 +99,13 @@ class MultiDimensionalAggrWidget extends WidgetBase {
                 widgetData[1].widget_transaction_id = widgetTrans2Id;
                 widgetData[2].widget_transaction_id = widgetTrans3Id;
 
-                var promises = [
+                let promises = [
                     widgetTrans1Id ? widgetTransactionSvc.updateMultiDimAggregate(widgetData[0]) : widgetTransactionSvc.createMultiDimAggregare(widgetData[0]),
                     widgetTrans2Id ? widgetTransactionSvc.updateMultiDimAggregate(widgetData[1]) : widgetTransactionSvc.createMultiDimAggregare(widgetData[1]),
                     widgetTrans3Id ? widgetTransactionSvc.updateMultiDimAggregate(widgetData[2]) : widgetTransactionSvc.createMultiDimAggregare(widgetData[2])
                 ];
                 //Pubnub PUSH
-                var msg = {};
+                let msg = {};
                 msg.type = "form_submited_show_widget_count";
                 msg.form_id = widgetData[0].form_id;
                 msg.widget_id = widgetData[0].widget_id;

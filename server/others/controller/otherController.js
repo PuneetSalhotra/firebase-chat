@@ -3,16 +3,16 @@
  * 
  */
 
- var OtherService = require("../service/otherService");
+ let OtherService = require("../service/otherService");
 
  function OtherController(objCollection) {
  
-     var responseWrapper = objCollection.responseWrapper;
-     var app = objCollection.app;
-     var otherService = new OtherService(objCollection);
-     var util = objCollection.util;
-     var cacheWrapper = objCollection.cacheWrapper;
-     var queueWrapper = objCollection.queueWrapper;
+     let responseWrapper = objCollection.responseWrapper;
+     let app = objCollection.app;
+     let otherService = new OtherService(objCollection);
+     let util = objCollection.util;
+     let cacheWrapper = objCollection.cacheWrapper;
+     let queueWrapper = objCollection.queueWrapper;
      
         
      

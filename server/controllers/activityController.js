@@ -3,51 +3,51 @@
  * 
  */
 
-var ActivityService = require("../services/activityService");
+ let ActivityService = require("../services/activityService");
 //var ActivityCommonService = require("../services/activityCommonService");
-var AssetService = require("../services/assetService");
-var fs = require('fs');
+let AssetService = require("../services/assetService");
+let fs = require('fs');
 const logger = require("../logger/winstonLogger");
 const { serializeError } = require('serialize-error');
 
 function ActivityController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var cacheWrapper = objCollection.cacheWrapper;
-    var queueWrapper = objCollection.queueWrapper;
-    var activityCommonService = objCollection.activityCommonService;
-    var app = objCollection.app;
-    var util = objCollection.util;
+    let responseWrapper = objCollection.responseWrapper;
+    let cacheWrapper = objCollection.cacheWrapper;
+    let queueWrapper = objCollection.queueWrapper;
+    let activityCommonService = objCollection.activityCommonService;
+    let app = objCollection.app;
+    let util = objCollection.util;
 
-    var assetService = new AssetService(objCollection);
-    var activityService = new ActivityService(objCollection); //PAM
+    let assetService = new AssetService(objCollection);
+    let activityService = new ActivityService(objCollection); //PAM
 
     app.post('/' + global.config.version + '/activity/add',async function (req, res) {
         util.logInfo(req.body,`::START:: ${req.body.activity_id || ""}`);
-        var deviceOsId = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedAddActivity = function () {
+        let proceedAddActivity = function () {
             util.logInfo(req.body,`proceedAddActivity %j`, req.body);
 
             if (util.hasValidGenericId(req.body, 'activity_type_category_id')) {
                 if (util.hasValidGenericId(req.body, 'activity_type_id')) {
-                    var activityTypeCategoryId = Number(req.body.activity_type_category_id);
-                    var parentActivityId = util.replaceZero(req.body.activity_parent_id);
+                    let activityTypeCategoryId = Number(req.body.activity_type_category_id);
+                    let parentActivityId = util.replaceZero(req.body.activity_parent_id);
                     switch (activityTypeCategoryId) {
                         case 29: // Co-worker Contact Card - supplier
                         case 6: // Co-worker Contact Card - customer                                
                             assetService.addAsset(req.body, function (err, data, statusCode) {                          
                                 if (err === false) {                                    
                                     if (statusCode === 200) { // go ahead and create a contact activity id
-                                        var newAssetId = data.asset_id;                             
-                                        var contactJson = eval('(' + req.body.activity_inline_data + ')');
+                                        let newAssetId = data.asset_id;                             
+                                        let contactJson = eval('(' + req.body.activity_inline_data + ')');
                                         contactJson['contact_asset_id'] = newAssetId;
                                         req.body.activity_inline_data = JSON.stringify(contactJson);
                                         addActivity(req.body, function (err, activityId) {
                                             if (err === false) {
-                                                var responseDataCollection = {
+                                                let responseDataCollection = {
                                                     asset_id: newAssetId,
                                                     activity_id: activityId
                                                 };
@@ -278,25 +278,25 @@ function ActivityController(objCollection) {
     //Add Activity New Version
     app.post('/' + global.config.version + '/activity/add/v1',async function (req, res) {
         util.logInfo(req.body,`::START:: `);
-        var deviceOsId = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedAddActivity = function () {
+        let proceedAddActivity = function () {
             util.logInfo(req.body,`proceedAddActivity %j`, req.body);
 
             if (util.hasValidGenericId(req.body, 'activity_type_category_id')) {
                 if (util.hasValidGenericId(req.body, 'activity_type_id')) {
-                    var activityTypeCategoryId = Number(req.body.activity_type_category_id);
-                    var parentActivityId = util.replaceZero(req.body.activity_parent_id);
+                    let activityTypeCategoryId = Number(req.body.activity_type_category_id);
+                    let parentActivityId = util.replaceZero(req.body.activity_parent_id);
                     switch (activityTypeCategoryId) {
                         case 29: // Co-worker Contact Card - supplier
                         case 6: // Co-worker Contact Card - customer                                 
                             assetService.addAsset(req.body, function (err, data, statusCode) {
                                 if (err === false) {
                                     if (statusCode === 200) { // go ahead and create a contact activity id
-                                        var newAssetId = data.asset_id;
-                                        var newDeskAssetId = data.desk_asset_id;
+                                        let newAssetId = data.asset_id;
+                                        let newDeskAssetId = data.desk_asset_id;
 
                                         if (data.hasOwnProperty('activity_id')) {
                                             // Do not create the activity and return the existing details
@@ -306,12 +306,12 @@ function ActivityController(objCollection) {
                                         }                                      
                                         
                                         // If no activity_id exists for this phone number
-                                        var contactJson = eval('(' + req.body.activity_inline_data + ')');
+                                        let contactJson = eval('(' + req.body.activity_inline_data + ')');
                                         contactJson['contact_asset_id'] = newDeskAssetId;
                                         req.body.activity_inline_data = JSON.stringify(contactJson);
                                         addActivity(req.body, function (err, activityId) {
                                             if (err === false) {
-                                                var responseDataCollection = {
+                                                let responseDataCollection = {
                                                     asset_id: newAssetId,
                                                     desk_asset_id: newDeskAssetId,
                                                     activity_id: activityId
@@ -610,7 +610,7 @@ function ActivityController(objCollection) {
         util.logInfo(req.body,`::END:: activity_id-${req.body.activity_id || ""}`);
     });
 
-    var addActivity = function (req, callback) {
+    let addActivity = function (req, callback) {
         cacheWrapper.getActivityId(function (err, activityId) {
             if (err) {
                 util.logError(req,`getActivityIDError`, { type: 'add_activity', error: serializeError(err) });
@@ -620,7 +620,7 @@ function ActivityController(objCollection) {
             } else {
                 util.logInfo(req, "MAIN_REQUEST_START | -r1-activity-add-v1 | "+activityId+" addActivity() ");
                 req['activity_id'] = activityId;
-                var event = {
+                let event = {
                     name: "addActivity",
                     service: "activityService",
                     method: "addActivity",
@@ -660,9 +660,9 @@ function ActivityController(objCollection) {
     };
 
     app.post('/' + global.config.version + '/activity/status/alter', function (req, res) {
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
-        var activityData = {
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
+        let activityData = {
             activity_id: req.body.activity_id,
             message_unique_id: req.body.message_unique_id
         }; //BETA
@@ -672,11 +672,11 @@ function ActivityController(objCollection) {
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
-        var activityTypeCategoryId = Number(req.body.activity_type_category_id);
+        let activityTypeCategoryId = Number(req.body.activity_type_category_id);
 
-        var proceedActivityStatusAlter = function () {
+        let proceedActivityStatusAlter = function () {
 
-            var event = {
+            let event = {
                 name: "alterActivityStatus",
                 service: "activityService",
                 method: "alterActivityStatus",

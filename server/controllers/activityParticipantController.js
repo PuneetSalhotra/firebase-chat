@@ -3,20 +3,20 @@
  * 
  */
 
-var ParticipantService = require("../services/activityParticipantService");
+let ParticipantService = require("../services/activityParticipantService");
 const ActivityListingService = require("../services/activityListingService");
 
 function ActivityParticipantController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var cacheWrapper = objCollection.cacheWrapper;
-    var queueWrapper = objCollection.queueWrapper;
-    var app = objCollection.app;
-    var util = objCollection.util;
+    let responseWrapper = objCollection.responseWrapper;
+    let cacheWrapper = objCollection.cacheWrapper;
+    let queueWrapper = objCollection.queueWrapper;
+    let app = objCollection.app;
+    let util = objCollection.util;
     
-    var activityCommonService = objCollection.activityCommonService;
+    let activityCommonService = objCollection.activityCommonService;
 
-    var participantService = new ParticipantService(objCollection);
+    let participantService = new ParticipantService(objCollection);
     const activityListingService = new ActivityListingService(objCollection);
 
     app.post('/' + global.config.version + '/activity/participant/list', function (req, res) {
@@ -36,14 +36,14 @@ function ActivityParticipantController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/activity/participant/access/set', function (req, res) {
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var productId;
+        let productId;
         
         if(!req.body.hasOwnProperty('product_id')) {
             productId = 1;
@@ -61,8 +61,8 @@ function ActivityParticipantController(objCollection) {
             });
         } */
         
-        var proceedParticipantAccessSet = function () {
-            var event = {
+        let proceedParticipantAccessSet = function () {
+            let event = {
                 name: "assignParticipnt",
                 service: "activityParticipantService",
                 method: "assignCoworker",
@@ -140,15 +140,15 @@ function ActivityParticipantController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/activity/participant/access/v1/set', function (req, res) {
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
         req.body.apiVersion = 'v1';
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var productId;
+        let productId;
         
         if(!req.body.hasOwnProperty('product_id')) {
             productId = 1;
@@ -166,8 +166,8 @@ function ActivityParticipantController(objCollection) {
             });
         } */
         
-        var proceedParticipantAccessSet = function () {
-            var event = {
+        let proceedParticipantAccessSet = function () {
+            let event = {
                 name: "assignParticipnt",
                 service: "activityParticipantService",
                 method: "assignCoworker",
@@ -245,15 +245,15 @@ function ActivityParticipantController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/activity/participant/access/reset', function (req, res) {
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedParticipantAccessReset = function () {
-            var event = {
+        let proceedParticipantAccessReset = function () {
+            let event = {
                 name: "unassignParticicpant",
                 service: "activityParticipantService",
                 method: "unassignParticicpant",
@@ -326,15 +326,15 @@ function ActivityParticipantController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/activity/participant/access/alter', function (req, res) {
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedParticipantAccessReset = function () {
-            var event = {
+        let proceedParticipantAccessReset = function () {
+            let event = {
                 name: "updateParticipantAccess",
                 service: "activityParticipantService",
                 method: "updateParticipantAccess",
@@ -398,15 +398,15 @@ function ActivityParticipantController(objCollection) {
 
     //BETA
     app.post('/' + global.config.version + '/activity/participant/timestamp/alter', function (req, res) {
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedParticipantTimestampReset = function () {
-            var event = {
+        let proceedParticipantTimestampReset = function () {
+            let event = {
                 name: "updateParticipantAccess",
                 service: "activityParticipantService",
                 method: "updateParticipantTimestamp",
@@ -470,15 +470,15 @@ function ActivityParticipantController(objCollection) {
     
     //Adding the invitee as a participant in invitor the ID Card Activity
     app.post('/' + global.config.version + '/activity/access/participant_invitee/set', function (req, res) {
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedParticipantInviteeAccessSet = function () {
-            var event = {
+        let proceedParticipantInviteeAccessSet = function () {
+            let event = {
                 name: "assignParticipntAsInvitee",
                 service: "activityParticipantService",
                 method: "addInviteeAsParticipantToIdCard",

@@ -612,13 +612,13 @@ function AnalyticsService(objectCollection)
 
     this.updateWidgetInline = async (request)=>{
 
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.activity_id,
                 request.organization_id,
                 request.activity_inline_data
             );
     
-            var queryString = util.getQueryString('ds_v1_activity_list_update_inline_data', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_list_update_inline_data', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {

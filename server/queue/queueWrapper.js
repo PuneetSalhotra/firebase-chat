@@ -40,7 +40,7 @@ function QueueWrapper(producer, cacheWrapper) {
         
         //global.logger.write('conLog', 'producing to key: ' + activityId.toString(), {}, event.payload); 
         util.logInfo({},`conLog producing to key:  %j`,{activityId : activityId.toString(), payload : event.payload});       
-        var payloads = [{
+        let payloads = [{
             topic: global.config.TOPIC_NAME,
             messages: JSON.stringify((event)),
             key: activityId.toString()
@@ -66,7 +66,7 @@ function QueueWrapper(producer, cacheWrapper) {
         //global.logger.write('debug', 'producing to partition id: ' + partition, {}, event.payload);
         //global.logger.write('conLog', 'producing to key: ' + activityId.toString(), {}, event.payload);
         util.logInfo({},`conLog producing to key: %j`,{activityId : activityId.toString(),payload : event.payload});
-        var payloads = [{
+        let payloads = [{
             topic: global.config.WIDGET_TOPIC_NAME,
             messages: JSON.stringify((event)),
             key: activityId.toString()
@@ -86,7 +86,7 @@ function QueueWrapper(producer, cacheWrapper) {
     
     this.raiseLogEvent = async function(event) {         
                     
-            var payloads = [{
+            let payloads = [{
                 topic: global.config.LOGS_TOPIC_NAME,
                 messages: JSON.stringify((event))                
             }];
@@ -125,7 +125,7 @@ function QueueWrapper(producer, cacheWrapper) {
             
             //global.logger.write('conLog', 'producing to key: ' + activityId.toString(), {}, event.payload);
             util.logInfo({},`conLog producing to key: %j`,{activityId : activityId.toString(), payload : event.payload});        
-            var payloads = [{
+            let payloads = [{
                 topic: global.config.TOPIC_NAME,
                 messages: JSON.stringify((event)),
                 key: activityId.toString()
@@ -213,7 +213,7 @@ function QueueWrapper(producer, cacheWrapper) {
 
             //global.logger.write('conLog', 'producing to key: ' + activityID.toString(), {}, event.payload);
             util.logInfo(req,`conLog producing to key: %j`,{activityID : activityID.toString(), payload : event.payload});
-            var payloads = [{
+            let payloads = [{
                 topic: topicName,
                 messages: JSON.stringify((event)),
                 key: activityID.toString()

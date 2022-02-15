@@ -1,20 +1,20 @@
 
-var PamService = require("../services/pamService");
+let PamService = require("../services/pamService");
 
 function PamController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
-    var pamService = new PamService(objCollection);
-    var util = objCollection.util;
-    var cacheWrapper = objCollection.cacheWrapper;
-    var queueWrapper = objCollection.queueWrapper;
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
+    let pamService = new PamService(objCollection);
+    let util = objCollection.util;
+    let cacheWrapper = objCollection.cacheWrapper;
+    let queueWrapper = objCollection.queueWrapper;
 
     //IVR Service 
     app.post('/' + global.config.version + '/pam/ivr', function (req, res) {
         pamService.ivrService(req.body, function (err, data, statusCode) {
             if (err === false) {
-                var text = 'Dear Customer, Please call us back after <> to check if there are any reservation slots available.';
+                let text = 'Dear Customer, Please call us back after <> to check if there are any reservation slots available.';
                 console.log('DATA : ', data);
                 if (data.called_before === 'true' && data.reservation_available === 'false') {
                     util.sendSmsMvaayoo(text, req.country_code, req.phone_number, function (err, res) {});
@@ -318,15 +318,15 @@ function PamController(objCollection) {
     
     app.post('/' + global.config.version + '/pam/activity/participant/access/set', function (req, res) {
         //global.logger.write('debug', 'PAM::/pam/activity/participant/access/set::'+req.body, {}, req); 
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedParticipantAccessSet = function () {
-            var event = {
+        let proceedParticipantAccessSet = function () {
+            let event = {
                 name: "pamAssignParticipnt",
                 service: "pamService",
                 method: "pamAssignParticipant",

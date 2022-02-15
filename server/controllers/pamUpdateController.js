@@ -2,25 +2,25 @@
  *author: V Nani Kalyan
  * 
  */
-var PamUpdateService = require("../services/pamUpdateService");
+let PamUpdateService = require("../services/pamUpdateService");
 function PamUpdateController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var cacheWrapper = objCollection.cacheWrapper;
-    var queueWrapper = objCollection.queueWrapper;
-    var app = objCollection.app;
-    var util = objCollection.util;
-    var forEachAsync = objCollection.forEachAsync;
-    var pamUpdateService = new PamUpdateService(objCollection);
+    let responseWrapper = objCollection.responseWrapper;
+    let cacheWrapper = objCollection.cacheWrapper;
+    let queueWrapper = objCollection.queueWrapper;
+    let app = objCollection.app;
+    let util = objCollection.util;
+    let forEachAsync = objCollection.forEachAsync;
+    let pamUpdateService = new PamUpdateService(objCollection);
     
     //PAM
     app.post('/' + global.config.version + '/pam/activity/ingredient/alter', function (req, res) {
-        var deviceOsId = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedCoverUpdate = function () {
-            var event = {
+        let proceedCoverUpdate = function () {
+            let event = {
                 name: "alterActivityIngredient",
                 service: "pamUpdateService",
                 method: "alterIngredientSubTypeActivity",
@@ -44,15 +44,15 @@ function PamUpdateController(objCollection) {
     
     
     app.post('/' + global.config.version + '/pam/activity/participant/access/reset', function (req, res) {
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedParticipantAccessReset = function () {
-            var event = {
+        let proceedParticipantAccessReset = function () {
+            let event = {
                 name: "unassignParticicpant",
                 service: "pamUpdateService",
                 method: "unassignParticicpant",
@@ -126,18 +126,18 @@ function PamUpdateController(objCollection) {
         
         //global.logger.write('debug', 'PAM::/pam/activity/status/alter::'+req.body, {}, req); 
         
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
-        var activityData = {activity_id: req.body.activity_id, message_unique_id: req.body.message_unique_id}; //BETA
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
+        let activityData = {activity_id: req.body.activity_id, message_unique_id: req.body.message_unique_id}; //BETA
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
-        var activityTypeCategoryId = Number(req.body.activity_type_category_id);
+        let activityTypeCategoryId = Number(req.body.activity_type_category_id);
 
-        var proceedActivityStatusAlter = function () {
+        let proceedActivityStatusAlter = function () {
 
-            var event = {
+            let event = {
                 name: "pamAlterActivityStatus",
                 service: "pamUpdateService",
                 method: "alterActivityStatus",

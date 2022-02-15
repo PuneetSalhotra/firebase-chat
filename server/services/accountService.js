@@ -3,24 +3,24 @@
  */
 
 const crypto = require('crypto');
-var CryptoJS = require("crypto-js");
+let CryptoJS = require("crypto-js");
 
 function AccountService(objectCollection) {
 
-    var db = objectCollection.db;
-    var util = objectCollection.util;
-    var forEachAsync = objectCollection.forEachAsync;
+    let db = objectCollection.db;
+    let util = objectCollection.util;
+    let forEachAsync = objectCollection.forEachAsync;
     //var cacheWrapper = objectCollection.cacheWrapper;
     const activityCommonService = objectCollection.activityCommonService;
 
     this.getAdminAssets = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.page_start,
             request.page_limit
         );
-        var queryString = util.getQueryString('ds_p1_asset_list_select_all_admin_desks', paramsArr);
+        let queryString = util.getQueryString('ds_p1_asset_list_select_all_admin_desks', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
@@ -39,14 +39,14 @@ function AccountService(objectCollection) {
     };
 
     this.getDeskMappingAssets = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.asset_id,
             5, // static value
             request.page_start,
             request.page_limit
         );
-        var queryString = util.getQueryString('ds_p1_asset_access_mapping_select_user_level_all', paramsArr);
+        let queryString = util.getQueryString('ds_p1_asset_access_mapping_select_user_level_all', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
@@ -67,7 +67,7 @@ function AccountService(objectCollection) {
     this.retrieveAccountList = function (request, callback) {
         let paramsArr = [];
         paramsArr.push(request.account_id);
-        var queryString = util.getQueryString('ds_p1_account_list_select', paramsArr);
+        let queryString = util.getQueryString('ds_p1_account_list_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
@@ -90,10 +90,10 @@ function AccountService(objectCollection) {
 
     this.updateAccountEmail = function (request, callback) {
 
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.user_id,
@@ -107,7 +107,7 @@ function AccountService(objectCollection) {
             logDatetime,
             request.asset_id
         );
-        var queryString = util.getQueryString('ds_p1_account_list_update_user_details', paramsArr);
+        let queryString = util.getQueryString('ds_p1_account_list_update_user_details', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (!err) {
@@ -124,10 +124,10 @@ function AccountService(objectCollection) {
 
     this.updateAccountMailingAddress = function (request, callback) {
 
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.mailing_address_collection,
@@ -136,7 +136,7 @@ function AccountService(objectCollection) {
             logDatetime,
             request.asset_id
         );
-        var queryString = util.getQueryString('ds_p1_account_list_update_mailing_address', paramsArr);
+        let queryString = util.getQueryString('ds_p1_account_list_update_mailing_address', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (!err) {
@@ -153,10 +153,10 @@ function AccountService(objectCollection) {
 
     this.updateAccountForwardingAddress = function (request, callback) {
 
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.account_address,
@@ -164,7 +164,7 @@ function AccountService(objectCollection) {
             logDatetime,
             request.asset_id
         );
-        var queryString = util.getQueryString('ds_p1_account_list_update_forwarding_address', paramsArr);
+        let queryString = util.getQueryString('ds_p1_account_list_update_forwarding_address', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (!err) {
@@ -181,10 +181,10 @@ function AccountService(objectCollection) {
 
     this.updateAccountPhone = function (request, callback) {
 
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.account_phone_country_code,
@@ -193,7 +193,7 @@ function AccountService(objectCollection) {
             logDatetime,
             request.asset_id
         );
-        var queryString = util.getQueryString('ds_p1_account_list_update_user_phone_number', paramsArr);
+        let queryString = util.getQueryString('ds_p1_account_list_update_user_phone_number', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (!err) {
@@ -210,10 +210,10 @@ function AccountService(objectCollection) {
 
 
 
-    var formatAssetCoverData = function (rowArray, callback) {
-        var responseArr = new Array();
+    let formatAssetCoverData = function (rowArray, callback) {
+        let responseArr = new Array();
         objectCollection.forEachAsync(rowArray, function (next, row) {
-            var rowData = {
+            let rowData = {
                 'asset_id': util.replaceDefaultNumber(row['asset_id']),
                 'operating_asset_id': util.replaceDefaultNumber(row['operating_asset_id']),
                 'asset_first_name': util.replaceDefaultString(row['asset_first_name']),
@@ -257,10 +257,10 @@ function AccountService(objectCollection) {
         });
     };
 
-    var formatAssetAccountDataLevel = function (data, callback) {
-        var responseArr = new Array();
+    let formatAssetAccountDataLevel = function (data, callback) {
+        let responseArr = new Array();
         forEachAsync(data, function (next, row) {
-            var rowData = {
+            let rowData = {
                 'user_mapping_id': util.replaceDefaultNumber(row['user_mapping_id']),
                 'user_asset_id': util.replaceDefaultNumber(row['user_asset_id']),
                 'user_asset_first_name': util.replaceDefaultString(row['user_asset_first_name']),
@@ -322,10 +322,10 @@ function AccountService(objectCollection) {
         });
     };
 
-    var formatAccountAccessList = function (data, callback) {
-        var responseArr = new Array();
+    let formatAccountAccessList = function (data, callback) {
+        let responseArr = new Array();
         forEachAsync(data, function (next, rowData) {
-            var row = {
+            let row = {
                 "account_id": util.replaceDefaultNumber(rowData['account_id']),
                 "account_name": util.replaceDefaultString(rowData['account_name']),
                 "account_image_path": util.replaceDefaultString(rowData['account_image_path']),
@@ -414,15 +414,15 @@ function AccountService(objectCollection) {
         });
     };
 
-    var accountListHistoryInsert = function (request, updateTypeId, callback) {
-        var paramsArr = new Array(
+    let accountListHistoryInsert = function (request, updateTypeId, callback) {
+        let paramsArr = new Array(
             request.account_id,
             request.organization_id,
             updateTypeId,
             request.datetime_log // server log date time
         );
 
-        var queryString = util.getQueryString('ds_p1_account_list_history_insert', paramsArr);
+        let queryString = util.getQueryString('ds_p1_account_list_history_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -436,12 +436,12 @@ function AccountService(objectCollection) {
     };
 
     this.loggingCommunicationReq = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             util.getCurrentUTCTime(),
             JSON.stringify(request)
         );
 
-        var queryString = util.getQueryString('ds_p1_communication_transaction_insert', paramsArr);
+        let queryString = util.getQueryString('ds_p1_communication_transaction_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (err === false) ? callback(false, {}, 200): callback(true, err, -9999);
@@ -450,12 +450,12 @@ function AccountService(objectCollection) {
     };
 
     this.getLoggingCommunicationReq = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.start_from,
             request.limit_value
         );
 
-        var queryString = util.getQueryString('ds_p1_communication_transaction_select', paramsArr);
+        let queryString = util.getQueryString('ds_p1_communication_transaction_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 (err === false) ? callback(false, data, 200): callback(true, err, -9999);
@@ -464,7 +464,7 @@ function AccountService(objectCollection) {
     };
 
     this.setAccountConfigValues = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.config_response_time,
@@ -474,7 +474,7 @@ function AccountService(objectCollection) {
             request.log_asset_id
         );
 
-        var queryString = util.getQueryString('ds_p1_account_list_update_config_values', paramsArr);
+        let queryString = util.getQueryString('ds_p1_account_list_update_config_values', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (err === false) ? callback(false, {}, 200): callback(true, err, -9999);
@@ -565,7 +565,7 @@ function AccountService(objectCollection) {
             request.asset_id
         );
 
-        var queryString = util.getQueryString('ds_p1_workforce_list_update_inline_data', paramsArr);
+        let queryString = util.getQueryString('ds_p1_workforce_list_update_inline_data', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
@@ -606,7 +606,7 @@ function AccountService(objectCollection) {
             util.replaceQueryLimit(request.page_limit)
         );
 
-        var queryString = util.getQueryString('ds_p1_workforce_list_select', paramsArr);
+        let queryString = util.getQueryString('ds_p1_workforce_list_select', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -700,7 +700,7 @@ function AccountService(objectCollection) {
             util.replaceQueryLimit(request.page_limit)
         );        
         
-        var queryString = util.getQueryString('ds_p2_form_entity_mapping_select_search', paramsArr);
+        let queryString = util.getQueryString('ds_p2_form_entity_mapping_select_search', paramsArr);
         if (queryString !== '') {
             return await (db.executeQueryPromise(1, queryString, request));
         }
@@ -727,7 +727,7 @@ function AccountService(objectCollection) {
             request.workforce_id || 0
         );
 
-        var queryString = util.getQueryString('ds_p1_organization_labels_select', paramsArr);
+        let queryString = util.getQueryString('ds_p1_organization_labels_select', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {

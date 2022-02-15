@@ -21,7 +21,7 @@ function ActivityConfigService(db,util,objCollection) {
     const self = this;
 
     this.getWorkforceActivityTypesList = function (request,callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -29,7 +29,7 @@ function ActivityConfigService(db,util,objCollection) {
             request.page_start,
             util.replaceQueryLimit(request.page_limit)
         );
-        var queryString = util.getQueryString('ds_v1_workforce_activity_type_mapping_select',paramsArr);
+        let queryString = util.getQueryString('ds_v1_workforce_activity_type_mapping_select',paramsArr);
 
         if(queryString != '') {
             db.executeQuery(1,queryString,request,function (err,data) {
@@ -56,7 +56,7 @@ function ActivityConfigService(db,util,objCollection) {
 
     this.getWorkforceActivityStatusList = function (request,callback) {
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -64,7 +64,7 @@ function ActivityConfigService(db,util,objCollection) {
             request.page_start,
             util.replaceQueryLimit(request.page_limit)
         );
-        var queryString = util.getQueryString('ds_v1_workforce_activity_status_mapping_select',paramsArr);
+        let queryString = util.getQueryString('ds_v1_workforce_activity_status_mapping_select',paramsArr);
 
         //console.log(queryString);
         if(queryString != '') {
@@ -90,13 +90,13 @@ function ActivityConfigService(db,util,objCollection) {
     };
 
     this.getActivityParticipantAccess = function (request,callback) {
-        var productId = (request.hasOwnProperty('product_id')) ? request.product_id : 1;
-        var paramsArr = new Array(
+        let productId = (request.hasOwnProperty('product_id')) ? request.product_id : 1;
+        let paramsArr = new Array(
             request.page_start,
             util.replaceQueryLimit(request.page_limit),
             productId
         );
-        var queryString = util.getQueryString('ds_v1_1_activity_participant_access_master_select',paramsArr);
+        let queryString = util.getQueryString('ds_v1_1_activity_participant_access_master_select',paramsArr);
 
         //console.log(queryString);
         if(queryString != '') {
@@ -116,11 +116,11 @@ function ActivityConfigService(db,util,objCollection) {
         };
     };
 
-    var formatActivityTypesList = function (data,callback) {
-        var responseData = new Array();
+    let formatActivityTypesList = function (data,callback) {
+        let responseData = new Array();
         data.forEach(function (rowData,index) {
 
-            var rowDataArr = {
+            let rowDataArr = {
                 'activity_type_id': util.replaceDefaultNumber(rowData['activity_type_id']),
                 'activity_type_name': util.replaceDefaultString(rowData['activity_type_name']),
                 'activity_type_category_id': util.replaceDefaultNumber(rowData['activity_type_category_id']),
@@ -147,11 +147,11 @@ function ActivityConfigService(db,util,objCollection) {
 
     };
 
-    var formatActivityStatusList = function (data,callback) {
-        var responseData = new Array();
+    let formatActivityStatusList = function (data,callback) {
+        let responseData = new Array();
         if(Object.prototype.toString.call(data[0]) === '[object Array]' || Object.prototype.toString.call(data[0]) === '[object Object]') {
             data.forEach(function (rowData,index) {
-                var rowDataArr = {
+                let rowDataArr = {
                     "activity_status_id": util.replaceDefaultNumber(rowData['activity_status_id']),
                     "activity_status_name": util.replaceDefaultString(rowData['activity_status_name']),
                     "activity_status_type_id": util.replaceDefaultNumber(rowData['activity_status_type_id']),
@@ -301,7 +301,7 @@ function ActivityConfigService(db,util,objCollection) {
 
     this.workForceActivityTypeDelete = function (request) {
         return new Promise((resolve,reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -309,7 +309,7 @@ function ActivityConfigService(db,util,objCollection) {
                 request.asset_id,
                 request.datetime_log
             );
-            var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_delete',paramsArr);
+            let queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_delete',paramsArr);
             if(queryString != '') {
                 db.executeQuery(0,queryString,request,function (err,data) {
                     if(err === false) {
@@ -327,13 +327,13 @@ function ActivityConfigService(db,util,objCollection) {
 
     function workForceActivityTypeHistoryInsert(request) {
         return new Promise((resolve,reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.activity_type_id,
                 request.organization_id,
                 request.update_type_id,
                 request.datetime_log || util.getCurrentUTCTime()
             );
-            var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_history_insert',paramsArr);
+            let queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_history_insert',paramsArr);
             if(queryString != '') {
                 db.executeQuery(0,queryString,request,function (err,data) {
                     (err === false) ? resolve(data) : resolve(err);
@@ -344,7 +344,7 @@ function ActivityConfigService(db,util,objCollection) {
 
     function workForceActivityTypeMappingUpdateLogState(request) {
         return new Promise((resolve,reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.activity_type_id,
                 0,
@@ -352,7 +352,7 @@ function ActivityConfigService(db,util,objCollection) {
                 request.asset_id,
                 request.datetime_log || util.getCurrentUTCTime()
             );
-            var queryString = util.getQueryString(`ds_p1_activity_type_asset_type_mapping_update_log_state`,paramsArr);
+            let queryString = util.getQueryString(`ds_p1_activity_type_asset_type_mapping_update_log_state`,paramsArr);
             if(queryString != '') {
                 db.executeQuery(0,queryString,request,function (err,data) {
                     (err === false) ? resolve(data) : resolve(err);
@@ -393,7 +393,7 @@ function ActivityConfigService(db,util,objCollection) {
 
     this.getAccessLevelActivityTypeList = function (request) {
         return new Promise((resolve,reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.access_level_id,
                 request.organization_id,
                 request.account_id,
@@ -403,7 +403,7 @@ function ActivityConfigService(db,util,objCollection) {
                 util.replaceQueryLimit(request.page_limit)
             );
 
-            var queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_select',paramsArr);
+            let queryString = util.getQueryString('ds_p1_1_workforce_activity_type_mapping_select',paramsArr);
             if(queryString != '') {
                 db.executeQuery(1,queryString,request,function (err,data) {
                     //console.log("err "+err);
@@ -453,7 +453,7 @@ function ActivityConfigService(db,util,objCollection) {
         //flag = 1 - Only parent statuses
         //flag = 2 - Both parent and substatus
         return new Promise((resolve,reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -465,7 +465,7 @@ function ActivityConfigService(db,util,objCollection) {
                 util.replaceQueryLimit(request.page_limit)
             );
 
-            var queryString = util.getQueryString('ds_p1_1_workforce_activity_status_mapping_select',paramsArr);
+            let queryString = util.getQueryString('ds_p1_1_workforce_activity_status_mapping_select',paramsArr);
             if(queryString != '') {
                 db.executeQuery(1,queryString,request,function (err,data) {
                     //console.log("err "+err);
@@ -482,7 +482,7 @@ function ActivityConfigService(db,util,objCollection) {
 
     this.getCommunicationList = function (request) {
         return new Promise((resolve,reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.flag,
                 request.communication_id,
                 request.communication_type_id,
@@ -495,7 +495,7 @@ function ActivityConfigService(db,util,objCollection) {
                 util.replaceQueryLimit(request.page_limit)
             );
 
-            var queryString = util.getQueryString('ds_p1_communication_list_select',paramsArr);
+            let queryString = util.getQueryString('ds_p1_communication_list_select',paramsArr);
             if(queryString != '') {
                 db.executeQuery(1,queryString,request,function (err,data) {
                     //console.log("err "+err);
@@ -512,7 +512,7 @@ function ActivityConfigService(db,util,objCollection) {
 
     this.workForceActivityStatusDelete = function (request) {
         return new Promise((resolve,reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -520,7 +520,7 @@ function ActivityConfigService(db,util,objCollection) {
                 request.asset_id,
                 request.datetime_log
             );
-            var queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_delete',paramsArr);
+            let queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_delete',paramsArr);
             if(queryString != '') {
                 db.executeQuery(0,queryString,request,function (err,data) {
                     if(err === false) {
@@ -537,13 +537,13 @@ function ActivityConfigService(db,util,objCollection) {
 
     function workForceActivityStatusHistoryInsert(request) {
         return new Promise((resolve,reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.activity_status_id,
                 request.organization_id,
                 request.update_type_id,
                 request.datetime_log
             );
-            var queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_history_insert',paramsArr);
+            let queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_history_insert',paramsArr);
             if(queryString != '') {
                 db.executeQuery(0,queryString,request,function (err,data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -554,7 +554,7 @@ function ActivityConfigService(db,util,objCollection) {
 
     this.workForceActivityStatusInsert = function (request) {
         return new Promise((resolve,reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.activity_status_name,
                 request.activity_status_description || 0,
                 request.status_sequence_id,
@@ -641,7 +641,7 @@ function ActivityConfigService(db,util,objCollection) {
 
     this.workForceActivityStatusUpdate = function (request) {
         return new Promise((resolve,reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -653,7 +653,7 @@ function ActivityConfigService(db,util,objCollection) {
                 request.datetime_log,
                 request.parent_status_id || 0
             );
-            var queryString = util.getQueryString('ds_p1_1_workforce_activity_status_mapping_update',paramsArr);
+            let queryString = util.getQueryString('ds_p1_1_workforce_activity_status_mapping_update',paramsArr);
             if(queryString != '') {
                 db.executeQuery(0,queryString,request,function (err,data) {
                     if(err === false) {
@@ -879,7 +879,7 @@ function ActivityConfigService(db,util,objCollection) {
             request.limit_value || 50
         );
 
-        var queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_select_operation_type',paramsArr);
+        let queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_select_operation_type',paramsArr);
         if(queryString !== '') {
             await db.executeQueryPromise(1,queryString,request)
                 .then((data) => {
@@ -962,7 +962,7 @@ function ActivityConfigService(db,util,objCollection) {
             request.page_limit || 50
         );
 
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_configs',paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_configs',paramsArr);
         if(queryString !== '') {
             await db.executeQueryPromise(1,queryString,request)
                 .then((data) => {
@@ -2135,7 +2135,7 @@ function ActivityConfigService(db,util,objCollection) {
             util.getCurrentUTCTime()
         );
 
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner_flag',paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner_flag',paramsArr);
 
         if(queryString !== '') {
             try {

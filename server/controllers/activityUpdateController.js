@@ -9,21 +9,21 @@ const ActivityUpdateService = require("../services/activityUpdateService");
 
 function ActivityUpdateController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var cacheWrapper = objCollection.cacheWrapper;
-    var queueWrapper = objCollection.queueWrapper;
-    var app = objCollection.app;
-    var util = objCollection.util;
-    var forEachAsync = objCollection.forEachAsync;
+    let responseWrapper = objCollection.responseWrapper;
+    let cacheWrapper = objCollection.cacheWrapper;
+    let queueWrapper = objCollection.queueWrapper;
+    let app = objCollection.app;
+    let util = objCollection.util;
+    let forEachAsync = objCollection.forEachAsync;
     const activityUpdateService = new ActivityUpdateService(objCollection);
     
     app.post('/' + global.config.version + '/activity/inline/alter', function (req, res) {
-        var deviceOsId = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedInlineUpdate = function () {
-            var event = {
+        let proceedInlineUpdate = function () {
+            let event = {
                 name: "alterActivityInline",
                 service: "activityUpdateService",
                 method: "alterActivityInline",
@@ -96,12 +96,12 @@ function ActivityUpdateController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/activity/cover/alter', function (req, res) {
-        var deviceOsId = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedCoverUpdate = function () {
-            var event = {
+        let proceedCoverUpdate = function () {
+            let event = {
                 name: "alterActivityCover",
                 service: "activityUpdateService",
                 method: "alterActivityCover",
@@ -164,16 +164,16 @@ function ActivityUpdateController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/activity/parent/alter', function (req, res) {
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
-        var activityTypeCategoryId = Number(req.body.activity_type_category_id);
-        var proceedActivityParentAlter = function () {
+        let activityTypeCategoryId = Number(req.body.activity_type_category_id);
+        let proceedActivityParentAlter = function () {
 
-            var event = {
+            let event = {
                 name: "alterActivityParent",
                 service: "activityUpdateService",
                 method: "alterActivityParent",
@@ -239,15 +239,15 @@ function ActivityUpdateController(objCollection) {
     
     //Added by V Nani Kalyan
     app.post('/' + global.config.version + '/activity/unread/count/reset', function (req, res) {
-        var cnt = 0;
-        var deviceOsId = 0;
-        var activityArray = JSON.parse(req.body.activity_id_array);
+        let cnt = 0;
+        let deviceOsId = 0;
+        let activityArray = JSON.parse(req.body.activity_id_array);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
        
-        var proceedUnreadUpdate = function (activityId) {
+        let proceedUnreadUpdate = function (activityId) {
             req.body.activity_id = activityId; 
-            var event = {
+            let event = {
                 name: "resetUnreadUpdateCount",
                 service: "activityUpdateService",
                 method: "resetUnreadUpdateCount",
@@ -322,10 +322,10 @@ function ActivityUpdateController(objCollection) {
         
     // Added by V Nani Kalyan
     app.post('/' + global.config.version + '/activity/unread/count/reset/v1', function (req, res) {
-        var cnt = 0;
-        var deviceOsId = 0;
+        let cnt = 0;
+        let deviceOsId = 0;
         try {
-            var activityArray = JSON.parse(req.body.activity_id_array);
+            let activityArray = JSON.parse(req.body.activity_id_array);
         } catch (exception) {
             res.json(responseWrapper.getResponse(false, { data: "Invalid Json format" }, -3308, req.body));
             return;
@@ -334,12 +334,12 @@ function ActivityUpdateController(objCollection) {
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedUnreadUpdate = function () {
+        let proceedUnreadUpdate = function () {
             const rowData = activityArray[0];
             req.body.activity_id = rowData.activity_id;
             req.body.timeline_transaction_id = rowData.timeline_transaction_id;
             req.body.timeline_transaction_datetime = rowData.timeline_transaction_datetime;
-            var event = {
+            let event = {
                 name: "resetUnreadUpdateCountV1",
                 service: "activityUpdateService",
                 method: "resetUnreadUpdateCountV1",
@@ -416,12 +416,12 @@ function ActivityUpdateController(objCollection) {
         
    //PAM
    app.post('/' + global.config.version + '/pam/activity/cover/alter/channel_activity', function (req, res) {
-        var deviceOsId = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedCoverUpdate = function () {
-            var event = {
+        let proceedCoverUpdate = function () {
+            let event = {
                 name: "alterActivityCover",
                 service: "activityUpdateService",
                 method: "alterActivityCoverChannelActivity",
@@ -445,12 +445,12 @@ function ActivityUpdateController(objCollection) {
     
     //PAM
     app.post('/' + global.config.version + '/pam/activity/cover/alter/subtype_activity', function (req, res) {
-        var deviceOsId = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedCoverUpdate = function () {
-            var event = {
+        let proceedCoverUpdate = function () {
+            let event = {
                 name: "alterActivityCover",
                 service: "activityUpdateService",
                 method: "alterCoverSubTypeActivity",
@@ -474,12 +474,12 @@ function ActivityUpdateController(objCollection) {
     
     //BETA
     app.post('/' + global.config.version + '/activity/owner/alter', function (req, res) {
-        var deviceOsId = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedOwnerUpdate = function () {
-            var event = {
+        let proceedOwnerUpdate = function () {
+            let event = {
                 name: "alterActivityCover",
                 service: "activityUpdateService",
                 method: "alterActivityOwner",
@@ -543,12 +543,12 @@ function ActivityUpdateController(objCollection) {
     
     //Setting or unsetting the activity_flag_file_enabled 
     app.post('/' + global.config.version + '/activity/asset/file_enabled_flag/alter', function (req, res) {
-        var deviceOsId = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedActivityFlagFileUpdate = function () {
-            var event = {
+        let proceedActivityFlagFileUpdate = function () {
+            let event = {
                 name: "alterActivityFlagFileEnabled",
                 service: "activityUpdateService",
                 method: "alterActivityFlagFileEnabled",
@@ -612,7 +612,7 @@ function ActivityUpdateController(objCollection) {
 
     // Delete a user from the Organization/Workforce
     app.post('/' + global.config.version + '/asset/access/workforce/reset', function (req, res) {
-        var deviceOsId = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id')) {
             deviceOsId = Number(req.body.device_os_id);
         }
@@ -672,7 +672,7 @@ function ActivityUpdateController(objCollection) {
 
         
         function initiateServiceToDeleteUserFromWorkforce(reqBody, callback) {
-            var event = {
+            let event = {
                 name: "activityUpdateService",
                 service: "activityUpdateService",
                 method: "populateDataForRemovingUserFromOrg",

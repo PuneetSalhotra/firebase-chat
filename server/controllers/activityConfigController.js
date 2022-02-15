@@ -4,14 +4,14 @@
  * 
  */
 
-var ActivityConfigService = require("../services/activityConfigService");
+let ActivityConfigService = require("../services/activityConfigService");
 
 function ActivityConfigController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
 
-    var activityConfigService = new ActivityConfigService(objCollection.db, objCollection.util, objCollection);
+    let activityConfigService = new ActivityConfigService(objCollection.db, objCollection.util, objCollection);
 
     app.post('/' + global.config.version + '/activity_type/access/workforce/list', function (req, res) {//Fetch activity types
         activityConfigService.getWorkforceActivityTypesList(req.body, function (err, data, statusCode) {

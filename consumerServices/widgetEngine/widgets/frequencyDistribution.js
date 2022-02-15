@@ -33,7 +33,7 @@ class FrequencyDistributionWidget extends WidgetBase {
                 console.log("CALCULATED FORM COUNT " + count);
                 widgetData = _.merge(widgetData, data);
                 //return count > 0 ? this.createOrUpdateWidgetTransaction(widgetData) : false;
-                var msg = {};
+                let msg = {};
                 msg.type = "form_submited_show_widget_count";
                 msg.form_id = data.form_id;
                 msg.widget_id = widgetData.widget_id;

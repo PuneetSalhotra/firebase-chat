@@ -3,13 +3,13 @@
  * 
  */
 
-var PamListingService = require("../services/pamListingService");
+let PamListingService = require("../services/pamListingService");
 
 function PamListingController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
-    var pamListingService = new PamListingService(objCollection);
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
+    let pamListingService = new PamListingService(objCollection);
            
     app.post('/' + global.config.version + '/pam/orders/access/list', function (req, res) {
         pamListingService.getOrdersUnderAReservation(req.body, function (err, data, statusCode) {

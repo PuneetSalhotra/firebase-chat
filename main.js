@@ -1,7 +1,7 @@
 /* 
  * author: V Nani Kalyan
  */
-var globalConfig = require('./server/utils/globalConfigV1');
+let globalConfig = require('./server/utils/globalConfigV1');
 const tracer = require('dd-trace').init({
     service: `${process.env.NODE_ENV}_desker_api`,
     env: process.env.NODE_ENV,
@@ -115,7 +115,7 @@ process.on('unhandledRejection', (reason, promise) => {
 
 let cnt = 0;
 async function listUsers(paginationToken = null) {
-    var params = {
+    let params = {
         UserPoolId: global.config.user_pool_id,
         Limit: 60
     };
@@ -210,7 +210,7 @@ async function handleImports() {
     const QueueWrapper = require('./server/queue/queueWrapper');
     const ActivityCommonService = require("./server/services/activityCommonService");
 
-    var map = new Map();
+    let map = new Map();
 
     const {
         requestParamsValidator, requestMethodValidator, requestContentTypeValidator,
@@ -317,11 +317,11 @@ async function handleImports() {
 
     /** Global Error handler */
     app.use((err, req, res, next) => {
-        var util = new Util({
+        let util = new Util({
             cacheWrapper
         });
 
-        var responseWrapper = new ResponseWrapper(util);
+        let responseWrapper = new ResponseWrapper(util);
         res.json(responseWrapper.getResponse(err, {
             message: 'CORS - origin access not allowed!'
         }, 401, req.body))
@@ -331,7 +331,7 @@ async function handleImports() {
 
     console.log("redis is connected");
 
-    var kafkaClient = new kafka.KafkaClient({
+    let kafkaClient = new kafka.KafkaClient({
         kafkaHost: global.config.BROKER_HOST,
         connectTimeout: global.config.BROKER_CONNECT_TIMEOUT,
         requestTimeout: global.config.BROKER_REQUEST_TIMEOUT,
@@ -345,7 +345,7 @@ async function handleImports() {
         partitionerType: global.config.PRODUCER_PARTITONER_TYPE,
     }
 
-    var kafkaProducer = new KafkaProducer(kafkaClient, producerOptions);
+    let kafkaProducer = new KafkaProducer(kafkaClient, producerOptions);
 
     //console.log('kafkaProducer : ' , kafkaProducer);
 
@@ -360,7 +360,7 @@ async function handleImports() {
         console.log('Cognito Users loaded successfully : ', map.size);
         //console.log(map);
 
-        var queueWrapper = new QueueWrapper(kafkaProducer, cacheWrapper);
+        let queueWrapper = new QueueWrapper(kafkaProducer, cacheWrapper);
         //global.logger = new Logger();
         global.logger = new Logger(queueWrapper);
 
@@ -369,13 +369,13 @@ async function handleImports() {
         //global.logger.write('conLog', 'BROKER_HOST : ' + global.config.BROKER_HOST, {}, {});
         util.logInfo({},`conLog BROKER_HOST: %j`,{BROKER_HOST : global.config.BROKER_HOST});
 
-        var util = new Util({
+        let util = new Util({
             cacheWrapper
         });
-        var responseWrapper = new ResponseWrapper(util);
-        var activityCommonService = new ActivityCommonService(db, util, forEachAsync);
+        let responseWrapper = new ResponseWrapper(util);
+        let activityCommonService = new ActivityCommonService(db, util, forEachAsync);
 
-        var objCollection = {
+        let objCollection = {
             app: app,
             util: util,
             db: db,

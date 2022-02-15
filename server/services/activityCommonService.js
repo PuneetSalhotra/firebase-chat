@@ -1,23 +1,23 @@
 
 function ActivityCommonService(db, util, forEachAsync) {
-    var makingRequest = require('request');
+    let makingRequest = require('request');
     const self = this;
     const nodeUtil = require('util');
-    var elasticsearch = require('elasticsearch');
+    let elasticsearch = require('elasticsearch');
     const logger = require("../logger/winstonLogger");
     const { serializeError } = require("serialize-error");
-    var client = new elasticsearch.Client({
+    let client = new elasticsearch.Client({
         hosts: [global.config.elastiSearchNode]
     });
 
     this.getAllParticipants = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             request.organization_id,
             0,
             50
         );
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -33,7 +33,7 @@ function ActivityCommonService(db, util, forEachAsync) {
     // Promisified version of the above method
     this.getAllParticipantsPromise = function (request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.activity_id,
                 request.organization_id,
                 0,
@@ -75,7 +75,7 @@ this.getAllParticipantsAsync = async (request) => {
 };
 
     this.getAllParticipantsExceptAsset = function (request, assetId, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             assetId,
             request.organization_id,
@@ -84,7 +84,7 @@ this.getAllParticipantsAsync = async (request) => {
             0,
             50
         );
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_other_participants', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_other_participants', paramsArr);
 
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -125,8 +125,8 @@ this.getAllParticipantsAsync = async (request) => {
 
     };
 
-    var updateActivityLogDiffDatetimeAsset = function (request, assetId, callback) {
-        var paramsArr = new Array(
+    let updateActivityLogDiffDatetimeAsset = function (request, assetId, callback) {
+        let paramsArr = new Array(
             request.activity_id,
             assetId,
             request.organization_id,
@@ -161,9 +161,9 @@ this.getAllParticipantsAsync = async (request) => {
         });
     };
 
-    var updateActivityLogLastUpdatedDatetimeAsset = function (request, assetCollection, callback) {
+    let updateActivityLogLastUpdatedDatetimeAsset = function (request, assetCollection, callback) {
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             assetCollection.asset_id,
             assetCollection.organization_id,
@@ -199,7 +199,7 @@ this.getAllParticipantsAsync = async (request) => {
 
         function updateAssetsLogDatetime(assetData) {
             assetData.forEach(function (assetInfo, index) {
-                var assetCollection = {
+                let assetCollection = {
                     asset_id: assetInfo['asset_id'],
                     workforce_id: assetInfo['project_id'],
                     account_id: assetInfo['account_id'],
@@ -233,7 +233,7 @@ this.getAllParticipantsAsync = async (request) => {
 
         let [err,assetData]= await this.getAssetDetailsAsync({...request,asset_id:assetId});
             let assetInfo = assetData[0];
-                var assetCollection = {
+                let assetCollection = {
                     asset_id: assetInfo['asset_id'],
                     workforce_id: assetInfo['project_id'],
                     account_id: assetInfo['account_id'],
@@ -266,14 +266,14 @@ this.getAllParticipantsAsync = async (request) => {
 
     this.activityListHistoryInsert = function (request, updateTypeId, callback) {
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.activity_id,
             updateTypeId,
             request.datetime_log // server log date time
         );
 
-        var queryString = util.getQueryString('ds_v1_activity_list_history_insert', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_list_history_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -291,7 +291,7 @@ this.getAllParticipantsAsync = async (request) => {
         if (assetId === 0) {
             assetId = request.asset_id;
         }
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.activity_id,
             assetId,
@@ -299,7 +299,7 @@ this.getAllParticipantsAsync = async (request) => {
             request.datetime_log // server log date time
         );
 
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_history_insert', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_history_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -314,30 +314,30 @@ this.getAllParticipantsAsync = async (request) => {
 
     this.assetTimelineTransactionInsert = function (request, participantData, streamTypeId, callback) {
 
-        var assetId = request.asset_id;
-        var organizationId = request.organization_id;
-        var accountId = request.account_id;
-        var workforceId = request.workforce_id;
-        var messageUniqueId = request.message_unique_id;
-        var entityTypeId = 0;
-        var entityText1 = "";
-        var entityText2 = "";
-        var entityText3 = "";
-        var activityTimelineCollection = "{}"; //BETA
-        var retryFlag = 0;
-        var formTransactionId = 0;
-        var dataTypeId = 0;
-        var formId = 0;
+        let assetId = request.asset_id;
+        let organizationId = request.organization_id;
+        let accountId = request.account_id;
+        let workforceId = request.workforce_id;
+        let messageUniqueId = request.message_unique_id;
+        let entityTypeId = 0;
+        let entityText1 = "";
+        let entityText2 = "";
+        let entityText3 = "";
+        let activityTimelineCollection = "{}"; //BETA
+        let retryFlag = 0;
+        let formTransactionId = 0;
+        let dataTypeId = 0;
+        let formId = 0;
         if (Number(request.device_os_id) === 5)
             retryFlag = 1;
 
         entityText3 = (request.hasOwnProperty('activity_timeline_title')) ? request.activity_timeline_title : "";
 
         if (request.hasOwnProperty('activity_type_category_id')) {
-            var activityTypeCategoryId = Number(request.activity_type_category_id);
+            let activityTypeCategoryId = Number(request.activity_type_category_id);
             if (activityTypeCategoryId === 4) {
                 if (request.hasOwnProperty('activity_inline_data')) {
-                    var inlineJson = JSON.parse(request.activity_inline_data);
+                    let inlineJson = JSON.parse(request.activity_inline_data);
                     assetId = inlineJson.employee_asset_id;
                 } else {
                     assetId = request.asset_id;
@@ -486,7 +486,7 @@ this.getAllParticipantsAsync = async (request) => {
                 break;
         }
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id || 0,
             assetId,
             workforceId,
@@ -556,21 +556,21 @@ this.getAllParticipantsAsync = async (request) => {
 
         //global.logger.write('conLog', 'Request Params in activityCommonService timeline : ',request,{});
         util.logInfo(request,`conLog Request Params in activityCommonService timeline %j`,{request});
-        var assetId = request.asset_id;
-        var organizationId = request.organization_id;
-        var accountId = request.account_id;
-        var workforceId = request.workforce_id;
-        var messageUniqueId = request.message_unique_id;
-        var entityTypeId = 0;
-        var entityText1 = "";
-        var entityText2 = "";
-        var entityText3 = ""; //Beta
-        var activityTimelineCollection = "{}"; //BETA
-        var retryFlag = 0;
-        var formTransactionId = 0;
-        var dataTypeId = 0;
-        var formId = 0;
-        var newUserAssetId = (request.hasOwnProperty('signedup_asset_id')) ? request.signedup_asset_id : 0;
+        let assetId = request.asset_id;
+        let organizationId = request.organization_id;
+        let accountId = request.account_id;
+        let workforceId = request.workforce_id;
+        let messageUniqueId = request.message_unique_id;
+        let entityTypeId = 0;
+        let entityText1 = "";
+        let entityText2 = "";
+        let entityText3 = ""; //Beta
+        let activityTimelineCollection = "{}"; //BETA
+        let retryFlag = 0;
+        let formTransactionId = 0;
+        let dataTypeId = 0;
+        let formId = 0;
+        let newUserAssetId = (request.hasOwnProperty('signedup_asset_id')) ? request.signedup_asset_id : 0;
         
         // const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50403, 50787];
         const supressTimelineEntries = [50079,50068, 4609, 50294, 50295, 50264,50787,50824, 51087, 51086, 50403];
@@ -587,10 +587,10 @@ this.getAllParticipantsAsync = async (request) => {
         entityText3 = (request.hasOwnProperty('activity_timeline_title')) ? request.activity_timeline_title : "";
 
         if (request.hasOwnProperty('activity_type_category_id')) {
-            var activityTypeCategoryId = Number(request.activity_type_category_id);
+            let activityTypeCategoryId = Number(request.activity_type_category_id);
             if (activityTypeCategoryId === 4) {
                 if (request.hasOwnProperty('activity_inline_data')) {
-                    var inlineJson = JSON.parse(request.activity_inline_data);
+                    let inlineJson = JSON.parse(request.activity_inline_data);
                     assetId = inlineJson.employee_asset_id;
                 } else {
                     assetId = request.asset_id;
@@ -828,7 +828,7 @@ this.getAllParticipantsAsync = async (request) => {
 
         console.log("Entity text 2 "+entityText2);
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             assetId,
             workforceId,
@@ -920,14 +920,14 @@ this.getAllParticipantsAsync = async (request) => {
             activityId = request.activity_id;
         }
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             activityId,
             request.asset_id,
             request.organization_id,
             request.datetime_log // server log date time
         );
 
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_seen_unread_count', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_seen_unread_count', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -945,12 +945,12 @@ this.getAllParticipantsAsync = async (request) => {
             activityId = request.activity_id;
         }
 
-        var duration = util.differenceDatetimes(request.datetime_log, request.timeline_transaction_datetime);
+        let duration = util.differenceDatetimes(request.datetime_log, request.timeline_transaction_datetime);
         //console.log('Duration in Seconds : ', duration);
         //global.logger.write('conLog', 'Duration in Seconds : ' + duration, {}, request);
         util.logInfo(request,`conLog Duration in Seconds %j`,{duration : duration,request});
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             activityId,
             request.asset_id,
             request.workforce_id,
@@ -963,7 +963,7 @@ this.getAllParticipantsAsync = async (request) => {
             request.config_resp_hours
         );
 
-        var queryString = util.getQueryString('ds_p1_asset_update_transaction_insert', paramsArr);
+        let queryString = util.getQueryString('ds_p1_asset_update_transaction_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -977,14 +977,14 @@ this.getAllParticipantsAsync = async (request) => {
     };
 
     this.updateAssetLastSeenDatetime = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             request.asset_id,
             request.organization_id,
             request.datetime_log // server log date time
         );
 
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_seen_datetime', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_last_seen_datetime', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -999,8 +999,8 @@ this.getAllParticipantsAsync = async (request) => {
 
     this.updateWholeLotForTimelineComment = function (request, callback) {
 
-        var paramsArr = new Array();
-        var queryString = '';
+        let paramsArr = new Array();
+        let queryString = '';
         this.getAllParticipantsExceptAsset(request, Number(request.asset_id), function (err, participantsData) {
             if (err === false) {
                 participantsData.forEach(function (assetInfo, index) {
@@ -1027,7 +1027,7 @@ this.getAllParticipantsAsync = async (request) => {
     };
 
     this.getActivityDetails = function (request, activityId, callback) {
-        var paramsArr;
+        let paramsArr;
         if (Number(activityId > 0)) {
             paramsArr = new Array(
                 activityId,
@@ -1039,7 +1039,7 @@ this.getAllParticipantsAsync = async (request) => {
                 request.organization_id
             );
         }
-        var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -1055,7 +1055,7 @@ this.getAllParticipantsAsync = async (request) => {
     this.getActivityDetailsPromise = function (request, activityId) {
 
         return new Promise((resolve, reject) => {
-            var paramsArr;
+            let paramsArr;
             if (Number(activityId > 0)) {
                 paramsArr = new Array(
                     activityId,
@@ -1080,7 +1080,7 @@ this.getAllParticipantsAsync = async (request) => {
     this.getActivityDetailsPromiseMaster = function (request, activityId) {
 
         return new Promise((resolve, reject) => {
-            var paramsArr;
+            let paramsArr;
             if (Number(activityId > 0)) {
                 paramsArr = new Array(
                     activityId,
@@ -1192,7 +1192,7 @@ this.getAllParticipantsAsync = async (request) => {
 
     this.updateAssetLocation = function (request, callback) {
         //if (request.track_latitude !== '0.0000' || request.track_latitude !== '0.0') {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.asset_id,
             request.track_latitude,
@@ -1204,7 +1204,7 @@ this.getAllParticipantsAsync = async (request) => {
             request.asset_id,
             request.datetime_log
         );
-        var queryString = util.getQueryString('ds_v1_asset_list_update_location_v2', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_update_location_v2', paramsArr);
         //var queryString = util.getQueryString('ds_v1_asset_list_update_location', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
@@ -1232,9 +1232,9 @@ this.getAllParticipantsAsync = async (request) => {
     };
 
     this.formatFormDataCollection = function (data, callback) {
-        var responseData = new Array();
+        let responseData = new Array();
         forEachAsync(data, function (next, rowData) {
-            var rowDataArr = {};
+            let rowDataArr = {};
             rowDataArr.activity_id = util.replaceDefaultNumber(rowData['activity_id']);
             rowDataArr.activity_title = util.replaceDefaultString(rowData['activity_title']);
             rowDataArr.asset_id = util.replaceDefaultNumber(rowData['asset_id']);
@@ -1280,9 +1280,9 @@ this.getAllParticipantsAsync = async (request) => {
         });
     };
 
-    var getFieldValue = function (rowData, callback) {
-        var fieldValue;
-        var dataTypeId = Number(rowData['data_type_id']);
+    let getFieldValue = function (rowData, callback) {
+        let fieldValue;
+        let dataTypeId = Number(rowData['data_type_id']);
         switch (dataTypeId) {
             case 1: //Date
             case 2: //Future Date
@@ -1401,11 +1401,11 @@ this.getAllParticipantsAsync = async (request) => {
      }; */
 
     this.getAssetDetails = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.asset_id
         );
-        var queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
@@ -1445,9 +1445,9 @@ this.getAllParticipantsAsync = async (request) => {
 
     //PAM
     this.inventoryCheck = function (request, activityId, callback) {
-        var paramsArr = new Array();
-        var responseArray = new Array();
-        var queryString = '';
+        let paramsArr = new Array();
+        let responseArray = new Array();
+        let queryString = '';
         paramsArr = new Array(
             request.organization_id,
             request.account_id,
@@ -1464,9 +1464,9 @@ this.getAllParticipantsAsync = async (request) => {
                     //global.logger.write('conLog', 'Data in inventory check : ' + JSON.stringify(data, null, 2), {}, request);
                     util.logInfo(request,`conLog Data in inventory check : %j`,{data : JSON.stringify(data, null, 2),request});
                     if (data.length > 0) {
-                        var ingredients = new Array();
+                        let ingredients = new Array();
                         forEachAsync(data, function (next, x) {
-                            var items = {
+                            let items = {
                                 'ingredient_asset_id': x.asset_id,
                                 'channel_activity_type_category_id': x.channel_activity_type_category_id,
                                 'activity_sub_type_id': x.activity_sub_type_id
@@ -1480,8 +1480,8 @@ this.getAllParticipantsAsync = async (request) => {
                                 //console.log('Ingredients : ')
                                 //console.log(ingredients);
                                 //console.log('=============================')
-                                var stationIdArrays = new Array();
-                                var tempArray = new Array();
+                                let stationIdArrays = new Array();
+                                let tempArray = new Array();
                                 forEachAsync(ingredients, function (next, x) {
                                     getArrayOfStationIds(request, x).then((data) => {
                                         data = util.getUniqueValuesOfArray(data);
@@ -1525,11 +1525,11 @@ this.getAllParticipantsAsync = async (request) => {
 
     function getArrayOfStationIds(request, ingredients) {
         return new Promise((resolve, reject) => {
-            var qty = request.hasOwnProperty('item_quantity') ? request.item_quantity : 1;
+            let qty = request.hasOwnProperty('item_quantity') ? request.item_quantity : 1;
             qty *= ingredients.activity_sub_type_id;
-            var stationAssetId = request.hasOwnProperty('station_asset_id') ? request.station_asset_id : 0;
-            var response = new Array();
-            var paramsArr = new Array(
+            let stationAssetId = request.hasOwnProperty('station_asset_id') ? request.station_asset_id : 0;
+            let response = new Array();
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -1540,7 +1540,7 @@ this.getAllParticipantsAsync = async (request) => {
                 request.page_start || 0,
                 util.replaceQueryLimit(request.page_limit)
             );
-            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_inventory_check', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_inventory_check', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {
@@ -1567,7 +1567,7 @@ this.getAllParticipantsAsync = async (request) => {
     //PAM
     this.pamAssetListUpdateOperatingAsset = function (request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.workstation_asset_id,
                 request.workforce_id,
                 request.account_id,
@@ -1577,7 +1577,7 @@ this.getAllParticipantsAsync = async (request) => {
                 request.datetime_log
             );
 
-            var queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset', paramsArr);
+            let queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? resolve(true): reject(err);
@@ -1588,14 +1588,14 @@ this.getAllParticipantsAsync = async (request) => {
 
     //PAM
     this.checkingUniqueCode = function (request, code, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             code,
             request.activity_parent_id
         );
 
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_existing_reserv_code', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_existing_reserv_code', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('data.length :' + data.length);                
@@ -1612,14 +1612,14 @@ this.getAllParticipantsAsync = async (request) => {
     };
 
     //PAM
-    var checkingSixDgtUniqueCode = function (request, code, callback) {
-        var paramsArr = new Array(
+    let checkingSixDgtUniqueCode = function (request, code, callback) {
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             code
         );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_passcode_check', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_passcode_check', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('data : ', data);
@@ -1635,7 +1635,7 @@ this.getAllParticipantsAsync = async (request) => {
     };
 
     this.assetAccessCounts = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.viewee_asset_id,
             request.viewee_operating_asset_id,
             request.viewee_workforce_id,
@@ -1645,7 +1645,7 @@ this.getAllParticipantsAsync = async (request) => {
             util.getStartDayOfMonth(),
             request.flag
         );
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_analytic_counts', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_analytic_counts', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('DAta : ', data);
@@ -1666,12 +1666,12 @@ this.getAllParticipantsAsync = async (request) => {
 
     //Get total count of desks occupied
     this.getOccupiedDeskCounts = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.viewee_workforce_id,
             request.account_id,
             request.organization_id
         );
-        var queryString = util.getQueryString('ds_v1_asset_list_select_occupied_desks_count', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_select_occupied_desks_count', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //console.log('getOccupiedDeskCounts : ', data);
@@ -1684,7 +1684,7 @@ this.getAllParticipantsAsync = async (request) => {
 
     this.generateUniqueCode = function (request, callback) {
         function generateCode() {
-            var phoneCode = util.randomInt(111111, 999999).toString();
+            let phoneCode = util.randomInt(111111, 999999).toString();
             checkingSixDgtUniqueCode(request, phoneCode, (err, data) => {
                 (err === false) ? callback(false, data): generateCode();
             });
@@ -1693,8 +1693,8 @@ this.getAllParticipantsAsync = async (request) => {
     };
 
     this.getInmailCounts = function (request, flag, callback) { //flag = 1 means monthly and flag = 2 means weekly
-        var startDate;
-        var endDate;
+        let startDate;
+        let endDate;
 
         if (flag === 1) {
             startDate = util.getStartDateTimeOfMonth();
@@ -1704,14 +1704,14 @@ this.getAllParticipantsAsync = async (request) => {
             endDate = util.getEndDateTimeOfWeek();
         }
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.activity_type_category_id,
             request.asset_id,
             startDate,
             endDate
         );
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_inmail_counts', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_inmail_counts', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 (err === false) ? callback(false, data): callback(true, err);
@@ -1751,13 +1751,13 @@ this.getAllParticipantsAsync = async (request) => {
     };
 
     this.updateLeadAssignedDatetime = function (request, assetId, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             request.organization_id,
             request.assetId,
             request.datetime_log
         );
-        var queryString = util.getQueryString('ds_p1_activity_list_update_datetime_lead_assigned', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_list_update_datetime_lead_assigned', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -1778,14 +1778,14 @@ this.getAllParticipantsAsync = async (request) => {
     };
 
     this.updateOwnerStatus = function (request, flag, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             request.organization_id,
             flag,
             request.asset_id,
             request.datetime_log
         );
-        var queryString = util.getQueryString('ds_p1_activity_list_update_flag_creator_status', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_list_update_flag_creator_status', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -1807,24 +1807,24 @@ this.getAllParticipantsAsync = async (request) => {
 
 
     this.isParticipantAlreadyAssigned = function (assetCollection, activityId, request, callback) {
-        var fieldId = 0;
+        let fieldId = 0;
         if (assetCollection.hasOwnProperty('field_id')) {
             fieldId = assetCollection.field_id;
         }
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             activityId,
             assetCollection.asset_id,
             assetCollection.organization_id,
             fieldId
         );
-        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_select_check_participant_appr", paramsArr);
+        let queryString = util.getQueryString("ds_v1_activity_asset_mapping_select_check_participant_appr", paramsArr);
 
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
                     //var queryStatus = (data.length > 0) ? (data[0]['log_state']< 3)?true:false : false;
-                    var queryStatus = false;
-                    var newRecordFalg = false;
+                    let queryStatus = false;
+                    let newRecordFalg = false;
                     if (data.length > 0) {
                         if (data[0]['log_state'] < 3) {
                             queryStatus = true;
@@ -1852,7 +1852,7 @@ this.getAllParticipantsAsync = async (request) => {
     this.weeklySummaryInsert = function (request, collection) {
 
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 collection.summary_id,
                 collection.asset_id,
                 request.workforce_id,
@@ -1888,7 +1888,7 @@ this.getAllParticipantsAsync = async (request) => {
                 request.track_gps_datetime || request.datetime_log,
                 request.datetime_log
             );
-            var queryString = util.getQueryString('ds_v1_asset_weekly_summary_transaction_insert', paramsArr);
+            let queryString = util.getQueryString('ds_v1_asset_weekly_summary_transaction_insert', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? resolve(data): reject(err);
@@ -1899,7 +1899,7 @@ this.getAllParticipantsAsync = async (request) => {
 
     this.monthlySummaryInsert = function (request, collection) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 collection.summary_id, //request.monthly_summary_id,
                 collection.asset_id,
                 request.workforce_id,
@@ -1935,7 +1935,7 @@ this.getAllParticipantsAsync = async (request) => {
                 request.track_gps_datetime || request.datetime_log,
                 request.datetime_log
             );
-            var queryString = util.getQueryString('ds_v1_asset_monthly_summary_transaction_insert', paramsArr);
+            let queryString = util.getQueryString('ds_v1_asset_monthly_summary_transaction_insert', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
@@ -1951,17 +1951,17 @@ this.getAllParticipantsAsync = async (request) => {
     };
 
     this.sendSmsCodeParticipant = function (request, callback) {
-        var reservationCode;
-        var expiryDatetime;
-        var tableNames = "";
-        var noOfGuests = 0;
-        var cnt = 0;
+        let reservationCode;
+        let expiryDatetime;
+        let tableNames = "";
+        let noOfGuests = 0;
+        let cnt = 0;
 
-        var memberName;
-        var countryCode;
-        var phoneNumber;
+        let memberName;
+        let countryCode;
+        let phoneNumber;
 
-        var participantData = JSON.parse(request.activity_participant_collection);
+        let participantData = JSON.parse(request.activity_participant_collection);
         forEachAsync(participantData, function (next, row) {
             cnt++;
             if (row.asset_category_id == 30) {
@@ -1986,7 +1986,7 @@ this.getAllParticipantsAsync = async (request) => {
                     //console.log('data[0].asset_inline_data : ' , data[0].asset_inline_data);
                     //global.logger.write('debug', 'data[0].asset_inline_data : ' + data[0].asset_inline_data, {}, {});
                     util.logInfo(request,`debug data[0].asset_inline_data %j`,{data_asset_inline_data : data[0].asset_inline_data,request});
-                    var inlineJson = JSON.parse(data[0].asset_inline_data);
+                    let inlineJson = JSON.parse(data[0].asset_inline_data);
                     noOfGuests += util.replaceDefaultNumber(inlineJson.element_cover_capacity);
                     next();
                 });
@@ -1997,7 +1997,7 @@ this.getAllParticipantsAsync = async (request) => {
 
         }).then(() => {
             noOfGuests--;
-            var text;
+            let text;
             //console.log('memberName : ', memberName);
             //console.log('countryCode: ', countryCode);
             //console.log('phoneNumber : ', phoneNumber);
@@ -2011,7 +2011,7 @@ this.getAllParticipantsAsync = async (request) => {
             //global.logger.write('conLog', 'tableNames : ' + tableNames, {}, request);
             util.logInfo(request,`conLog %j`,{tableNames : tableNames,request});
 
-            var expiryDateTime = util.addUnitsToDateTime(util.replaceDefaultDatetime(request.event_start_datetime), 5.5, 'hours');
+            let expiryDateTime = util.addUnitsToDateTime(util.replaceDefaultDatetime(request.event_start_datetime), 5.5, 'hours');
             //expiryDateTime = util.getDatewithndrdth(expiryDateTime);
             expiryDateTime = util.getFormatedSlashDate(expiryDateTime);
 
@@ -2057,11 +2057,11 @@ this.getAllParticipantsAsync = async (request) => {
 
     function pamGetAssetDetails(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id || 351,
                 request.work_station_asset_id
             );
-            var queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
+            let queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data): reject(err);
@@ -2072,13 +2072,13 @@ this.getAllParticipantsAsync = async (request) => {
 
     function pamGetActivityDetails(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr;
+            let paramsArr;
             paramsArr = new Array(
                 request.activity_id,
                 request.organization_id
             );
 
-            var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data): reject(err);
@@ -2088,15 +2088,15 @@ this.getAllParticipantsAsync = async (request) => {
     };
 
     this.updateParticipantCount = function (activityId, organizationId, request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             activityId,
             organizationId
         );
-        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_select_participant_count", paramsArr);
+        let queryString = util.getQueryString("ds_v1_activity_asset_mapping_select_participant_count", paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
-                    var participantCount = data[0].participant_count;
+                    let participantCount = data[0].participant_count;
                     //console.log('participant count retrieved from query is: ' + participantCount);
                     paramsArr = new Array(
                         activityId,
@@ -2152,7 +2152,7 @@ this.getAllParticipantsAsync = async (request) => {
     };
 
     this.updateLeadStatus = function (request, flag, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             request.asset_id,
             request.organization_id,
@@ -2160,7 +2160,7 @@ this.getAllParticipantsAsync = async (request) => {
             request.asset_id,
             request.datetime_log
         );
-        var queryString = util.getQueryString('ds_p1_activity_list_update_flag_lead_status', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_list_update_flag_lead_status', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -2182,13 +2182,13 @@ this.getAllParticipantsAsync = async (request) => {
 
     function getAllParticipantsforTasks(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.activity_id,
                 request.organization_id,
                 0,
                 50
             );
-            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data): reject(err);
@@ -2199,7 +2199,7 @@ this.getAllParticipantsAsync = async (request) => {
 
     this.getAssetAverageRating = function (request, collection) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -2209,7 +2209,7 @@ this.getAllParticipantsAsync = async (request) => {
                 collection.datetime_start,
                 collection.datetime_end
             );
-            var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_rating_average', paramsArr);
+            let queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_rating_average', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {
@@ -2224,7 +2224,7 @@ this.getAllParticipantsAsync = async (request) => {
 
     this.getAssetActiveAccount = function (request) {
         return new Promise((resolve, reject) => {
-            var refinedParticipantList = new Array();
+            let refinedParticipantList = new Array();
 
             //console.log('beforerefinedParticipantList : ', request);
             //console.log('beforerefinedParticipantList length: ', request.length);
@@ -2232,11 +2232,11 @@ this.getAllParticipantsAsync = async (request) => {
             util.logInfo(request,`debug beforerefinedParticipantList length %j`,{length : request.length,request});
 
             forEachAsync(request, function (next, rowData) {
-                var paramsArr = new Array(
+                let paramsArr = new Array(
                     rowData.operating_asset_phone_number,
                     rowData.operating_asset_phone_country_code
                 );
-                var queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_last_linked', paramsArr);
+                let queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_last_linked', paramsArr);
                 if (queryString != '') {
                     db.executeQuery(1, queryString, request, function (err, data) {
                         if (err === false) {
@@ -2273,7 +2273,7 @@ this.getAllParticipantsAsync = async (request) => {
 
     this.getAllParticipantsforField = function (request, activityId, fieldId) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 activityId,
@@ -2282,7 +2282,7 @@ this.getAllParticipantsAsync = async (request) => {
                 50,
                 fieldId
             );
-            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants_option', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants_option', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data): reject(err);
@@ -2295,7 +2295,7 @@ this.getAllParticipantsAsync = async (request) => {
         if (assetId === 0) {
             assetId = request.asset_id;
         }
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.activity_id,
             assetId,
@@ -2304,7 +2304,7 @@ this.getAllParticipantsAsync = async (request) => {
             request.datetime_log // server log date time
         );
 
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_history_insert_field', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_history_insert_field', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 (err === false) ? resolve(data): reject(err);
@@ -2317,8 +2317,8 @@ this.getAllParticipantsAsync = async (request) => {
 
         //console.log('In function activityAssetMappingInsertParticipantAssign - participantData : ', participantData);
         return new Promise((resolve, reject) => {
-            var fieldId = 0;
-            var paramsArr = new Array(
+            let fieldId = 0;
+            let paramsArr = new Array(
                 request.activity_id,
                 participantData.asset_id,
                 participantData.workforce_id,
@@ -2336,7 +2336,7 @@ this.getAllParticipantsAsync = async (request) => {
                 participantData.option_id,
                 participantData.parent_activity_title
             );
-            var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_pam", paramsArr);
+            let queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_pam", paramsArr);
 
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
@@ -2353,11 +2353,11 @@ this.getAllParticipantsAsync = async (request) => {
     this.updateProjectEndDateTime = function (request, callback) {
         getlatestDateInAProject(request).then((data) => {
             if (data.length > 0) {
-                var taskProjectsEndDtTime = util.replaceDefaultDatetime(data[0].activity_datetime_end_deferred); //Task with latest end Date Time
+                let taskProjectsEndDtTime = util.replaceDefaultDatetime(data[0].activity_datetime_end_deferred); //Task with latest end Date Time
 
                 //Get the Activity Details 
                 this.getActivityDetails(request, request.activity_parent_id, (err, activityData) => {
-                    var projectEndDtTime = util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred);
+                    let projectEndDtTime = util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred);
 
                     //console.log('projectEndDtTime : ', projectEndDtTime);
                     //console.log('taskProjectsEndDtTime : ', taskProjectsEndDtTime);
@@ -2386,7 +2386,7 @@ this.getAllParticipantsAsync = async (request) => {
 
     function getlatestDateInAProject(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.activity_parent_id,
                 1, //request.flag
@@ -2397,7 +2397,7 @@ this.getAllParticipantsAsync = async (request) => {
                 request.limit_value || 1
             );
 
-            var queryString = util.getQueryString('ds_p1_activity_list_select_parent_flag', paramsArr);
+            let queryString = util.getQueryString('ds_p1_activity_list_select_parent_flag', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {
@@ -2430,7 +2430,7 @@ this.getAllParticipantsAsync = async (request) => {
 
     //Can use this function for both inmail and postit
     this.updateInMailResponse = function (request, activityFlagResponseonTimeFlag, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -2439,7 +2439,7 @@ this.getAllParticipantsAsync = async (request) => {
             activityFlagResponseonTimeFlag,
             request.datetime_log
         );
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_inmail_response', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_inmail_response', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (err === false) ? callback(false, true): callback(err, false);
@@ -2450,7 +2450,7 @@ this.getAllParticipantsAsync = async (request) => {
     this.retrieveAccountList = function (request, callback) {
         let paramsArr = [];
         paramsArr.push(request.account_id);
-        var queryString = util.getQueryString('ds_p1_account_list_select', paramsArr);
+        let queryString = util.getQueryString('ds_p1_account_list_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
@@ -2479,12 +2479,12 @@ this.getAllParticipantsAsync = async (request) => {
     };*/
 
     this.checkingPartitionOffset = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             global.config.TOPIC_ID,
             request.partition,
             request.offset
         );
-        var queryString = util.getQueryString('ds_p1_partititon_offset_transaction_select', paramsArr);
+        let queryString = util.getQueryString('ds_p1_partititon_offset_transaction_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //global.logger.write('conLog', data, {}, {});
@@ -2546,7 +2546,7 @@ this.getAllParticipantsAsync = async (request) => {
     };
 
     this.partitionOffsetInsert = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             global.config.TOPIC_ID,
             request.partition,
             request.offset,
@@ -2554,7 +2554,7 @@ this.getAllParticipantsAsync = async (request) => {
             request.activity_id,
             request.form_transaction_id
         );
-        var queryString = util.getQueryString('ds_p1_partition_offset_transaction_insert', paramsArr);
+        let queryString = util.getQueryString('ds_p1_partition_offset_transaction_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 //global.logger.write('conLog', data, {}, request);
@@ -2581,10 +2581,10 @@ this.getAllParticipantsAsync = async (request) => {
     };*/
 
     this.duplicateMsgUniqueIdInsert = function (request, callback) {
-        var arr = new Array();
+        let arr = new Array();
         arr.push(request);
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.message_unique_id,
             JSON.stringify(arr),
             "{}",
@@ -2594,7 +2594,7 @@ this.getAllParticipantsAsync = async (request) => {
             request.organization_id,
             util.getCurrentUTCTime()
         );
-        var queryString = util.getQueryString('ds_p1_asset_invalid_message_transaction_insert', paramsArr);
+        let queryString = util.getQueryString('ds_p1_asset_invalid_message_transaction_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (err === false) ? callback(false, data): callback(true, {});
@@ -2638,13 +2638,13 @@ this.getAllParticipantsAsync = async (request) => {
         // IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), 
         // IN p_organization_id BIGINT(20), IN p_last_updated_datetime DATETIME
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             request.asset_id,
             request.organization_id,
             util.getCurrentUTCTime() // request.track_gps_datetime
         );
-        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_last_update_dt_only', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_last_update_dt_only', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (err === false) ? callback(false, data): callback(true, {});
@@ -2660,7 +2660,7 @@ this.getAllParticipantsAsync = async (request) => {
         // IN p_activity_inline_data JSON, IN p_pipe_separated_string VARCHAR(1200), 
         // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             request.asset_id,
             request.organization_id,
@@ -2669,7 +2669,7 @@ this.getAllParticipantsAsync = async (request) => {
             request.asset_id,
             util.getCurrentUTCTime() // request.log_datetime
         );
-        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_inline_data_only', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_inline_data_only', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (err === false) ? callback(false, data): callback(true, {});
@@ -2682,12 +2682,12 @@ this.getAllParticipantsAsync = async (request) => {
     this.updateActivityMasterData = function (request, activityId, activityMasterData, callback) {
         // IN p_activity_id BIGINT(20), IN p_organization_id BIGINT(20), 
         // IN p_activity_master_data JSON
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             activityId,
             request.organization_id,
             activityMasterData
         );
-        var queryString = util.getQueryString('ds_p1_activity_list_update_master_data', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_list_update_master_data', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -2704,13 +2704,13 @@ this.getAllParticipantsAsync = async (request) => {
         // IN p_activity_id BIGINT(20), IN p_organization_id BIGINT(20), 
         // IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             activityId,
             request.organization_id,
             0,
             1
         );
-        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_non_creator_participants', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_non_creator_participants', paramsArr);
         if (queryString !== '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 (err === false) ? callback(false, data): callback(true, {});
@@ -2721,12 +2721,12 @@ this.getAllParticipantsAsync = async (request) => {
     this.activityStatusValidationMappingSelectTrigger = function (request, callback) {
         // IN p_form_id BIGINT(20), IN p_activity_status_id BIGINT(20), IN p_organization_id BIGINT(20)
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.form_id,
             request.activity_status_id,
             request.organization_id
         );
-        var queryString = util.getQueryString('ds_p1_activity_status_validation_mapping_select_trigger', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_status_validation_mapping_select_trigger', paramsArr);
         if (queryString !== '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 (err === false) ? callback(false, data): callback(true, {});
@@ -2741,7 +2741,7 @@ this.getAllParticipantsAsync = async (request) => {
         // IN p_start_from bigint(20), IN p_limit_value TINYINT(4)
 
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,
                 activityStatusId,
@@ -2749,7 +2749,7 @@ this.getAllParticipantsAsync = async (request) => {
                 0, // start_from
                 1 // limit_value
             );
-            var queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_activity_status', paramsArr);
+            let queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_activity_status', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data): reject(err);
@@ -2768,7 +2768,7 @@ this.getAllParticipantsAsync = async (request) => {
         // DATETIME, IN p_duration DECIMAL(16,4), IN p_log_datetime DATETIME, IN p_log_asset_id BIGINT(20)
 
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,
                 statusCollection.from_status_id,
@@ -2779,7 +2779,7 @@ this.getAllParticipantsAsync = async (request) => {
                 util.getCurrentUTCTime(),
                 request.asset_id
             );
-            var queryString = util.getQueryString('ds_p1_activity_status_change_transaction_insert', paramsArr);
+            let queryString = util.getQueryString('ds_p1_activity_status_change_transaction_insert', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? resolve(data): reject(err);
@@ -2795,7 +2795,7 @@ this.getAllParticipantsAsync = async (request) => {
         // IN p_datetime_start DATETIME, IN p_datetime_end DATETIME
 
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 statusCollection.from_status_id,
                 statusCollection.to_status_id,
                 request.form_id,
@@ -2804,7 +2804,7 @@ this.getAllParticipantsAsync = async (request) => {
                 statusCollection.datetime_start,
                 statusCollection.datetime_end
             );
-            var queryString = util.getQueryString('ds_p1_activity_status_change_transaction_select_average', paramsArr);
+            let queryString = util.getQueryString('ds_p1_activity_status_change_transaction_select_average', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data): reject(err);
@@ -2848,7 +2848,7 @@ this.getAllParticipantsAsync = async (request) => {
         // IN p_organization_id bigint(20), IN p_account_id bigint(20), IN p_workforce_id bigint(20), 
         // IN p_asset_type_category_id SMALLINT(6), IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -2856,7 +2856,7 @@ this.getAllParticipantsAsync = async (request) => {
             0,
             1
         );
-        var queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_select_category', paramsArr);
+        let queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_select_category', paramsArr);
         if (queryString !== '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 (err === false) ? callback(false, data, 200): callback(err, data, -9998);
@@ -2886,11 +2886,11 @@ this.getAllParticipantsAsync = async (request) => {
 
     this.getWorkflowForAGivenUrl = function (request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.worflow_trigger_url
             );
-            var queryString = util.getQueryString('ds_p1_workflow_mapping_select_url', paramsArr);
+            let queryString = util.getQueryString('ds_p1_workflow_mapping_select_url', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data): reject(err);
@@ -2901,7 +2901,7 @@ this.getAllParticipantsAsync = async (request) => {
 
     this.makeRequest = function (request, url, port) {
         return new Promise((resolve, reject) => {
-            var options = {
+            let options = {
                 form: request
             };
 
@@ -3165,7 +3165,7 @@ this.getAllParticipantsAsync = async (request) => {
     };
 
     this.assetListUpdateOperatingAsset = function (request, deskAssetId, operatingAssetId, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             deskAssetId,
             request.workforce_id,
             request.account_id,
@@ -3174,7 +3174,7 @@ this.getAllParticipantsAsync = async (request) => {
             request.asset_id,
             request.datetime_log
         );
-        var queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (err === false) ? callback(false, true): callback(err, false);
@@ -3266,14 +3266,14 @@ this.getAllParticipantsAsync = async (request) => {
 
     this.pamEventBillingUpdate = function (request, idReservation) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
                 idReservation,
                 request.datetime_log
             );
-            var queryString = util.getQueryString("pm_v1_pam_event_billing_update", paramsArr);
+            let queryString = util.getQueryString("pm_v1_pam_event_billing_update", paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
@@ -3288,14 +3288,14 @@ this.getAllParticipantsAsync = async (request) => {
 
     this.pamOrderListUpdate = function (request, idOrder) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
                 idOrder,
                 request.datetime_log
             );
-            var queryString = util.getQueryString("pm_v1_pam_order_list_update", paramsArr);
+            let queryString = util.getQueryString("pm_v1_pam_order_list_update", paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
@@ -3355,12 +3355,12 @@ this.getAllParticipantsAsync = async (request) => {
 
     this.getActivityCollection = function (request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.activity_id,
                 request.organization_id
             );
 
-            var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log("err "+err);
@@ -3381,7 +3381,7 @@ this.getAllParticipantsAsync = async (request) => {
         // DATETIME, IN p_duration DECIMAL(16,4), IN p_log_datetime DATETIME, IN p_log_asset_id BIGINT(20)
         // IN status_changed_flag TINYINT(4)
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,
                 statusCollection.from_status_id,
@@ -3394,7 +3394,7 @@ this.getAllParticipantsAsync = async (request) => {
                 request.status_changed_flag,
                 request.is_status_rollback || 0
             );
-            var queryString = util.getQueryString('ds_p1_2_activity_status_change_transaction_insert', paramsArr);
+            let queryString = util.getQueryString('ds_p1_2_activity_status_change_transaction_insert', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? resolve(data): reject(err);
@@ -3444,7 +3444,7 @@ this.getAllParticipantsAsync = async (request) => {
     };
 
     function processDBData(request, data) {
-        var array = [];
+        let array = [];
         return new Promise((resolve, reject) => {
             //console.log("AFTER PROMISE");
 
@@ -3478,13 +3478,13 @@ this.getAllParticipantsAsync = async (request) => {
 
     this.getActivityByFormTransaction = function (request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.activity_id || 0,
                 request.form_transaction_id,
                 request.organization_id
             );
 
-            var queryString = util.getQueryString('ds_v1_activity_list_select_form_transaction', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_list_select_form_transaction', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log("err "+err);
@@ -3501,7 +3501,7 @@ this.getAllParticipantsAsync = async (request) => {
 
 
     this.getActivityByFormTransactionCallback = function (request, activityId, callback) {
-        var paramsArr;
+        let paramsArr;
         if (Number(activityId > 0)) {
             paramsArr = new Array(
                 activityId,
@@ -3515,7 +3515,7 @@ this.getAllParticipantsAsync = async (request) => {
                 request.organization_id
             );
         }
-        var queryString = util.getQueryString('ds_v1_activity_list_select_form_transaction', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_list_select_form_transaction', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -3631,7 +3631,7 @@ this.getAllParticipantsAsync = async (request) => {
     };
 
     this.getFormDataByFormTransaction = async (request) => {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.form_transaction_id
         );
@@ -3644,7 +3644,7 @@ this.getAllParticipantsAsync = async (request) => {
     };
     
     this.getFormDataByFormTransaction = async (request) => {        
-        var paramsArr = new Array(            
+        let paramsArr = new Array(            
             request.organization_id,
             request.form_transaction_id
         );
@@ -3657,7 +3657,7 @@ this.getAllParticipantsAsync = async (request) => {
     };
 
     this.getWorkflowOfForm = async (request) => {        
-        var paramsArr = new Array(            
+        let paramsArr = new Array(            
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -3768,7 +3768,7 @@ this.getAllParticipantsAsync = async (request) => {
                     //global.logger.write('conLog', 'request.order_po__order_docs_diff :: ' + order_po__order_docs_diff, {}, request);
                     util.logInfo(request, `conLog request.order_po__order_docs_diff %j`, { order_po__order_docs_diff: order_po__order_docs_diff, request });
 
-                    var paramsArr = new Array(
+                    let paramsArr = new Array(
                         request.organization_id,
                         request.account_id,
                         request.workforce_id,
@@ -3787,7 +3787,7 @@ this.getAllParticipantsAsync = async (request) => {
                         flag,
                         request.datetime_log
                     );
-                    var queryString = util.getQueryString("ds_p1_4_widget_activity_field_transaction_update_datetime", paramsArr);
+                    let queryString = util.getQueryString("ds_p1_4_widget_activity_field_transaction_update_datetime", paramsArr);
                     if (queryString != '') {
                         db.executeQuery(0, queryString, request, function (err, data) {
                             if (err === false) {
@@ -3829,7 +3829,7 @@ this.getAllParticipantsAsync = async (request) => {
 
    function getWorkflowData (request) { 
         return new Promise((resolve, reject) => {       
-            var paramsArr = new Array(            
+            let paramsArr = new Array(            
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -3948,7 +3948,7 @@ this.getAllParticipantsAsync = async (request) => {
 
     this.getWidgetByActivityType = function (request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -3976,7 +3976,7 @@ this.getAllParticipantsAsync = async (request) => {
     this.getFormWorkflowDetails = function (request) {
 
         return new Promise((resolve, reject) => {
-            var paramsArr;
+            let paramsArr;
 
             paramsArr = new Array(
                 request.activity_id,
@@ -4002,7 +4002,7 @@ this.getAllParticipantsAsync = async (request) => {
             activityTypeId
         );
 
-        var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_select_id', paramsArr);
+        let queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_select_id', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -4033,7 +4033,7 @@ this.getAllParticipantsAsync = async (request) => {
             request.datetime_log
         );
 
-        var queryString = util.getQueryString('ds_p1_activity_list_update_widget_value', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_list_update_widget_value', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
@@ -4144,9 +4144,9 @@ this.getAllParticipantsAsync = async (request) => {
 
     this.getFormFieldDefinition = function (request, fieldData) {
         return new Promise((resolve, reject) => {
-            var queryString = '';
+            let queryString = '';
 
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -5818,7 +5818,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             util.replaceQueryLimit(request.page_limit)
         );
 
-        var queryString = util.getQueryString('ds_p1_1_workforce_activity_status_mapping_select', paramsArr);
+        let queryString = util.getQueryString('ds_p1_1_workforce_activity_status_mapping_select', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -5898,7 +5898,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
     this.getFormWorkflowDetailsAsync = async (request) => {
         let error = true,
         responseData = [];        
-        var paramsArr;
+        let paramsArr;
         paramsArr = new Array(
             request.activity_id,
             request.organization_id
@@ -5923,7 +5923,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         let error = true,
         responseData = [];        
         
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             referrencedActivityID,
             request.organization_id,
@@ -6061,7 +6061,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
          let responseData = [],
             error = true;
 
-        var paramsArr = new Array(
+            let paramsArr = new Array(
             request.asset_id,            
             request.organization_id,
             request.track_latitude,
@@ -6070,7 +6070,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             request.asset_id,
             request.datetime_log
         );
-        var queryString = util.getQueryString('ds_v1_2_asset_list_update_work_location', paramsArr);
+        let queryString = util.getQueryString('ds_v1_2_asset_list_update_work_location', paramsArr);
         if (queryString != '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
@@ -6180,7 +6180,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
           util.getCurrentUTCTime()
         );
 
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner_flag',paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner_flag',paramsArr);
         if(queryString !== '') {
             try {
                 const data = await db.executeQueryPromise(0,queryString,request);
@@ -6195,7 +6195,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
     }
 
     this.getFormDetails = async (request) => {        
-        var paramsArr = new Array(            
+        let paramsArr = new Array(            
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -7034,7 +7034,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
           util.getCurrentUTCTime()
         );
 
-        var queryString = util.getQueryString('ds_v1_consumer_error_transaction_insert',paramsArr);
+        let queryString = util.getQueryString('ds_v1_consumer_error_transaction_insert',paramsArr);
         if(queryString !== '') {
             try {
                 const data = await db.executeQueryPromise(0,queryString,request);
@@ -7140,7 +7140,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         let responseData = [],
         error = true;
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.workflow_activity_id,
             request.activity_type_id,
@@ -7148,7 +7148,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             fieldValue
         );
         //console.log(paramsArr);            
-        var queryString = util.getQueryString( "ds_v1_activity_list_update_workflow_value",paramsArr);
+        let queryString = util.getQueryString( "ds_v1_activity_list_update_workflow_value",paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then(async (data) => {
@@ -7236,7 +7236,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             request.limit_value || 50
         );
 
-        var queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_select_operation_type',paramsArr);
+        let queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_select_operation_type',paramsArr);
         if(queryString !== '') {
             await db.executeQueryPromise(1,queryString,request)
                 .then((data) => {

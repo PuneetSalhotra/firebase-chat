@@ -28,16 +28,16 @@ class FormFileStatusTransitionWidget extends WidgetBase {
 
 			this.services.activityStatusChangeTxnService.activityStatusChangeTxnActivityStatus(activityQueryData).then((min_result) => {
 
-				var min_datetime = this.objCollection.util.replaceDefaultDatetime(min_result[0].min_from_status_datetime);
+				let min_datetime = this.objCollection.util.replaceDefaultDatetime(min_result[0].min_from_status_datetime);
 
 				activityQueryData.flag = 1;
 				activityQueryData.to_status_id = this.rule.widget_entity3_id;
 
 				this.services.activityStatusChangeTxnService.activityStatusChangeTxnActivityStatus(activityQueryData).then((max_result) => {
 
-					var max_datetime = this.objCollection.util.replaceDefaultDatetime(max_result[0].max_to_status_datetime);
+					let max_datetime = this.objCollection.util.replaceDefaultDatetime(max_result[0].max_to_status_datetime);
 
-					var aggregate = 0;
+					let aggregate = 0;
 
 					if (max_datetime != '1970-01-01 00:00:00' && min_datetime != '1970-01-01 00:00:00')
 						aggregate = this.objCollection.util.differenceDatetimes(max_datetime, min_datetime) / 1000;
@@ -74,7 +74,7 @@ class FormFileStatusTransitionWidget extends WidgetBase {
 									activity_id: data.activity_id
 								};
 
-								var msg = {};
+								let msg = {};
 								msg.type = "file_status_transition_widget_aggregate";
 								msg.form_id = data.form_id;
 								msg.widget_id = widgetData.widget_id;

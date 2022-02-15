@@ -2,8 +2,8 @@
  * author: V Nani Kalyan
  */
 
-var WidgetEngineConsumer = require("./consumer.js");
-var options = {
+let WidgetEngineConsumer = require("./consumer.js");
+let options = {
   partition: Number(process.env.partition),
   topic: global.config.WIDGET_TOPIC_NAME
 };
