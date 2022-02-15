@@ -6359,7 +6359,7 @@ function VodafoneService(objectCollection) {
         let k = 0;
         if (result.datarows.length > 0) {
             while (k < result.datarows.length) {
-                let responseObj = {}
+                let responseObj = {}            
                 for (var i = 0; i < result.datarows[0].length; i++) {
                     responseObj[result.schema[i]['name']] = result.datarows[k][i]
                 }
@@ -6429,7 +6429,7 @@ function VodafoneService(objectCollection) {
                 break;
             case 2: //
                 tableName = global.config.elasticActivitySearchTable; // for distinct result mapping
-                query = "SELECT  activity_id,activity_title,activity_cuid_1,activity_cuid_2,activity_cuid_3,activity_creator_asset_id,activity_creator_asset_first_name,activity_creator_operating_asset_first_name FROM " + tableName + " WHERE "
+                query = "SELECT  * FROM " + tableName + " WHERE "
                 if (request.activity_type_id > 0) {
                     if (request.activity_type_id && request.activity_type_id > 0) {
                         if (appendedAnd)
@@ -6654,7 +6654,7 @@ function VodafoneService(objectCollection) {
                     query += " and log_state < 3 ORDER BY activity_title";
                 } else {
                     tableName = global.config.elasticActivitySearchTable; // for distinct result mapping
-                    query = "SELECT activity_id,activity_title,activity_cuid_1,activity_cuid_2,activity_cuid_3,activity_creator_asset_id,activity_creator_asset_first_name,activity_creator_operating_asset_first_name FROM " + tableName + " WHERE ";
+                    query = "SELECT * FROM " + tableName + " WHERE ";
                     [query, appendedAnd] = setCommonParam(request, query, appendedAnd)
                     // if (request.activity_type_category_id && request.activity_type_category_id > 0) {
                     //     query += ' AND activity_type_category_id =  ' + Number(request.activity_type_category_id)
