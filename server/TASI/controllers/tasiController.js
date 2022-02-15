@@ -1078,6 +1078,16 @@ function TasiController(objCollection) {
             res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/tasi/widget_type/asset_type/mapping/role/list', async function (req, res) {
+        const [err, resData] = await tasiService.widgetTypeAssetTypeMappingRoleSelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/widget_type/asset_type/mapping/role/list | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = TasiController;
