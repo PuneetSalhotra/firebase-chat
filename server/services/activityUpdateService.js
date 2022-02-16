@@ -4,27 +4,27 @@
 
 function ActivityUpdateService(objectCollection) {
 
-    var db = objectCollection.db;
+    let db = objectCollection.db;
     //var cacheWrapper = objectCollection.cacheWrapper;
-    var activityCommonService = objectCollection.activityCommonService;
-    var util = objectCollection.util;
-    var activityPushService = objectCollection.activityPushService;
-    var queueWrapper = objectCollection.queueWrapper;
-    var makeRequest = require('request');
+    let activityCommonService = objectCollection.activityCommonService;
+    let util = objectCollection.util;
+    let activityPushService = objectCollection.activityPushService;
+    let queueWrapper = objectCollection.queueWrapper;
+    let makeRequest = require('request');
     //const moment = require('moment');
 
     const ActivityListingService = require("../services/activityListingService");
     const activityListingService = new ActivityListingService(objectCollection);
 
-    var activityListUpdateInline = function (request, callback) {
+    let activityListUpdateInline = function (request, callback) {
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             request.organization_id,
             (request.activity_inline_data)
         );
 
-        var queryString = util.getQueryString('ds_v1_activity_list_update_inline_data', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_list_update_inline_data', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -40,8 +40,8 @@ function ActivityUpdateService(objectCollection) {
         }
     };
 
-    var activityListUpdateCover = function (request, callback) {
-        var coverJson
+    let activityListUpdateCover = function (request, callback) {
+        let coverJson
         try {
             coverJson = JSON.parse(request.activity_cover_data);
         } catch(e) {
@@ -50,8 +50,8 @@ function ActivityUpdateService(objectCollection) {
         }
         
         console.log("Update JSon,", coverJson);
-        var paramsArr = new Array();
-        var queryString = '';
+        let paramsArr = new Array();
+        let queryString = '';
         /*if(coverJson.hasOwnProperty('activity_owner_asset_id')) {
          paramsArr = new Array(
          request.activity_id,
@@ -171,7 +171,7 @@ function ActivityUpdateService(objectCollection) {
     };
 
     //BETA
-    var activityListAlterOwner = function (request, callback) {
+    let activityListAlterOwner = function (request, callback) {
         paramsArr = new Array(
             request.activity_id,
             request.owner_asset_id,
@@ -200,9 +200,9 @@ function ActivityUpdateService(objectCollection) {
 
 
     //BETA
-    var assetActivityListUpdateOwner = function (request, callback) {
-        var paramsArr = new Array();
-        var queryString = '';
+    let assetActivityListUpdateOwner = function (request, callback) {
+        let paramsArr = new Array();
+        let queryString = '';
         activityCommonService.getAllParticipants(request, function (err, participantsData) {
             if (err === false && participantsData.length > 0) {
                 participantsData.forEach(function (rowData, index) {
@@ -237,9 +237,9 @@ function ActivityUpdateService(objectCollection) {
     };
 
     //PAM
-    var activityListUpdateChannel = function (request, callback) {
-        var paramsArr = new Array();
-        var queryString = '';
+    let activityListUpdateChannel = function (request, callback) {
+        let paramsArr = new Array();
+        let queryString = '';
         paramsArr = new Array(
             request.organization_id,
             request.account_id,
@@ -271,8 +271,8 @@ function ActivityUpdateService(objectCollection) {
     //PAM
     function activityListUpdateSubtype(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array();
-            var queryString = '';
+            let paramsArr = new Array();
+            let queryString = '';
             paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
@@ -292,9 +292,9 @@ function ActivityUpdateService(objectCollection) {
         });
     };
 
-    var updateActivityTitle = function (request, newActivityTitle, callback) {
+    let updateActivityTitle = function (request, newActivityTitle, callback) {
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             request.organization_id,
             newActivityTitle,
@@ -302,7 +302,7 @@ function ActivityUpdateService(objectCollection) {
             request.datetime_log
         );
 
-        var queryString = util.getQueryString('ds_v1_activity_list_update_title', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_list_update_title', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -318,9 +318,9 @@ function ActivityUpdateService(objectCollection) {
         }
     };
 
-    var updateActivityDuedate = function (request, newDuedate, callback) {
+    let updateActivityDuedate = function (request, newDuedate, callback) {
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             request.organization_id,
             newDuedate,
@@ -328,7 +328,7 @@ function ActivityUpdateService(objectCollection) {
             request.datetime_log
         );
 
-        var queryString = util.getQueryString('ds_v1_activity_list_update_deferred_datetime', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_list_update_deferred_datetime', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -344,9 +344,9 @@ function ActivityUpdateService(objectCollection) {
         }
     };
 
-    var updateActivityDescription = function (request, newDescription, callback) {
+    let updateActivityDescription = function (request, newDescription, callback) {
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             request.organization_id,
             newDescription,
@@ -354,7 +354,7 @@ function ActivityUpdateService(objectCollection) {
             request.datetime_log
         );
 
-        var queryString = util.getQueryString('ds_v1_activity_list_update_description', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_list_update_description', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -370,11 +370,11 @@ function ActivityUpdateService(objectCollection) {
         }
     };
 
-    var assetActivityListUpdateCover = function (request, callback) {
-        var paramsArr = new Array();
-        var queryString = '';
-        var dbCall = '';
-        var coverJson = JSON.parse(request.activity_cover_data);
+    let assetActivityListUpdateCover = function (request, callback) {
+        let paramsArr = new Array();
+        let queryString = '';
+        let dbCall = '';
+        let coverJson = JSON.parse(request.activity_cover_data);
         activityCommonService.getAllParticipants(request, function (err, participantsData) {
             if (err === false && participantsData.length > 0) {
                 participantsData.forEach(function (rowData, index) {
@@ -477,9 +477,9 @@ function ActivityUpdateService(objectCollection) {
     };
 
     //PAM
-    var assetActivityListUpdateChannel = function (request, callback) {
-        var paramsArr = new Array();
-        var queryString = '';
+    let assetActivityListUpdateChannel = function (request, callback) {
+        let paramsArr = new Array();
+        let queryString = '';
         activityCommonService.getAllParticipants(request, function (err, participantsData) {
             if (err === false && participantsData.length > 0) {
                 participantsData.forEach(function (rowData, index) {
@@ -516,8 +516,8 @@ function ActivityUpdateService(objectCollection) {
     //PAM
     function assetActivityListUpdateSubtype(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array();
-            var queryString = '';
+            let paramsArr = new Array();
+            let queryString = '';
             activityCommonService.getAllParticipants(request, function (err, participantsData) {
                 if (err === false && participantsData.length > 0) {
                     participantsData.forEach(function (rowData, index) {
@@ -553,10 +553,10 @@ function ActivityUpdateService(objectCollection) {
     };
 
     //assetActivityListUpdateSubTaskCover
-    var assetActivityListUpdateSubTaskCover = function (request, callback) {
-        var paramsArr = new Array();
-        var queryString = '';
-        var coverJson = JSON.parse(request.activity_cover_data);
+    let assetActivityListUpdateSubTaskCover = function (request, callback) {
+        let paramsArr = new Array();
+        let queryString = '';
+        let coverJson = JSON.parse(request.activity_cover_data);
         paramsArr = new Array(
             request.activity_id,
             request.organization_id,
@@ -601,9 +601,9 @@ function ActivityUpdateService(objectCollection) {
         callback(false, true);
     };
 
-    var assetActivityListUpdateInline = function (request, callback) {
+    let assetActivityListUpdateInline = function (request, callback) {
 
-        var paramsArr = new Array();
+        let paramsArr = new Array();
         activityCommonService.getAllParticipants(request, function (err, participantsData) {
             if (err === false) {
                 participantsData.forEach(function (rowData, index) {
@@ -628,9 +628,9 @@ function ActivityUpdateService(objectCollection) {
         });
     };
 
-    var assetActivityListUpdateParent = function (request, assetId, callback) {
-        var paramsArr = new Array();
-        var queryString = '';
+    let assetActivityListUpdateParent = function (request, assetId, callback) {
+        let paramsArr = new Array();
+        let queryString = '';
         if (Number(assetId) > 0) {
             paramsArr = new Array(
                 request.activity_id,
@@ -673,9 +673,9 @@ function ActivityUpdateService(objectCollection) {
 
     this.alterActivityInline = function (request, callback) {
         
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
         let activityStreamTypeId;
         activityCommonService.updateAssetLocation(request, function (err, data) {});
 
@@ -749,10 +749,10 @@ function ActivityUpdateService(objectCollection) {
                 if (Number(request.activity_type_category_id) === 4) { // id card inline update
                     assetListUpdate(request, function (err, data) {}); //opearating asset id
 
-                    var empIdJson = JSON.parse(request.activity_inline_data);
+                    let empIdJson = JSON.parse(request.activity_inline_data);
                     //empIdJson.employee_asset_id = request.asset_id;                  
 
-                    var newRequest = {};
+                    let newRequest = {};
                     newRequest.asset_id = request.asset_id;
                     newRequest.organization_id = request.organization_id;
                     newRequest.workforce_id = request.workforce_id;
@@ -774,7 +774,7 @@ function ActivityUpdateService(objectCollection) {
                     // console.log('newRequest: ', newRequest);
                     util.logInfo(request,`newRequest  %j`, JSON.stringify(newRequest, null, 2));
 
-                    var options = {
+                    let options = {
                         form: newRequest
                     };
 
@@ -790,7 +790,7 @@ function ActivityUpdateService(objectCollection) {
 
                         // console.log('error : ', error);
 
-                        var resp = {
+                        let resp = {
                             status: body.status,
                             service_id: body.service_id || 0,
                             gmt_time: body.gmt_time,
@@ -854,9 +854,9 @@ function ActivityUpdateService(objectCollection) {
 
     this.alterActivityCover = function (request, callback) {
 
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
         let activityStreamTypeId;
         //let parsedActivityCoverData = JSON.parse(request.activity_cover_data);
         activityCommonService.updateAssetLocation(request, function (err, data) {});
@@ -964,7 +964,7 @@ function ActivityUpdateService(objectCollection) {
                                             //Updating the due date of the project                                                    
                                             activityCommonService.updateProjectEndDateTime(request, (err, oldDateTime, newDateTime) => {
                                                 if (err === false) {
-                                                    var coverAlterJson = {};
+                                                    let coverAlterJson = {};
                                                     coverAlterJson.title = {
                                                         old: activityData[0]['activity_title'],
                                                         new: activityData[0]['activity_title']
@@ -986,7 +986,7 @@ function ActivityUpdateService(objectCollection) {
                                         case 43:
                                         case 44:
                                             //update the p_parent_activity_id's end estimated datetime
-                                            var coverAlterJson = {};
+                                            let coverAlterJson = {};
                                             coverAlterJson.title = {
                                                 old: activityData[0]['activity_title'],
                                                 new: activityData[0]['activity_title']
@@ -996,18 +996,18 @@ function ActivityUpdateService(objectCollection) {
                                                 new: activityData[0]['activity_title']
                                             };
                                             // get the updated estimated datetime of project.
-                                            var newParamsArr = new Array(
+                                            let newParamsArr = new Array(
                                                 request.activity_parent_id,
                                                 request.workforce_id,
                                                 request.account_id,
                                                 request.organization_id,
                                                 0, 1
                                             );
-                                            var queryString = util.getQueryString('ds_p1_activity_list_select_project_tasks', newParamsArr);
+                                            let queryString = util.getQueryString('ds_p1_activity_list_select_project_tasks', newParamsArr);
                                             if (queryString != '') {
                                                 db.executeQuery(1, queryString, request, function (err, result) {
                                                     if (err === false) {
-                                                        var newEndEstimatedDatetime = result[0]['activity_datetime_end_estimated'];
+                                                        let newEndEstimatedDatetime = result[0]['activity_datetime_end_estimated'];
                                                         // console.log('setting new datetime for contact as ' + newEndEstimatedDatetime);
                                                         //global.logger.write('conLog', 'Setting new datetime for contact as: ' + newEndEstimatedDatetime, {}, request);
                                                         util.logInfo(request,`conLog Setting new datetime for contact as: %j`,{new_EndEstimatedDatetime : newEndEstimatedDatetime,request});
@@ -1464,7 +1464,7 @@ function ActivityUpdateService(objectCollection) {
             //global.logger.write('debug', 'coverAlterJson: ' + JSON.stringify(coverAlterJson, null, 2), {}, request);
             util.logInfo(request,`debug coverAlterJson: %j`,{coverAlterJson : JSON.stringify(coverAlterJson, null, 2),request});
 
-            var event = {
+            let event = {
                 name: "alterActivityCover",
                 service: "activityUpdateService",
                 method: "alterActivityCover",
@@ -1511,10 +1511,10 @@ function ActivityUpdateService(objectCollection) {
     //BETA
     this.alterActivityOwner = function (request, callback) {
 
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
-        var activityStreamTypeId = 406;
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
+        let activityStreamTypeId = 406;
         activityCommonService.updateAssetLocation(request, function (err, data) {});
 
         activityCommonService.getActivityDetails(request, 0, function (err, data) { //One
@@ -1525,7 +1525,7 @@ function ActivityUpdateService(objectCollection) {
 
                 //creator asset id and lead asset id if it mathces 29 shouldn't be called
 
-                var paramsArr = new Array(
+                let paramsArr = new Array(
                     request.activity_id,
                     data[0].activity_owner_asset_id,
                     request.organization_id,
@@ -1534,7 +1534,7 @@ function ActivityUpdateService(objectCollection) {
                     request.datetime_log
                 );
 
-                var queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_asset_aceess", paramsArr);
+                let queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_asset_aceess", paramsArr);
 
                 if (queryString != '') {
                     if (Number(data[0].activity_owner_asset_id) !== Number(data[0].activity_creator_asset_id)) {
@@ -1545,12 +1545,12 @@ function ActivityUpdateService(objectCollection) {
                         });
                     }
                     // checking if this is new row or an update
-                    var participantData = {
+                    let participantData = {
                         asset_id: request.owner_asset_id,
                         organization_id: request.organization_id
                     };
-                    var paramsArr1 = new Array();
-                    var queryString1 = '';
+                    let paramsArr1 = new Array();
+                    let queryString1 = '';
                     activityCommonService.isParticipantAlreadyAssigned(participantData, request.activity_id, request, function (err, alreadyAssignedStatus, newRecordStatus) {
 
                         if ((err === false) && (newRecordStatus)) {
@@ -1644,10 +1644,10 @@ function ActivityUpdateService(objectCollection) {
     //PAM
     this.alterActivityCoverChannelActivity = function (request, callback) {
 
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         let activityStreamTypeId;
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         activityListUpdateChannel(request, function (err, data) {
             if (err === false) {
@@ -1686,9 +1686,9 @@ function ActivityUpdateService(objectCollection) {
 
     //PAM
     this.alterCoverSubTypeActivity = function (request, callback) {
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         activityListUpdateSubtype(request).then(() => {
             activityCommonService.activityListHistoryInsert(request, 411, function (err, result) {});
@@ -1709,14 +1709,14 @@ function ActivityUpdateService(objectCollection) {
         })
     };
 
-    var getCoWorkerActivityId = function (request, callback) {
-        var paramsArr = new Array(
+    let getCoWorkerActivityId = function (request, callback) {
+        let paramsArr = new Array(
             request.asset_id,
             request.organization_id,
             5 // activityTypeCategoryId is 5 for coworker activity
             //request.activity_type_category_id
         );
-        var queryString = util.getQueryString('ds_v1_activity_list_select_category_contact', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_list_select_category_contact', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, coworkerData) {
                 if (err === false) {
@@ -1729,9 +1729,9 @@ function ActivityUpdateService(objectCollection) {
         }
     };
 
-    var assetListUpdate = function (request, callback) {
-        var inlineJson = JSON.parse(request.activity_inline_data);
-        var paramsArr = new Array(
+    let assetListUpdate = function (request, callback) {
+        let inlineJson = JSON.parse(request.activity_inline_data);
+        let paramsArr = new Array(
             inlineJson.employee_asset_id,
             inlineJson.employee_organization_id,
             inlineJson.employee_email_id,
@@ -1741,7 +1741,7 @@ function ActivityUpdateService(objectCollection) {
             request.datetime_log // server log date time
         );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_update', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_update', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -1773,9 +1773,9 @@ function ActivityUpdateService(objectCollection) {
         }
     };
 
-    var assetListUpdateOperatingAsset = function (request, deskAssetId, callback) {
+    let assetListUpdateOperatingAsset = function (request, deskAssetId, callback) {
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             deskAssetId,
             request.workforce_id,
             request.account_id,
@@ -1785,7 +1785,7 @@ function ActivityUpdateService(objectCollection) {
             request.datetime_log
         );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -1799,11 +1799,11 @@ function ActivityUpdateService(objectCollection) {
         }
     };
 
-    var activityListUpdateParent = function (request, callback) {
+    let activityListUpdateParent = function (request, callback) {
 
         activityCommonService.getActivityDetails(request, request.activity_parent_id, function (err, parentActivityData) {
             if (err === false) {
-                var paramsArr = new Array(
+                let paramsArr = new Array(
                     request.activity_id,
                     request.organization_id,
                     request.activity_parent_id,
@@ -1815,7 +1815,7 @@ function ActivityUpdateService(objectCollection) {
                     request.asset_id,
                     request.datetime_log
                 );
-                var queryString = util.getQueryString('ds_v1_activity_list_update_parent', paramsArr);
+                let queryString = util.getQueryString('ds_v1_activity_list_update_parent', paramsArr);
                 db.executeQuery(0, queryString, request, function (error, queryResponse) {
                     if (err === false) {
                         callback(false, true);
@@ -1835,10 +1835,10 @@ function ActivityUpdateService(objectCollection) {
 
     this.alterActivityParent = function (request, callback) {
 
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
-        var streamtypeId = 1302;
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
+        let streamtypeId = 1302;
         switch (activityTypeCategoryId) {
             case 10:
                 if (Number(request.activity_parent_id) === 0) { // removed from a file
@@ -1914,16 +1914,16 @@ function ActivityUpdateService(objectCollection) {
 
     this.resetUnreadUpdateCount = function (request, callback) {
 
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
 
         //activityCommonService.responseRateUnreadCount(request, request.activity_id, function (err, data) {});
 
         activityCommonService.resetAssetUnreadCount(request, request.activity_id, function (err, data) {
             if (err === false) {
                 if (activityTypeCategoryId === 8 && Number(request.device_os_id) !== 5) {
-                    var pubnubMsg = {};
+                    let pubnubMsg = {};
                     pubnubMsg.type = 'activity_unread';
                     pubnubMsg.organization_id = request.organization_id;
                     pubnubMsg.desk_asset_id = request.asset_id;
@@ -1988,9 +1988,9 @@ function ActivityUpdateService(objectCollection) {
 
     this.resetUnreadUpdateCountV1 = function (request, callback) {
 
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
 
         let activityArray = JSON.parse(request.activity_id_array);
         let activitySet = new Set();
@@ -2002,7 +2002,7 @@ function ActivityUpdateService(objectCollection) {
             activityCommonService.resetAssetUnreadCount(request, activityID, function (err, data) {
                 if (err === false) {
                     if (activityTypeCategoryId === 8 && Number(request.device_os_id) !== 5) {
-                        var pubnubMsg = {};
+                        let pubnubMsg = {};
                         pubnubMsg.type = 'activity_unread';
                         pubnubMsg.organization_id = request.organization_id;
                         pubnubMsg.desk_asset_id = request.asset_id;
@@ -2070,13 +2070,13 @@ function ActivityUpdateService(objectCollection) {
 
     function decreaseUnreadCntsInMobile(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.activity_id,
                 request.asset_id,
                 request.organization_id,
                 request.datetime_log
             );
-            var queryString = util.getQueryString('ds_p1_activity_asset_mapping_reset_unread_counts_web', paramsArr);
+            let queryString = util.getQueryString('ds_p1_activity_asset_mapping_reset_unread_counts_web', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? resolve() : reject(err);
@@ -2095,11 +2095,11 @@ function ActivityUpdateService(objectCollection) {
                 //global.logger.write('debug', 'Monthly Data: ' + JSON.stringify(monthlyData, null, 2), {}, request);
                 util.logInfo(request,`debug Monthly Data:  %j`,{Monthly_Data : JSON.stringify(monthlyData, null, 2),request});
 
-                var percentage = 0;
-                var avgReadTime = 0;
-                var noOfReceivedFileUpdates = monthlyData[0].countReceivedUpdates;
-                var noOfRespondedFileUpdates = monthlyData[0].countRespondedOntimeUpdates;
-                var countTotalDuration = monthlyData[0].countTotalDuration;
+                let percentage = 0;
+                let avgReadTime = 0;
+                let noOfReceivedFileUpdates = monthlyData[0].countReceivedUpdates;
+                let noOfRespondedFileUpdates = monthlyData[0].countRespondedOntimeUpdates;
+                let countTotalDuration = monthlyData[0].countTotalDuration;
 
                 if (noOfReceivedFileUpdates != 0) {
                     percentage = (noOfRespondedFileUpdates / noOfReceivedFileUpdates) * 100;
@@ -2120,7 +2120,7 @@ function ActivityUpdateService(objectCollection) {
                 util.logInfo(request,`debug avgReadTime: %j`,{avgReadTime : avgReadTime,request});
 
                 //Insert into monthly summary table
-                var monthlyCollection = {};
+                let monthlyCollection = {};
                 monthlyCollection.summary_id = 32;
                 monthlyCollection.asset_id = request.asset_id;
                 monthlyCollection.entity_bigint_1 = noOfReceivedFileUpdates; //denominator
@@ -2140,11 +2140,11 @@ function ActivityUpdateService(objectCollection) {
                 //global.logger.write('debug', 'Weekly Data: ' + JSON.stringify(weeklyData, null, 2), {}, request);
                 util.logInfo(request,`debug Weekly Data:  %j`,{Weekly_Data : JSON.stringify(weeklyData, null, 2),request});
 
-                var percentage = 0;
-                var avgReadTime = 0;
-                var noOfReceivedFileUpdates = weeklyData[0].countReceivedUpdates;
-                var noOfRespondedFileUpdates = weeklyData[0].countRespondedOntimeUpdates;
-                var countTotalDuration = weeklyData[0].countTotalDuration;
+                let percentage = 0;
+                let avgReadTime = 0;
+                let noOfReceivedFileUpdates = weeklyData[0].countReceivedUpdates;
+                let noOfRespondedFileUpdates = weeklyData[0].countRespondedOntimeUpdates;
+                let countTotalDuration = weeklyData[0].countTotalDuration;
 
                 if (noOfReceivedFileUpdates != 0) {
                     percentage = (noOfRespondedFileUpdates / noOfReceivedFileUpdates) * 100;
@@ -2165,7 +2165,7 @@ function ActivityUpdateService(objectCollection) {
                 util.logInfo(request,`debug avgReadTime :  %j`,{avgReadTime : avgReadTime,request});
 
                 //Insert into weekly summary table
-                var weeklyCollection = {};
+                let weeklyCollection = {};
                 weeklyCollection.summary_id = 19;
                 weeklyCollection.asset_id = request.asset_id;
                 weeklyCollection.entity_bigint_1 = noOfReceivedFileUpdates;
@@ -2184,8 +2184,8 @@ function ActivityUpdateService(objectCollection) {
 
     function getResponseRateForFiles(request, flag) { ////flag = 1 means monthly and flag = 2 means weekly
         return new Promise((resolve, reject) => {
-            var startDate;
-            var endDate;
+            let startDate;
+            let endDate;
 
             if (flag === 1) {
                 startDate = util.getStartDateTimeOfMonth();
@@ -2194,13 +2194,13 @@ function ActivityUpdateService(objectCollection) {
                 startDate = util.getStartDateTimeOfWeek();
                 endDate = util.getEndDateTimeOfWeek();
             }
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.asset_id,
                 startDate,
                 endDate
             );
-            var queryString = util.getQueryString('ds_v1_asset_update_transaction_select_response_rate', paramsArr);
+            let queryString = util.getQueryString('ds_v1_asset_update_transaction_select_response_rate', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -2212,7 +2212,7 @@ function ActivityUpdateService(objectCollection) {
     //To calculate New Productivity Score inMails
     function updateInmailPS(request) {
         return new Promise((resolve, reject) => {
-            var creationDate;
+            let creationDate;
 
             //Get activity Details
             activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
@@ -2222,12 +2222,12 @@ function ActivityUpdateService(objectCollection) {
                     //Get the Config Value
                     activityCommonService.retrieveAccountList(request, (err, data) => {
                         if (err === false) {
-                            var configRespHours = data[0].account_config_response_hours;
+                            let configRespHours = data[0].account_config_response_hours;
                             //global.logger.write('debug', 'Response hours in Config file  : ' + configRespHours, {}, request);
                             util.logInfo(request,`debug Response hours in Config file  :  %j`,{configRespHours : configRespHours,request});
 
                             //diff will be in milli seconds
-                            var diff = util.differenceDatetimes(request.datetime_log, util.replaceDefaultDatetime(creationDate));
+                            let diff = util.differenceDatetimes(request.datetime_log, util.replaceDefaultDatetime(creationDate));
                             diff = diff / 3600000;
                             diff = Number(diff);
                             //global.logger.write('debug', 'Difference  : ' + diff, {}, request);
@@ -2241,9 +2241,9 @@ function ActivityUpdateService(objectCollection) {
                                     //Get the inmail Counts Monthly
                                     activityCommonService.getInmailCounts(request, 1, (err, countsData) => {
                                         if (err === false) {
-                                            var percentage = 0;
-                                            var noOfReceivedInmails = countsData[0].countReceivedInmails;
-                                            var noOfRespondedInmails = countsData[0].countOntimeRespondedInmails;
+                                            let percentage = 0;
+                                            let noOfReceivedInmails = countsData[0].countReceivedInmails;
+                                            let noOfRespondedInmails = countsData[0].countOntimeRespondedInmails;
 
                                             if (noOfReceivedInmails != 0) {
                                                 percentage = (noOfRespondedInmails / noOfReceivedInmails) * 100;
@@ -2257,7 +2257,7 @@ function ActivityUpdateService(objectCollection) {
                                             util.logInfo(request,`debug Percentage : %j`,{Percentage : percentage,request});
 
                                             //Insert into monthly summary table
-                                            var monthlyCollection = {};
+                                            let monthlyCollection = {};
                                             monthlyCollection.summary_id = 10;
                                             monthlyCollection.asset_id = request.asset_id;
                                             monthlyCollection.entity_bigint_1 = noOfReceivedInmails; //denominator
@@ -2273,9 +2273,9 @@ function ActivityUpdateService(objectCollection) {
                                     //Get the inmail Counts Weekly
                                     activityCommonService.getInmailCounts(request, 2, (err, countsData) => {
                                         if (err === false) {
-                                            var percentage = 0;
-                                            var noOfReceivedInmails = countsData[0].countReceivedInmails;
-                                            var noOfRespondedInmails = countsData[0].countOntimeRespondedInmails;
+                                            let percentage = 0;
+                                            let noOfReceivedInmails = countsData[0].countReceivedInmails;
+                                            let noOfRespondedInmails = countsData[0].countOntimeRespondedInmails;
 
                                             if (noOfReceivedInmails != 0) {
                                                 percentage = (noOfRespondedInmails / noOfReceivedInmails) * 100;
@@ -2289,7 +2289,7 @@ function ActivityUpdateService(objectCollection) {
                                             util.logInfo(request,`debug Percentage : %j`,{Percentage : percentage,request});
 
                                             //Insert into weekly summary table
-                                            var weeklyCollection = {};
+                                            let weeklyCollection = {};
                                             weeklyCollection.summary_id = 3;
                                             weeklyCollection.asset_id = request.asset_id;
                                             weeklyCollection.entity_bigint_1 = noOfReceivedInmails;
@@ -2312,7 +2312,7 @@ function ActivityUpdateService(objectCollection) {
     }
 
     this.alterActivityFlagFileEnabled = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             request.asset_id,
             request.organization_id,
@@ -2320,7 +2320,7 @@ function ActivityUpdateService(objectCollection) {
             util.getCurrentUTCTime()
         );
 
-        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_flag_file_enabled', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_flag_file_enabled', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (err === false) ? callback(false, {}, 200): callback(true, err, -9999);
@@ -2346,13 +2346,13 @@ function ActivityUpdateService(objectCollection) {
                         // 1 => Archive the asset
                         // IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), 
                         // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
-                        var paramsArr = new Array(
+                        let paramsArr = new Array(
                             request.asset_id,
                             request.organization_id,
                             request.asset_id, // log_asset_id
                             util.getCurrentUTCTime()
                         );
-                        var queryString = util.getQueryString('ds_p1_asset_list_delete', paramsArr);
+                        let queryString = util.getQueryString('ds_p1_asset_list_delete', paramsArr);
                         if (queryString !== '') {
                             db.executeQuery(0, queryString, request, function (err, data) {
                                 if (!err) {
@@ -2402,12 +2402,12 @@ function ActivityUpdateService(objectCollection) {
 
     };
 
-    var activityAssetMappingUpdateToRemoveUserFromWorkforce = function (request, callback) {
+    let activityAssetMappingUpdateToRemoveUserFromWorkforce = function (request, callback) {
 
         // IN p_organization_id BIGINT(20), IN p_account_id SMALLINT(6), IN p_workforce_id BIGINT(20),
         // IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_activity_status_id BIGINT(20), 
         // IN p_activity_status_type_id SMALLINT(6), IN p_log_datetime DATETIME
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -2419,7 +2419,7 @@ function ActivityUpdateService(objectCollection) {
         );
 
         // var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_status', paramsArr);
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_status', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_status', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (!err) ? callback(false, {}, 200): callback(true, err, -9998);
@@ -2435,14 +2435,14 @@ function ActivityUpdateService(objectCollection) {
         util.logInfo(request,`conLog Inside the removeEmployeetoDeskMapping service %j`,{request});
         request.datetime_log = util.getCurrentUTCTime();
         if (request.hasOwnProperty('activity_inline_data')) {
-            var inlineJson = JSON.parse(request.activity_inline_data);
+            let inlineJson = JSON.parse(request.activity_inline_data);
             request.employee_asset_id = inlineJson.employee_asset_id;
             request.employee_first_name = inlineJson.employee_first_name;
             request.employee_last_name = inlineJson.employee_last_name;
         } else {
             request.activity_inline_data = "{'message': 'User leaves the organization'}";
         }
-        var participantData;
+        let participantData;
 
         // 1 => Operating asset details of employee desk
         // 
@@ -2530,7 +2530,7 @@ function ActivityUpdateService(objectCollection) {
                                 if (!err) {
 
                                     // Raise another queue event for processing the next service in the sequel
-                                    var event = {
+                                    let event = {
                                         name: "activityUpdateService",
                                         service: "activityUpdateService",
                                         method: "archiveAssetAndActivity",
@@ -2564,7 +2564,7 @@ function ActivityUpdateService(objectCollection) {
         // 
         getCoWorkerActivityId(request, function (err, coWorkerData) {
             if (!err) {
-                var coWorkerActivityData = {
+                let coWorkerActivityData = {
                     activity_id: Number(coWorkerData[0].activity_id),
                     organization_id: Number(coWorkerData[0].organization_id),
                     account_id: Number(coWorkerData[0].account_id),
@@ -2594,7 +2594,7 @@ function ActivityUpdateService(objectCollection) {
                         // 4.4 => Insert entry into the activity timeline of the co-worker contact card activity
                         // 
                         // Clone the request and update the activity_id to contact card's activity ID
-                        var newRequest = Object.assign({}, request);
+                        let newRequest = Object.assign({}, request);
                         newRequest.activity_id = Number(coWorkerData[0].activity_id);
 
                         activityCommonService.activityTimelineTransactionInsert(request, coWorkerActivityData, 11010, function () {});
@@ -2613,7 +2613,7 @@ function ActivityUpdateService(objectCollection) {
         // IN p_activity_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_activity_inline_data JSON, 
         // IN p_pipe_separated_string VARCHAR(1200), IN p_log_datetime DATETIME, IN p_asset_id BIGINT(20), 
         // IN p_operating_asset_id BIGINT(20)
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             coWorkerActivityData.activity_id,
             coWorkerActivityData.organization_id,
             request.activity_inline_data || '{}',
@@ -2623,7 +2623,7 @@ function ActivityUpdateService(objectCollection) {
             coWorkerActivityData.operating_asset_id
         );
 
-        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_operation_asset_data', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_operation_asset_data', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (!err) ? callback(false, {}, 200): callback(true, err, -9998);
@@ -2636,7 +2636,7 @@ function ActivityUpdateService(objectCollection) {
         // IN p_activity_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_activity_inline_data JSON, 
         // IN p_pipe_separated_string VARCHAR(1200), IN p_log_datetime DATETIME, IN p_asset_id BIGINT(20), 
         // IN p_operating_asset_id BIGINT(20)
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             coWorkerActivityData.activity_id,
             coWorkerActivityData.organization_id,
             request.activity_inline_data || '{}',
@@ -2646,7 +2646,7 @@ function ActivityUpdateService(objectCollection) {
             coWorkerActivityData.operating_asset_id
         );
 
-        var queryString = util.getQueryString('ds_p1_activity_list_update_operating_asset_data', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_list_update_operating_asset_data', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (!err) ? callback(false, {}, 200): callback(true, err, -9998);
@@ -2657,12 +2657,12 @@ function ActivityUpdateService(objectCollection) {
 
     function assetAccessMappingUpdateOperatingAsset(request, callback) {
         // IN p_user_mapping_id  BIGINT(20),  IN p_user_asset_id BIGINT(20), IN p_log_datetime DATETIME
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.user_mapping_id,
             request.employee_asset_id,
             util.getCurrentUTCTime()
         );
-        var queryString = util.getQueryString('ds_p1_asset_access_mapping_update_operating_asset', paramsArr);
+        let queryString = util.getQueryString('ds_p1_asset_access_mapping_update_operating_asset', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (!err) ? callback(false, {}, 200): callback(true, err, -9998);
@@ -2673,13 +2673,13 @@ function ActivityUpdateService(objectCollection) {
     function assetAccessMappingHistoryInsert(request, updateTypeID, callback) {
         // IN p_user_mapping_id BIGINT(20), IN p_organization_id BIGINT(20), 
         // IN p_update_type_id SMALLINT(6), IN p_update_datetime DATETIME
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.user_mapping_id,
             request.organization_id,
             updateTypeID,
             util.getCurrentUTCTime()
         );
-        var queryString = util.getQueryString('ds_p1_asset_access_mapping_history_insert', paramsArr);
+        let queryString = util.getQueryString('ds_p1_asset_access_mapping_history_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (!err) ? callback(false, {}, 200): callback(true, err, -9998);
@@ -2692,14 +2692,14 @@ function ActivityUpdateService(objectCollection) {
         // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
         // IN p_workforce_id BIGINT(20), IN p_asset_id BIGINT(20), 
         // IN p_user_asset_id BIGINT(20)
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
             request.desk_asset_id,
             request.employee_asset_id || request.asset_id
         );
-        var queryString = util.getQueryString('ds_p1_asset_access_mapping_select_a2a_mapping', paramsArr);
+        let queryString = util.getQueryString('ds_p1_asset_access_mapping_select_a2a_mapping', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -2715,7 +2715,7 @@ function ActivityUpdateService(objectCollection) {
         // IN p_user_mapping_id BIGINT(20), IN p_organization_id BIGINT(20), 
         // IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_asset_id BIGINT(20), 
         // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.user_mapping_id, // Remember to add this to the client requirement
             request.organization_id,
             request.account_id,
@@ -2726,7 +2726,7 @@ function ActivityUpdateService(objectCollection) {
         );
 
         // var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_status', paramsArr);
-        var queryString = util.getQueryString('ds_p1_asset_access_mapping_delete_single', paramsArr);
+        let queryString = util.getQueryString('ds_p1_asset_access_mapping_delete_single', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (!err) ? callback(false, {}, 200): callback(true, err, -9998);
@@ -2737,7 +2737,7 @@ function ActivityUpdateService(objectCollection) {
     function revokeEmployeeAccessFromDeskAsset(request, callback) {
         // IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_asset_type_category_id BIGINT(21), 
         // IN p_asset_status_id BIGINT(21), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.desk_asset_id, // Remember to add this to the client requirement
             request.organization_id,
             request.desk_asset_type_category_id,
@@ -2747,7 +2747,7 @@ function ActivityUpdateService(objectCollection) {
         );
 
         // var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_status', paramsArr);
-        var queryString = util.getQueryString('ds_p1_asset_list_update_asset_status', paramsArr);
+        let queryString = util.getQueryString('ds_p1_asset_list_update_asset_status', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (!err) ? callback(false, {}, 200): callback(true, err, -9998);
@@ -2758,7 +2758,7 @@ function ActivityUpdateService(objectCollection) {
     function resetOperatingAssetDetailsForDeskAsset(request, callback) {
 
         if (request.hasOwnProperty('activity_inline_data')) {
-            var inlineJson = JSON.parse(request.activity_inline_data);
+            let inlineJson = JSON.parse(request.activity_inline_data);
             request.employee_asset_id = inlineJson.employee_asset_id;
             request.employee_first_name = inlineJson.employee_first_name;
             request.employee_last_name = inlineJson.employee_last_name;
@@ -2768,7 +2768,7 @@ function ActivityUpdateService(objectCollection) {
         // IN p_organization_id BIGINT(20), IN p_asset_first_name VARCHAR(50), IN p_asset_last_name VARCHAR(50), 
         // IN p_asset_type_id BIGINT(20), IN p_operating_asset_id BIGINT(20), IN p_manager_asset_id BIGINT(20), 
         // IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.desk_asset_id, // Remember to add this to the client requirement
             request.workforce_id,
             request.account_id,
@@ -2783,7 +2783,7 @@ function ActivityUpdateService(objectCollection) {
         );
 
         // var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_status', paramsArr);
-        var queryString = util.getQueryString('ds_p1_asset_list_update_desk', paramsArr);
+        let queryString = util.getQueryString('ds_p1_asset_list_update_desk', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (!err) ? callback(false, {}, 200): callback(true, err, -9998);
@@ -2793,14 +2793,14 @@ function ActivityUpdateService(objectCollection) {
 
     function assetListHistoryInsert(request, assetId, organizationId, updateTypeId, datetimeLog, callback) {
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             assetId,
             organizationId,
             updateTypeId,
             datetimeLog
         );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_history_insert', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_history_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 //global.logger.write(queryString, request, 'asset', 'trace');
@@ -2830,7 +2830,7 @@ function ActivityUpdateService(objectCollection) {
                         request.activity_status_id = Number(data[0].activity_status_id);
                         request.activity_status_type_id = Number(data[0].activity_status_type_id);
                         // Raise another queue event for processing the next service in the sequel
-                        var event = {
+                        let event = {
                             name: "activityUpdateService",
                             service: "activityUpdateService",
                             method: "removeEmployeetoDeskMapping",
@@ -2861,12 +2861,12 @@ function ActivityUpdateService(objectCollection) {
 
     function getIDCardActivityForEmployeeAsset(request, callback) {
         // IN p_asset_id bigint(20), IN p_organization_id BIGINT(20)
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.asset_id,
             request.organization_id
         );
 
-        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_asset_id_card', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_asset_id_card', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //global.logger.write(queryString, request, 'asset', 'trace');
@@ -2883,14 +2883,14 @@ function ActivityUpdateService(objectCollection) {
     function workforceActivityStatusMappingSelectStatus(request, callback) {
         // IN p_organization_id bigint(20), IN p_account_id bigint(20), 
         // IN p_workforce_id bigint(20), IN p_activity_status_type_id SMALLINT(6)
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
             9 // 9 => Inactive
         );
 
-        var queryString = util.getQueryString('ds_v1_workforce_activity_status_mapping_select_status', paramsArr);
+        let queryString = util.getQueryString('ds_v1_workforce_activity_status_mapping_select_status', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 //global.logger.write(queryString, request, 'asset', 'trace');
@@ -2909,7 +2909,7 @@ function ActivityUpdateService(objectCollection) {
             error = true;
 
         try{
-            var coverJson = JSON.parse(request.activity_cover_data);
+            let coverJson = JSON.parse(request.activity_cover_data);
         } catch(err) {
             return [error, err];
         }            
@@ -2940,12 +2940,12 @@ function ActivityUpdateService(objectCollection) {
 
     this.bulkSummaryActivityUpdate = async(request) =>{
         let responseData = [],error = true;
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.workflow_activity_id,
             request.comments
         );
 
-        var queryString = util.getQueryString('ds_p1_activity_bulk_summary_list_update_comment', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_bulk_summary_list_update_comment', paramsArr);
 
         if (queryString != '') {
                 await db.executeQueryPromise(0, queryString, request)

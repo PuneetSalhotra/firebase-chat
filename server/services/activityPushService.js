@@ -19,25 +19,25 @@ function ActivityPushService(objectCollection) {
     const AwsSns = require('../utils/snsWrapper');
     const sns = new AwsSns();    
 
-    var getPushString = function (request, objectCollection, senderName, callback) {
-        var pushString = {};
-        var extraData = {};
-        var msg = {}; //Pubnub Push String
-        var smsString = '', attachments = [], content = "", message = '';
+    let getPushString = function (request, objectCollection, senderName, callback) {
+        let pushString = {};
+        let extraData = {};
+        let msg = {}; //Pubnub Push String
+        let smsString = '', attachments = [], content = "", message = '';
         //msg.type = 'activity_unread';
         msg.activity_type_category_id = 0;
         msg.activity_id = request.activity_id;
 
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
         objectCollection.activityCommonService.getActivityDetails(request, 0, async (err, activityData) => {
 
             console.log('activityData.length : ', activityData.length);
                         
             if (err === false && activityData.length > 0) {
-                var activityTitle = activityData[0]['activity_title'];
-                var activityInlineJson = JSON.parse(activityData[0]['activity_inline_data']);
+                let activityTitle = activityData[0]['activity_title'];
+                let activityInlineJson = JSON.parse(activityData[0]['activity_inline_data']);
 
-                var activityId = activityData[0]['activity_id'];
+                let activityId = activityData[0]['activity_id'];
                 pushString.activity_id = activityId;
                 pushString.activity_type_category_id = activityTypeCategoryId;
                 // pushString.activity_inline_data = activityInlineJson;
@@ -59,8 +59,8 @@ function ActivityPushService(objectCollection) {
                             case '/' + global.config.version + '/activity/status/alter':
                                 break;
                             case '/' + global.config.version + '/activity/participant/access/set':
-                                var activityInlineJson = JSON.parse(activityData[0]['activity_inline_data']);
-                                var contactName = activityInlineJson.contact_first_name + ' ' + activityInlineJson.contact_last_name;
+                                let activityInlineJson = JSON.parse(activityData[0]['activity_inline_data']);
+                                let contactName = activityInlineJson.contact_first_name + ' ' + activityInlineJson.contact_last_name;
                                 pushString.title = senderName;
                                 pushString.description = contactName + ' ' + 'has beed shared as a Contact';
                                 break;
@@ -907,13 +907,13 @@ function ActivityPushService(objectCollection) {
         });
     };
 
-    var getAssetBadgeCount = function (request, objectCollection, assetId, organizationId, callback) {
-        var paramsArr = new Array(
+    let getAssetBadgeCount = function (request, objectCollection, assetId, organizationId, callback) {
+        let paramsArr = new Array(
             assetId,
             organizationId            
         );
         //var queryString = objectCollection.util.getQueryString('ds_v1_activity_asset_mapping_select_unread_task_count', paramsArr);
-        var queryString = objectCollection.util.getQueryString('ds_p1_activity_asset_mapping_select_unread_task_count', paramsArr);
+        let queryString = objectCollection.util.getQueryString('ds_p1_activity_asset_mapping_select_unread_task_count', paramsArr);
         if (queryString != '') {
             objectCollection.db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -927,7 +927,7 @@ function ActivityPushService(objectCollection) {
     };
 
     this.pamSendPush = function (request, data, objectCollection, callback) {
-        var pushStringObj = {};
+        let pushStringObj = {};
         pushStringObj.order_id = request.activity_id;
         pushStringObj.order_name = request.activity_title;
         pushStringObj.status_type_id = 0;
@@ -996,7 +996,7 @@ function ActivityPushService(objectCollection) {
         }
         //
 
-        var proceedSendPush = function (pushReceivers, senderName) {
+        let proceedSendPush = function (pushReceivers, senderName) {
             //global.logger.write('debug', 'pushReceivers.length : ' + pushReceivers.length, {}, {});
             util.logInfo(request,`debug pushReceivers.length %j`,{pushReceivers_length : pushReceivers.length});
             if (pushReceivers.length > 0) {
@@ -1194,11 +1194,11 @@ function ActivityPushService(objectCollection) {
             }
         };
 
-        var pushReceivers = new Array();
+        let pushReceivers = new Array();
         objectCollection.activityCommonService.getAllParticipants(request, function (err, participantsList) {
             if (err === false) {
-                var senderName = '';
-                var reqobj = {};
+                let senderName = '';
+                let reqobj = {};
 
                 //global.logger.write('debug', 'request params in the activityPush Service', {}, request);
                 //global.logger.write('debug', request, {}, request);
@@ -1335,14 +1335,14 @@ function ActivityPushService(objectCollection) {
     };
 
     this.sendSMSNotification = function (request, objectCollection, pushAssetId, callback) {
-        var reqobj = {};
+        let reqobj = {};
         //getting asset deatails of the reciever
         reqobj = {
             organization_id: request.organization_id,
             asset_id: pushAssetId
         };
         objectCollection.activityCommonService.getAssetDetails(reqobj, function (err, RecieverData, resp) {
-            var diffDatetime = objectCollection.util.differenceDatetimes(request.datetime_log, objectCollection.util.replaceDefaultDatetime(RecieverData.asset_status_datetime));
+            let diffDatetime = objectCollection.util.differenceDatetimes(request.datetime_log, objectCollection.util.replaceDefaultDatetime(RecieverData.asset_status_datetime));
             if (diffDatetime.years > 0 || diffDatetime.months > 0 || diffDatetime.days >= 2) {
                 // send an sms notification
                 // getting asset details of log asset id
@@ -1353,7 +1353,7 @@ function ActivityPushService(objectCollection) {
                 objectCollection.activityCommonService.getAssetDetails(reqobj, function (err, senderData, resp) {
 
                     if (senderData.asset_count_signup > 0) {
-                        var senderName = senderData['operating_asset_first_name'] + ' ' + senderData['operating_asset_last_name'];
+                        let senderName = senderData['operating_asset_first_name'] + ' ' + senderData['operating_asset_last_name'];
                         getPushString(request, objectCollection, senderName, function (err, pushStringObj, pubnubMsg, smsString) {
 
                             //console.log('SMS String : ', smsString);

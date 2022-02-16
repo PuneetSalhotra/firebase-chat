@@ -2,9 +2,9 @@
  * author: Sri Sai Venkatesh
  */
 
-var mysql = require('mysql');
+let mysql = require('mysql');
 
-var masterDbPool = mysql.createPool({
+let masterDbPool = mysql.createPool({
     connectionLimit: global.config.conLimit,
     host: global.config.masterIp,
     user: global.config.dbUser,
@@ -13,7 +13,7 @@ var masterDbPool = mysql.createPool({
     debug: false
 });
 
- var slave1DbPool = mysql.createPool({
+ let slave1DbPool = mysql.createPool({
  connectionLimit: global.config.conLimit,
  host: global.config.slave1Ip,
  user: global.config.dbUser,
@@ -33,9 +33,9 @@ var masterDbPool = mysql.createPool({
  debug: false
  });
  */
-var slave2DbPool = masterDbPool;
+let slave2DbPool = masterDbPool;
 
-var poolCluster = mysql.createPoolCluster();
+let poolCluster = mysql.createPoolCluster();
 
 //Adding Master
 poolCluster.add('MASTER', {
@@ -59,7 +59,7 @@ poolCluster.add('SLAVE1', {
 
 
 
-var executeQuery = function (flag, queryString, request, callback) {
+let executeQuery = function (flag, queryString, request, callback) {
 
     /*
      * flag = 0 --> master
@@ -67,7 +67,7 @@ var executeQuery = function (flag, queryString, request, callback) {
      * flag = 2 --> slave 2
      */
 
-    var conPool;
+    let conPool;
     switch (flag) {
         case 0:
             conPool = masterDbPool;
@@ -173,9 +173,9 @@ function retrieveFromMasterDbPool(conPool, queryString, request){
     });
 }
 
-var getQueryString = function (callName, paramsArr) {
+let getQueryString = function (callName, paramsArr) {
 
-    var queryString = "CALL " + callName + "(";
+    let queryString = "CALL " + callName + "(";
     paramsArr.forEach(function (item, index) {
         if (index === (paramsArr.length - 1))
             queryString = queryString + "'" + item + "'";
@@ -186,14 +186,14 @@ var getQueryString = function (callName, paramsArr) {
     return queryString;
 };
 
-var executeRecursiveQuery = function (flag, start, limit, callName, paramsArr, callback) {
-    var returnData = [];
-    var nextLimit = parseInt(limit + start);
-    var checkAndFetchRecords = function (start) {
+let executeRecursiveQuery = function (flag, start, limit, callName, paramsArr, callback) {
+    let returnData = [];
+    let nextLimit = parseInt(limit + start);
+    let checkAndFetchRecords = function (start) {
         nextLimit = parseInt(limit + start);
         paramsArr.push(start);
         paramsArr.push(limit);
-        var queryString = getQueryString(callName, paramsArr);
+        let queryString = getQueryString(callName, paramsArr);
         paramsArr.pop();
         paramsArr.pop();
 

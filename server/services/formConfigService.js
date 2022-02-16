@@ -10,11 +10,11 @@ const uuidv4 = require('uuid/v4');
 
 function FormConfigService(objCollection) {
 
-    var db = objCollection.db;
-    var util = objCollection.util;
-    var activityCommonService = objCollection.activityCommonService;
-    var queueWrapper = objCollection.queueWrapper;
-    var forEachAsync = objCollection.forEachAsync;
+    let db = objCollection.db;
+    let util = objCollection.util;
+    let activityCommonService = objCollection.activityCommonService;
+    let queueWrapper = objCollection.queueWrapper;
+    let forEachAsync = objCollection.forEachAsync;
 
     const ActivityService = require('../services/activityService');
     const activityService = new ActivityService(objCollection);
@@ -40,8 +40,8 @@ function FormConfigService(objCollection) {
     }
 
     this.getOrganizationalLevelForms = function (request, callback) {
-        var paramsArr = new Array();
-        var queryString = '';
+        let paramsArr = new Array();
+        let queryString = '';
 
         paramsArr = new Array(
             request.organization_id,
@@ -76,8 +76,8 @@ function FormConfigService(objCollection) {
     };
 
     this.getAccountLevelForms = function (request, callback) {
-        var paramsArr = new Array();
-        var queryString = '';
+        let paramsArr = new Array();
+        let queryString = '';
 
         paramsArr = new Array(
             request.organization_id,
@@ -113,8 +113,8 @@ function FormConfigService(objCollection) {
     };
 
     this.getWorkforceLevelForms = function (request, callback) {
-        var paramsArr = new Array();
-        var queryString = '';
+        let paramsArr = new Array();
+        let queryString = '';
 
         paramsArr = new Array(
             request.organization_id,
@@ -151,8 +151,8 @@ function FormConfigService(objCollection) {
     };
 
     this.getActivityLevelForms = function (request, callback) {
-        var paramsArr = new Array();
-        var queryString = '';
+        let paramsArr = new Array();
+        let queryString = '';
 
         paramsArr = new Array(
             request.organization_id,
@@ -271,8 +271,8 @@ function FormConfigService(objCollection) {
 
     //Added by V Nani Kalyan for BETA
     this.getRegisterForms = function (request, callback) {
-        var paramsArr = new Array();
-        var queryString = '';
+        let paramsArr = new Array();
+        let queryString = '';
 
         paramsArr = new Array(
             request.organization_id,
@@ -311,8 +311,8 @@ function FormConfigService(objCollection) {
     };
 
     this.getAllFormSubmissions = function (request, callback) {
-        var paramsArr = new Array();
-        var queryString = '';
+        let paramsArr = new Array();
+        let queryString = '';
 
         paramsArr = new Array(
             request.form_id,
@@ -351,12 +351,12 @@ function FormConfigService(objCollection) {
         }
     };
 
-    var formatFromsListing = function (device_os_id, data, callback) {
+    let formatFromsListing = function (device_os_id, data, callback) {
         //console.log(data);
-        var responseData = new Array();
+        let responseData = new Array();
         data.forEach(function (rowData, index) {
 
-            var rowDataArr = {
+            let rowDataArr = {
                 "form_id": util.replaceDefaultNumber(rowData['form_id']),
                 "form_name": util.replaceDefaultString(util.decodeSpecialChars(rowData['form_name'])),
                 "field_id": util.replaceDefaultNumber(rowData['field_id']),
@@ -506,7 +506,7 @@ function FormConfigService(objCollection) {
 
     this.alterFormActivity = async function (request, callback) {
 
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         
         //added new flag 
@@ -542,10 +542,10 @@ function FormConfigService(objCollection) {
             }
         }        
 
-        var activityInlineData = JSON.parse(request.activity_inline_data);
-        var newData = activityInlineData[0];        
+        let activityInlineData = JSON.parse(request.activity_inline_data);
+        let newData = activityInlineData[0];        
         request.new_field_value = newData.field_value;
-        var dataTypeId = Number(newData.field_data_type_id);
+        let dataTypeId = Number(newData.field_data_type_id);
         //let dataTypeCategoryId = Number(newData.field_data_type_category_id);
         //Listener to update data in Intermediate tables for Reference/combo bots
         switch(Number(newData.field_data_type_id)) {
@@ -568,7 +568,7 @@ function FormConfigService(objCollection) {
         activityCommonService.getActivityByFormTransactionCallback(request, request.activity_id, (err, data) => {
             if (err === false) {
                 util.logInfo(request,`Data from activity_list: %j`, data.length);
-                var retrievedInlineData = [];
+                let retrievedInlineData = [];
                 if (data.length > 0) {
                     request['activity_id'] = data[0].activity_id;
                     request.activity_type_id = data[0].activity_type_id  || 0;
@@ -682,7 +682,7 @@ function FormConfigService(objCollection) {
                         await putLatestUpdateSeqId(request, activityInlineData, retrievedInlineData).then(() => {
                             util.logInfo(request,`After putLatestUpdateSeqId`);                       
 
-                            var event = {
+                            let event = {
                                 name: "alterActivityInline",
                                 service: "activityUpdateService",
                                 method: "alterActivityInline",
@@ -703,7 +703,7 @@ function FormConfigService(objCollection) {
                                 newReq.activity_id = workflowActID;
                                 console.log('workflowActID - ', workflowActID);
 
-                                var event = {
+                                let event = {
                                     name: "alterActivityInline",
                                     service: "activityUpdateService",
                                     method: "alterActivityInline",
@@ -884,7 +884,7 @@ function FormConfigService(objCollection) {
     };
 
     this.alterFormActivityBulk = async function (request,callback) {
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         
         //added new flag 
@@ -922,7 +922,7 @@ function FormConfigService(objCollection) {
         }        
         addAssetToWorkflow(request);
 
-        var activityInlineData = JSON.parse(request.activity_inline_data);
+        let activityInlineData = JSON.parse(request.activity_inline_data);
 
         let form_name_inline = request.form_name || "Form";
         //If the asset in not a participant on the workflow then add him
@@ -935,7 +935,7 @@ function FormConfigService(objCollection) {
             if (err === false) {
                 util.logInfo(request,`Data from activity_list: %j`, data);
                 
-                var retrievedInlineData = [];
+                let retrievedInlineData = [];
                 if (data.length > 0) {
                     request['activity_id'] = data[0].activity_id;
                     request.activity_type_id = data[0].activity_type_id  || 0;
@@ -945,10 +945,10 @@ function FormConfigService(objCollection) {
                 }
                 forEachAsync(retrievedInlineData, (next, row) => {
                      
-                    var newData = activityInlineData.find(o => Number(o.field_id) === Number(row.field_id));
+                    let newData = activityInlineData.find(o => Number(o.field_id) === Number(row.field_id));
                     if(newData){       
                     request.new_field_value = newData.field_value;
-                    var dataTypeId = Number(newData.field_data_type_id);
+                    let dataTypeId = Number(newData.field_data_type_id);
                     let newFieldValue = newData.field_value;
                         oldFieldValue = row.field_value;
                         row.field_value = newData.field_value;
@@ -995,9 +995,9 @@ function FormConfigService(objCollection) {
                     // console.log('inline data',retrievedInlineData);
 
                     for(let i=0;i<activityInlineData.length;i++){
-                        var newDataEach = activityInlineData[i];        
+                        let newDataEach = activityInlineData[i];        
                         request.new_field_value = newDataEach.field_value;
-                        var dataTypeId = Number(newDataEach.field_data_type_id);
+                        let dataTypeId = Number(newDataEach.field_data_type_id);
                         //let dataTypeCategoryId = Number(newData.field_data_type_category_id);
                         
                         switch(Number(newDataEach.field_data_type_id)) {
@@ -1097,7 +1097,7 @@ function FormConfigService(objCollection) {
                     request.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
                     request.activity_inline_data = JSON.stringify(retrievedInlineData);
                     //raise activity inline alter event
-                    var event = {
+                    let event = {
                        name: "alterActivityInline",
                        service: "activityUpdateService",
                        method: "alterActivityInline",
@@ -1117,7 +1117,7 @@ function FormConfigService(objCollection) {
                        newReq.activity_id = workflowActID;
                        console.log('workflowActID - ', workflowActID);
            
-                       var event = {
+                       let event = {
                            name: "alterActivityInline",
                            service: "activityUpdateService",
                            method: "alterActivityInline",
@@ -1159,7 +1159,7 @@ function FormConfigService(objCollection) {
 
     function getLatestUpdateSeqId(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.form_transaction_id,
                 request.form_id,
                 request.field_id,
@@ -1242,7 +1242,7 @@ function FormConfigService(objCollection) {
                 let fieldData = row.field_value;
                 let fieldDataValue = "";
                 dataTypeComboId = (row.hasOwnProperty('data_type_combo_id')) ? row.data_type_combo_id: 0;
-                var params = new Array(
+                let params = new Array(
                     request.form_transaction_id, //0
                     request.form_id, //1
                     row.field_id, //2
@@ -1275,7 +1275,7 @@ function FormConfigService(objCollection) {
                     '{}' //IN p_inline_data JSON                                     27
                 );
 
-                var dataTypeId = Number(row.field_data_type_id);
+                let dataTypeId = Number(row.field_data_type_id);
                 request['field_value'] = row.field_value;
                 switch (dataTypeId) {
                     case 1: // Date
@@ -1416,7 +1416,7 @@ function FormConfigService(objCollection) {
                         }
                         break;
                     case 18: //Money with currency name
-                        var money = typeof row.field_value=='string'?JSON.parse(row.field_value):row.field_value;
+                        let money = typeof row.field_value=='string'?JSON.parse(row.field_value):row.field_value;
                         params[14] = money.value;
                         params[18] = money.code;
                         params[27] = JSON.stringify(money)
@@ -1461,7 +1461,7 @@ function FormConfigService(objCollection) {
                         break;
                     case 27: //General Signature with asset reference
                     case 28: //General Picnature with asset reference
-                        var signatureData = row.field_value.split('|');
+                        let signatureData = row.field_value.split('|');
                         params[18] = signatureData[0]; //image path
                         params[13] = signatureData[1]; // asset reference
                         params[11] = signatureData[1]; // accepted /rejected flag
@@ -1469,7 +1469,7 @@ function FormConfigService(objCollection) {
                     case 29: //Coworker Signature with asset reference
                     case 30: //Coworker Picnature with asset reference
                         approvalFields.push(row.field_id);
-                        var signatureData = row.field_value.split('|');
+                        let signatureData = row.field_value.split('|');
                         params[18] = signatureData[0]; //image path
                         params[13] = signatureData[1]; // asset reference
                         params[11] = signatureData[1]; // accepted /rejected flag
@@ -1945,9 +1945,9 @@ function FormConfigService(objCollection) {
 
     this.getFormFieldComboValues = function (request) {
         return new Promise((resolve, reject) => {
-            var queryString = '';
+            let queryString = '';
 
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -2052,8 +2052,8 @@ function FormConfigService(objCollection) {
 
     this.getFormTransactionData = function (request) {
         return new Promise((resolve, reject) => {
-            var queryString = 'ds_v1_1_activity_form_transaction_select_transaction';
-            var paramsArr = new Array(
+            let queryString = 'ds_v1_1_activity_form_transaction_select_transaction';
+            let paramsArr = new Array(
                 request.organization_id,
                 request.form_transaction_id,
                 request.form_id
@@ -2074,14 +2074,14 @@ function FormConfigService(objCollection) {
 
     function processFormTransactionData(request, data) {
         return new Promise((resolve, reject) => {
-            var formData = [];
-            var counter = -1;
+            let formData = [];
+            let counter = -1;
 
             forEachAsync(data, (next, dataArray) => {
                 console.log(dataArray.length);
                 forEachAsync(dataArray, (next1, fieldData) => {
                     console.log("fieldData.field_id " + fieldData.field_id);
-                    var formattedFieldData = {};
+                    let formattedFieldData = {};
                     formattedFieldData.field_id = fieldData.field_id;
                     formattedFieldData.field_name = fieldData.field_name;
                     formattedFieldData.form_id = fieldData.form_id;
@@ -4714,9 +4714,9 @@ function FormConfigService(objCollection) {
 
     this.getDataTypeList = function (request) {
         return new Promise((resolve, reject) => {
-            var queryString = '';
+            let queryString = '';
 
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.page_start,
                 util.replaceQueryLimit(request.page_limit)
             );
@@ -7270,7 +7270,7 @@ function FormConfigService(objCollection) {
 
     this.activityFormListUpdateFieldValue = async function (request) {
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.activity_id, 
             request.form_id,
@@ -7280,7 +7280,7 @@ function FormConfigService(objCollection) {
             request.datetime_log
         );
         
-        var queryString = util.getQueryString("ds_v1_activity_form_list_update_field_value",paramsArr);    
+        let queryString = util.getQueryString("ds_v1_activity_form_list_update_field_value",paramsArr);    
         if (queryString != '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then(async (data) => {                   

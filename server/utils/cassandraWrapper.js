@@ -1,34 +1,34 @@
 /*
  * author: Sri Sai Venkatesh
  */
-var cassandra = require('cassandra-driver');
+let cassandra = require('cassandra-driver');
 
 function CassandraWrapper() {
 
     try {
-        var logAuthProviderDev = new cassandra.auth.PlainTextAuthProvider(global.config.cassandraCredentialsDev.user, global.config.cassandraCredentialsDev.pwd);
-        var logClientDev = new cassandra.Client({
+        let logAuthProviderDev = new cassandra.auth.PlainTextAuthProvider(global.config.cassandraCredentialsDev.user, global.config.cassandraCredentialsDev.pwd);
+        let logClientDev = new cassandra.Client({
             contactPoints: [global.config.cassandraCredentialsDev.ip],
             keyspace: global.config.cassandraCredentialsDev.log_keyspace,
             authProvider: logAuthProviderDev
         });
 
-        var logAuthProviderProd = new cassandra.auth.PlainTextAuthProvider(global.config.cassandraCredentialsProd.user, global.config.cassandraCredentialsProd.pwd);
-        var logClientProd = new cassandra.Client({
+        let logAuthProviderProd = new cassandra.auth.PlainTextAuthProvider(global.config.cassandraCredentialsProd.user, global.config.cassandraCredentialsProd.pwd);
+        let logClientProd = new cassandra.Client({
             contactPoints: [global.config.cassandraCredentialsProd.ip],
             keyspace: global.config.cassandraCredentialsProd.log_keyspace,
             authProvider: logAuthProviderProd
         });
 
-        var sessionAuthProviderDev = new cassandra.auth.PlainTextAuthProvider(global.config.cassandraCredentialsDev.user, global.config.cassandraCredentialsDev.pwd);
-        var sessionClientDev = new cassandra.Client({
+        let sessionAuthProviderDev = new cassandra.auth.PlainTextAuthProvider(global.config.cassandraCredentialsDev.user, global.config.cassandraCredentialsDev.pwd);
+        let sessionClientDev = new cassandra.Client({
             contactPoints: [global.config.cassandraCredentialsDev.ip],
             keyspace: global.config.cassandraCredentialsDev.session_keyspace,
             authProvider: logAuthProviderDev
         });
 
-        var sessionAuthProviderProd = new cassandra.auth.PlainTextAuthProvider(global.config.cassandraCredentialsProd.user, global.config.cassandraCredentialsProd.pwd);
-        var sessionClientProd = new cassandra.Client({
+        let sessionAuthProviderProd = new cassandra.auth.PlainTextAuthProvider(global.config.cassandraCredentialsProd.user, global.config.cassandraCredentialsProd.pwd);
+        let sessionClientProd = new cassandra.Client({
             contactPoints: [global.config.cassandraCredentialsProd.ip],
             keyspace: global.config.cassandraCredentialsProd.session_keyspace,
             authProvider: logAuthProviderProd
@@ -39,7 +39,7 @@ function CassandraWrapper() {
     }
 
     this.isConnected = function (log, callback) {
-        var connectionResource;
+        let connectionResource;
         switch (log) {
             case 'session':
                 switch (global.mode) {
@@ -82,7 +82,7 @@ function CassandraWrapper() {
     };
 
     this.executeQuery = function (messageCollection, query, params, callback) {
-        var connectionResource;
+        let connectionResource;
         switch (messageCollection.log) {
             case 'session':
                 switch (messageCollection.environment) {

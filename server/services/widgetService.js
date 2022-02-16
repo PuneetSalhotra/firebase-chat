@@ -4,15 +4,15 @@
 
 
 function WidgetService(objCollection) {
-    var db = objCollection.db;
-    var util = objCollection.util;
+    let db = objCollection.db;
+    let util = objCollection.util;
 
     const activityCommonService = objCollection.activityCommonService;
 
     //var cacheWrapper = objCollection.cacheWrapper;
     this.getTimecardWidgetCollection = function (request, callback) {
         //IN p_organization_id BIGINT(20), IN p_form_id BIGINT(20), IN p_start_from INT(11), IN p_limit_value TINYINT(4)
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -22,7 +22,7 @@ function WidgetService(objCollection) {
             5 //widget_access_level_id                
         );
 
-        var queryString = util.getQueryString('ds_v1_widget_list_select_asset_form_type', paramsArr);
+        let queryString = util.getQueryString('ds_v1_widget_list_select_asset_form_type', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -44,7 +44,7 @@ function WidgetService(objCollection) {
     };
 
     this.getAssetWidgetTimeline = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -54,7 +54,7 @@ function WidgetService(objCollection) {
             5 //widget_access_level_id                
         );
 
-        var queryString = util.getQueryString('ds_v1_widget_list_select_asset_form_type', paramsArr);
+        let queryString = util.getQueryString('ds_v1_widget_list_select_asset_form_type', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -78,8 +78,8 @@ function WidgetService(objCollection) {
     };
 
     this.getWorkforceWidgetTimeline = function (request, callback) {
-        var responseArr = new Array();
-        var paramsArr = new Array(
+        let responseArr = new Array();
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -92,7 +92,7 @@ function WidgetService(objCollection) {
             util.replaceQueryLimit(request.page_limit)
         );
 
-        var queryString = util.getQueryString('ds_v1_widget_list_select_workforce_form_type', paramsArr);
+        let queryString = util.getQueryString('ds_v1_widget_list_select_workforce_form_type', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, widgetData) {
                 if (err === false) {
@@ -100,7 +100,7 @@ function WidgetService(objCollection) {
                         widgetTransactionSelect(request, rowData, function (err, widgetArr) {
 
                             if ((!err) && widgetArr.length > 0) {
-                                var tmpCollection = {};
+                                let tmpCollection = {};
                                 tmpCollection["asset_id"] = rowData.asset_id;
                                 tmpCollection.widget_timeline = widgetArr;
                                 responseArr.push(tmpCollection);
@@ -127,10 +127,10 @@ function WidgetService(objCollection) {
         }
     };
 
-    var widgetTransactionSelect = function (request, data, callback) {
+    let widgetTransactionSelect = function (request, data, callback) {
 
-        var responseArr = new Array();
-        var paramsArr = new Array(
+        let responseArr = new Array();
+        let paramsArr = new Array(
             request.organization_id,
             request.asset_id,
             data.widget_id,
@@ -140,12 +140,12 @@ function WidgetService(objCollection) {
             request.page_start,
             util.replaceQueryLimit(request.page_limit)
         );
-        var queryString = util.getQueryString('ds_v1_widget_transaction_select_sum_date_range', paramsArr);
+        let queryString = util.getQueryString('ds_v1_widget_transaction_select_sum_date_range', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, widgetData) {
                 if (err === false && widgetData.length > 0) {
                     objCollection.forEachAsync(widgetData, function (next, rowData) {
-                        var tmpResponse = {
+                        let tmpResponse = {
                             total_hours: util.replaceDefaultNumber(rowData['total_hours']),
                             widget_axis_x_value_date: util.replaceDefaultDate(rowData['widget_axis_x_value_date']),
                         };
@@ -165,10 +165,10 @@ function WidgetService(objCollection) {
     };
 
 
-    var formatWidgetListing = function (data, callback) {
-        var responseData = new Array();
+    let formatWidgetListing = function (data, callback) {
+        let responseData = new Array();
         data.forEach(function (rowData, index) {
-            var rowDataArr = {
+            let rowDataArr = {
                 "widget_mapping_id": util.replaceDefaultNumber(rowData['widget_mapping_id']),
                 "widget_id": util.replaceDefaultNumber(rowData['widget_id']),
                 "widget_name": util.replaceDefaultString(util.ucfirst(util.decodeSpecialChars(rowData['widget_name']))),
@@ -231,7 +231,7 @@ function WidgetService(objCollection) {
 
     this.widgetAccessLevelList = function (request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -246,7 +246,7 @@ function WidgetService(objCollection) {
                 util.replaceQueryLimit(request.page_limit)
             );
 
-            var queryString = util.getQueryString('ds_v1_widget_entity_mapping_select_level', paramsArr);
+            let queryString = util.getQueryString('ds_v1_widget_entity_mapping_select_level', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log("err "+err);
@@ -262,7 +262,7 @@ function WidgetService(objCollection) {
 
     this.widgetTransactionSelectAll = function (request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.widget_id,
                 request.widget_timeline_id,
@@ -273,7 +273,7 @@ function WidgetService(objCollection) {
                 util.replaceQueryLimit(request.page_limit)
             );
 
-            var queryString = util.getQueryString('ds_v1_widget_transaction_select', paramsArr);
+            let queryString = util.getQueryString('ds_v1_widget_transaction_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log("err "+err);
@@ -289,7 +289,7 @@ function WidgetService(objCollection) {
 
     this.widgetAccessList = function (request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -302,7 +302,7 @@ function WidgetService(objCollection) {
                 util.replaceQueryLimit(request.page_limit)
             );
 
-            var queryString = util.getQueryString('ds_p1_widget_list_select_form_activity_type', paramsArr);
+            let queryString = util.getQueryString('ds_p1_widget_list_select_form_activity_type', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log("err "+err);
@@ -349,7 +349,7 @@ function WidgetService(objCollection) {
             request.log_datetime
         );
 
-        var queryString = util.getQueryString('ds_p1_widget_list_insert', paramsArr);
+        let queryString = util.getQueryString('ds_p1_widget_list_insert', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
@@ -376,7 +376,7 @@ function WidgetService(objCollection) {
             request.log_datetime
         );
 
-        var queryString = util.getQueryString('ds_p1_widget_entity_mapping_update_log_state', paramsArr);
+        let queryString = util.getQueryString('ds_p1_widget_entity_mapping_update_log_state', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
@@ -405,7 +405,7 @@ function WidgetService(objCollection) {
             request.log_datetime
         );
 
-        var queryString = util.getQueryString('ds_p1_1_widget_list_update_name', paramsArr);
+        let queryString = util.getQueryString('ds_p1_1_widget_list_update_name', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
@@ -424,12 +424,12 @@ function WidgetService(objCollection) {
             request.log_datetime
         );
 
-        var queryString1 = util.getQueryString('ds_p1_activity_list_update_widget_details', paramsArr1);
+        let queryString1 = util.getQueryString('ds_p1_activity_list_update_widget_details', paramsArr1);
         if (queryString1 !== '') {
             await db.executeQueryPromise(0, queryString1, request);        
         }    
 
-        var queryString2 = util.getQueryString('ds_p1_activity_asset_mapping_update_widget_details', paramsArr1);
+        let queryString2 = util.getQueryString('ds_p1_activity_asset_mapping_update_widget_details', paramsArr1);
         if (queryString2 !== '') {
             await db.executeQueryPromise(0, queryString2, request);
         }
@@ -456,7 +456,7 @@ function WidgetService(objCollection) {
             request.log_datetime
         );
 
-        var queryString = util.getQueryString('ds_p1_widget_entity_mapping_insert', paramsArr);
+        let queryString = util.getQueryString('ds_p1_widget_entity_mapping_insert', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
@@ -475,7 +475,7 @@ function WidgetService(objCollection) {
         let responseData = [],
             error = true;
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -491,7 +491,7 @@ function WidgetService(objCollection) {
             util.replaceQueryLimit(request.page_limit)
         );
 
-        var queryString = util.getQueryString('ds_v1_widget_entity_mapping_select_level_all', paramsArr);
+        let queryString = util.getQueryString('ds_v1_widget_entity_mapping_select_level_all', paramsArr);
         if (queryString != '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -519,7 +519,7 @@ function WidgetService(objCollection) {
             request.log_datetime
         );
 
-        var queryString = util.getQueryString('ds_p1_widget_list_delete', paramsArr);
+        let queryString = util.getQueryString('ds_p1_widget_list_delete', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
@@ -552,7 +552,7 @@ function WidgetService(objCollection) {
             util.replaceQueryLimit(Number(request.page_limit))
         );
 
-        var queryString = util.getQueryString('ds_p1_widget_entity_mapping_select_asset_activity_types', paramsArr);
+        let queryString = util.getQueryString('ds_p1_widget_entity_mapping_select_asset_activity_types', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -602,7 +602,7 @@ function WidgetService(objCollection) {
             util.replaceQueryLimit(Number(request.page_limit))
         );
 
-        var queryString = util.getQueryString('ds_p1_1_widget_entity_mapping_select_asset_activity_type_widgets', paramsArr);
+        let queryString = util.getQueryString('ds_p1_1_widget_entity_mapping_select_asset_activity_type_widgets', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -706,7 +706,7 @@ function WidgetService(objCollection) {
                 );
 
             // results = db.callDBProcedure(request, 'ds_p1_activity_list_select_count_workflow_status_date', paramsArray, 1);
-            var queryString = util.getQueryString('ds_p1_3_activity_list_select_count_workflow_status_date', paramsArray);
+            let queryString = util.getQueryString('ds_p1_3_activity_list_select_count_workflow_status_date', paramsArray);
             if (queryString !== '') {
                 await db.executeQueryPromise(1, queryString, request)
                     .then((data) => {   
@@ -721,7 +721,7 @@ function WidgetService(objCollection) {
             }
             
             paramsArray[4]=1;
-            var queryString1 = util.getQueryString('ds_p1_3_activity_list_select_count_workflow_status_date', paramsArray);
+            let queryString1 = util.getQueryString('ds_p1_3_activity_list_select_count_workflow_status_date', paramsArray);
             if (queryString !== '') {
                 await db.executeQueryPromise(1, queryString1, request)
                     .then((monthlyData) => {
@@ -762,7 +762,7 @@ function WidgetService(objCollection) {
                     request.workforce_type_id || 0
                 );
 
-            var queryString = util.getQueryString('ds_p1_3_widget_activity_field_transaction_select_sum_status_date', paramsArray);
+            let queryString = util.getQueryString('ds_p1_3_widget_activity_field_transaction_select_sum_status_date', paramsArray);
             if (queryString !== '') {
                 await db.executeQueryPromise(1, queryString, request)
                     .then((data) => {                       
@@ -779,7 +779,7 @@ function WidgetService(objCollection) {
             if(request.flag == 6 || request.flag == 7){
                 paramsArray[4]=10;
             }
-            var queryString1 = util.getQueryString('ds_p1_3_widget_activity_field_transaction_select_sum_status_date', paramsArray);
+            let queryString1 = util.getQueryString('ds_p1_3_widget_activity_field_transaction_select_sum_status_date', paramsArray);
             if (queryString !== '') {
                 await db.executeQueryPromise(1, queryString1, request)
                     .then((monthlyData) => {
@@ -931,7 +931,7 @@ function WidgetService(objCollection) {
                     request.page_limit
                 );
 
-            var queryString = util.getQueryString('ds_p1_3_widget_activity_field_transaction_select_drilldown', paramsArray);
+            let queryString = util.getQueryString('ds_p1_3_widget_activity_field_transaction_select_drilldown', paramsArray);
             if (queryString !== '') {
                 await db.executeQueryPromise(1, queryString, request)
                     .then((data) => {                       

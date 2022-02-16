@@ -16,10 +16,10 @@ const uuidv4 = require('uuid/v4');
 
 function ActivityListingService(objCollection) {
 
-	var db = objCollection.db;
-	var util = objCollection.util;
-	var activityCommonService = objCollection.activityCommonService;
-	var forEachAsync = objCollection.forEachAsync;
+	let db = objCollection.db;
+	let util = objCollection.util;
+	let activityCommonService = objCollection.activityCommonService;
+	let forEachAsync = objCollection.forEachAsync;
 	const moment = require("moment");
 	const XLSX = require("xlsx");
 	const nodeUtil = require('util');
@@ -29,8 +29,8 @@ function ActivityListingService(objCollection) {
 	const ActivityTimelineService = require('../services/activityTimelineService');
     const activityTimelineService = new ActivityTimelineService(objCollection);
 	this.getActivityListDifferential = function (request, callback) {
-		var paramsArr = new Array();
-		var queryString = '';
+		let paramsArr = new Array();
+		let queryString = '';
 		if (request.hasOwnProperty('activity_type_category_id') && Number(request.device_os_id) === 5) {
 			switch (Number(request.activity_type_category_id)) {
 				case 15: //Video Conference BETA
@@ -94,8 +94,8 @@ function ActivityListingService(objCollection) {
 	};
 
 	this.getActivityListDifferentialV2 = function (request, callback) {
-		var paramsArr = new Array();
-		var queryString = '';
+		let paramsArr = new Array();
+		let queryString = '';
 		if (request.hasOwnProperty('activity_type_category_id') && Number(request.device_os_id) === 5) {
 			switch (Number(request.activity_type_category_id)) {
 				case 15: //Video Conference BETA
@@ -160,8 +160,8 @@ function ActivityListingService(objCollection) {
 
 	//PAM
 	this.getActivityAssetAccountLevelDifferential = function (request, callback) {
-		var paramsArr = new Array();
-		var queryString = '';
+		let paramsArr = new Array();
+		let queryString = '';
 		paramsArr = new Array(
 			request.organization_id,
 			request.account_id,
@@ -195,9 +195,9 @@ function ActivityListingService(objCollection) {
 
 	//BETA
 	this.getAllFolders = function (request, callback) {
-		var paramsArr = new Array();
-		var queryString = '';
-		var activityTypeCategoryId = Number(request.activity_type_category_id) || 0;
+		let paramsArr = new Array();
+		let queryString = '';
+		let activityTypeCategoryId = Number(request.activity_type_category_id) || 0;
 		if (activityTypeCategoryId === 28) {
 			paramsArr = new Array(
 				request.asset_id,
@@ -255,8 +255,8 @@ function ActivityListingService(objCollection) {
 
 	//BETA
 	this.getAllProjects = function (request, callback) {
-		var paramsArr = new Array();
-		var queryString = '';
+		let paramsArr = new Array();
+		let queryString = '';
 		paramsArr = new Array(
 			request.asset_id,
 			request.parent_activity_id,
@@ -290,10 +290,10 @@ function ActivityListingService(objCollection) {
 	};
 
 	//PAM
-	var formatActivityAccountListing = function (data, callback) {
-		var responseData = new Array();
+	let formatActivityAccountListing = function (data, callback) {
+		let responseData = new Array();
 		data.forEach(function (rowData, index) {
-			var rowDataArr = {
+			let rowDataArr = {
 				"activity_id": util.replaceDefaultNumber(rowData['activity_id']),
 				"activity_title": util.replaceDefaultString(util.ucfirst(util.decodeSpecialChars(rowData['activity_title']))),
 				"activity_description": util.replaceDefaultString(util.decodeSpecialChars(rowData['activity_description'])),
@@ -425,7 +425,7 @@ function ActivityListingService(objCollection) {
 	};
 
 	this.getActivityInlineCollection = function (request, callback) {
-		var logDatetime = util.getCurrentUTCTime();
+		let logDatetime = util.getCurrentUTCTime();
 		request['datetime_log'] = logDatetime;
 		activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
 		activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
@@ -450,20 +450,20 @@ function ActivityListingService(objCollection) {
 	};
 
 	this.getActivityCoverCollection = function (request, callback) {
-		var logDatetime = util.getCurrentUTCTime();
+		let logDatetime = util.getCurrentUTCTime();
 		request['datetime_log'] = logDatetime;
 		activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.activity_id,
 			request.asset_id,
 			request.organization_id
 		);
-		var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset', paramsArr);
+		let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
 					if (data.length > 0) {
-						var coverCollection = {};
+						let coverCollection = {};
 						coverCollection.activity_title = util.replaceDefaultString(util.ucfirst(util.decodeSpecialChars(data[0]['activity_title'])));
 						coverCollection.activity_datetime_start = util.replaceDefaultString(util.ucfirst(util.decodeSpecialChars(data[0]['activity_datetime_start_expected'])));
 						coverCollection.activity_duedate = util.replaceDefaultString(data[0]['activity_datetime_end_expected']);
@@ -492,8 +492,8 @@ function ActivityListingService(objCollection) {
 	};
 
 	this.getActivityCoverCollectionV1 = function (request, callback) {
-		var logDatetime = util.getCurrentUTCTime();
-		var monthly_summary = {};
+		let logDatetime = util.getCurrentUTCTime();
+		let monthly_summary = {};
 		//monthly_summary.owned_tasks_response = -1;
 		//monthly_summary.inmail_response_rate = -1;
 		monthly_summary.completion_rate = -1;
@@ -501,12 +501,12 @@ function ActivityListingService(objCollection) {
 		monthly_summary.average_value = -1;
 		request['datetime_log'] = logDatetime;
 		activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.activity_id,
 			request.operating_asset_id,
 			request.organization_id
 		);
-		var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset', paramsArr);
+		let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
@@ -542,7 +542,7 @@ function ActivityListingService(objCollection) {
 													break;
 											}
 										}, this);
-										var denominator = 0;
+										let denominator = 0;
 
 										//(monthly_summary.owned_tasks_response > 0)? denominator++: monthly_summary.owned_tasks_response = 0;
 										//(monthly_summary.inmail_response_rate > 0)? denominator++: monthly_summary.inmail_response_rate = 0;
@@ -596,7 +596,7 @@ function ActivityListingService(objCollection) {
 
 	this.getCoworkers = function (request, callback) {
 
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.asset_id,
 			request.organization_id,
 			request.account_id,
@@ -605,7 +605,7 @@ function ActivityListingService(objCollection) {
 			request.page_start,
 			request.page_limit
 		);
-		var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_category_coworker', paramsArr);
+		let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_category_coworker', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
@@ -629,7 +629,7 @@ function ActivityListingService(objCollection) {
 	//this function will search both contacts and coworkers
 	this.searchSharedContacts = function (request, callback) {
 
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.asset_id,
 			request.organization_id,
 			request.account_id,
@@ -639,7 +639,7 @@ function ActivityListingService(objCollection) {
 			util.replaceQueryLimit(request.page_limit)
 		);
 
-		var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_search_category_coworker', paramsArr);
+		let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_search_category_coworker', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, coworkerData) {
 				if (err === false) {
@@ -678,7 +678,7 @@ function ActivityListingService(objCollection) {
 
 	this.listContacts = function (request, callback) {
 
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.asset_id,
 			request.workforce_id,
 			request.account_id,
@@ -690,7 +690,7 @@ function ActivityListingService(objCollection) {
 		);
 		// IN p_is_search TINYINT(4), IN p_search_string VARCHAR(100), IN p_start_from BIGINT(20), IN p_limit_value TINYINT(4)
 
-		var queryString = util.getQueryString('ds_p1_activity_asset_mapping_search_contact_inline', paramsArr);
+		let queryString = util.getQueryString('ds_p1_activity_asset_mapping_search_contact_inline', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, coworkerData) {
 				console.log(coworkerData);
@@ -722,7 +722,7 @@ function ActivityListingService(objCollection) {
 
 	this.searchActivityByType = function (request, callback) {
 
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.asset_id,
 			request.organization_id,
 			request.account_id,
@@ -733,7 +733,7 @@ function ActivityListingService(objCollection) {
 			util.replaceQueryLimit(request.page_limit)
 		);
 
-		var paramsArrForCalendar = new Array(
+		let paramsArrForCalendar = new Array(
 			request.asset_id,
 			request.organization_id,
 			request.account_id,
@@ -743,13 +743,13 @@ function ActivityListingService(objCollection) {
 			util.replaceQueryLimit(request.page_limit)
 		);
 
-		var queryString = '';
+		let queryString = '';
 		switch (Number(request.activity_type_category_id)) {
 			case 8: // mail
 				queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_search_category_inline', paramsArr);
 				break;
 			case 10: //File BETA
-				var paramsArrForFile = new Array(
+				let paramsArrForFile = new Array(
 					request.asset_id,
 					request.organization_id,
 					request.account_id,
@@ -763,7 +763,7 @@ function ActivityListingService(objCollection) {
 				queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_search_category_sub_type', paramsArrForFile);
 				break;
 			case 15: //Video Conference BETA
-				var paramsArrForVideoConf = new Array(
+				let paramsArrForVideoConf = new Array(
 					request.asset_id,
 					request.organization_id,
 					request.account_id,
@@ -805,9 +805,9 @@ function ActivityListingService(objCollection) {
 
 	};
 
-	var searchContacts = function (request, callback) {
+	let searchContacts = function (request, callback) {
 
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.asset_id,
 			request.organization_id,
 			request.account_id,
@@ -817,7 +817,7 @@ function ActivityListingService(objCollection) {
 			util.replaceQueryLimit(request.page_limit)
 		);
 
-		var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_search_category_contact', paramsArr);
+		let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_search_category_contact', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, contactsData) {
 				if (err === false) {
@@ -838,7 +838,7 @@ function ActivityListingService(objCollection) {
 
 	this.searchMail = function (request, callback) {
 
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.asset_id,
 			request.organization_id,
 			request.account_id,
@@ -848,7 +848,7 @@ function ActivityListingService(objCollection) {
 			request.page_start,
 			util.replaceQueryLimit(request.page_limit)
 		);
-		var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_search_category_inline', paramsArr);
+		let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_search_category_inline', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
@@ -872,16 +872,16 @@ function ActivityListingService(objCollection) {
 	};
 
 	this.getDuevsTotal = function (request, callback) {
-		var logDatetime = util.getCurrentUTCTime();
+		let logDatetime = util.getCurrentUTCTime();
 		request['datetime_log'] = logDatetime;
 
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.organization_id,
 			request.activity_id,
 			request.datetime_log // previously 0
 		);
 		//var queryString = util.getQueryString('ds_v1_activity_list_select_project_status_counts', paramsArr);
-		var queryString = util.getQueryString('ds_p1_activity_list_select_project_status_counts', paramsArr);
+		let queryString = util.getQueryString('ds_p1_activity_list_select_project_status_counts', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
@@ -902,13 +902,13 @@ function ActivityListingService(objCollection) {
 
 	this.getActivityListDateRange = function (request, callback) {
 
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.organization_id,
 			request.asset_id,
 			request.datetime_start, //00:00:00
 			request.datetime_end // 23:59:59
 		);
-		var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset_open_payroll_activity', paramsArr);
+		let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_asset_open_payroll_activity', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
@@ -932,14 +932,14 @@ function ActivityListingService(objCollection) {
 
 	this.getAllContactTypes = function (request, callback) {
 
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.workforce_id,
 			request.account_id,
 			request.organization_id,
 			request.page_start,
 			request.page_limit
 		);
-		var queryString = util.getQueryString('ds_p1_activity_list_select_contacts', paramsArr);
+		let queryString = util.getQueryString('ds_p1_activity_list_select_contacts', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
@@ -963,7 +963,7 @@ function ActivityListingService(objCollection) {
 
 	this.searchAllContactTypes = function (request, callback) {
 
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.workforce_id,
 			request.account_id,
 			request.organization_id,
@@ -971,7 +971,7 @@ function ActivityListingService(objCollection) {
 			request.page_start,
 			request.page_limit
 		);
-		var queryString = util.getQueryString('ds_p1_activity_list_select_contact_search', paramsArr);
+		let queryString = util.getQueryString('ds_p1_activity_list_select_contact_search', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
@@ -996,7 +996,7 @@ function ActivityListingService(objCollection) {
 	//BETA
 	this.getVideoConfSchedule = function (request, callback) {
 
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.asset_id,
 			request.organization_id,
 			request.account_id,
@@ -1011,7 +1011,7 @@ function ActivityListingService(objCollection) {
 			request.page_start,
 			util.replaceQueryLimit(request.page_limit)
 		);
-		var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_category_datetime', paramsArr);
+		let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_category_datetime', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
@@ -1036,7 +1036,7 @@ function ActivityListingService(objCollection) {
 	//BETA
 	this.getOptimumMeetingRoom = function (request, callback) {
 
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.organization_id,
 			request.account_id,
 			request.workforce_id,
@@ -1045,7 +1045,7 @@ function ActivityListingService(objCollection) {
 			request.start_datetime,
 			request.end_datetime
 		);
-		var queryString = util.getQueryString('ds_v1_asset_list_select_meeting_room', paramsArr);
+		let queryString = util.getQueryString('ds_v1_asset_list_select_meeting_room', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
@@ -1068,9 +1068,9 @@ function ActivityListingService(objCollection) {
 	};
 
 	this.getAllPendingCounts = function (request, callback) {
-		var taskCnt;
-		var endDate = util.getCurrentDate() + " 23:59:59";
-		var paramsArr = new Array(
+		let taskCnt;
+		let endDate = util.getCurrentDate() + " 23:59:59";
+		let paramsArr = new Array(
 			request.organization_id,
 			request.account_id,
 			request.workforce_id,
@@ -1080,7 +1080,7 @@ function ActivityListingService(objCollection) {
 			request.activity_sub_type_id,
 			endDate //util.getCurrentUTCTime()
 		);
-		var queryString = util.getQueryString('ds_p1_activity_asset_maaping_select_task_pending_count', paramsArr);
+		let queryString = util.getQueryString('ds_p1_activity_asset_maaping_select_task_pending_count', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
@@ -1111,14 +1111,14 @@ function ActivityListingService(objCollection) {
 	}
 
 	this.getAllPendingCountsV1 = function (request, callback) {
-		var taskCnt;
-		var responseArray = new Array();
-		var projectCnt = 0;
+		let taskCnt;
+		let responseArray = new Array();
+		let projectCnt = 0;
 
-		var startDatetime = util.getCurrentDate() + " 00:00:00";
-		var endDatetime = util.getCurrentDate() + " 23:59:59";
-		var currentDatetime = util.getCurrentUTCTime();
-		var paramsArr = new Array(
+		let startDatetime = util.getCurrentDate() + " 00:00:00";
+		let endDatetime = util.getCurrentDate() + " 23:59:59";
+		let currentDatetime = util.getCurrentUTCTime();
+		let paramsArr = new Array(
 			request.organization_id,
 			request.account_id,
 			request.workforce_id,
@@ -1134,7 +1134,7 @@ function ActivityListingService(objCollection) {
 			request.coworker_asset_id || 0,
 			request.parent_activity_id || 0
 		);
-		var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_task_list_filters_count', paramsArr);
+		let queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_task_list_filters_count', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
@@ -1201,7 +1201,7 @@ function ActivityListingService(objCollection) {
 	}
 
 	this.getTasks = function (request, callback) {
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.organization_id,
 			request.account_id,
 			request.workforce_id,
@@ -1212,7 +1212,7 @@ function ActivityListingService(objCollection) {
 			request.page_start || 0,
 			util.replaceQueryLimit(request.page_limit)
 		);
-		var queryString = util.getQueryString('ds_p1_activity_asset_maaping_select_task_pending', paramsArr);
+		let queryString = util.getQueryString('ds_p1_activity_asset_maaping_select_task_pending', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
@@ -1232,8 +1232,8 @@ function ActivityListingService(objCollection) {
 	};
 
 	this.getTasksV1 = function (request, callback) {
-		var currentDatetime = util.getCurrentUTCTime();
-		var paramsArr = new Array(
+		let currentDatetime = util.getCurrentUTCTime();
+		let paramsArr = new Array(
 			request.organization_id,
 			request.account_id,
 			request.workforce_id,
@@ -1251,7 +1251,7 @@ function ActivityListingService(objCollection) {
 			request.coworker_asset_id || 0,
 			request.parent_activity_id || 0
 		);
-		var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_task_list_filters', paramsArr);
+		let queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_task_list_filters', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
@@ -1271,7 +1271,7 @@ function ActivityListingService(objCollection) {
 	};
 
 	this.pendingInmailCount = function (request, callback) {
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.organization_id,
 			request.account_id,
 			request.workforce_id,
@@ -1283,7 +1283,7 @@ function ActivityListingService(objCollection) {
 			request.end_datetime,
 			util.getCurrentUTCTime()
 		);
-		var queryString = util.getQueryString('ds_p1_1_activity_asset_maaping_select_task_pending_count', paramsArr);
+		let queryString = util.getQueryString('ds_p1_1_activity_asset_maaping_select_task_pending_count', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
@@ -1299,10 +1299,10 @@ function ActivityListingService(objCollection) {
 		}
 	};
 
-	var getTaskListFilterCounts = function (request, filter, callback) {
+	let getTaskListFilterCounts = function (request, filter, callback) {
 		// if case 14 current date time = current date time - 24 hrs
 		// if case 15 start datetime = current datetime, end date time = current datetime + 24 hrs
-		var startDatetime, endDatetime, currentDatetime;
+		let startDatetime, endDatetime, currentDatetime;
 		switch (filter) {
 			case 14:
 				startDatetime = util.getCurrentDate() + " 00:00:00";
@@ -1320,7 +1320,7 @@ function ActivityListingService(objCollection) {
 				currentDatetime = util.getCurrentUTCTime();
 				break;
 		}
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.organization_id,
 			request.account_id,
 			request.workforce_id,
@@ -1337,7 +1337,7 @@ function ActivityListingService(objCollection) {
 			request.parent_activity_id || 0
 		);
 
-		var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_task_list_filters_count', paramsArr);
+		let queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_task_list_filters_count', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
@@ -1364,8 +1364,8 @@ function ActivityListingService(objCollection) {
 
 	this.getTaskListCounts = function (request, callback) {
 
-		var flags = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 17];
-		var response = {};
+		let flags = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 17];
+		let response = {};
 		forEachAsync(flags, function (next, flagValue) {
 
 			getTaskListFilterCounts(request, flagValue, function (err, data) {
@@ -1488,12 +1488,12 @@ function ActivityListingService(objCollection) {
 
 	function getProjectBadgeCounts(request) {
 		return new Promise((resolve, reject) => {
-			var paramsArr = new Array(
+			let paramsArr = new Array(
 				request.organization_id,
 				request.asset_id,
 				util.getCurrentUTCTime()
 			);
-			var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_project_pending_count', paramsArr);
+			let queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_project_pending_count', paramsArr);
 			if (queryString != '') {
 				db.executeQuery(1, queryString, request, function (err, resp) {
 					if (err === false) {
@@ -1511,11 +1511,11 @@ function ActivityListingService(objCollection) {
 
 	}
 
-	var formatActivityInlineCollection = function (data, collection, callback) {
+	let formatActivityInlineCollection = function (data, collection, callback) {
 
-		var responseData = new Array();
+		let responseData = new Array();
 		data.forEach(function (rowData, index) {
-			var rowDataArr = {
+			let rowDataArr = {
 				"activity_id": util.replaceDefaultNumber(rowData['activity_id']),
 				"activity_title": util.replaceDefaultString(util.ucfirst(util.decodeSpecialChars(rowData['activity_title']))),
 				//"activity_inline_data": JSON.parse(rowData['activity_inline_data']),
@@ -1538,13 +1538,13 @@ function ActivityListingService(objCollection) {
 		callback(false, responseData);
 	};
 
-	var formatActivityListing = function (data, callback) {
-		var responseData = new Array();
+	let formatActivityListing = function (data, callback) {
+		let responseData = new Array();
 		data.forEach(function (rowData, index) {
-			var activityCreatorAssetId;
-			var activityCreatorAssetFirstName;
-			var activityCreatorAssetLastName;
-			var activityCreatorAssetImagePath;
+			let activityCreatorAssetId;
+			let activityCreatorAssetFirstName;
+			let activityCreatorAssetLastName;
+			let activityCreatorAssetImagePath;
 
 			(util.replaceDefaultNumber(rowData['activity_creator_asset_id']) == 0) ?
 				activityCreatorAssetId = util.replaceDefaultNumber(rowData['activity_lead_asset_id']) :
@@ -1562,7 +1562,7 @@ function ActivityListingService(objCollection) {
 				activityCreatorAssetImagePath = util.replaceDefaultString(rowData['activity_lead_asset_image_path']) :
 				activityCreatorAssetImagePath = util.replaceDefaultString(rowData['activity_creator_asset_image_path']);
 
-			var rowDataArr = {
+			let rowDataArr = {
 				"organization_id": util.replaceDefaultNumber(rowData['organization_id']),
 				"activity_id": util.replaceDefaultNumber(rowData['activity_id']),
 				"activity_title": util.replaceDefaultString(util.ucfirst(util.decodeSpecialChars(rowData['activity_title']))),
@@ -1698,7 +1698,7 @@ function ActivityListingService(objCollection) {
 	};
 
 	this.getAssetTasksInProjCount = function (request, callback) {
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.organization_id,
 			request.account_id,
 			request.workforce_id,
@@ -1707,7 +1707,7 @@ function ActivityListingService(objCollection) {
 			request.activity_type_category_id,
 			request.activity_sub_type_id
 		);
-		var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_project_sub_task_ount', paramsArr);
+		let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_project_sub_task_ount', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
@@ -1720,11 +1720,11 @@ function ActivityListingService(objCollection) {
 	}
 
 	this.getLatestPayrollActivity = function (request, callback) {
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.organization_id,
 			request.asset_id
 		);
-		var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_latest_payroll_activity', paramsArr);
+		let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_latest_payroll_activity', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
@@ -1747,7 +1747,7 @@ function ActivityListingService(objCollection) {
 	};
 
 	this.searchActivityByCategory = function (request, callback) {
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.organization_id,
 			request.account_id,
 			request.workforce_id,
@@ -1762,7 +1762,7 @@ function ActivityListingService(objCollection) {
 			request.page_start,
 			util.replaceQueryLimit(request.page_limit)
 		);
-		var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_project_task_filter', paramsArr);
+		let queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_project_task_filter', paramsArr);
 		if (queryString != '') {
 			db.executeQuery(1, queryString, request, function (err, data) {
 				if (err === false) {
@@ -1785,7 +1785,7 @@ function ActivityListingService(objCollection) {
 	};
 
 	this.getOrganizationsOfANumber = async function (requestHeaders, request, callback) {
-		var queryString = '';
+		let queryString = '';
 		let phoneNumber;
 		let countryCode;
 		let email;
@@ -2084,7 +2084,7 @@ function ActivityListingService(objCollection) {
 
 	function processFormInlineData(request, data) {
 		return new Promise(async (resolve, reject) => {
-			var array = [];
+			let array = [];
 			let inlineData = JSON.parse(data[0].activity_inline_data);
 			//console.log('inline DATA : ', inlineData);
 
@@ -2138,7 +2138,7 @@ function ActivityListingService(objCollection) {
 
 	this.getFormList = function (request) {
 		return new Promise((resolve, reject) => {
-			var paramsArr = new Array(
+			let paramsArr = new Array(
 				request.organization_id,
 				request.account_id,
 				request.workforce_id,
@@ -2147,7 +2147,7 @@ function ActivityListingService(objCollection) {
 				50
 			);
 
-			var queryString = util.getQueryString('ds_v1_workforce_form_mapping_select_organization', paramsArr);
+			let queryString = util.getQueryString('ds_v1_workforce_form_mapping_select_organization', paramsArr);
 			if (queryString != '') {
 				db.executeQuery(1, queryString, request, function (err, data) {
 					//console.log("err "+err);
@@ -2172,7 +2172,7 @@ function ActivityListingService(objCollection) {
 
 	function processFormListData(request, data) {
 		return new Promise((resolve, reject) => {
-			var obj = {};
+			let obj = {};
 			forEachAsync(data, function (next, fieldData) {
 				//console.log('fieldData : '+JSON.stringify(fieldData));
 				obj[fieldData.form_name] = fieldData.form_id;
@@ -2188,7 +2188,7 @@ function ActivityListingService(objCollection) {
 	this.getMyQueueActivities = function (request) {
 		return new Promise((resolve, reject) => {
 
-			var paramsArr = new Array(
+			let paramsArr = new Array(
 				request.organization_id,
 				request.account_id,
 				request.workforce_id,
@@ -2196,7 +2196,7 @@ function ActivityListingService(objCollection) {
 				request.page_start,
 				request.page_limit
 			);
-			var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_activities', paramsArr);
+			let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_activities', paramsArr);
 			if (queryString != '') {
 				db.executeQuery(1, queryString, request, function (err, data) {
 					//console.log('queryString : '+queryString+ "err "+err+ ": data.length "+data.length);
@@ -2435,7 +2435,7 @@ function ActivityListingService(objCollection) {
 			// IN p_flag TINYINT(4), IN p_sort_flag TINYINT(4), 
 			// IN p_start_from INT(11), IN p_limit_value TINYINT(4), 
 			// IN p_datetime DATETIME.
-			var paramsArr = new Array(
+			let paramsArr = new Array(
 				request.organization_id,
 				request.account_id,
 				request.workforce_id,
@@ -2447,7 +2447,7 @@ function ActivityListingService(objCollection) {
 				request.datetime_differential
 			);
 			// ds_v1_activity_asset_mapping_select_myqueue_diff
-			var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_diff', paramsArr);
+			let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_myqueue_diff', paramsArr);
 			if (queryString != '') {
 				db.executeQuery(1, queryString, request, function (err, data) {
 					//console.log('queryString : '+queryString+ "err "+err+ ": data.length "+data.length);
@@ -2466,7 +2466,7 @@ function ActivityListingService(objCollection) {
 
 	function processMyQueueData(request, data) {
 		return new Promise((resolve, reject) => {
-			var array = [];
+			let array = [];
 			forEachAsync(data, function (next, newOrderData) {
 				getQueueActivity(request, newOrderData.activity_id).then((queueData) => {
 					if (queueData.length > 0) {
@@ -2490,13 +2490,13 @@ function ActivityListingService(objCollection) {
 	function getQueueActivity(request, idActivity) {
 		return new Promise((resolve, reject) => {
 
-			var paramsArr = new Array(
+			let paramsArr = new Array(
 				request.organization_id,
 				request.account_id,
 				request.workforce_id,
 				idActivity
 			);
-			var queryString = util.getQueryString('ds_v1_queue_activity_mapping_select_activity', paramsArr);
+			let queryString = util.getQueryString('ds_v1_queue_activity_mapping_select_activity', paramsArr);
 			if (queryString != '') {
 				db.executeQuery(1, queryString, request, function (err, data) {
 					//console.log('queryString : '+queryString+ "err "+err+ ": data.length "+data.length);
@@ -2535,7 +2535,7 @@ function ActivityListingService(objCollection) {
 			// IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), 
 			// IN p_workforce_id BIGINT(20), IN p_activity_type_id BIGINT(20), 
 			// IN p_flag SMALLINT(6), IN p_start_from BIGINT(20), IN p_limit_value SMALLINT(6)
-			var paramsArr = new Array(
+			let paramsArr = new Array(
 				request.organization_id,
 				request.account_id,
 				request.workforce_id,
@@ -2545,7 +2545,7 @@ function ActivityListingService(objCollection) {
 				request.page_limit || 50 // util.replaceQueryLimit(request.page_limit),
 			);
 
-			var queryString = util.getQueryString('ds_p1_1_queue_list_select', paramsArr);
+			let queryString = util.getQueryString('ds_p1_1_queue_list_select', paramsArr);
 			if (queryString != '') {
 				db.executeQuery(1, queryString, request, function (err, data) {
 					//console.log("err "+err);
@@ -2807,10 +2807,10 @@ function ActivityListingService(objCollection) {
 		});
 	};
 
-	var formatParticipantList = function (data, callback) {
-		var responseData = new Array();
+	let formatParticipantList = function (data, callback) {
+		let responseData = new Array();
 		data.forEach(function (rowData, index) {
-			var rowDataArr = {
+			let rowDataArr = {
 				'activity_id': util.replaceDefaultNumber(rowData['activity_id']),
 				'asset_id': util.replaceDefaultNumber(rowData['asset_id']),
 				'account_id': util.replaceDefaultNumber(rowData['account_id']),
@@ -2991,7 +2991,7 @@ function ActivityListingService(objCollection) {
 
 
 	async function processFormInlineDataV1(request, data) {
-		var array = [];
+		let array = [];
 		let inlineData = JSON.parse(data[0].activity_inline_data);
 		//console.log('inline DATA : ', inlineData);
 
@@ -3117,7 +3117,7 @@ function ActivityListingService(objCollection) {
 	};
 
 	this.formatSubStatusData = async function (data, configData) {
-		var responseData = new Array();
+		let responseData = new Array();
 		let dataJson = {};
 		console.log("data1 :" + JSON.stringify(data));
 
@@ -3131,7 +3131,7 @@ function ActivityListingService(objCollection) {
 			console.log('dataJson.statusId.triggered_datetime :: ' + util.replaceDefaultDatetime(dataJson[statusId] ? dataJson[statusId].triggered_datetime : '1970-01-01 00:00:00'));
 			let triggerDatetime = util.replaceDefaultDatetime(dataJson[statusId] ? dataJson[statusId].triggered_datetime : '1970-01-01 00:00:00');
 			let achievedDatetime = util.replaceDefaultDatetime(dataJson[statusId] ? dataJson[statusId].achieved_datetime : '1970-01-01 00:00:00');
-			var rowDataArr = {
+			let rowDataArr = {
 				"activity_status_id": util.replaceDefaultNumber(rowData['activity_status_id']),
 				"activity_status_name": util.replaceDefaultString(rowData['activity_status_name']),
 				"parent_status_id": util.replaceDefaultNumber(rowData['parent_status_id']),
@@ -3856,7 +3856,7 @@ function ActivityListingService(objCollection) {
 		const wb = XLSX.utils.book_new();
 		XLSX.utils.book_append_sheet(wb, ws, "sheet_1");
 
-		var fileBuffer = XLSX.write(wb, { type: 'buffer', bookType: "xlsx" });
+		let fileBuffer = XLSX.write(wb, { type: 'buffer', bookType: "xlsx" });
 		const timestampIST = moment().utcOffset("+05:30").format("DD_MM_YYYY-hh_mm_A");
 		let fileName = "bulk_summary_sheet_"+opportunityId+"_"+timestampIST+".xlsx";
 		let s3Url = await util.uploadXLSXToS3(fileBuffer,fileName);
