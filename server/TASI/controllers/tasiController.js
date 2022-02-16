@@ -649,6 +649,16 @@ function TasiController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/tasi/entity/target/mapping/history/select/v1', async function (req, res) {
+        const [err, resData] = await tasiService.entitytargetMappingHistorySelectV1(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/entity/target/mapping/history/select/v1 | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/tasi/input/list/history/list', async function (req, res) {
         const [err, resData] = await tasiService.inputListHistorySelect(req.body);
         if (!err) {
