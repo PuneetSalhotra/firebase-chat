@@ -279,6 +279,21 @@ function ActivityTimelineService(objectCollection) {
             request.activity_stream_type_id = 728;
         }
 
+        if(activityStreamTypeId == 728) {
+           
+            let [err, botResponse] = await activityCommonService.getMappedBotSteps({
+                organization_id: request.organization_id,
+                bot_id: 0,
+                form_id: request.form_id,
+                field_id: 0,
+                start_from: 0,
+                limit_value: 1
+            }, 0);
+            if(botResponse.length > 0) {
+                await fireBotEngineInitWorkflow(request);
+            }
+        }
+
         util.logInfo(request,` 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - ENTRY 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒`);
 
         if((activityTypeCategoryId === 48 && activityStreamTypeId === 705) || 
