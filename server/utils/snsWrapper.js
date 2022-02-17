@@ -3,15 +3,15 @@
  */
 const logger = require("../logger/winstonLogger");
 
-var aws = require('aws-sdk');
-var AwsSns = function () {
+let aws = require('aws-sdk');
+let AwsSns = function () {
     // Load your AWS credentials and try to instantiate the object.
     //aws.config.loadFromPath('/var/www/html/desker/NODEJS/desker_api_0.1/server/utils/config.json');
     aws.config.loadFromPath(`${__dirname}/config.json`);
-    var sns = new aws.SNS();
+    let sns = new aws.SNS();
 
     this.publish = function (message, badgeCount, targetArn, isSilentPush = 0, assetMap = {}) {
-        var GCMjson = {
+        let GCMjson = {
             data: {
                 title: "",
                 message: "",
@@ -39,7 +39,7 @@ var AwsSns = function () {
         GCMjson.data.subtitle = `'${message.subtitle}'`;
         GCMjson.data.body = `'${message.body}'`;
 
-        var aps = {
+        let aps = {
             'badge': badgeCount,
             'sound': 'default',
             'alert': {
@@ -103,7 +103,7 @@ var AwsSns = function () {
             TargetArn: targetArn
         };*/
 
-        var params = {
+        let params = {
             MessageStructure: 'json',
             Message: JSON.stringify({
                 'default': message.title + message.description,
@@ -167,7 +167,7 @@ var AwsSns = function () {
     };
 
     this.pamPublish = function (message, badgeCount, targetArn) {
-        var aps = {
+        let aps = {
             'badge': badgeCount,
             'sound': 'default',
             'order_id': message.order_id,
@@ -176,7 +176,7 @@ var AwsSns = function () {
             'station_category_id': message.activity_channel_category_id
         }
 
-        var params = {
+        let params = {
             MessageStructure: 'json',
             Message: JSON.stringify({
                 'default': message.order_id + message.order_name,
@@ -202,7 +202,7 @@ var AwsSns = function () {
     };
 
     this.createPlatformEndPoint = function (deviceOsId, pushToken, flag, flagAppAccount, callback) { //flag - 0 is Dev and 1 is Prod 
-        var platformApplicationArn = '';
+        let platformApplicationArn = '';
         //if (deviceOsId === 2) {
         switch (deviceOsId) {
             case 1: // android
@@ -335,7 +335,7 @@ var AwsSns = function () {
                 platformApplicationArn = global.config.platformApplicationWindows;
                 break;
         }
-        var params = {
+        let params = {
             PlatformApplicationArn: platformApplicationArn,
             /* required */
             Token: pushToken
@@ -358,7 +358,7 @@ var AwsSns = function () {
     };
 
     this.logOutPublish = function (message, targetArn, badgeCount) {
-        var aps = {
+        let aps = {
             'badge': badgeCount,
             'sound': 'default',
             'asset_id': message.target_asset_id,
@@ -366,7 +366,7 @@ var AwsSns = function () {
             'type': 'logout'
         }
 
-        var params = {
+        let params = {
             MessageStructure: 'json',
             Message: JSON.stringify({
                 'default': message.type,

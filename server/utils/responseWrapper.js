@@ -3,7 +3,7 @@ const logger = require('../logger/winstonLogger');
 function ResponseWrapper(util) {
 
     this.getResponse = function (err, data, statusCode, request) {
-        var response = {
+        let response = {
             status: statusCode,
             service_id: request.bundle_transaction_id || 0,
             //description: responseCollection[statusCode],

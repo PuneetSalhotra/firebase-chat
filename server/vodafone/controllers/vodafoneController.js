@@ -3,16 +3,16 @@
  * 
  */
 
-var VodafoneService = require("../services/vodafoneService");
+let VodafoneService = require("../services/vodafoneService");
 
 function VodafoneController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
     const util = objCollection.util;
     const cacheWrapper = objCollection.cacheWrapper;
     const queueWrapper = objCollection.queueWrapper;
-    var vodafoneService = new VodafoneService(objCollection);
+    let vodafoneService = new VodafoneService(objCollection);
     const activityCommonService = objCollection.activityCommonService;
 
     const moment = require('moment');
@@ -30,7 +30,7 @@ function VodafoneController(objCollection) {
     //BOT 2
     app.post('/' + global.config.version + '/vodafone/neworder_form/queue/add', function (req, res) {
         req.body.message_unique_id = util.getMessageUniqueId(req.body.asset_id);
-        var event = {
+        let event = {
             name: "vodafone",
             service: "vodafoneService",
             method: "newOrderFormAddToQueues",
@@ -53,7 +53,7 @@ function VodafoneController(objCollection) {
     //BOT 2
     app.post('/' + global.config.version + '/vodafone/customer_form/add', function (req, res) {
         req.body.message_unique_id = util.getMessageUniqueId(req.body.asset_id);
-        var event = {
+        let event = {
             name: "vodafone",
             service: "vodafoneService",
             method: "newOrderFormSubmission",
@@ -87,7 +87,7 @@ function VodafoneController(objCollection) {
     //BOT 2
     app.post('/' + global.config.version + '/vodafone/caf_form/add', function (req, res) {
         req.body.message_unique_id = util.getMessageUniqueId(req.body.asset_id);
-        var event = {
+        let event = {
             name: "vodafone",
             service: "vodafoneService",
             method: "newOrderFormSubmission",
@@ -141,7 +141,7 @@ function VodafoneController(objCollection) {
         });*/
         
         req.body.message_unique_id = util.getMessageUniqueId(req.body.asset_id);
-        var event = {
+        let event = {
             name: "vodafone",
             service: "vodafoneService",
             method: "sendEmailVodafone",
@@ -168,17 +168,17 @@ function VodafoneController(objCollection) {
         
         req.body.activity_stream_type_id = 325;
                       
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
-        var streamTypeId = Number(req.body.activity_stream_type_id);
+        let streamTypeId = Number(req.body.activity_stream_type_id);
 
-        var proceedActivityTimelineAdd = function (formTransactionId) {
+        let proceedActivityTimelineAdd = function (formTransactionId) {
 
-            var event = {
+            let event = {
                 name: "vodafone",
                 service: "vodafoneService",
                 method: "addTimelineTransactionExternal",
@@ -332,7 +332,7 @@ function VodafoneController(objCollection) {
     // BOT 6
     app.post('/' + global.config.version + '/vodafone/status/set/approval_pending', function (req, res) {
 
-        var event = {
+        let event = {
             name: "vodafoneService",
             service: "vodafoneService",
             method: "setStatusApprovalPendingAndFireEmail",

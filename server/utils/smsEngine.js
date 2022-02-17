@@ -358,7 +358,7 @@ function sendNexmoSms(options) {
 // Utility functions
 function getOTPString(verificationCode, options) {
     //var msg_body = verificationCode + " is the OTP to verify your mobile number - " + options.appName;
-    var msg_body = verificationCode + " is your verification code for the " + options.appName + ".";
+    let msg_body = verificationCode + " is your verification code for the " + options.appName + ".";
     return msg_body;
 }
 
