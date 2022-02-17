@@ -259,8 +259,11 @@ for (const signal of signalsForGracefulShutdown) {
         try {
             // Disconnecting the consumer
             sqsConsumerOne.stop();
+            logger.error(`[BotConsumerStopped] *&*&*&*&*&*&*&*&*&*&*&*&`, { type: `${signalName}` });
             let isGracefullShutdownRequired = await cacheWrapper.getKeyValueFromCache('BOT_CONSUMER_GRACEFULL_SHUTDOWN');
             isGracefullShutdownRequired = Number(isGracefullShutdownRequired);
+            logger.error(`[WaitingToShutdown] *&*&*&*&*&*&*&*&*&*&*&*&`, { type: `${signalName}` });
+            logger.error(`[WaitingToShutdown] processing message count before while ${processingMessageCount} remaining waiting time to shutdown ${isGracefullShutdownRequired}`, { type: `${signalName}` });
             while (processingMessageCount > 0 && isGracefullShutdownRequired > 0) {
                 await new Promise((resolve) => {
                     setTimeout(() => {
@@ -271,6 +274,7 @@ for (const signal of signalsForGracefulShutdown) {
                     }, 2000);
                 });
             }
+            logger.error(`[StoppingProcess] *&*&*&*&*&*&*&*&*&*&*&*&`, { type: `${signalName}` });
             process.exit(0);
         } catch (error) {
             logger.error(`${signalName} Error running chores before exit`, { type: `${signalName}`, error: serializeError(error) });
