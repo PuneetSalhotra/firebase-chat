@@ -55,6 +55,21 @@ function ActivityTimelineService(objectCollection) {
             request.activity_stream_type_id = 728;
         }
         
+        if(activityStreamTypeId == 728) {
+           
+            let [err, botResponse] = await activityCommonService.getMappedBotSteps({
+                organization_id: request.organization_id,
+                bot_id: 0,
+                form_id: request.form_id,
+                field_id: 0,
+                start_from: 0,
+                limit_value: 1
+            }, 0);
+            if(botResponse.length > 0) {
+                await fireBotEngineInitWorkflow(request);
+            }
+        }
+        
         // if(supressTimelineEntries.includes(Number(request.form_id)) && Number(request.activity_stream_type_id)==713 ){
         //     activityStreamTypeId = 728;
         //     request.activity_stream_type_id = 728;
@@ -277,6 +292,21 @@ function ActivityTimelineService(objectCollection) {
         if (!err && data.length > 0) {
             activityStreamTypeId = 728;
             request.activity_stream_type_id = 728;
+        }
+
+        if(activityStreamTypeId == 728) {
+           
+            let [err, botResponse] = await activityCommonService.getMappedBotSteps({
+                organization_id: request.organization_id,
+                bot_id: 0,
+                form_id: request.form_id,
+                field_id: 0,
+                start_from: 0,
+                limit_value: 1
+            }, 0);
+            if(botResponse.length > 0) {
+                await fireBotEngineInitWorkflow(request);
+            }
         }
 
         util.logInfo(request,` 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - ENTRY 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒`);
@@ -1187,7 +1217,7 @@ function ActivityTimelineService(objectCollection) {
                     // Bot log - Bot is defined
                     activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 1);
 
-                    let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
+                    let botEngineRequestHandleType = global.config.BOT_ENGINE_REQUEST_HANDLE_TYPE;
                     util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: botEngineRequest });
 
                     botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
@@ -1292,7 +1322,7 @@ function ActivityTimelineService(objectCollection) {
 
                     util.logInfo(request,`fireBotEngineInitWorkflow | botEngineRequest: `, botEngineRequest);
 
-                    let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
+                    let botEngineRequestHandleType = await global.config.BOT_ENGINE_REQUEST_HANDLE_TYPE;
                     util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: botEngineRequest });
                     botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
                     switch (botEngineRequestHandleType) {

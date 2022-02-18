@@ -1069,7 +1069,9 @@ function AssetService(objectCollection) {
 
             "organization_flag_dashboard_onhold": util.replaceDefaultNumber(rowArray[0]['organization_flag_dashboard_onhold']),
             "organization_flag_enable_tag": util.replaceDefaultNumber(rowArray[0]['organization_flag_enable_tag']), 
-            "asset_type_flag_enable_dashboard": util.replaceDefaultNumber(rowArray[0]['asset_type_flag_enable_dashboard'])
+            "asset_type_flag_enable_dashboard": util.replaceDefaultNumber(rowArray[0]['asset_type_flag_enable_dashboard']),
+            "workforce_tag_id": util.replaceDefaultNumber(rowArray[0]['workforce_tag_id']),
+            "workforce_tag_name": util.replaceDefaultString(rowArray[0]['workforce_tag_name'])
        };
 
         callback(false, rowData);
@@ -6996,7 +6998,7 @@ this.getQrBarcodeFeeback = async(request) => {
             request.start_from || 0,
             request.limit_value || 50
             ];
-
+            
             queryString = util.getQueryString('ds_p1_3_asset_list_select_asset_reference', paramsArr);
         }else{
             
@@ -8125,11 +8127,11 @@ this.getQrBarcodeFeeback = async(request) => {
         request.start_from,
         request.limit_value
         );
-        const queryString = util.getQueryString('ds_p1_1_activity_asset_mapping_select_asset_category', paramsArr);
+        const queryString = util.getQueryString('ds_p1_2_activity_asset_mapping_select_asset_category', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                    responseData = {};
+                    responseData = data;
                     error = false;
                 })
                 .catch((err) => {
@@ -8139,8 +8141,7 @@ this.getQrBarcodeFeeback = async(request) => {
 
         return [error, responseData];
     };
-
-
+    
     //organizationListInsert
     this.organization_List_Insert = async function (request) {
         let responseData = [],

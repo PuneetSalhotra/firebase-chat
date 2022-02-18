@@ -189,7 +189,7 @@ function TasiService(objectCollection) {
             request.asset_type_flag_sip_target || 0,
             request.asset_type_flag_omit_consolidation || 0,
             request.asset_type_ta_notes || "",
-            request.asset_type_ta_applicable_date || "",
+            request.asset_type_ta_applicable_date,
             request.flag,
             util.getCurrentUTCTime(),
             request.log_asset_id
@@ -908,6 +908,7 @@ function TasiService(objectCollection) {
             request.period_type_id,
             request.period_start_datetime,
             request.period_end_datetime,
+            request.financial_year,
             request.asset_id,
             request.asset_type_id,
             request.customer_account_type_id,
@@ -1078,6 +1079,7 @@ function TasiService(objectCollection) {
             request.data_entity_type_name,
             request.period_start_datetime,
             request.period_end_datetime,
+            request.financial_year,
             request.workforce_tag_id,
             request.level_id,
             request.product_id,
@@ -1733,6 +1735,7 @@ function TasiService(objectCollection) {
             request.period_type_id,
             request.period_start_datetime,
             request.period_end_datetime,
+            request.financial_year,
             request.validation_flag_is_bulk,
             request.validation_file_upload_url,
             request.product_id,
@@ -2009,6 +2012,7 @@ function TasiService(objectCollection) {
             request.period_type_id,
             request.period_start_datetime,
             request.period_end_datetime,
+            request.financial_year,
             request.asset_id,
             request.asset_type_id,
             request.widget_type_id,
@@ -2091,19 +2095,23 @@ function TasiService(objectCollection) {
           request.asset_type_id,
           request.widget_type_id,
           request.workforce_tag_id,
+          request.cluster_tag_id,
+          request.vertical_tag_id,
           request.start_datetime,
           request.end_datetime,
           request.timeline_id,
           request.period_type_id,
+          request.financial_year,
           request.start_from || 0,
           request.limit_value || 50
         );
 
-        const queryString = util.getQueryString('ds_p1_entity_target_setting_select_freeze', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_entity_target_setting_select_freeze', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
+                    console.log(data)
                     responseData = data;
                     error = false;
                 })
@@ -2139,6 +2147,7 @@ function TasiService(objectCollection) {
             request.period_type_id,
             request.start_datetime,
             request.end_datetime,
+            request.financial_year,
             request.start_from,
             request.limit_value
         );
@@ -2607,6 +2616,7 @@ function TasiService(objectCollection) {
             request.period_start_datetime,
             request.period_end_datetime,
             request.input_period_type_id,
+            request.financial_year,
             request.widget_type_id,
             request.widget_type_category_id,
             request.product_id,
@@ -2622,7 +2632,7 @@ function TasiService(objectCollection) {
             request.limit_value
         );
 
-        const queryString = util.getQueryString('ds_p1_1_input_list_select_filter', paramsArr);
+        const queryString = util.getQueryString('ds_p1_2_input_list_select_filter', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
@@ -2649,6 +2659,7 @@ function TasiService(objectCollection) {
             request.period_type_id,
             request.period_start_datetime, 
             request.period_end_datetime,
+            request.financial_year,
             request.level_id,
             request.workforce_tag_id,
             request.asset_tag_id_1,
@@ -2708,7 +2719,7 @@ function TasiService(objectCollection) {
             request.limit_value
         );
 
-        const queryString = util.getQueryString('ds_p3_entity_target_mapping_select', paramsArr);
+        const queryString = util.getQueryString('ds_p3_1_entity_target_mapping_select', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
@@ -2759,6 +2770,7 @@ function TasiService(objectCollection) {
             request.period_type_id,
             request.period_start_datetime,
             request.period_end_datetime,
+            request.financial_year,
             request.product_id,
             request.target_setting_flag_channel,
             request.workforce_tag_id,
@@ -2819,6 +2831,7 @@ function TasiService(objectCollection) {
           request.period_type_id,
           request.period_start_datetime,
           request.period_end_datetime,
+          request.financial_year,
           request.product_id,
           request.start_from,
           request.limit_value
@@ -3288,6 +3301,7 @@ function TasiService(objectCollection) {
             request.period_type_id,
             request.period_start_datetime,
             request.period_end_datetime,
+            request.financial_year,
             request.data_entity_bigint_1,
             request.data_entity_bigint_2,
             request.data_entity_bigint_3,
@@ -3423,6 +3437,318 @@ function TasiService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.assetTypeFlagSipTargetSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.flag || 0,
+          request.level_id || 0,
+          request.asset_type_id,
+          request.asset_type_category_id || 0,
+          request.organization_id,
+          request.account_id,
+          request.workforce_id,
+          request.asset_type_flag_frontline || 0,
+          request.asset_type_flag_sip_target || 0,
+          request.start_from,
+          request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p1_workforce_asset_type_mapping_select_flag_sip_target', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.widgetTypeAssetTypeMappingAssetList = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.asset_id,
+          request.organization_id,
+          request.start_from,
+          request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p1_widget_type_asset_type_mapping_select_asset', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.widgetTypeAssetTypeMappingAssetListV1 = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_id,
+            request.organization_id, 
+            request.datetime_start,
+            request.datetime_end,
+            request.widget_type_id,
+            request.widget_type_category_id,
+            request.asset_tag_id_1,
+            request.workforce_tag_id,
+            request.account_id,
+            request.start_from, 
+            request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p1_1_widget_type_asset_type_mapping_select_asset', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.accountTargetSettingSelectAssetList = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.asset_id,
+            request.timeline_id,
+            request.period_start_datetime, 
+            request.period_end_datetime,
+            request.financial_year,
+            request.product_id,
+            request.workforce_tag_id,
+            request.workforce_id,
+            request.account_id,
+            request.start_from, 
+            request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p1_account_target_setting_select_asset', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.tasiEntityTargetMappingSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.asset_id,
+          request.manager_asset_id,
+          request.asset_type_id,
+          request.flag,
+          request.flag_type,
+          request.asset_tag_id_1,
+          request.level_id,
+          request.timeline_id,
+          request.period_type_id,
+          request.period_start_datetime,
+          request.period_end_datetime,
+          request.financial_year,
+          request.cluster_tag_id,
+          request.account_id,
+          request.workforce_tag_id,
+          request.widget_type_id,
+          request.widget_type_category_id,
+          request.product_id,
+          request.start_from,
+          request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p3_2_entity_target_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.tasiEntityTargetMappingSelectV1 = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id, 
+            request.asset_id, 
+            request.manager_asset_id, 
+            request.asset_type_id, 
+            request.flag,
+            request.flag_type,
+            request.asset_tag_id_1,
+            request.level_id,
+            request.timeline_id,
+            request.period_type_id,
+            request.period_start_datetime, 
+            request.period_end_datetime,
+            request.financial_year,
+            request.cluster_tag_id,
+            request.account_id,
+            request.workforce_tag_id,
+            request.widget_type_id,
+            request.widget_type_category_id,
+            request.product_id,
+            request.start_from, 
+            request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p3_3_entity_target_mapping_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.entityTargetMappingTargetUpdate = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.target_asset_id,
+          request.widget_type_id,
+          request.customer_account_code,
+          request.period_start_datetime,
+          request.period_end_datetime,
+          request.period_type_id,
+          request.target,
+          request.log_asset_id,
+          util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_2_entity_target_mapping_update_target', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.widgetTypeAssetTypeMappingCodeSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.flag,
+            request.organization_id,
+            request.widget_type_id,
+            request.widget_type_category_id,
+            request.timeline_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.financial_year,
+            request.asset_type_id,
+            request.workforce_tag_id,
+            request.start_from,
+            request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p1_widget_type_asset_type_mapping_select_code', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.widgetTypeAssetTypeMappingRoleSelect = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.flag,
+            request.organization_id,
+            request.widget_type_id,
+            request.widget_type_category_id,
+            request.timeline_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.financial_year,
+            request.asset_type_id,
+            request.workforce_tag_id,
+            request.start_from,
+            request.limit_value
+        );
+
+        const queryString = util.getQueryString('ds_p1_widget_type_asset_type_mapping_select_role', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }    
 }
 
 module.exports = TasiService;

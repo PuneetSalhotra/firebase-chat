@@ -602,9 +602,9 @@ function ActivityService(objectCollection) {
                                     
                                     switch(Number(fieldData.field_data_type_id)) {
                                         case 57: //Fire the Bot
-                                                await fireBotInsertIntTables(request, fieldData);                                                
+                                                //await fireBotInsertIntTables(request, fieldData);                                                
                                                 await activityActivityMappingInsert(request, fieldData);
-                                            await activityCommonService.processFieldWidgetData(request, fieldData);
+                                                await activityCommonService.processFieldWidgetData(request, fieldData);
                                                 if(request.activity_type_category_id == 48 && (request.activity_type_id == 150258
                                                     || request.activity_type_id == 150229 || request.activity_type_id == 150192
                                                     || request.activity_type_id == 149818 || request.activity_type_id == 149752
@@ -631,8 +631,8 @@ function ActivityService(objectCollection) {
                                                 }                                                
                                                 break;
                                         case 33: //Fire the Bot                                                 
-                                                await fireBotInsertIntTables(request, fieldData);
-                                            await activityCommonService.processFieldWidgetData(request, fieldData);
+                                                //await fireBotInsertIntTables(request, fieldData);
+                                                await activityCommonService.processFieldWidgetData(request, fieldData);
                                                 if(fieldData.field_reference_id > 0){
                                                     await activityActivityMappingInsert(request, fieldData);
                                                 }
@@ -2547,7 +2547,7 @@ function ActivityService(objectCollection) {
                             let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
                             if (botsListData.length > 0) {
                                 botEngineRequest.bot_id = botsListData[0].bot_id;
-                                let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
+                                let botEngineRequestHandleType = global.config.BOT_ENGINE_REQUEST_HANDLE_TYPE;
                                 botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
 
                                 util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: botEngineRequest });

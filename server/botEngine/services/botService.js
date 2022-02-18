@@ -2219,6 +2219,7 @@ function BotService(objectCollection) {
                         try {
                             i.bot_operation_start_datetime = util.getCurrentUTCTime();
                             request.botOperationInlineData = botOperationsJson.bot_operations.bot_inline;
+                            request.bot_inline_data = '';
                             request.bot_operation_type_id = 35;
                             let baseURL = `http://localhost:7000`,
                                 //sqsQueueUrl = 'https://sqs.ap-south-1.amazonaws.com/430506864995/staging-vil-excel-job-queue.fifo';
