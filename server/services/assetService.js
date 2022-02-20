@@ -8382,6 +8382,38 @@ this.getQrBarcodeFeeback = async(request) => {
         return [error, responseData];
     };
 
+    this.getAssetListForSelectedManager = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.manager_asset_id,
+            request.workforce_tag_id,
+            request.workforce_id,
+            request.account_id,
+            request.asset_tag_id_1,
+            request.asset_tag_id_2,
+            request.asset_tag_id_3,
+            request.flag,
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_1_asset_list_select_manager', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
 }
 module.exports = AssetService;
 
