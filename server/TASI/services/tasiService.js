@@ -3779,6 +3779,37 @@ function TasiService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.entityTargetMappingOutlierFlagUpdate = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.target_asset_id,
+            request.flag_type,
+            request.timeline_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.flag_is_outlier,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_1_entity_target_mapping_update_flag_outlier', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = TasiService;
