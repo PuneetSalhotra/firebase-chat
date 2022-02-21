@@ -3503,19 +3503,20 @@ function TasiService(objectCollection) {
 
         const paramsArr = new Array(
             request.asset_id,
-            request.organization_id, 
-            request.datetime_start,
+            request.organization_id,
+            request.period_start_datetime,
             request.datetime_end,
+            request.financial_year,
             request.widget_type_id,
             request.widget_type_category_id,
             request.asset_tag_id_1,
             request.workforce_tag_id,
             request.account_id,
-            request.start_from, 
+            request.start_from,
             request.limit_value
         );
 
-        const queryString = util.getQueryString('ds_p1_1_widget_type_asset_type_mapping_select_asset', paramsArr);
+        const queryString = util.getQueryString('ds_p1_2_widget_type_asset_type_mapping_select_asset', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
