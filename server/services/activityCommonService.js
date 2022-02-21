@@ -6650,34 +6650,6 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             util.logInfo(request,"insertActivityMappingsinElastic : Updatting existing value to : " + JSON.stringify(dataTobeSent))
              let previousData = resultData.hits.hits[0]._source;
              let dataToBeUpdated = {...previousData,...dataTobeSent};
-            //  client.updateByQuery({
-            //     index: global.config.elasticActivitySearchTable,
-            //     "body": {
-            //         "query": {
-            //             bool: {
-            //                 must: [
-            //                   {
-            //                     match: {
-            //                       activity_id:Number(request.activity_id)
-            //                     }
-            //                   }
-            //                 ],
-                    
-            //             }
-            //         },
-            //         "script": {
-            //             "source": "ctx._source = params",
-            //             "lang": "painless",
-            //             "params": {...dataToBeUpdated
-            //             }
-            //         }
-            //     },
-            //     conflicts: 'proceed'
-            //  }, function (err, res) {
-            //      let stackTrace = util.getStackTrace();
-            //      util.handleElasticSearchResponse(request, dataToBeUpdated, global.config.elasticActivitySearchTable, err, res, stackTrace);
-            //  });
-
 
                 let queryData = {
                     index: global.config.elasticActivitySearchTable,
@@ -6708,33 +6680,50 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 let stackTrace = util.getStackTrace();
                 await util.handleElasticSearchEntries(request, "update", queryData, global.config.elasticActivitySearchTable, stackTrace);
 
+                if (dataTobeSent.activity_type_category_id == 48) {
+                    const [errorZero, workflowActivityData] = await this.getActivityDetailsAsync(request);
+
+                    let parentActivityId = 0;
+                    if (!errorZero && workflowActivityData.length > 0) {
+
+                        if (workflowActivityData[0].parent_activity_id != null) {
+                            parentActivityId = workflowActivityData[0].parent_activity_id;
+                        }
+
+                    }
+                    queryData = {
+                        index: global.config.elasticActivitySearch48Table,
+                        "body": {
+                            "query": {
+                                bool: {
+                                    must: [
+                                        {
+                                            match: {
+                                                activity_id: Number(request.activity_id)
+                                            }
+                                        }
+                                    ],
+
+                                }
+                            },
+                            "script": {
+                                "source": "ctx._source = params",
+                                "lang": "painless",
+                                "params": {
+                                    ...dataToBeUpdated, parent_activity_id: parentActivityId
+                                }
+                            }
+                        },
+                        conflicts: 'proceed'
+                    };
+                    stackTrace = util.getStackTrace();
+                    await util.handleElasticSearchEntries(request, "update", queryData, global.config.elasticActivitySearch48Table, stackTrace);
+                }
+
 
             }
             else{
                 util.logInfo(request,"insertActivityMappingsinElastic : inserting new value : " + JSON.stringify(dataTobeSent))
-                // const paramsArr1 = [request.activity_id, request.asset_id,request.organization_id];
-                // const queryString1 = util.getQueryString(
-                //   "ds_v1_activity_asset_search_mapping_update_elasticsearch_insert",
-                //   paramsArr1
-                // );
-                // if (queryString1 !== "") {
-                //   await db
-                //     .executeQueryPromise(0, queryString1, request)
-                //     .then(async (data) => {})
-                //     .catch((err) => console.log(err));
-                // }
-
-                // let insertedResponse = await new Promise((resolve) => {
-                //     client.index({
-                //         index: global.config.elasticActivitySearchTable,
-                //         body: {
-                //             ...dataTobeSent
-                //         }
-                //     }, function (err, res) {
-                //         util.handleElasticSearchResponse(request, dataTobeSent, global.config.elasticActivitySearchTable, err, res);
-                //         resolve();
-                //     })
-                // })
 
                 let queryData = {
                     index: global.config.elasticActivitySearchTable,
@@ -6744,6 +6733,29 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 };
                 let stackTrace = util.getStackTrace();
                 await util.handleElasticSearchEntries(request, "insert", queryData, global.config.elasticActivitySearchTable, stackTrace);
+
+                if (dataTobeSent.activity_type_category_id == 48) {
+                    const [errorZero, workflowActivityData] = await this.getActivityDetailsAsync(request);
+
+                    let parentActivityId = 0;
+                    if (!errorZero && workflowActivityData.length > 0) {
+
+                        if (workflowActivityData[0].parent_activity_id != null) {
+                            parentActivityId = workflowActivityData[0].parent_activity_id;
+                        }
+
+                    }
+                    queryData = {
+                        index: global.config.elasticActivitySearch48Table,
+                        body: {
+                            ...dataTobeSent, parent_activity_id: parentActivityId
+                        }
+                    };
+
+                    stackTrace = util.getStackTrace();
+                    await util.handleElasticSearchEntries(request, "insert", queryData, global.config.elasticActivitySearch48Table, stackTrace);
+                }
+
 
             }
         }
@@ -6812,14 +6824,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         await db.executeQueryPromise(1, queryString, request)
             .then(async (data) => {
                 responseData = data;
-                
-                // if(data.length>0){
-                
-              
-                // console.log(global.config.elasticActivitySearchTable,global.config.elasticActivityAssetTable)
-            // logger.info('came in elastic activity 1 where : ' + request.activity_id +"length"+ resultData.hits.hits.length+JSON.stringify(resultData.hits.hits));
-            // logger.info(resultData.hits.hits[0]._source);
-            
+
              await client.deleteByQuery({
                 index: global.config.elasticActivitySearchTable,
                 "body": {
@@ -6845,17 +6850,6 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
 
             if(responseData.length>0){
                 console.log(responseData)
-                // let insertedResponse = await new Promise((resolve) => {
-                //     client.index({
-                //         index: global.config.elasticActivitySearchTable,
-                //         body: {
-                //             ...responseData[0]
-                //         }
-                //     }, function (err, res) {
-                //         util.handleElasticSearchResponse(request, responseData[0], global.config.elasticActivitySearchTable, err, res);
-                //         resolve();
-                //     })
-                // })
 
                 let queryData = {
                     index: global.config.elasticActivitySearchTable,
@@ -6867,6 +6861,40 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 let stackTrace = util.getStackTrace();
                 await util.handleElasticSearchEntries(request, "insert", queryData, global.config.elasticActivitySearchTable, stackTrace);
 
+                if (request.activity_type_category_id == 48) {
+
+                    await client.deleteByQuery({
+                        index: global.config.elasticActivitySearch48Table,
+                        "body": {
+                            "query": {
+
+                                match: {
+                                    activity_id: Number(request.activity_id)
+                                }
+                            },
+                        }
+                    })
+
+                    const [errorZero, workflowActivityData] = await this.getActivityDetailsAsync(request);
+
+                    let parentActivityId = 0;
+                    if (!errorZero && workflowActivityData.length > 0) {
+
+                        if (workflowActivityData[0].parent_activity_id != null) {
+                            parentActivityId = workflowActivityData[0].parent_activity_id;
+                        }
+
+                    }
+                    queryData = {
+                        index: global.config.elasticActivitySearch48Table,
+                        body: {
+                            ...responseData[0], parent_activity_id: parentActivityId
+                        }
+                    };
+
+                    stackTrace = util.getStackTrace();
+                    await util.handleElasticSearchEntries(request, "insert", queryData, global.config.elasticActivitySearch48Table, stackTrace);
+                }
 
                 for (let i = 0; i < responseData.length; i++) {
                     util.logInfo(request, i);
@@ -6894,31 +6922,6 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                 }
             }
             
-            // else{
-            //     logger.info('came in elastic activity 1 insert :')
-            //     // const paramsArr1 = [request.activity_id, request.asset_id,request.organization_id];
-            //     // const queryString1 = util.getQueryString(
-            //     //   "ds_v1_activity_asset_search_mapping_update_elasticsearch_insert",
-            //     //   paramsArr1
-            //     // );
-            //     // if (queryString1 !== "") {
-            //     //   await db
-            //     //     .executeQueryPromise(0, queryString1, request)
-            //     //     .then(async (data) => {})
-            //     //     .catch((err) => console.log(err));
-            //     // }
-
-            //    let insertedResponse = await new Promise((resolve)=>{ client.index({
-            //         index:global.config.elasticActivitySearchTable,
-            //         body:{
-            //             ...dataTobeSent
-            //         }
-            //     }).then(res=>{
-            //         logger.info('came in elastic activity 1 insert :'+ JSON.stringify(res))
-            //         resolve()
-            //     }).catch(err=>resolve())})
-            // }
-
             logger.info('came for crawling delete and insert');
                     if (request.hasOwnProperty("is_account")){
                         if (request.is_account == 1) {
@@ -7061,7 +7064,7 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
             error = true;
 
         const paramsArr = new Array(
-            request.workflow_activity_id,
+            request.workflow_activity_id || request.activity_id || 0,
             request.organization_id
         );
         const queryString = util.getQueryString('ds_p1_activity_list_select', paramsArr);
