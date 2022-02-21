@@ -9411,6 +9411,13 @@ else{
             } catch (error) {
                 logger.error("updateCUIDBotOperation.queueActivityMappingUpdateCUIDs | Error updating CUID in the queue_activity_mapping table", { type: 'bot_engine', error: serializeError(error), request_body: request });
             }
+
+            try {
+                activityCommonService.actAssetSearchMappingUpdate(request);
+            } catch (error) {
+                logger.error("updateCUIDs | Error updating CUID in the AssetSearchMapping", { type: 'esms_ibm_mq', error: serializeError(error) });
+            }
+
         }
 
         return [false, []];
