@@ -6594,7 +6594,39 @@ this.getChildOfAParent = async (request) => {
         }
         return [error, responseData];
     };
-   
+    this.productWiseSale = async function (request) {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.event_activity_id,
+            request.start_date,
+            request.end_date,
+            request.flag = 7,
+            request.type_flag
+        );
+        let queryString = util.getQueryString('pm_v2_pam_order_list_select_event_summary', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    let result = [];
+                    data.forEach(function (a) {
+                        if (!this[a.order_name]) {
+                            this[a.order_name] = { item_name: a.order_name, item_count: 0 };
+                            result.push(this[a.order_name]);
+                        }
+                        this[a.order_name].item_count += a.order_quantity;
+                    }, Object.create(null));
+                    responseData = result;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
 };
 
 module.exports = PamService;
