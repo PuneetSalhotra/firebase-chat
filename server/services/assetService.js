@@ -6370,16 +6370,21 @@ this.getQrBarcodeFeeback = async(request) => {
                             } else if (data.length == 1) {
 
                                 if(data[0].tag_type_id == 0){
+
                                     if(request.tag_type_id == 0){
+
                                         singleData.query_status = 0;
                                         singleData.tag_id = 0;
                                         singleData.tag_name = "All";
-
+        
+                                        data.splice(0, 1, singleData);//splice(index, <deletion 0 or 1>, item)
                                         responseData[0] = "";
-                                        responseData[1] = singleData;
+                                        responseData[1] = data;
                                         //console.log("responseData ", responseData);
                                         resolve(responseData);
+
                                     }else if(request.tag_type_id > 0){
+
                                         tagListOfTagTypeSelectV1(request).then((resData) => {
                                             singleData.query_status = 0;
                                             singleData.tag_id = 0;
@@ -6393,7 +6398,6 @@ this.getQrBarcodeFeeback = async(request) => {
     
                                         });
                                     }
-
 
                                 }else if(data[0].tag_type_id > 0){
                                     if(data[0].tag_id == 0){
@@ -6444,7 +6448,7 @@ this.getQrBarcodeFeeback = async(request) => {
                                     // get the list of tag types from organization_list
                                     tagTypeListUnderAVertical(request).then((resData) => {
                                         singleData.query_status = 0;
-                                        singleData.tag_tpye_id = 0;
+                                        singleData.tag_type_id = 0;
                                         singleData.tag_type_name = "All";
 
                                         resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
