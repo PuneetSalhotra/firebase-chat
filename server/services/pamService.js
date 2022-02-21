@@ -6480,8 +6480,120 @@ this.getChildOfAParent = async (request) => {
          );
        }
        return [error, []];
-     };    
-    
+     };
+     this.discountPromotionCodeAdd = async function (request) {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.promo_code,
+            request.promo_title,
+            request.promo_description,
+            request.discount_maximum_value,
+            request.promo_minimum_bill,
+            request.promo_start_datetime,
+            request.promo_end_datetime,
+            request.promo_level_id,
+            request.discount_type_id,
+            request.discount_type_name,
+            request.discountable_menu_items,
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.log_asset_id,
+            request.log_operating_asset_first_name,
+            request.log_datetime = util.getCurrentUTCTime()
+        );
+        let queryString = util.getQueryString('pm_v1_discount_promotion_code_insert', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+    this.updateMinimumCountAssetlist = async function (request) {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.organization_id,
+            request.asset_id,
+            request.asset_storage_limit,
+            request.log_asset_id,
+            request.log_datetime = util.getCurrentUTCTime(),
+        );
+        let queryString = util.getQueryString('pm_v1_asset_list_update_minimum_count', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+    this.getInventoryCurrentQuantity = async function (request) {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.asset_id,
+            request.activity_type_category_id,
+            request.asset_type_category_id
+        );
+        let queryString = util.getQueryString('pm_v1_inventory_current_quantity_select', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+    this.getMinimumCountAssetlist = async function (request) {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.asset_type_category_id
+        );
+        let queryString = util.getQueryString('pm_v1_asset_list_select_minimum_count', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {
+                    let [err, res] = await this.getInventoryCurrentQuantity(request);
+                    res.filter(function (objectOne) {
+                        return data.some(function (objectTwo) {
+                            if (objectOne.asset_id === objectTwo.asset_id) {
+                                if (objectOne.count < objectTwo.asset_storage_limit) {
+                                    return responseData = [...responseData, objectOne]
+                                }
+                            }
+                        });
+                    });
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+   
 };
 
 module.exports = PamService;
