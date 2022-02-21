@@ -2439,6 +2439,7 @@ function FormConfigService(objCollection) {
                 formFieldCollection.data_type_combo_value,
                 formFieldCollection.data_type_id,
                 formFieldCollection.next_field_id,
+                formFieldCollection.gamification_score || 0,
                 request.form_id,
                 request.organization_id,
                 request.asset_id,
@@ -2447,7 +2448,7 @@ function FormConfigService(objCollection) {
 
             //const queryString = util.getQueryString('ds_p1_1_workforce_form_field_mapping_insert', paramsArr);
             //const queryString = util.getQueryString('ds_p1_2_workforce_form_field_mapping_insert', paramsArr);
-            const queryString = util.getQueryString('ds_p1_3_workforce_form_field_mapping_insert', paramsArr);            
+            const queryString = util.getQueryString('ds_p1_4_workforce_form_field_mapping_insert', paramsArr);            
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
