@@ -6548,7 +6548,8 @@ this.getChildOfAParent = async (request) => {
             request.workforce_id,
             request.asset_id,
             request.activity_type_category_id,
-            request.asset_type_category_id
+            request.asset_type_category_id,
+            request.asset_first_name
         );
         let queryString = util.getQueryString('pm_v1_inventory_current_quantity_select', paramsArr);
         if (queryString != '') {
