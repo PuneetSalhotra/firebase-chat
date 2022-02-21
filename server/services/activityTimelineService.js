@@ -1113,7 +1113,7 @@ function ActivityTimelineService(objectCollection) {
                                 activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(() => {});
                             }).catch((err) => {
                                 //global.logger.write('debug', err, {}, newrequest);
-                                util.logError(request,`debug Error %j`, { err,newrequest });
+                                util.logError(request,`queueActivityMappingUpdateInlineData debug Error %j`, { err,newrequest });
                             });
 
                         }
@@ -1143,7 +1143,7 @@ function ActivityTimelineService(objectCollection) {
                                 activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(() => {});
                             }).catch((err) => {
                                 //global.logger.write('debug', err, {}, newrequest);
-                                util.logError(request,`debug Error %j`, { err,newrequest });
+                                util.logError(request,`queueActivityMappingUpdateInlineData debug Error %j`, { err,newrequest });
                             });
 
                         }
@@ -1203,7 +1203,7 @@ function ActivityTimelineService(objectCollection) {
                             await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
                                 .then((resp) => {
                                     //global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
-                                    util.logInfo(request,`debug Bot Engine Trigger Response: %j`,{Response : JSON.stringify(resp),request});
+                                    util.logInfo(request,`makeRequest engine/bot/init debug Bot Engine Trigger Response: %j`,{Response : JSON.stringify(resp),request});
                                     let temp = JSON.parse(resp);
 
                                     (Number(temp.status) === 200) ?
@@ -1239,14 +1239,14 @@ function ActivityTimelineService(objectCollection) {
                 }
             } else {
                 //global.logger.write('debug', "formConfigError: " + formConfigError, {}, request);
-                util.logInfo(request,`debug formConfigError: %j`,{formConfigError : formConfigError,request});
+                util.logInfo(request,`fireBotEngineInitForm debug formConfigError: %j`,{formConfigError : formConfigError,request});
                 //global.logger.write('debug', "formConfigData: ", {}, request);
-                util.logInfo(request,`debug formConfigData: %j`,{formConfigData : formConfigData,request});
+                util.logInfo(request,`fireBotEngineInitForm debug formConfigData: %j`,{formConfigData : formConfigData,request});
                 //global.logger.write('debug', formConfigData, {}, request);
             }
         } catch (botInitError) {
             //global.logger.write('error', botInitError, botInitError, botEngineRequest);
-            util.logError(request,`error Error %j`, { botInitError,botEngineRequest });
+            util.logError(request,`fireBotEngineInitForm error Error %j`, { botInitError,botEngineRequest });
         }
     }
 
@@ -1371,15 +1371,15 @@ function ActivityTimelineService(objectCollection) {
             request.form_id = formDataJson[0]['form_id'];
             //console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
             //global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
-            util.logInfo(request,`debug form id extracted from json is: %j`,{form_id : formDataJson[0]['form_id'],request});
+            util.logInfo(request,`addTimelineTransactionV1 debug form id extracted from json is: %j`,{form_id : formDataJson[0]['form_id'],request});
             let lastObject = formDataJson[formDataJson.length - 1];
             //console.log('Last object : ', lastObject)
             //global.logger.write('debug', 'Last object : ' + JSON.stringify(lastObject, null, 2), {}, request);
-            util.logInfo(request,`debug Last object :  %j`,{Last_object : JSON.stringify(lastObject, null, 2),request});
+            util.logInfo(request,`addTimelineTransactionV1 debug Last object :  %j`,{Last_object : JSON.stringify(lastObject, null, 2),request});
             if (lastObject.hasOwnProperty('field_value')) {
                 //console.log('Has the field value in the last object')
                 //global.logger.write('conLog', 'Has the field value in the last object', {}, request);
-                util.logInfo(request,`conLog Has the field value in the last object %j`,{request});
+                util.logInfo(request,`addTimelineTransactionV1 Has the field value in the last object %j`,{request});
                 //remote Analytics
                 if (request.form_id == 325) {
                     monthlySummaryTransInsert(request).then(() => {});
@@ -1401,7 +1401,7 @@ function ActivityTimelineService(objectCollection) {
         } catch (exception) {
             //console.log(exception);
             //global.logger.write('debug', exception, {}, request);
-            util.logError(request,`debug Error %j`, { exception,request });
+            util.logError(request,`addTimelineTransactionV1 debug Error %j`, { exception,request });
         }
 
         let isAddToTimeline = true;
@@ -1435,7 +1435,7 @@ function ActivityTimelineService(objectCollection) {
                     } else {
                         //console.log('asset_reference is not availale');
                         //global.logger.write('conLog', 'asset_reference is not available', {}, request);
-                        util.logInfo(request,`conLog asset_reference is not available %j`,{request});
+                        util.logInfo(request,`activityTimelineTransactionInsert asset_reference is not available %j`,{request});
                     }
 
 
@@ -1882,7 +1882,7 @@ function ActivityTimelineService(objectCollection) {
             pubnubMsg.activity_type_category_id = (Number(request.activity_type_category_id)) === 16 ? 0 : request.activity_type_category_id;
             //console.log('PubNub Message : ', pubnubMsg);
             //global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
-            util.logInfo(request,`debug PubNub Message : %j`,{PubNub_Message : JSON.stringify(pubnubMsg, null, 2),request});
+            util.logInfo(request,`retrieveTimelineList debug PubNub Message : %j`,{PubNub_Message : JSON.stringify(pubnubMsg, null, 2),request});
             pubnubWrapper.push(request.asset_id, pubnubMsg, io);
             pubnubWrapper.push(request.organization_id, pubnubMsg, io, isOrgRateLimitExceeded);
 
@@ -1969,7 +1969,7 @@ function ActivityTimelineService(objectCollection) {
             pubnubMsg.activity_type_category_id = (Number(request.activity_type_category_id)) === 16 ? 0 : request.activity_type_category_id;
             //console.log('PubNub Message : ', pubnubMsg);
             //global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
-            util.logInfo(request,`debug PubNub Message : %j`,{PubNub_Message : JSON.stringify(pubnubMsg, null, 2),request});
+            util.logInfo(request,`retrieveTimelineListV1 debug PubNub Message : %j`,{PubNub_Message : JSON.stringify(pubnubMsg, null, 2),request});
             pubnubWrapper.push(request.asset_id, pubnubMsg, io);
             //pubnubWrapper.push(request.organization_id, pubnubMsg, isOrgRateLimitExceeded);
         }
@@ -3114,7 +3114,7 @@ function ActivityTimelineService(objectCollection) {
     function sendRequesttoWidgetEngine(request) {
 
         //global.logger.write('conLog', '*********************************BEFORE FORM WIDGET *********************************************88 : ', {}, request);
-        util.logInfo(request,`conLog *********************************BEFORE FORM WIDGET *********************************************88 :  %j`,{request});
+        util.logInfo(request,`sendRequesttoWidgetEngine *********************************BEFORE FORM WIDGET *********************************************88 :  %j`,{request});
         if (request.activity_type_category_id == 9) { //form and submitted state                    
             activityCommonService.getActivityDetails(request, 0, function (err, activityData) { // get activity form_id and form_transaction id
                 activityCommonService.getWorkflowOfForm(request)

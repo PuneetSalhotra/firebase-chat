@@ -105,7 +105,7 @@ function VodafoneService(objectCollection) {
                                     activityCommonService.queueHistoryInsert(request, 1402, queueActivityMappingId).then(() => { });
                                 }).catch((err) => {
                                     //global.logger.write('debug', err, {}, request);
-                                    util.logError(request,`debug Error %j`, { err, request });
+                                    util.logError(request,`queueActivityMappingUpdateInlineStatus debug Error %j`, { err, request });
                                 });
                             }
                         } else {
@@ -126,7 +126,7 @@ function VodafoneService(objectCollection) {
 
                 }).catch((err) => {
                     //global.logger.write('debug', err, {}, request);
-                    util.logError(request,`debug Error %j`, { err, request });
+                    util.logError(request,`fetchQueueByQueueName debug Error %j`, { err, request });
                 });
 
                 /////////////////////////////////////////////////////////////////////////////////////////////////////                
@@ -152,7 +152,7 @@ function VodafoneService(objectCollection) {
                                     activityCommonService.queueHistoryInsert(request, 1402, queueActivityMappingId).then(() => { });
                                 }).catch((err) => {
                                     //global.logger.write('debug', err, {}, request);
-                                    util.logError(request,`debug Error %j`, { err, request });
+                                    util.logError(request,`queueActivityMappingUpdateInlineStatus debug Error %j`, { err, request });
                                 });
                             }
                         } else {
@@ -173,7 +173,7 @@ function VodafoneService(objectCollection) {
 
                 }).catch((err) => {
                     //global.logger.write('debug', err, {}, request);
-                    util.logError(request,`debug Error %j`, { err, request });
+                    util.logError(request,`fetchQueueByQueueName debug Error %j`, { err, request });
                 });
 
 
@@ -242,9 +242,9 @@ function VodafoneService(objectCollection) {
                         if (err) {
                             // console.log(err);
                             //global.logger.write('serverError', err, err, newRequest);
-                            util.logError(request,`serverError Error %j`, { err, newRequest });
+                            util.logError(request,`getFormTransactionId serverError Error %j`, { err, newRequest });
                             //global.logger.write('debug', err, err, newRequest);
-                            util.logError(request,`debug Error %j`, { err, newRequest });
+                            util.logError(request,`getFormTransactionId debug Error %j`, { err, newRequest });
                             reject(err);
                         } else {
                             newRequest['form_transaction_id'] = formTransactionId;
@@ -253,7 +253,7 @@ function VodafoneService(objectCollection) {
                                 if (err) {
                                     console.log(err);
                                     //global.logger.write('debug', err, err, newRequest);
-                                    util.logError(request,`debug Error %j`, { err, newRequest });
+                                    util.logError(request,`getActivityId debug Error %j`, { err, newRequest });
                                     reject(err);
                                 } else {
                                     newRequest['activity_id'] = activityId;
@@ -432,7 +432,7 @@ function VodafoneService(objectCollection) {
 
                                                 }).catch((err) => {
                                                     //global.logger.write('debug', err, {}, request);
-                                                    util.logError(request,`debug Error %j`, { err, request });
+                                                    util.logError(request,`customerFormSubmission debug Error %j`, { err, request });
                                                 });
                                             } else {
                                                 console.log("\x1b[35m As Customer Data is empty we are not proceeding to further steps. \x1b[0m");
@@ -587,7 +587,7 @@ function VodafoneService(objectCollection) {
 
                             }).catch((err) => {
                                 //global.logger.write('debug', err, {}, request);
-                                util.logError(request,`debug Error %j`, { err, request });
+                                util.logError(request,`addDeskAsParticipant debug Error %j`, { err, request });
                             });
                             /*}).catch((err)=>{
                                 global.logger.write('debug', err, {}, request);
@@ -595,7 +595,7 @@ function VodafoneService(objectCollection) {
 
                         }).catch((err) => {
                             //global.logger.write('debug', err, {}, request);
-                            util.logError(request,`debug Error %j`, { err, request });
+                            util.logError(request,`createAsset debug Error %j`, { err, request });
                         });
 
                     } else { //When authorized_signatory_phone_number is equal to the retrieved operating asset
@@ -651,7 +651,7 @@ function VodafoneService(objectCollection) {
 
                         }).catch((err) => {
                             //global.logger.write('debug', err, {}, request);
-                            util.logError(request,`debug Error %j`, { err, request });
+                            util.logError(request,`addDeskAsParticipant debug Error %j`, { err, request });
                         });
 
                     }
@@ -725,19 +725,19 @@ function VodafoneService(objectCollection) {
 
                         }).catch((err) => {
                             //global.logger.write('debug', err, {}, request);
-                            util.logError(request,`debug Error %j`, { err, request });
+                            util.logError(request,`addDeskAsParticipant debug Error %j`, { err, request });
                         });
 
 
                     }).catch((err) => {
                         //global.logger.write('debug', err, {}, request);
-                        util.logError(request,`debug Error %j`, { err, request });
+                        util.logError(request,`createAssetContactDesk debug Error %j`, { err, request });
                     });
 
                 }
             }).catch((err) => {
                 //global.logger.write('debug', err, {}, request);
-                util.logError(request,`debug Error %j`, { err, request });
+                util.logError(request,`checkServiceDeskExistence debug Error %j`, { err, request });
             });
         });
 
@@ -998,11 +998,11 @@ function VodafoneService(objectCollection) {
             queueWrapper.raiseActivityEvent(addParticipantEvent, request.activity_id, (err, resp) => {
                 if (err) {
                     //global.logger.write('debug', "\x1b[35m [ERROR] Raising queue activity raised for mapping customer operating asset to Contact file. \x1b[0m", {}, request);
-                    util.logError(request,`debug \x1b[35m [ERROR] Raising queue activity raised for mapping customer operating asset to Contact file. \x1b[0m %j`, { err, request });
+                    util.logError(request,`raiseActivityEvent debug \x1b[35m [ERROR] Raising queue activity raised for mapping customer operating asset to Contact file. \x1b[0m %j`, { err, request });
                     reject('Error while raising queue activity for mapping customer operating asset to Contact file.');
                 } else {
                     //global.logger.write('debug', "\x1b[35m Queue activity raised for mapping customer operating asset to Contact file. \x1b[0m", {}, request);
-                    util.logInfo(request,`debug \x1b[35m Queue activity raised for mapping customer operating asset to Contact file. \x1b[0m %j`,{request});
+                    util.logInfo(request,`raiseActivityEvent debug \x1b[35m Queue activity raised for mapping customer operating asset to Contact file. \x1b[0m %j`,{request});
                     resolve();
                 }
             });
@@ -1031,7 +1031,7 @@ function VodafoneService(objectCollection) {
         }).catch((err) => {
             console.log('err : ', err);
             //global.logger.write('debug', err, {}, request);
-            util.logError(request,`debug Error %j`, { err, request });
+            util.logError(request,`vodafoneSendEmail debug Error %j`, { err, request });
             callback(true, {}, -9998);
         });
     };
@@ -1281,7 +1281,7 @@ function VodafoneService(objectCollection) {
             }).catch((err) => {
                 console.log(err);
                 //global.logger.write('debug', err, {}, request);
-                util.logError(request,`debug Error %j`, { err, request });
+                util.logError(request,`addActivityChangeFileStatus debug Error %j`, { err, request });
             });
         }
 
@@ -1299,7 +1299,7 @@ function VodafoneService(objectCollection) {
         } catch (exception) {
             //console.log(exception);
             //global.logger.write('debug', exception, {}, request);
-            util.logError(request,`debug Error %j`, { exception, request });
+            util.logError(request,`addTimelineTransactionExternal debug Error %j`, { exception, request });
         }
 
         let isAddToTimeline = true;
@@ -1460,11 +1460,11 @@ function VodafoneService(objectCollection) {
                     queueWrapper.raiseActivityEvent(event, flagAlterReq.activity_id, (err, resp) => {
                         if (err) {
                             //global.logger.write('conLog', "\x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
-                            util.logError(request,`conLog \x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m %j`, { err, request });
+                            util.logError(request,`raiseActivityEvent conLog \x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m %j`, { err, request });
                             reject('Error while raising queue activity for adding service desk as a participant');
                         } else {
                             //global.logger.write('conLog', "\x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
-                            util.logInfo(request,`conLog \x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m %j`,{ request});
+                            util.logInfo(request,`raiseActivityEvent conLog \x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m %j`,{ request});
                             resolve();
                         }
                     });
@@ -6067,12 +6067,12 @@ function VodafoneService(objectCollection) {
         queueWrapper.raiseActivityEvent(addParticipantEvent, request.workflow_activity_id, (err, resp) => {
             if (err) {
                 //global.logger.write('conLog', "\x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
-                util.logError(request,`conLog \x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m Error %j`, { err, request });
+                util.logError(request,`raiseActivityEvent conLog \x1b[35m [ERROR] Raising queue activity raised for adding Service Desk as a participant. \x1b[0m Error %j`, { err, request });
                 // reject('Error while raising queue activity for adding service desk as a participant');
                 return;
             } else {
                 //global.logger.write('conLog', "\x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m", {}, request);
-                util.logInfo(request,`conLog \x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m %j`,{ request});
+                util.logInfo(request,`raiseActivityEvent conLog \x1b[35m Queue activity raised for adding Service Desk as a participant. \x1b[0m %j`,{ request});
                 // resolve();
                 return;
             }

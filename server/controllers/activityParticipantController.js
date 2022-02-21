@@ -27,7 +27,7 @@ function ActivityParticipantController(objCollection) {
             } else {
                 //console.log('did not get proper response');
                 //global.logger.write('debug', 'Did not get proper response', err, req);
-                util.logError(req,`debug Did not get proper response Error %j`, { err,req });
+                util.logError(req.body,`getParticipantsList debug Did not get proper response Error %j`, { err,body : req.body });
 
                 data = new Array();
                 res.json(responseWrapper.getResponse(err, data, statusCode));
@@ -83,12 +83,12 @@ function ActivityParticipantController(objCollection) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
                                             //global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
-                                            util.logError(req,`serverError Error in setting in asset parity Error %j`, { err,body : req.body });
+                                            util.logError(req.body,`setAssetParity serverError Error in setting in asset parity Error %j`, { err,body : req.body });
 
                                         } else
                                             //console.log("asset parity is set successfully")
                                             //global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
-                                            util.logInfo(req,`conLog  Asset parity is set successfully %j`,{body : req.body, req});
+                                            util.logInfo(req.body,`setAssetParity  Asset parity is set successfully %j`,{body : req.body});
 
                                     });
                                 }
@@ -188,12 +188,12 @@ function ActivityParticipantController(objCollection) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
                                             //global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
-                                            util.logError(req,`serverError Error in setting in asset parity Error %j`, { err,body : req.body });
+                                            util.logError(req.body,`setAssetParity serverError Error in setting in asset parity Error %j`, { err,body : req.body });
 
                                         } else
                                             //console.log("asset parity is set successfully")
                                             //global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
-                                            util.logInfo(req,`conLog  Asset parity is set successfully %j`,{body : req.body});
+                                            util.logInfo(req.body,`setAssetParity  Asset parity is set successfully %j`,{body : req.body});
 
                                     });
                                 }
@@ -273,11 +273,11 @@ function ActivityParticipantController(objCollection) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
                                             //global.logger.write('serverError', "Error in setting asset parity", err, req.body);
-                                            util.logError(req,`serverError Error in setting asset parity Error %j`, { err,body : req.body });
+                                            util.logError(req.body,`setAssetParity serverError Error in setting asset parity Error %j`, { err,body : req.body });
                                         } else
                                             //console.log("asset parity is set successfully")
                                             //global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
-                                            util.logInfo(req,`conLog Asset parity is set successfully %j`,{body : req.body});
+                                            util.logInfo(req.body,`setAssetParity Asset parity is set successfully %j`,{body : req.body});
 
                                     });
                                 }
@@ -293,7 +293,7 @@ function ActivityParticipantController(objCollection) {
             JSON.parse(req.body.activity_participant_collection);
             // console.log('no exception so far');
             //global.logger.write('debug', "No exception so far", {}, req.body);
-            util.logInfo(req,`debug No exception so far %j`,{body : req.body});
+            util.logInfo(req.body,`activity/participant/access/reset debug No exception so far %j`,{body : req.body});
 
         } catch (exeption) {
             res.json(responseWrapper.getResponse(false, {}, -3308,req.body));
@@ -354,11 +354,11 @@ function ActivityParticipantController(objCollection) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
                                             //global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
-                                            util.logError(req,`serverError Error in setting in asset parity Error %j`, { err,body : req.body });
+                                            util.logError(req.body,`setAssetParity serverError Error in setting in asset parity Error %j`, { err,body : req.body });
                                         } else
                                             //console.log("asset parity is set successfully")
                                             //global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
-                                            util.logInfo(req,`conLog Asset parity is set successfully %j`,{body : req.body});
+                                            util.logInfo(req.body,`setAssetParity Asset parity is set successfully %j`,{body : req.body});
 
                                     });
                                 }
@@ -426,11 +426,11 @@ function ActivityParticipantController(objCollection) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
                                             //global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
-                                            util.logError(req,`serverError Error in setting in asset parity Error %j`, { err,body : req.body });
+                                            util.logError(req.body,`setAssetParity serverError Error in setting in asset parity Error %j`, { err,body : req.body });
                                         } else
                                             //console.log("asset parity is set successfully")
                                             //global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
-                                            util.logInfo(req,`conLog Asset parity is set successfully %j`,{body : req.body});
+                                            util.logInfo(req.body,`setAssetParity Asset parity is set successfully %j`,{body : req.body});
 
                                     });
                                 }
@@ -499,12 +499,12 @@ function ActivityParticipantController(objCollection) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
                                             //global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
-                                            util.logError(req,`serverError Error in setting in asset parity Error %j`, { err,body : req.body });
+                                            util.logError(req.body,`setAssetParity serverError Error in setting in asset parity Error %j`, { err,body : req.body });
 
                                         } else
                                             //console.log("asset parity is set successfully")
                                             //global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
-                                            util.logInfo(req,`conLog Asset parity is set successfully %j`,{body : req.body});
+                                            util.logInfo(req.body,`setAssetParity Asset parity is set successfully %j`,{body : req.body});
 
                                     });
                                 }

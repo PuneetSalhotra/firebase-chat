@@ -937,7 +937,7 @@ function ActivityPushService(objectCollection) {
         data.forEach(function (arn, index) {
             //console.log(arn);
             //global.logger.write('debug', arn, {}, {});
-            util.logInfo(request,`debug  %j`,{arn,request});
+            util.logInfo(request,`pamSendPush debug  %j`,{arn,request});
             objectCollection.sns.pamPublish(pushStringObj, 1, arn);
         });
     };
@@ -998,19 +998,19 @@ function ActivityPushService(objectCollection) {
 
         let proceedSendPush = function (pushReceivers, senderName) {
             //global.logger.write('debug', 'pushReceivers.length : ' + pushReceivers.length, {}, {});
-            util.logInfo(request,`debug pushReceivers.length %j`,{pushReceivers_length : pushReceivers.length});
+            util.logInfo(request,`proceedSendPush debug pushReceivers.length %j`,{pushReceivers_length : pushReceivers.length});
             if (pushReceivers.length > 0) {
                 getPushString(request, objectCollection, senderName, function (err, pushStringObj, pubnubMsg, smsString) {
                     //console.log('PubMSG : ', pubnubMsg);
                     //console.log('pushStringObj : ', pushStringObj);
                     //global.logger.write('debug', 'PubMSG: ' + JSON.stringify(pubnubMsg), {}, {});
-                    util.logInfo(request,`debug %j`,{PubMSG : JSON.stringify(pubnubMsg)});
+                    util.logInfo(request,`getPushString debug %j`,{PubMSG : JSON.stringify(pubnubMsg)});
                     //global.logger.write('conLog', pubnubMsg, {}, {});
-                    util.logInfo(request,`conLog %j`,{pubnubMsg});
+                    util.logInfo(request,`getPushString conLog %j`,{pubnubMsg});
                     //global.logger.write('debug', 'pushStringObj : ' + JSON.stringify(pushStringObj), {}, {});
-                    util.logInfo(request,`debug %j`,{pushStringObj : JSON.stringify(pushStringObj)});
+                    util.logInfo(request,`getPushString debug %j`,{pushStringObj : JSON.stringify(pushStringObj)});
                     //global.logger.write('conLog', pushStringObj, {}, {});
-                    util.logInfo(request,`conLog %j`,{pushStringObj});
+                    util.logInfo(request,`getPushString conLog %j`,{pushStringObj});
                     if (Object.keys(pushStringObj).length > 0 && Object.keys(pushStringObj).find(key => key === 'title')) {
                         let cnt = 0;
                         objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
@@ -1020,18 +1020,18 @@ function ActivityPushService(objectCollection) {
                                     //console.log(rowData.assetId, ' is asset for which we are about to send push');
                                     //console.log('Asset Map : ', assetMap);
                                     //global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push', {}, {});
-                                    util.logInfo(request,`debug ${rowData.assetId} is asset for which we are about to send push`,{});
+                                    util.logInfo(request,`getAssetMap debug ${rowData.assetId} is asset for which we are about to send push`,{});
                                     if (Object.keys(assetMap).length > 0) {
                                         getAssetBadgeCount(request, objectCollection, assetMap.asset_id, assetMap.organization_id, function (err, badgeCount) {
                                             //console.log(badgeCount, ' is badge count obtained from db');
                                             //console.log(assetMap);
                                             //console.log(pushStringObj, objectCollection.util.replaceOne(badgeCount), assetMap.asset_push_arn);
                                             //global.logger.write('debug', badgeCount + ' is badge count obtained from db', {}, {});
-                                            util.logInfo(request,`debug ${badgeCount} is badge count obtained from db`,{});
+                                            util.logInfo(request,`getAssetBadgeCount debug ${badgeCount} is badge count obtained from db`,{});
                                             //global.logger.write('debug', assetMap, {}, {});
-                                            util.logInfo(request,`debug %j`,{assetMap});
+                                            util.logInfo(request,`getAssetBadgeCount debug %j`,{assetMap});
                                             //global.logger.write('debug', JSON.stringify(pushStringObj) + ' ' + objectCollection.util.replaceOne(badgeCount) + ' ' + assetMap.asset_push_arn, {}, {});
-                                            util.logInfo(request,`debug %j`,{pushStringObj : JSON.stringify(pushStringObj), objectCollection_util_replaceOne_badgeCount : objectCollection.util.replaceOne(badgeCount), asset_push_arn : assetMap.asset_push_arn});
+                                            util.logInfo(request,`getAssetBadgeCount debug %j`,{pushStringObj : JSON.stringify(pushStringObj), objectCollection_util_replaceOne_badgeCount : objectCollection.util.replaceOne(badgeCount), asset_push_arn : assetMap.asset_push_arn});
                                             switch (rowData.pushType) {
                                                 // case 'pub':
                                                 //     //console.log('pubnubMsg :', pubnubMsg);
@@ -1076,7 +1076,7 @@ function ActivityPushService(objectCollection) {
                                                         pubnubMsg.desk_asset_id = rowData.assetId;
                                                         //console.log('PubNub Message : ', pubnubMsg);
                                                         //global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg), {}, {});
-                                                        util.logInfo(request,`debug pubnubMsg: %j`,{pubnubMsg : JSON.stringify(pubnubMsg)});
+                                                        util.logInfo(request,`getAssetBadgeCount debug pubnubMsg: %j`,{pubnubMsg : JSON.stringify(pubnubMsg)});
                                                         if (cnt === 0) { //Pushing org pubnub only once for each activity
                                                             //pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                                             //pusherWrapper.push('org_' + rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
@@ -1087,7 +1087,7 @@ function ActivityPushService(objectCollection) {
                                                     //PUB
                                                     //console.log('pubnubMsg :', pubnubMsg);
                                                     //global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg), {}, {});
-                                                    util.logInfo(request,`debug pubnubMsg: %j`,{pubnubMsg : JSON.stringify(pubnubMsg)});
+                                                    util.logInfo(request,`getAssetBadgeCount debug pubnubMsg: %j`,{pubnubMsg : JSON.stringify(pubnubMsg)});
                                                     /*if (pubnubMsg.activity_type_category_id != 0) {
                                                         pubnubMsg.organization_id = rowData.organizationId;
                                                         pubnubMsg.desk_asset_id = rowData.assetId;
@@ -1105,7 +1105,7 @@ function ActivityPushService(objectCollection) {
                                             pubnubMsg.desk_asset_id = rowData.assetId;
                                             //console.log('PubNub Message : ', pubnubMsg);
                                             //global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg), {}, {});
-                                            util.logInfo(request,`debug PubNub Message: %j`,{pubnubMsg : JSON.stringify(pubnubMsg)});
+                                            util.logInfo(request,`getAssetBadgeCount debug PubNub Message: %j`,{pubnubMsg : JSON.stringify(pubnubMsg)});
                                             if (cnt === 0) { //Pushing org pubnub only once for each activity
                                                 //pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                                 //pusherWrapper.push('org_' + rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
@@ -1125,7 +1125,7 @@ function ActivityPushService(objectCollection) {
                     } else if (Object.keys(pubnubMsg).length > 0) {
                         //console.log('Sending PubNub push Alone');
                         //global.logger.write('conLog', 'Sending PubNub push Alone', {}, {});
-                        util.logInfo(request,`conLog Sending PubNub push Alone`,{});
+                        util.logInfo(request,`getPushString Sending PubNub push Alone`,{});
                         let cnt = 0;
                         objectCollection.forEachAsync(pushReceivers, function (next, rowData) {
                             if (Number(formSubmitterAssetID) !== Number(rowData.assetId)) {
@@ -1133,23 +1133,23 @@ function ActivityPushService(objectCollection) {
                                     //console.log(rowData.assetId, ' is asset for which we are about to send push');
                                     //console.log('Asset Map : ', assetMap);
                                     //global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push', {}, {});
-                                    util.logInfo(request,`debug ${rowData.assetId} is asset for which we are about to send push`,{});
+                                    util.logInfo(request,`getAssetMap debug ${rowData.assetId} is asset for which we are about to send push`,{});
                                     //global.logger.write('debug', assetMap, {}, {});                                                                
                                     if (Object.keys(assetMap).length > 0) {
                                         //console.log('rowData : ', rowData);
                                         //global.logger.write('debug', rowData, {}, {});
-                                        util.logInfo(request,`debug %j`,{rowData});
+                                        util.logInfo(request,`getAssetMap debug %j`,{rowData});
                                         switch (rowData.pushType) {
                                             case 'pub':
                                                 //console.log('pubnubMsg :', pubnubMsg);
                                                 //global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg, null, 2), {}, {});
-                                                util.logInfo(request,`debug pubnubMsg: %j`,{pubnubMsg : JSON.stringify(pubnubMsg, null, 2)});
+                                                util.logInfo(request,`getAssetMap debug pubnubMsg: %j`,{pubnubMsg : JSON.stringify(pubnubMsg, null, 2)});
                                                 if (pubnubMsg.activity_type_category_id != 0) {
                                                     pubnubMsg.organization_id = rowData.organizationId;
                                                     pubnubMsg.desk_asset_id = rowData.assetId;
                                                     //console.log('PubNub Message : ', pubnubMsg);
                                                     //global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg), {}, {});
-                                                    util.logInfo(request,`debug PubNub Message: %j`,{pubnubMsg : JSON.stringify(pubnubMsg)});
+                                                    util.logInfo(request,`getAssetMap debug PubNub Message: %j`,{pubnubMsg : JSON.stringify(pubnubMsg)});
                                                     if (cnt === 0) {
                                                         //pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                                         //pusherWrapper.push('org_' + rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
@@ -1166,7 +1166,7 @@ function ActivityPushService(objectCollection) {
                                                     pubnubMsg.desk_asset_id = rowData.assetId;
                                                     //console.log('PubNub Message : ', pubnubMsg);
                                                     //global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg, null, 2), {}, {});
-                                                    util.logInfo(request,`debug PubNub Message: %j`,{PubNub_Message : JSON.stringify(pubnubMsg, null, 2)});
+                                                    util.logInfo(request,`getAssetMap debug PubNub Message: %j`,{PubNub_Message : JSON.stringify(pubnubMsg, null, 2)});
                                                     if (cnt === 0) {
                                                         //pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                                         //pusherWrapper.push('org_' + rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
@@ -1187,7 +1187,7 @@ function ActivityPushService(objectCollection) {
                     } else {
                         //console.log('push string is retrived as an empty object');
                         //global.logger.write('conLog', 'push string is retrived as an empty object', {}, {});
-                        util.logInfo(request,`conLog push string is retrived as an empty object`,{});
+                        util.logInfo(request,`getPushString push string is retrived as an empty object`,{});
                         callback(false, true);
                     }
                 }.bind(this));
@@ -1208,16 +1208,16 @@ function ActivityPushService(objectCollection) {
                         if (pushAssetId > 0) {
 
                             //global.logger.write('debug', 'pushAssetId: ' + pushAssetId, {}, {});
-                            util.logInfo(request,`conLog pushAssetId: %j`,{pushAssetId : pushAssetId});
+                            util.logInfo(request,`getAssetActiveAccount pushAssetId: %j`,{pushAssetId : pushAssetId});
 
                             objectCollection.forEachAsync(newParticipantsList, function (next, rowData) {
 
                                 //global.logger.write('debug', 'Number(request.asset_id): ' + JSON.stringify(request.asset_id), {}, request);
-                                util.logInfo(request,`debug Number(request.asset_id): %j`,{Number_request_asset_id : JSON.stringify(request.asset_id), request});
+                                util.logInfo(request,`getAssetActiveAccount debug Number(request.asset_id): %j`,{Number_request_asset_id : JSON.stringify(request.asset_id), request});
                                 //global.logger.write('debug', 'Number(rowData[asset_id]): ' + JSON.stringify(rowData['asset_id']), {}, request);
-                                util.logInfo(request,`debug Number(rowData[asset_id]):: %j`,{Number_rowData_asset_id : JSON.stringify(rowData['asset_id']),request});
+                                util.logInfo(request,`getAssetActiveAccount debug Number(rowData[asset_id]):: %j`,{Number_rowData_asset_id : JSON.stringify(rowData['asset_id']),request});
                                 //global.logger.write('debug', 'Expression: ' + JSON.stringify(Number(request.asset_id) === Number(rowData['asset_id'])), {}, request);
-                                util.logInfo(request,`debug Expression: %j`,{Expression : JSON.stringify(Number(request.asset_id) === Number(rowData['asset_id'])), request});
+                                util.logInfo(request,`getAssetActiveAccount debug Expression: %j`,{Expression : JSON.stringify(Number(request.asset_id) === Number(rowData['asset_id'])), request});
 
                                 if (Number(request.asset_id) === Number(rowData['asset_id'])) { // sender details in this condition
                                     senderName = rowData['operating_asset_first_name'] + ' ' + rowData['operating_asset_last_name'];
@@ -1230,7 +1230,7 @@ function ActivityPushService(objectCollection) {
                                     objectCollection.activityCommonService.getAssetDetails(reqobj, function (err, data, resp) {
                                         //console.log('SESSION DATA : ', data.asset_session_status_id);
                                         //global.logger.write('debug', 'SESSION DATA: ' + data.asset_session_status_id, {}, request);
-                                        util.logInfo(request,`debug SESSION DATA:  %j`,{asset_session_status_id : data.asset_session_status_id, request});                                    
+                                        util.logInfo(request,`getAssetDetails debug SESSION DATA:  %j`,{asset_session_status_id : data.asset_session_status_id, request});                                    
                                         if (err === false) {
                                             switch (data.asset_session_status_id) {
                                                 case 8:
@@ -1274,11 +1274,11 @@ function ActivityPushService(objectCollection) {
                             objectCollection.forEachAsync(newParticipantsList, function (next, rowData) {
 
                                 //global.logger.write('debug', 'Number(request.asset_id): ' + JSON.stringify(request.asset_id), {}, request);
-                                util.logInfo(request,`debug Number(request.asset_id): %j`,{Number_request_asset_id : JSON.stringify(request.asset_id),request});
+                                util.logInfo(request,`getAllParticipants debug Number(request.asset_id): %j`,{Number_request_asset_id : JSON.stringify(request.asset_id),request});
                                 //global.logger.write('debug', 'Number(rowData[asset_id]): ' + JSON.stringify(rowData['asset_id']), {}, request);
-                                util.logInfo(request,`debug Number(rowData[asset_id]): %j`,{Number_rowData_asset_id : JSON.stringify(rowData['asset_id']),request});
+                                util.logInfo(request,`getAllParticipants debug Number(rowData[asset_id]): %j`,{Number_rowData_asset_id : JSON.stringify(rowData['asset_id']),request});
                                 //global.logger.write('debug', 'Expression: ' + JSON.stringify(Number(request.asset_id) !== Number(rowData['asset_id'])), {}, request);
-                                util.logInfo(request,`debug Expression %j`,{Expression : JSON.stringify(Number(request.asset_id) !== Number(rowData['asset_id'])),request});
+                                util.logInfo(request,`getAllParticipants debug Expression %j`,{Expression : JSON.stringify(Number(request.asset_id) !== Number(rowData['asset_id'])),request});
 
                                 if (Number(request.asset_id) !== Number(rowData['asset_id'])) {
                                     reqobj = {
@@ -1288,7 +1288,7 @@ function ActivityPushService(objectCollection) {
                                     objectCollection.activityCommonService.getAssetDetails(reqobj, function (err, data, resp) {
                                         //console.log('SESSION DATA : ', data.asset_session_status_id);
                                         //global.logger.write('debug', 'SESSION DATA: ' + data.asset_session_status_id, {}, request);
-                                        util.logInfo(request,`debug SESSION DATA: %j`,{asset_session_status_id : data.asset_session_status_id,request});
+                                        util.logInfo(request,`getAssetDetails debug SESSION DATA: %j`,{asset_session_status_id : data.asset_session_status_id,request});
                                         if (err === false) {
                                             switch (data.asset_session_status_id) {
                                                 case 8:
@@ -1328,7 +1328,7 @@ function ActivityPushService(objectCollection) {
                     }).catch((err) => {
                         //console.log("Unable to retrieve the Receiver's asset phone number : ", err);
                         //global.logger.write('debug', "Unable to retrieve the Receiver's asset phone number : " + err, {}, request);
-                        util.logError(request,`debug Unable to retrieve the Receiver's asset phone number Error %j`, { err,request });
+                        util.logError(request,`getAssetActiveAccount debug Unable to retrieve the Receiver's asset phone number Error %j`, { err,request });
                     });
             }
         });
@@ -1358,7 +1358,7 @@ function ActivityPushService(objectCollection) {
 
                             //console.log('SMS String : ', smsString);
                             //global.logger.write('debug', 'SMS String: ' + JSON.stringify(smsString), {}, request);
-                            util.logInfo(request,`debug SMS String: %j`,{SMS_String : JSON.stringify(smsString),request});
+                            util.logInfo(request,`getPushString debug SMS String: %j`,{SMS_String : JSON.stringify(smsString),request});
 
                             objectCollection.util.sendSmsSinfini(smsString, RecieverData.operating_asset_phone_country_code, RecieverData.operating_asset_phone_number, function () {
 
@@ -1383,7 +1383,7 @@ function ActivityPushService(objectCollection) {
             } else {
                 //console.log('active in last 48 hrs');
                 //global.logger.write('conLog', 'active in last 48 hrs', {}, request);
-                util.logInfo(request,`conLog active in last 48 hrs %j`,{request});
+                util.logInfo(request,`getAssetDetails active in last 48 hrs %j`,{request});
             }
 
         });
@@ -1408,7 +1408,7 @@ function ActivityPushService(objectCollection) {
 
     async function proceedSendPushAsync(request, pushReceivers, senderName, isOrgRateLimitExceeded, objectCollection) {
         //global.logger.write('debug', 'pushReceivers.length : ' + pushReceivers.length, {}, {});
-        util.logInfo(request,`debug pushReceivers.length : %j`,{length : pushReceivers.length});
+        util.logInfo(request,`proceedSendPushAsync debug pushReceivers.length : %j`,{length : pushReceivers.length});
         if (pushReceivers.length > 0) {
             let formSubmitterAssetID = request.form_submitter_asset_id || 0;
             let [pushStringObj, pubnubMsg] = await getPushStringPromise(request, objectCollection, senderName);
@@ -1416,13 +1416,13 @@ function ActivityPushService(objectCollection) {
             //console.log('PubMSG : ', pubnubMsg);
             //console.log('pushStringObj : ', pushStringObj);
             //global.logger.write('debug', 'PubMSG: ' + JSON.stringify(pubnubMsg), {}, {});
-            util.logInfo(request,`debug PubMSG: %j`,{PubMSG : JSON.stringify(pubnubMsg)});
+            util.logInfo(request,`proceedSendPushAsync debug PubMSG: %j`,{PubMSG : JSON.stringify(pubnubMsg)});
             //global.logger.write('conLog', pubnubMsg, {}, {});
-            util.logInfo(request,`conLog pubnubMsg %j`,{pubnubMsg});
+            util.logInfo(request,`proceedSendPushAsync pubnubMsg %j`,{pubnubMsg});
             //global.logger.write('debug', 'pushStringObj : ' + JSON.stringify(pushStringObj), {}, {});
-            util.logInfo(request,`debug pushStringObj: %j`,{pushStringObj : JSON.stringify(pushStringObj)});
+            util.logInfo(request,`proceedSendPushAsync debug pushStringObj: %j`,{pushStringObj : JSON.stringify(pushStringObj)});
             //global.logger.write('conLog', pushStringObj, {}, {});
-            util.logInfo(request,`conLog pushStringObj %j`,{pushStringObj});
+            util.logInfo(request,`proceedSendPushAsync pushStringObj %j`,{pushStringObj});
             
             if (Object.keys(pushStringObj).length > 0) {
                 let cnt = 0;
@@ -1434,17 +1434,17 @@ function ActivityPushService(objectCollection) {
                         let assetMap = await getAssetMapPromise(rowData.assetId);
 
                         //global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push', {}, {});
-                        util.logInfo(request,`debug ${rowData.assetId} is asset for which we are about to send push`,{});
+                        util.logInfo(request,`proceedSendPushAsync debug ${rowData.assetId} is asset for which we are about to send push`,{});
 
                         if (Object.keys(assetMap).length > 0) {
                             let [err, badgeCount] = await getAssetBadgeCountAsync(request, objectCollection, assetMap.asset_id, assetMap.organization_id);
 
                             //global.logger.write('debug', badgeCount + ' is badge count obtained from db', {}, {});
-                            util.logInfo(request,`debug ${badgeCount} is badge count obtained from db`,{});
+                            util.logInfo(request,`proceedSendPushAsync debug ${badgeCount} is badge count obtained from db`,{});
                             //global.logger.write('debug', assetMap, {}, {});
-                            util.logInfo(request,`debug %j`,{assetMap});
+                            util.logInfo(request,`proceedSendPushAsync debug %j`,{assetMap});
                             //global.logger.write('debug', JSON.stringify(pushStringObj) + ' ' + objectCollection.util.replaceOne(badgeCount) + ' ' + assetMap.asset_push_arn, {}, {});
-                            util.logInfo(request,`debug %j`,{pushStringObj : JSON.stringify(pushStringObj), objectCollection_util_replaceOne_badgeCount : objectCollection.util.replaceOne(badgeCount), assetMap_asset_push_arn : assetMap.asset_push_arn});
+                            util.logInfo(request,`proceedSendPushAsync debug %j`,{pushStringObj : JSON.stringify(pushStringObj), objectCollection_util_replaceOne_badgeCount : objectCollection.util.replaceOne(badgeCount), assetMap_asset_push_arn : assetMap.asset_push_arn});
 
                             switch (rowData.pushType) {
                                 default:
@@ -1467,7 +1467,7 @@ function ActivityPushService(objectCollection) {
                                         pubnubMsg.desk_asset_id = rowData.assetId;
                                         //console.log('PubNub Message : ', pubnubMsg);
                                         //global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg), {}, {});
-                                        util.logInfo(request,`debug pubnubMsg: %j`,{pubnubMsg : JSON.stringify(pubnubMsg)});
+                                        util.logInfo(request,`proceedSendPushAsync debug pubnubMsg: %j`,{pubnubMsg : JSON.stringify(pubnubMsg)});
                                         if (cnt === 0) { //Pushing org pubnub only once for each activity
                                             //(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                             //pusherWrapper.push('org_' + rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
@@ -1478,7 +1478,7 @@ function ActivityPushService(objectCollection) {
                                     //PUB
                                     //console.log('pubnubMsg :', pubnubMsg);
                                     //global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg), {}, {});
-                                    util.logInfo(request,`debug pubnubMsg: %j`,{pubnubMsg : JSON.stringify(pubnubMsg)});
+                                    util.logInfo(request,`proceedSendPushAsync debug pubnubMsg: %j`,{pubnubMsg : JSON.stringify(pubnubMsg)});
                                     break;
                             } //END of Switch
                         } else if (rowData.pushType == 'pub') {
@@ -1487,7 +1487,7 @@ function ActivityPushService(objectCollection) {
                                 pubnubMsg.desk_asset_id = rowData.assetId;
                                 //console.log('PubNub Message : ', pubnubMsg);
                                 //global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg), {}, {});
-                                util.logInfo(request,`debug PubNub Message: %j`,{PubNub_Message : JSON.stringify(pubnubMsg)});
+                                util.logInfo(request,`proceedSendPushAsync debug PubNub Message: %j`,{PubNub_Message : JSON.stringify(pubnubMsg)});
                                 if (cnt === 0) { //Pushing org pubnub only once for each activity
                                     //pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                     //pusherWrapper.push('org_' + rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
@@ -1504,7 +1504,7 @@ function ActivityPushService(objectCollection) {
                 } else if (Object.keys(pubnubMsg).length > 0) {
                     //console.log('Sending PubNub push Alone');
                     //global.logger.write('conLog', 'Sending PubNub push Alone', {}, {});
-                    util.logInfo(request,`conLog Sending PubNub push Alone`,{});
+                    util.logInfo(request,`proceedSendPushAsync Sending PubNub push Alone`,{});
                     let cnt = 0;
                     let i;
                     let rowData;
@@ -1513,22 +1513,22 @@ function ActivityPushService(objectCollection) {
                         if (Number(formSubmitterAssetID) !== Number(rowData.assetId)) {
                             let assetMap = await getAssetMapPromise(rowData.assetId);
                             //global.logger.write('debug', rowData.assetId + ' is asset for which we are about to send push', {}, {});
-                            util.logInfo(request,`debug ${rowData.assetId} is asset for which we are about to send push`,{});
+                            util.logInfo(request,`proceedSendPushAsync debug ${rowData.assetId} is asset for which we are about to send push`,{});
 
                             if (Object.keys(assetMap).length > 0) {
                                 //global.logger.write('debug', JSON.stringify(rowData), {}, {});
-                                util.logInfo(request,`debug %j`,{rowData : JSON.stringify(rowData)});
+                                util.logInfo(request,`proceedSendPushAsync debug %j`,{rowData : JSON.stringify(rowData)});
                                 switch (rowData.pushType) {
                                     case 'pub':
                                         //console.log('pubnubMsg :', pubnubMsg);
                                         //global.logger.write('debug', 'pubnubMsg: ' + JSON.stringify(pubnubMsg, null, 2), {}, {});
-                                        util.logInfo(request,`debug pubnubMsg: %j`,{pubnubMsg : JSON.stringify(pubnubMsg, null, 2)});
+                                        util.logInfo(request,`proceedSendPushAsync debug pubnubMsg: %j`,{pubnubMsg : JSON.stringify(pubnubMsg, null, 2)});
                                         if (pubnubMsg.activity_type_category_id != 0) {
                                             pubnubMsg.organization_id = rowData.organizationId;
                                             pubnubMsg.desk_asset_id = rowData.assetId;
                                             //console.log('PubNub Message : ', pubnubMsg);
                                             //global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg), {}, {});
-                                            util.logInfo(request,`debug PubNub Message: %j`,{PubNub_Message : JSON.stringify(pubnubMsg)});
+                                            util.logInfo(request,`proceedSendPushAsync debug PubNub Message: %j`,{PubNub_Message : JSON.stringify(pubnubMsg)});
                                             if (cnt === 0) {
                                                 //pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                                 //pusherWrapper.push('org_' + rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
@@ -1545,7 +1545,7 @@ function ActivityPushService(objectCollection) {
                                             pubnubMsg.desk_asset_id = rowData.assetId;
                                             //console.log('PubNub Message : ', pubnubMsg);
                                             //global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg, null, 2), {}, {});
-                                            util.logInfo(request,`debug PubNub Message: %j`,{PubNub_Message : JSON.stringify(pubnubMsg, null, 2)});
+                                            util.logInfo(request,`proceedSendPushAsync debug PubNub Message: %j`,{PubNub_Message : JSON.stringify(pubnubMsg, null, 2)});
                                             if (cnt === 0) {
                                                 //pubnubWrapper.push(rowData.organizationId, pubnubMsg, isOrgRateLimitExceeded);
                                                 //pusherWrapper.push('org_' + rowData.organizationId, pubnubMsg, '',isOrgRateLimitExceeded);
@@ -1561,7 +1561,7 @@ function ActivityPushService(objectCollection) {
                         } //END of FOR Loop
                 } else {
                     //global.logger.write('conLog', 'push string is retrived as an empty object', {}, {});
-                    util.logInfo(request,`conLog push string is retrived as an empty object`,{});
+                    util.logInfo(request,`proceedSendPushAsync push string is retrived as an empty object`,{});
                 }
         }
     } 
@@ -1601,18 +1601,18 @@ function ActivityPushService(objectCollection) {
             let newParticipantsList = await objectCollection.activityCommonService.getAssetActiveAccount(participantsList);
             if (pushAssetId > 0) {
                 //global.logger.write('debug', 'pushAssetId: ' + pushAssetId, {}, {});
-                util.logInfo(request,`debug pushAssetId: %j`,{pushAssetId : pushAssetId});
+                util.logInfo(request,`sendPushAsync debug pushAssetId: %j`,{pushAssetId : pushAssetId});
                 let i;
                 let rowData;
                 for(i=0;i<newParticipantsList.length;i++){
                     rowData = newParticipantsList[i];
 
                     //global.logger.write('debug', 'Number(request.asset_id): ' + JSON.stringify(request.asset_id), {}, request);
-                    util.logInfo(request,`debug Number(request.asset_id): %j`,{Number_request_asset_id : JSON.stringify(request.asset_id),request});
+                    util.logInfo(request,`sendPushAsync debug Number(request.asset_id): %j`,{Number_request_asset_id : JSON.stringify(request.asset_id),request});
                     //global.logger.write('debug', 'Number(rowData[asset_id]): ' + JSON.stringify(rowData.asset_id), {}, request);
-                    util.logInfo(request,`debug Number(rowData[asset_id]): %j`,{Number_rowData_asset_id : JSON.stringify(rowData.asset_id),request});
+                    util.logInfo(request,`sendPushAsync debug Number(rowData[asset_id]): %j`,{Number_rowData_asset_id : JSON.stringify(rowData.asset_id),request});
                     //global.logger.write('debug', 'Expression: ' + JSON.stringify(Number(request.asset_id) === Number(rowData.asset_id)), {}, request);
-                    util.logInfo(request,`debug Expression: %j`,{Expression : JSON.stringify(Number(request.asset_id) === Number(rowData.asset_id)),request});
+                    util.logInfo(request,`sendPushAsync debug Expression: %j`,{Expression : JSON.stringify(Number(request.asset_id) === Number(rowData.asset_id)),request});
 
                     if (Number(request.asset_id) === Number(rowData.asset_id)) { // sender details in this condition
                         senderName = rowData.operating_asset_first_name + ' ' + rowData.operating_asset_last_name;
@@ -1624,7 +1624,7 @@ function ActivityPushService(objectCollection) {
                                     
                         let [err, data] = await objectCollection.activityCommonService.getAssetDetailsAsync(reqobj);
                         //global.logger.write('debug', 'SESSION DATA: ' + data.asset_session_status_id, {}, request);
-                        util.logInfo(request,`debug SESSION DATA: %j`,{data_asset_session_status_id : data.asset_session_status_id,request});
+                        util.logInfo(request,`sendPushAsync debug SESSION DATA: %j`,{data_asset_session_status_id : data.asset_session_status_id,request});
                         if (!err) {
                             switch (data.asset_session_status_id) {
                                 case 8:
@@ -1661,11 +1661,11 @@ function ActivityPushService(objectCollection) {
                     rowData = newParticipantsList[i];
                                 
                     //global.logger.write('debug', 'Number(request.asset_id): ' + JSON.stringify(request.asset_id), {}, request);
-                    util.logInfo(request,`debug Number(request.asset_id): %j`,{Number_request_asset_id : JSON.stringify(request.asset_id),request});
+                    util.logInfo(request,`sendPushAsync debug Number(request.asset_id): %j`,{Number_request_asset_id : JSON.stringify(request.asset_id),request});
                     //global.logger.write('debug', 'Number(rowData[asset_id]): ' + JSON.stringify(rowData['asset_id']), {}, request);
-                    util.logInfo(request,`debug Number(rowData[asset_id]): %j`,{Number_rowData_asset_id : JSON.stringify(rowData['asset_id']),request});
+                    util.logInfo(request,`sendPushAsync debug Number(rowData[asset_id]): %j`,{Number_rowData_asset_id : JSON.stringify(rowData['asset_id']),request});
                     //global.logger.write('debug', 'Expression: ' + JSON.stringify(Number(request.asset_id) !== Number(rowData['asset_id'])), {}, request);
-                    util.logInfo(request,`debug Expression: %j`,{Expression : JSON.stringify(Number(request.asset_id) !== Number(rowData['asset_id'])),request});
+                    util.logInfo(request,`sendPushAsync debug Expression: %j`,{Expression : JSON.stringify(Number(request.asset_id) !== Number(rowData['asset_id'])),request});
 
                     if (Number(request.asset_id) !== Number(rowData.asset_id)) {
                         reqobj = {
@@ -1675,7 +1675,7 @@ function ActivityPushService(objectCollection) {
                     
                     let [err, data] = await objectCollection.activityCommonService.getAssetDetailsAsync(reqobj);
                     //global.logger.write('debug', 'SESSION DATA: ' + data.asset_session_status_id, {}, request);
-                    util.logInfo(request,`debug SESSION DATA: %j`,{data_asset_session_status_id : data.asset_session_status_id,request});
+                    util.logInfo(request,`sendPushAsync debug SESSION DATA: %j`,{data_asset_session_status_id : data.asset_session_status_id,request});
                     if (!err) {
                         switch (data.asset_session_status_id) {
                             case 8:
@@ -1709,7 +1709,7 @@ function ActivityPushService(objectCollection) {
                 } //END of //pushAssetId > 0 False
             } else {
                 //global.logger.write('debug', "Unable to retrieve the Receiver's asset phone number : " + err, {}, request);
-                util.logError(request,`debug Unable to retrieve the Receiver's asset phone number : Error %j`, { err,request });
+                util.logError(request,`sendPushAsync debug Unable to retrieve the Receiver's asset phone number : Error %j`, { err,request });
             }
 
             return [error, responseData];

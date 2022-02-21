@@ -824,7 +824,7 @@ function FormConfigService(objCollection) {
                         //the request is not fired internally device_os_id = 7 means internal call
                         if (Number(request.form_id) === CAF_FORM_ID && Number(request.device_os_id) !== 7) {
                             //global.logger.write('conLog', "\x1b[35m [Log] CAF EDIT \x1b[0m", {}, request);
-                            util.logInfo(request,`conLog \x1b[35m [Log] CAF EDIT \x1b[0m %j`,{request});
+                            util.logInfo(request,`getLatestUpdateSeqId conLog \x1b[35m [Log] CAF EDIT \x1b[0m %j`,{request});
                             await fetchReferredFormActivityId(request, request.activity_id, newData.form_transaction_id, request.form_id).then((data) => {
                                 util.logInfo(request,`workflow_activity_id %j`,data[0].activity_id);
 
@@ -1996,9 +1996,9 @@ function FormConfigService(objCollection) {
 
             fetchReferredFormActivityId(request, request.activity_id, request.form_transaction_id, request.form_id).then((data) => {
                 //global.logger.write('conLog', "\x1b[35m [Log] DATA \x1b[0m", {}, request);
-                util.logInfo(request,`conLog \x1b[35m [Log] DATA \x1b[0m %j`,{request});
+                util.logInfo(request,`fetchReferredFormActivityId conLog \x1b[35m [Log] DATA \x1b[0m %j`,{request});
                 //global.logger.write('conLog', data, {}, request);
-                util.logInfo(request,`conLog %j`,{data, request});
+                util.logInfo(request,`fetchReferredFormActivityId conLog %j`,{data, request});
                 if (data.length > 0) {
                     let newOrderFormActivityId = Number(data[0].activity_id);
 
@@ -2943,7 +2943,7 @@ function FormConfigService(objCollection) {
                         }
                     } catch (botInitError) {
                         //global.logger.write('error', botInitError, botInitError, request);
-                        util.logError(request,`debug Error %j`, { botInitError, request });
+                        util.logError(request,`getFormFieldMappings debug Error %j`, { botInitError, request });
                     }
                 }
             }
@@ -3151,7 +3151,7 @@ function FormConfigService(objCollection) {
                     });
 
                 //global.logger.write('conLog', "New activityId is :" + activityId, {}, request);
-                util.logInfo(request,`conLog New activityId is : %j`,{New_activityId : activityId, request});
+                util.logInfo(request,`workforceFormMappingSelect conLog New activityId is : %j`,{New_activityId : activityId, request});
 
                 // Prepare a new request object and fire the addActivity service
                 let createWorkflowRequest = Object.assign({}, request);

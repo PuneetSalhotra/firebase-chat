@@ -374,11 +374,11 @@ function ActivityTimelineController(objCollection) {
                                 if (err) {
                                     //console.log("error in setting in asset parity");
                                     //global.logger.write('serverError', "error in setting in asset parity", err, req.body);
-                                    util.logError(req,`serverError error in setting in asset parity Error %j`, { err,body : req.body });
+                                    util.logError(req.body,`setAssetParity serverError error in setting in asset parity Error %j`, { err,body : req.body });
                                 } else
                                     //console.log("asset parity is set successfully")
                                     //global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
-                                    util.logInfo(req,`conLog Asset parity is set successfully %j`,{body : req.body});
+                                    util.logInfo(req.body,`setAssetParity Asset parity is set successfully %j`,{body : req.body});
 
                             });
                         }
@@ -594,11 +594,11 @@ function ActivityTimelineController(objCollection) {
                                 if (err) {
                                     //console.log("error in setting in asset parity");
                                     //global.logger.write('serverError', "error in setting in asset parity", err, req.body);
-                                    util.logError(req,`serverError error in setting in asset parity Error %j`, { err,body : req.body });
+                                    util.logError(req.body,`setAssetParity serverError error in setting in asset parity Error %j`, { err,body : req.body });
                                 } else
                                     //console.log("asset parity is set successfully")
                                     //global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
-                                    util.logInfo(req,`conLog Asset parity is set successfully %j`,{body : req.body});
+                                    util.logInfo(req.body,`setAssetParity Asset parity is set successfully %j`,{body : req.body});
 
                             });
                         }

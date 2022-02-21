@@ -1043,7 +1043,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                         if (err === false) {
                             //console.log("participant successfully added");
                             //global.logger.write('conLog', 'participant successfully added', {}, request)
-                            util.logInfo(request,`conLog participant successfully added %j`,{ request});
+                            util.logInfo(request,`addParticipant conLog participant successfully added %j`,{ request});
                             let nextIndex = index + 1;
                             if (nextIndex <= maxIndex) {
                                 loopAddParticipant(participantCollection, nextIndex, maxIndex);
@@ -1052,14 +1052,14 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                         } else {
                             console.log(err);
                             //global.logger.write('serverError', '' + err, {}, request)
-                            util.logError(request,`serverError Error %j`, { err, request });
+                            util.logError(request,`addParticipant serverError Error %j`, { err, request });
                             callback(true, err);
                         }
                     }.bind(this));
                 } else {
                     if (alreadyAssignedStatus > 0) {
                         //global.logger.write('conLog', 'participant already assigned', {}, request)
-                        util.logInfo(request,`conLog participant already assigned %j`,{ request});
+                        util.logInfo(request,`isParticipantAlreadyAssigned participant already assigned %j`,{ request});
                         let nextIndex = index + 1;
                         if (nextIndex <= maxIndex) {
                             loopAddParticipant(participantCollection, nextIndex, maxIndex);
@@ -1149,7 +1149,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         } else {
             //console.log('re-assigining to the archived row');
             //global.logger.write('conLog', 're-assigining to the archived row', {}, request)
-            util.logInfo(request,`conLog re-assigining to the archived row %j`,{request});
+            util.logInfo(request,`addParticipant conLog re-assigining to the archived row %j`,{request});
             activityAssetMappingUpdateParticipantReAssign(request, participantData, function (err, data) {
                 if (err === false) {
                     activityCommonService.assetActivityListHistoryInsert(request, participantData.asset_id, 502, function (err, restult) {
@@ -1210,7 +1210,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                     callback(true, err);
                     console.log('nani : ', err);
                     //global.logger.write('serverError', err, err, request)
-                    util.logError(request,`serverError Error %j`, { err, request });
+                    util.logError(request,`isParticipantAlreadyAssigned serverError Error %j`, { err, request });
                     return;
                 }
             });
@@ -1261,7 +1261,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                     callback(err, false);
                     //console.log(err);
                     //global.logger.write('serverError','' + err, request)
-                    util.logError(request,`serverError Error %j`, { err, request });
+                    util.logError(request,`activityAssetMappingInsertParticipantAssign serverError Error %j`, { err, request });
                     return;
                 }
             });
@@ -1294,7 +1294,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                     callback(err, false);
                     //console.log(err);
                     //global.logger.write('serverError', err, err, request)
-                    util.logError(request,`serverError Error %j`, { err, request });
+                    util.logError(request,`activityAssetMappingUpdateParticipantReAssign serverError Error %j`, { err, request });
                     return;
                 }
             });
@@ -2940,7 +2940,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                     callback(err, false);
                     //console.log(err);
                     //global.logger.write('serverError', err, err, request)
-                    util.logError(request,`serverError Error %j`, { err, request });
+                    util.logError(request,`updateActivityListOwnerLeadPam serverError Error %j`, { err, request });
                     return;
                 }
             });
@@ -3048,7 +3048,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                     callback(err, false);
                     //console.log(err);
                     //global.logger.write('serverError', err, err, request)
-                    util.logError(request,`serverError Error %j`, { err, request });
+                    util.logError(request,`assetTimelineInsert serverError Error %j`, { err, request });
                     return;
                 }
             });
@@ -3208,7 +3208,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                     callback(err, false);
                     //console.log(err);
                     //global.logger.write('serverError', err, err, request)
-                    util.logError(request,`serverError Error %j`, { err, request });
+                    util.logError(request,`activityTimelineInsert serverError Error %j`, { err, request });
                     return;
                 }
             });
@@ -3430,12 +3430,12 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 				getReservationMemberDiscount(request, idReservation).then((data)=>{
 						console.log(data[0].memberDiscount); 
 					//global.logger.write('debug','Discount '+ JSON.stringify(data), {},request);
-                    util.logInfo(request,`debug Discount %j`,{Discount : JSON.stringify(data), request});
+                    util.logInfo(request,`processReservationBilling debug Discount %j`,{Discount : JSON.stringify(data), request});
 					
 					getReservationBilling(request, idReservation, data[0].nameReservation, data[0].idMember, data[0].nameMember, data[0].memberDiscount, data[0].serviceChargePercentage, data[0].memberEnabled).then((resevationBillAmount)=>{
 						
 						//global.logger.write('conLog', 'resevationBill ' + resevationBillAmount.total_price, {}, request);
-                        util.logInfo(request,`conLog resevationBill %j`,{resevationBillAmount_total_price : resevationBillAmount.total_price, request});
+                        util.logInfo(request,`processReservationBilling conLog resevationBill %j`,{resevationBillAmount_total_price : resevationBillAmount.total_price, request});
 						
 						if(request.hasOwnProperty('is_insert')){
 							pamEventBillingInsert(request, data[0].idEvent, data[0].titleEvent, idReservation, data[0].nameReservation, data[0].idActivityStatusType, data[0].nameActivityStatusType, data[0].idMember, data[0].nameMember, resevationBillAmount.total_price);
@@ -3456,11 +3456,11 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 				getReservationMemberDiscount(request, idReservation).then((data)=>{
 						//console.log(data[0].memberDiscount); 
 					//global.logger.write('debug','Discount '+ JSON.stringify(data), {},request);
-                    util.logInfo(request,`debug Discount %j`,{Discount : JSON.stringify(data), request});
+                    util.logInfo(request,`getReservationMemberDiscount debug Discount %j`,{Discount : JSON.stringify(data), request});
 					getCashAndCarryBilling(request, idReservation, data[0].nameReservation, data[0].idMember, data[0].nameMember, data[0].memberDiscount, data[0].serviceChargePercentage, data[0].memberEnabled).then((resevationBillAmount)=>{
 						
 						//global.logger.write('conLog', 'resevationBill ' + resevationBillAmount.total_price, {}, request);
-                        util.logInfo(request,`conLog resevationBill %j`,{resevationBillAmount_total_price : resevationBillAmount.total_price, request});
+                        util.logInfo(request,`getCashAndCarryBilling conLog resevationBill %j`,{resevationBillAmount_total_price : resevationBillAmount.total_price, request});
 						
 						if(request.hasOwnProperty('is_insert')){
 							pamEventBillingInsert(request, data[0].idEvent, data[0].titleEvent, idReservation, data[0].nameReservation, data[0].idActivityStatusType, data[0].nameActivityStatusType, data[0].idMember, data[0].nameMember, resevationBillAmount.total_price);
@@ -3650,7 +3650,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 						
 						pamOrderInsert(request, attributeArray).then(()=>{
 							//global.logger.write('conLog', 'OrderId cost: ' + cost+' service_charge: '+ service_charge+' item_tax_amount: '+ item_tax_amount+' service_charge_tax_amount:'+ service_charge_tax_amount+' orderId: '+rowData1.activity_id + '-menuId: ' + rowData1.channel_activity_id + ' : ' + final_price, {}, request);
-                            util.logInfo(request,`conLog %j`,{OrderId_cost : cost, service_charge : service_charge, item_tax_amount : item_tax_amount, service_charge_tax_amount : service_charge_tax_amount, orderId : rowData1.activity_id, menuId : rowData1.channel_activity_id, final_price : final_price, request});
+                            util.logInfo(request,`pamOrderInsert conLog %j`,{OrderId_cost : cost, service_charge : service_charge, item_tax_amount : item_tax_amount, service_charge_tax_amount : service_charge_tax_amount, orderId : rowData1.activity_id, menuId : rowData1.channel_activity_id, final_price : final_price, request});
 						if(JSON.parse(rowData1.activity_inline_data).hasOwnProperty('item_choice_price_tax'))
 						{
 							let arr = JSON.parse(rowData1.activity_inline_data).item_choice_price_tax;
@@ -3729,7 +3729,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 								attributeArray.option_id=1;
 								pamOrderInsert(request, attributeArray).then(()=>{
 									//global.logger.write('conLog', 'OrderId choice_cost: ' + choice_cost+' choice_service_charge: '+ choice_service_charge+' choice_item_tax_amount: '+ choice_item_tax_amount+' choice_service_charge_tax_amount: '+ choice_service_charge_tax_amount+' orderId: '+rowData1.activity_id + '-menuId: ' + choiceData.activity_id + ' : ' + choice_final_price, {}, request);
-                                    util.logInfo(request,`conLog %j`,{OrderId_choice_cost : choice_cost, choice_service_charge : choice_service_charge, choice_item_tax_amount : choice_item_tax_amount, choice_service_charge_tax_amount : choice_service_charge_tax_amount, orderId : rowData1.activity_id, menuId : choiceData.activity_id, choice_final_price : choice_final_price, request});
+                                    util.logInfo(request,`pamOrderInsert conLog %j`,{OrderId_choice_cost : choice_cost, choice_service_charge : choice_service_charge, choice_item_tax_amount : choice_item_tax_amount, choice_service_charge_tax_amount : choice_service_charge_tax_amount, orderId : rowData1.activity_id, menuId : choiceData.activity_id, choice_final_price : choice_final_price, request});
 									next2();
 									});
 							}).then(()=>{
@@ -3750,7 +3750,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 				}).then(()=>{
 					// console.log("Reservation "+idReservation+" is done");
 					//global.logger.write('conLog', 'Reservation ' + idReservation + ' is done', {}, request);
-                    util.logInfo(request,`conLog Reservation ${idReservation} is done %j`,{ request});
+                    util.logInfo(request,`getReservationOrders conLog Reservation ${idReservation} is done %j`,{ request});
 					resolve({total_price, total_discount, total_tax, gst_percent, total_mrp, total_service_charge});
 				});
 			 
@@ -3883,7 +3883,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 
                 pamOrderInsert(request, attributeArray).then(()=>{
                     //global.logger.write('conLog', 'OrderId cost: ' + cost+' service_charge: '+ service_charge+' item_tax_amount: '+ item_tax_amount+' service_charge_tax_amount:'+ service_charge_tax_amount+' orderId: '+rowData1.activity_id + '-menuId: ' + rowData1.channel_activity_id + ' : ' + final_price, {}, request);
-                    util.logInfo(request,`conLog %j`,{OrderId_cost : cost, service_charge : service_charge, item_tax_amount : item_tax_amount, service_charge_tax_amount : service_charge_tax_amount, orderId : rowData1.activity_id, menuId : rowData1.channel_activity_id, final_price : final_price, request});
+                    util.logInfo(request,`pamOrderInsert conLog %j`,{OrderId_cost : cost, service_charge : service_charge, item_tax_amount : item_tax_amount, service_charge_tax_amount : service_charge_tax_amount, orderId : rowData1.activity_id, menuId : rowData1.channel_activity_id, final_price : final_price, request});
                 if(inlinDataParsed.hasOwnProperty('item_choice_price_tax'))
                 {
                     let arr = inlinDataParsed.item_choice_price_tax;
@@ -3962,7 +3962,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                         attributeArray.option_id=1;
                         pamOrderInsert(request, attributeArray).then(()=>{
                             //global.logger.write('conLog', 'OrderId choice_cost: ' + choice_cost+' choice_service_charge: '+ choice_service_charge+' choice_item_tax_amount: '+ choice_item_tax_amount+' choice_service_charge_tax_amount: '+ choice_service_charge_tax_amount+' orderId: '+rowData1.activity_id + '-menuId: ' + choiceData.activity_id + ' : ' + choice_final_price, {}, request);
-                            util.logInfo(request,`conLog %j`,{OrderId_choice_cost : choice_cost, choice_service_charge : choice_service_charge, choice_item_tax_amount : choice_item_tax_amount, choice_service_charge_tax_amount : choice_service_charge_tax_amount, orderId : rowData1.activity_id, menuId : choiceData.activity_id, choice_final_price : choice_final_price, request});
+                            util.logInfo(request,`pamOrderInsert conLog %j`,{OrderId_choice_cost : choice_cost, choice_service_charge : choice_service_charge, choice_item_tax_amount : choice_item_tax_amount, choice_service_charge_tax_amount : choice_service_charge_tax_amount, orderId : rowData1.activity_id, menuId : choiceData.activity_id, choice_final_price : choice_final_price, request});
                             next2();
                             });
                     }).then(()=>{
@@ -3979,7 +3979,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
             }).then(() => {
                 //console.log("Reservation "+idReservation+" is done");
                 //global.logger.write('conLog', 'Reservation ' + idReservation + ' is done', {}, request);
-                util.logInfo(request,`conLog Reservation ${idReservation} is done %j`,{request});
+                util.logInfo(request,`getCashAndCarryBilling conLog Reservation ${idReservation} is done %j`,{request});
                 resolve({
                     total_price,
                     total_discount,
@@ -5920,11 +5920,11 @@ this.getChildOfAParent = async (request) => {
                 if (err) {
                     //global.logger.write('conLog', "[Send Email On Form Submission | Error]: ", {}, {});
                     //global.logger.write('conLog', err, {}, {});
-                    util.logError(request,`conLog [Send Email On Form Submission | Error]: %j`, { err, request });
+                    util.logError(request,`sendEmailV3 conLog [Send Email On Form Submission | Error]: %j`, { err, request });
                 } else {
                     //global.logger.write('conLog', "[Send Email On Form Submission | Response]: " + "Email Sent", {}, {});
                     //global.logger.write('conLog', data, {}, {});
-                    util.logInfo(request,`conLog [Send Email On Form Submission | Response]: Email Sent %j`,{data, request});
+                    util.logInfo(request,`sendEmailV3 conLog [Send Email On Form Submission | Response]: Email Sent %j`,{data, request});
                 }                        
             });
         if(process.env == 'pamProd') {
@@ -5937,11 +5937,11 @@ this.getChildOfAParent = async (request) => {
                     if (err) {
                         //global.logger.write('conLog', "[Send Email On Form Submission | Error]: ", {}, {});
                         //global.logger.write('conLog', err, {}, {});
-                        util.logError(request,`conLog [Send Email On Form Submission | Error]: %j`, { err, request });
+                        util.logError(request,`sendEmailV3 conLog [Send Email On Form Submission | Error]: %j`, { err, request });
                     } else {
                         //global.logger.write('conLog', "[Send Email On Form Submission | Response]: " + "Email Sent", {}, {});
                         //global.logger.write('conLog', data, {}, {});
-                        util.logInfo(request,`conLog [Send Email On Form Submission | Response]: Email Sent %j`,{data, request});
+                        util.logInfo(request,`sendEmailV3 conLog [Send Email On Form Submission | Response]: Email Sent %j`,{data, request});
                     }                        
             });
         }
@@ -6464,7 +6464,7 @@ this.getChildOfAParent = async (request) => {
             //    {}
             //  );
             //  global.logger.write("conLog", err, {}, {});
-             util.logError(request,`conLog [Send Email On Form Submission | Error]: %j`, { err, request });
+             util.logError(request,`sendEmailV3 conLog [Send Email On Form Submission | Error]: %j`, { err, request });
            } else {
             //  global.logger.write(
             //    "conLog",
@@ -6473,7 +6473,7 @@ this.getChildOfAParent = async (request) => {
             //    {}
             //  );
             //  global.logger.write("conLog", data, {}, {});
-             util.logInfo(request,`conLog [Send Email On Form Submission | Response]: Email Sent %j`,{data, request});
+             util.logInfo(request,`sendEmailV3 conLog [Send Email On Form Submission | Response]: Email Sent %j`,{data, request});
            }
          }
        );
@@ -6493,7 +6493,7 @@ this.getChildOfAParent = async (request) => {
             //      {}
             //    );
             //    global.logger.write("conLog", err, {}, {});
-               util.logError(request,`conLog [Send Email On Form Submission | Error]: %j`, { err, request });
+               util.logError(request,`sendEmailV3 conLog [Send Email On Form Submission | Error]: %j`, { err, request });
              } else {
             //    global.logger.write(
             //      "conLog",
@@ -6502,7 +6502,7 @@ this.getChildOfAParent = async (request) => {
             //      {}
             //    );
             //    global.logger.write("conLog", data, {}, {});
-               util.logInfo(request,`conLog [Send Email On Form Submission | Response]: Email Sent %j`,{data, request});
+               util.logInfo(request,`sendEmailV3 conLog [Send Email On Form Submission | Response]: Email Sent %j`,{data, request});
              }
            }
          );

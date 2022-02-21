@@ -14,7 +14,7 @@ function statsController(objCollection) {
             } else {
                 //console.log("err: ", err);
                 //global.logger.write('debug', err, {}, req.body);
-                util.logError(req,`debug Error %j`, { err,body : req.body });
+                util.logError(req.body,`getSignUpCountStats debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -27,7 +27,7 @@ function statsController(objCollection) {
             } else {
                 //console.log("err: ", err);
                 //global.logger.write('debug', err, {}, req.body);
-                util.logError(req,`debug Error %j`, { err,body : req.body });
+                util.logError(req.body,`getListOfSignUps debug Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -41,7 +41,7 @@ function statsController(objCollection) {
             } else {
                 //console.log("err: ", err);
                 //global.logger.write('debug', err, {}, req.body);
-                util.logError(req,`debug Error %j`, { err,body : req.body });
+                util.logError(req.body,`getTimelineList debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -148,7 +148,7 @@ function statsController(objCollection) {
                 res.json(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
                 //global.logger.write('debug', err, {}, req.body);
-                util.logError(req,`debug Error %j`, { err,body : req.body });
+                util.logError(req.body,`activityListSelectFormCountActivityStatus debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -173,7 +173,7 @@ function statsController(objCollection) {
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //global.logger.write('debug', err, {}, req.body);
-                util.logError(req,`debug Error %j`, { err,body : req.body });
+                util.logError(req.body,`activityFormTransactionSelectVodafoneFormValue debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -497,7 +497,7 @@ function statsController(objCollection) {
                 res.json(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
                 //global.logger.write('debug', err, {}, req.body);
-                util.logError(req,`debug Error %j`, { err,body : req.body });
+                util.logError(req.body,`activityFormTransactionSelectVodafoneFormValueDay debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -824,7 +824,7 @@ function statsController(objCollection) {
                 res.json(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
                 //global.logger.write('debug', err, {}, req.body);
-                util.logError(req,`debug Error %j`, { err,body : req.body });
+                util.logError(req.body,`activityListSelectFormCountActivityStatusDay debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -895,7 +895,7 @@ function statsController(objCollection) {
                 res.json(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
                 //global.logger.write('debug', err, {}, req.body);
-                util.logError(req,`debug Error %j`, { err,body : req.body });
+                util.logError(req.body,`assetMonthlySummaryTransactionSelectFlag debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })

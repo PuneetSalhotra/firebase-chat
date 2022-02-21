@@ -79,7 +79,7 @@ class SingleDimensionalStatusAggrWidget extends WidgetBase {
                                             });
                                     } else {
                                         //global.logger.write('debug', 'NO DATA FOR : ' + this.rule.widget_id + ' Done', {}, data);
-                                        util.logInfo({},`debug NO DATA FOR: %j`,{WidgetId : this.rule.widget_id,Done : ' Done', data});
+                                        util.logInfo({},`getWorkflowActivityId debug NO DATA FOR: %j`,{WidgetId : this.rule.widget_id,Done : ' Done', data});
                                     }
                                 })
                             }else{

@@ -557,11 +557,11 @@ function ActivityListingService(objCollection) {
 										// console.log('monthly_summary.unread_update_response_rate : ' + monthly_summary.unread_update_response_rate);
 
 										//global.logger.write('debug', 'Denominator after processing: ' + denominator, {}, {});
-										util.logInfo(request,`debug Denominator after processing: %j`,{denominator : denominator,request});
+										util.logInfo(request,`formatActivityListing debug Denominator after processing: %j`,{denominator : denominator,request});
 										//global.logger.write('debug', 'monthly_summary.completion_rate: ' + monthly_summary.completion_rate, {}, {});
-										util.logInfo(request,`debug monthly_summary.completion_rate %j`,{monthly_summary_completion_rate : monthly_summary.completion_rate,request});
+										util.logInfo(request,`formatActivityListing debug monthly_summary.completion_rate %j`,{monthly_summary_completion_rate : monthly_summary.completion_rate,request});
 										//global.logger.write('debug', 'monthly_summary.unread_update_response_rate: ' + monthly_summary.unread_update_response_rate, {}, {});
-										util.logInfo(request,`debug monthly_summary.unread_update_response_rate: %j`,{monthly_summary_unread_update_response_rate : monthly_summary.unread_update_response_rate, request});
+										util.logInfo(request,`formatActivityListing debug monthly_summary.unread_update_response_rate: %j`,{monthly_summary_unread_update_response_rate : monthly_summary.unread_update_response_rate, request});
 
 										if (denominator == 0) {
 											monthly_summary.average_value = -1;
@@ -695,7 +695,7 @@ function ActivityListingService(objCollection) {
 			db.executeQuery(1, queryString, request, function (err, coworkerData) {
 				console.log(coworkerData);
 				//global.logger.write('debug', 'coworkerData' + JSON.stringify(coworkerData, null, 2), {}, {});
-				util.logInfo(request,`debug coworkerData %j`,{coworkerData : JSON.stringify(coworkerData, null, 2),request});
+				util.logInfo(request,`listContacts debug coworkerData %j`,{coworkerData : JSON.stringify(coworkerData, null, 2),request});
 
 				if (err === false) {
 					if (coworkerData.length > 0) {
@@ -1086,7 +1086,7 @@ function ActivityListingService(objCollection) {
 				if (err === false) {
 					// console.log('Data of pending count : ', data);
 					//global.logger.write('debug', 'Data of pending count: ' + JSON.stringify(data, null, 2), {}, {});
-					util.logInfo(request,`debug Data of pending count: %j`,{data : JSON.stringify(data, null, 2),request});
+					util.logInfo(request,`getAllPendingCounts debug Data of pending count: %j`,{data : JSON.stringify(data, null, 2),request});
 
 					(data.length > 0) ? taskCnt = data[0].count : taskCnt = 0;
 					getCatGrpCts(request).then((resp) => {
@@ -1099,7 +1099,7 @@ function ActivityListingService(objCollection) {
 					}).catch((err) => {
 						// console.log(err);
 						//global.logger.write('debug', err, err, request);
-						util.logError(request,`debug Error %j`, { err,request });
+						util.logError(request,`getAllPendingCounts debug Error %j`, { err,request });
 
 						callback(err, false, -9999);
 					})
@@ -1140,7 +1140,7 @@ function ActivityListingService(objCollection) {
 				if (err === false) {
 					// console.log('Data of pending count : ', data);
 					//global.logger.write('debug', 'Data of pending count: ' + JSON.stringify(data, null, 2), {}, {});
-					util.logInfo(request,`debug Data of pending count: %j`,{data : JSON.stringify(data, null, 2),request});
+					util.logInfo(request,`getAllPendingCountsV1 debug Data of pending count: %j`,{data : JSON.stringify(data, null, 2),request});
 
 					(data.length > 0) ? taskCnt = data[0].count : taskCnt = 0;
 					getCatGrpCts(request).then((resp) => {
@@ -1178,7 +1178,7 @@ function ActivityListingService(objCollection) {
 								}).catch((err) => {
 									// console.log(err);
 									//global.logger.write('debug', err, err, request);
-									util.logError(request,`debug Error %j`, { err,request });
+									util.logError(request,`getProjectBadgeCounts debug Error %j`, { err,request });
 
 									callback(err, false, -9999);
 								});
@@ -1189,7 +1189,7 @@ function ActivityListingService(objCollection) {
 					}).catch((err) => {
 						// console.log(err);
 						//global.logger.write('debug', err, err, request);
-						util.logError(request,`debug Error %j`, { err,request });
+						util.logError(request,`getAllPendingCountsV1 debug Error %j`, { err,request });
 
 						callback(err, false, -9999);
 					})
@@ -1289,7 +1289,7 @@ function ActivityListingService(objCollection) {
 				if (err === false) {
 					// console.log('Inmail pending count : ', data);
 					//global.logger.write('debug', 'Inmail pending count: ' + JSON.stringify(data, null, 2), {}, {});
-					util.logInfo(request,`debug Inmail pending count: %j`,{data : JSON.stringify(data, null, 2),request});
+					util.logInfo(request,`pendingInmailCount debug Inmail pending count: %j`,{data : JSON.stringify(data, null, 2),request});
 
 					(data.length > 0) ? callback(false, data, 200) : callback(false, {}, 200);
 				} else {
@@ -1447,7 +1447,7 @@ function ActivityListingService(objCollection) {
 					if (err === false) {
 						// console.log('Data of group counts : ', resp);
 						//global.logger.write('debug', 'Data of group counts: ' + JSON.stringify(resp, null, 2), {}, {});
-						util.logInfo(request,`conLog Data of group counts: %j`,{data : JSON.stringify(resp, null, 2),request});
+						util.logInfo(request,`getCatGrpCts Data of group counts: %j`,{data : JSON.stringify(resp, null, 2),request});
 
 						let [err, data] = await getMentionsCount(request);
 						for (let i = 0; i < resp.length; i++) {
@@ -1499,7 +1499,7 @@ function ActivityListingService(objCollection) {
 					if (err === false) {
 						// console.log('Badge Counts : ', resp);
 						//global.logger.write('debug', 'Badge Counts: ' + JSON.stringify(resp, null, 2), {}, {});
-						util.logInfo(request,`debug Badge Counts: %j`,{data : JSON.stringify(resp, null, 2),request});
+						util.logInfo(request,`getProjectBadgeCounts debug Badge Counts: %j`,{data : JSON.stringify(resp, null, 2),request});
 
 						return resolve(resp);
 					} else {
@@ -2551,7 +2551,7 @@ function ActivityListingService(objCollection) {
 					//console.log("err "+err);
 					if (err === false) {
 						//global.logger.write('conLog', 'data: ', data.length, {});
-						util.logInfo(request,`conLog data %j`,{data_length : data.length,request});
+						util.logInfo(request,`getEntityQueueMapping data %j`,{data_length : data.length,request});
 						resolve(data);
 					} else {
 						reject(err);

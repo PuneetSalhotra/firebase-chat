@@ -23,7 +23,7 @@ function ZohoController(objCollection) {
             } else {
                 //console.log('did not get proper response');
                 //global.logger.write('response', 'did not get proper response', err, {});
-                util.logError(req, `response did not get proper response Error %j`, { err });
+                util.logError(req.body, `createCustomer response did not get proper response Error %j`, { err });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
@@ -38,7 +38,7 @@ function ZohoController(objCollection) {
             } else {
                 //console.log('did not get proper response');
                 //global.logger.write('response', 'did not get proper response', err, {});
-                util.logError(req, `response did not get proper response Error %j`, { err });
+                util.logError(req.body, `getCustomerDetails response did not get proper response Error %j`, { err });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
@@ -52,7 +52,7 @@ function ZohoController(objCollection) {
             } else {
                 //console.log('did not get proper response');
                 //global.logger.write('response', 'did not get proper response', err, {});
-                util.logError(req, `response did not get proper response Error %j`, { err });
+                util.logError(req.body, `updateCustomerDetails response did not get proper response Error %j`, { err });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
@@ -66,7 +66,7 @@ function ZohoController(objCollection) {
             } else {
                 //console.log('did not get proper response');
                 //global.logger.write('response', 'did not get proper response', err, {});
-                util.logError(req, `response did not get proper response Error %j`, { err });
+                util.logError(req.body, `deleteCustomer response did not get proper response Error %j`, { err });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
@@ -80,7 +80,7 @@ function ZohoController(objCollection) {
             } else {
                 //console.log('did not get proper response');
                 //global.logger.write('response', 'did not get proper response', err, {});
-                util.logError(req, `response did not get proper response Error %j`, { err });
+                util.logError(req.body, `markCustomerActive response did not get proper response Error %j`, { err });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
@@ -94,7 +94,7 @@ function ZohoController(objCollection) {
             } else {
                 //console.log('did not get proper response');
                 //global.logger.write('response', 'did not get proper response', err, {});
-                util.logError(req, `response did not get proper response Error %j`, { err });
+                util.logError(req.body, `markCustomerInActive response did not get proper response Error %j`, { err });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
@@ -108,7 +108,7 @@ function ZohoController(objCollection) {
             } else {
                 //console.log('did not get proper response');
                 //global.logger.write('response', 'did not get proper response', err, {});
-                util.logError(req, `response did not get proper response Error %j`, { err });
+                util.logError(req.body, `createCustomerSubscription response did not get proper response Error %j`, { err });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
@@ -122,7 +122,7 @@ function ZohoController(objCollection) {
             } else {
                 //console.log('did not get proper response');
                 //global.logger.write('response', 'did not get proper response', err, {});
-                util.logError(req, `response did not get proper response Error %j`, { err });
+                util.logError(req.body, `createExistingCustomerSubscription response did not get proper response Error %j`, { err });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
@@ -136,7 +136,7 @@ function ZohoController(objCollection) {
             } else {
                 //console.log('did not get proper response');
                 //global.logger.write('response', 'did not get proper response', err, {});
-                util.logError(req, `response did not get proper response Error %j`, { err });
+                util.logError(req.body, `updateCustomerSubscription response did not get proper response Error %j`, { err });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
@@ -150,7 +150,7 @@ function ZohoController(objCollection) {
             } else {
                 //console.log('did not get proper response');
                 //global.logger.write('response', 'did not get proper response', err, {});
-                util.logError(req, `response did not get proper response Error %j`, { err });
+                util.logError(req.body, `deleteCustomerSubscription response did not get proper response Error %j`, { err });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
@@ -164,7 +164,7 @@ function ZohoController(objCollection) {
             } else {
                 //console.log('did not get proper response');
                 //global.logger.write('response', 'did not get proper response', err, {});
-                util.logError(req, `response did not get proper response Error %j`, { err });
+                util.logError(req.body, `getCustomerCardDetails response did not get proper response Error %j`, { err });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
@@ -178,7 +178,7 @@ function ZohoController(objCollection) {
             } else {
                 //console.log('did not get proper response');
                 //global.logger.write('response', 'did not get proper response', err, {});
-                util.logError(req, `response did not get proper response Error %j`, { err });
+                util.logError(req.body, `updateCustomerCardDetails response did not get proper response Error %j`, { err });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
@@ -192,7 +192,7 @@ function ZohoController(objCollection) {
             } else {
                 //console.log('did not get proper response');
                 //global.logger.write('response', 'did not get proper response', err, {});
-                util.logError(req, `response did not get proper response Error %j`, { err });
+                util.logError(req.body, `deleteCustomerCardDetails response did not get proper response Error %j`, { err });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
@@ -206,7 +206,7 @@ function ZohoController(objCollection) {
             } else {
                 //console.log('did not get proper response');
                 //global.logger.write('response', 'did not get proper response', err, {});
-                util.logError(req, `response did not get proper response Error %j`, { err });
+                util.logError(req.body, `updateAcctBillingDetails response did not get proper response Error %j`, { err });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });
@@ -220,7 +220,7 @@ function ZohoController(objCollection) {
             } else {
                 //console.log('did not get proper response');
                 //global.logger.write('response', 'did not get proper response', err, {});
-                util.logError(req, `response did not get proper response Error %j`, { err });
+                util.logError(req.body, `updateAssetBillingDetails response did not get proper response Error %j`, { err });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         });

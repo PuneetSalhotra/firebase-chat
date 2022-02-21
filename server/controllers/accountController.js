@@ -195,17 +195,17 @@ function AccountController(objCollection) {
     app.post('/' + global.config.version + '/account/voice*', function (req, res) {
         // console.log('VNK : ' , req.body);
         //global.logger.write('conLog', 'VNK : ' + JSON.stringify(req.body, null, 2), {}, req);
-        util.logInfo(req,`conLog VNK: %j`,{VNK : JSON.stringify(req.body, null, 2), req});
+        util.logInfo(req.body,`/account/voice* VNK: %j`,{VNK : JSON.stringify(req.body, null, 2),body : req.body});
         let x = req.body.url;
         x = x.split("/");
         // console.log('x[3] : ' + x[3]);
         //global.logger.write('conLog', 'x[3] : ' + x[3], {}, req);
-        util.logInfo(req,`conLog x[3]: %j`,{x3 : x[3], req});
+        util.logInfo(req.body,`/account/voice* x[3]: %j`,{x3 : x[3], body : req.body});
 
         let file = global.config.efsPath + 'twiliovoicesxmlfiles/' + x[3] + '.xml';
         // console.log(file);               
         //global.logger.write('conLog', 'Voice XML for TWILIO: ' + file, {}, req);
-        util.logInfo(req,`conLog Voice XML for TWILIO: %j`,{Voice_XML_for_TWILIO : file, req});
+        util.logInfo(req.body,`/account/voice* Voice XML for TWILIO: %j`,{Voice_XML_for_TWILIO : file, body : req.body});
 
         fs.readFile(file, function (err, data) {
             if (err) {
@@ -277,7 +277,7 @@ function AccountController(objCollection) {
         let request = req.body;
         
         //global.logger.write('debug', 'Request params: ' + JSON.stringify(request, null, 2), {}, request);
-        util.logInfo(request,`debug Request params: %j`,{Request_params : JSON.stringify(request, null, 2), request});         
+        util.logInfo(request,`/account/send/sms debug Request params: %j`,{Request_params : JSON.stringify(request, null, 2), request});         
         
         let paramsArr = new Array(request.organization_id);        
         let queryString = util.getQueryString('ds_p1_organization_list_select', paramsArr);

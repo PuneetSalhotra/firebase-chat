@@ -727,7 +727,7 @@ function ActivityUpdateService(objectCollection) {
                                 activityStreamTypeId = 1705; //by default so that we know
                                 //console.log('adding streamtype id 1705');
                                 //global.logger.write('conLog', 'adding streamtype id 1705', {}, request)
-                                util.logInfo(request,`conLog adding streamtype id 1705 %j`,{request});
+                                util.logInfo(request,`assetActivityListUpdateInline adding streamtype id 1705 %j`,{request});
                                 break;
                         }
 
@@ -799,7 +799,7 @@ function ActivityUpdateService(objectCollection) {
                         //res.json(resp);
                         // console.log(resp);
                         //global.logger.write('debug', 'resp: ' + JSON.stringify(resp, null, 2), {}, request);
-                        util.logInfo(request,`conLog resp: %j`,{resp : JSON.stringify(resp, null, 2),request});
+                        util.logInfo(request,`/asset/update/details resp: %j`,{resp : JSON.stringify(resp, null, 2),request});
 
                     });
 
@@ -923,7 +923,7 @@ function ActivityUpdateService(objectCollection) {
                             activityStreamTypeId = 1506; //by default so that we know
                             //console.log('adding streamtype id 1506');
                             //global.logger.write('conLog', 'adding streamtype id 1506', {}, request)
-                            util.logInfo(request,`conLog adding streamtype id 1506 %j`,{request});
+                            util.logInfo(request,`assetActivityListUpdateCover adding streamtype id 1506 %j`,{request});
                             break;
                     }
 
@@ -1010,7 +1010,7 @@ function ActivityUpdateService(objectCollection) {
                                                         let newEndEstimatedDatetime = result[0]['activity_datetime_end_estimated'];
                                                         // console.log('setting new datetime for contact as ' + newEndEstimatedDatetime);
                                                         //global.logger.write('conLog', 'Setting new datetime for contact as: ' + newEndEstimatedDatetime, {}, request);
-                                                        util.logInfo(request,`conLog Setting new datetime for contact as: %j`,{new_EndEstimatedDatetime : newEndEstimatedDatetime,request});
+                                                        util.logInfo(request,`getActivityDetails Setting new datetime for contact as: %j`,{new_EndEstimatedDatetime : newEndEstimatedDatetime,request});
 
                                                         coverAlterJson.description = {
                                                             old: activityData[0]['activity_datetime_end_estimated'],
@@ -1079,9 +1079,9 @@ function ActivityUpdateService(objectCollection) {
                     // console.log('\x1b[34m parsedActivityCoverData.duedate.new :\x1b[0m ', parsedActivityCoverData.duedate.new);
 
                     //global.logger.write('debug', 'parsedActivityCoverData.duedate.old: ' + parsedActivityCoverData.duedate.old, {}, request);
-                    util.logInfo(request,`conLog parsedActivityCoverData.duedate.old: %j`,{parsedActivityCoverData_duedate_old : parsedActivityCoverData.duedate.old,request});
+                    util.logInfo(request,`alterActivityCover parsedActivityCoverData.duedate.old: %j`,{parsedActivityCoverData_duedate_old : parsedActivityCoverData.duedate.old,request});
                     //global.logger.write('debug', 'parsedActivityCoverData.duedate.new: ' + parsedActivityCoverData.duedate.new, {}, request);
-                    util.logInfo(request,`conLog parsedActivityCoverData.duedate.new: %j`,{parsedActivityCoverData_duedate_new : parsedActivityCoverData.duedate.new,request});
+                    util.logInfo(request,`alterActivityCover parsedActivityCoverData.duedate.new: %j`,{parsedActivityCoverData_duedate_new : parsedActivityCoverData.duedate.new,request});
 
                     // If due date is updated then update count of due date changes
                     if (parsedActivityCoverData.duedate.old !== parsedActivityCoverData.duedate.new) {
@@ -1093,9 +1093,9 @@ function ActivityUpdateService(objectCollection) {
                                 // console.log('\x1b[32m activity_datetime_end_deferred in DB: \x1b[0m' , util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred));
 
                                 //global.logger.write('conLog', 'activity_datetime_start_expected in DB: ' + util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected), {}, request);
-                                util.logInfo(request,`conLog activity_datetime_start_expected in DB:  %j`,{activity_datetime_start_expected : util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected),request});
+                                util.logInfo(request,`getActivityDetails activity_datetime_start_expected in DB:  %j`,{activity_datetime_start_expected : util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected),request});
                                 //global.logger.write('conLog', 'activity_datetime_end_deferred in DB: ' + util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred), {}, request);
-                                util.logInfo(request,`conLog activity_datetime_end_deferred in DB:  %j`,{activity_datetime_end_deferred : util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred),request});
+                                util.logInfo(request,`getActivityDetails activity_datetime_end_deferred in DB:  %j`,{activity_datetime_end_deferred : util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred),request});
 
                                 taskDateTimeDiffInHours = util.differenceDatetimes(
                                     parsedActivityCoverData.duedate.old,
@@ -1106,7 +1106,7 @@ function ActivityUpdateService(objectCollection) {
 
                                 // console.log('\x1b[34m taskDateTimeDiffInHours:\x1b[0m ', taskDateTimeDiffInHours);
                                 //global.logger.write('conLog', 'taskDateTimeDiffInHours: ' + taskDateTimeDiffInHours, {}, request);
-                                util.logInfo(request,`conLog taskDateTimeDiffInHours: %j`,{taskDateTimeDiffInHours : taskDateTimeDiffInHours,request});
+                                util.logInfo(request,`getActivityDetails taskDateTimeDiffInHours: %j`,{taskDateTimeDiffInHours : taskDateTimeDiffInHours,request});
 
                                 // Fetch account_config_due_date_hours from the account_list table
                                 activityCommonService.retrieveAccountList(request, function (error, data) {
@@ -1118,9 +1118,9 @@ function ActivityUpdateService(objectCollection) {
                                         // console.log('\x1b[32m end defferred time: \x1b[0m' , util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred));
 
                                         //global.logger.write('debug', 'difference between: datetime_log: ' + request.datetime_log, {}, request);
-                                        util.logInfo(request,`debug difference between: datetime_log:  %j`,{datetime_log : request.datetime_log,request});
+                                        util.logInfo(request,`retrieveAccountList debug difference between: datetime_log:  %j`,{datetime_log : request.datetime_log,request});
                                         //global.logger.write('debug', 'end defferred time: ' + util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred), {}, request);
-                                        util.logInfo(request,`debug end defferred time: %j`,{end_defferred_time : util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred),request});
+                                        util.logInfo(request,`retrieveAccountList debug end defferred time: %j`,{end_defferred_time : util.replaceDefaultDatetime(activityData[0].activity_datetime_end_deferred),request});
 
                                         //let datetimeDifference = moment(activityData[0].activity_datetime_end_expected).diff(moment().utc());
 
@@ -1135,7 +1135,7 @@ function ActivityUpdateService(objectCollection) {
                                             changeDurationInHours = Number(changeDurationInHours / 3600000);
                                             //  console.log('\x1b[32m change Duration In Hours:\x1b[0m ', changeDurationInHours)
                                             //global.logger.write('debug', 'Change Duration In Hours: ' + changeDurationInHours, {}, request);
-                                            util.logInfo(request,`debug Change Duration In Hours: %j`,{change_DurationInHours : changeDurationInHours,request});
+                                            util.logInfo(request,`retrieveAccountList debug Change Duration In Hours: %j`,{change_DurationInHours : changeDurationInHours,request});
 
                                             dueDateThreshhold = (Number(data[0].account_config_due_date_hours) / 100) * taskDateTimeDiffInHours;
 
@@ -1144,11 +1144,11 @@ function ActivityUpdateService(objectCollection) {
                                             //  console.log(changeDurationInHours +' >= '+ Number(dueDateThreshhold))
 
                                             //global.logger.write('debug', 'account_config_due_date_hours [threshhold % from DB]: ' + Number(data[0].account_config_due_date_hours), {}, request);
-                                            util.logInfo(request,`debug account_config_due_date_hours [threshhold % from DB]:  %j`,{account_config_due_date_hours : Number(data[0].account_config_due_date_hours),request});
+                                            util.logInfo(request,`retrieveAccountList debug account_config_due_date_hours [threshhold % from DB]:  %j`,{account_config_due_date_hours : Number(data[0].account_config_due_date_hours),request});
                                             //global.logger.write('debug', 'Calculated dueDateThreshhold: ' + dueDateThreshhold, {}, request);
-                                            util.logInfo(request,`debug Calculated dueDateThreshhold: %j`,{dueDate_Threshhold : dueDateThreshhold,request});
+                                            util.logInfo(request,`retrieveAccountList debug Calculated dueDateThreshhold: %j`,{dueDate_Threshhold : dueDateThreshhold,request});
                                             //global.logger.write('debug', changeDurationInHours + ' >= ' + Number(dueDateThreshhold), {}, request);
-                                            util.logInfo(request,`debug ${changeDurationInHours} >= ${Number(dueDateThreshhold)} %j`,{request});
+                                            util.logInfo(request,`retrieveAccountList debug ${changeDurationInHours} >= ${Number(dueDateThreshhold)} %j`,{request});
 
                                             if (changeDurationInHours >= Number(dueDateThreshhold)) {
                                                 flag_ontime = 1; // Set to 'on time'                                        
@@ -1157,7 +1157,7 @@ function ActivityUpdateService(objectCollection) {
 
                                         // console.log('\x1b[32m flag_ontime :\x1b[0m ', flag_ontime);
                                         //global.logger.write('debug', 'flag_ontime: ' + flag_ontime, {}, request);
-                                        util.logInfo(request,`debug flag_ontime %j`,{flag_ontime : flag_ontime,request});
+                                        util.logInfo(request,`retrieveAccountList debug flag_ontime %j`,{flag_ontime : flag_ontime,request});
 
                                         activityListUpdateDueDateAlterCount(request, flag_ontime)
                                             .then(() => {
@@ -1190,11 +1190,11 @@ function ActivityUpdateService(objectCollection) {
                                                 // console.log('\x1b[32m Weekly Summary (percentageScore):\x1b[0m ', percentageScore);
 
                                                 //global.logger.write('debug', 'ontime_count: ' + Number(data[0].ontime_count), {}, request);
-                                                util.logInfo(request,`debug ontime_count : %j`,{ontime_count : Number(data[0].ontime_count),request});
+                                                util.logInfo(request,`activityListUpdateDueDateAlterCount debug ontime_count : %j`,{ontime_count : Number(data[0].ontime_count),request});
                                                 //global.logger.write('debug', 'total_count: ' + Number(data[0].total_count), {}, request);
-                                                util.logInfo(request,`debug total_count: %j`,{total_count : Number(data[0].total_count),request});
+                                                util.logInfo(request,`activityListUpdateDueDateAlterCount debug total_count: %j`,{total_count : Number(data[0].total_count),request});
                                                 //global.logger.write('debug', 'Weekly Summary (percentageScore): ' + percentageScore, {}, request);
-                                                util.logInfo(request,`debug Weekly Summary (percentageScore): %j`,{percentageScore : percentageScore,request});
+                                                util.logInfo(request,`activityListUpdateDueDateAlterCount debug Weekly Summary (percentageScore): %j`,{percentageScore : percentageScore,request});
 
                                                 // Weekly Summary Update
                                                 activityCommonService.weeklySummaryInsert(request, {
@@ -1226,11 +1226,11 @@ function ActivityUpdateService(objectCollection) {
                                                 // console.log('\x1b[32m Monthly Summary (percentageScore):\x1b[0m ', percentageScore);
 
                                                 //global.logger.write('debug', 'ontime_count: ' + Number(data[0].ontime_count), {}, request);
-                                                util.logInfo(request,`debug ontime_count: %j`,{ontime_count : Number(data[0].ontime_count),request});
+                                                util.logInfo(request,`activityListUpdateDueDateAlterCount debug ontime_count: %j`,{ontime_count : Number(data[0].ontime_count),request});
                                                 //global.logger.write('debug', 'total_count: ' + Number(data[0].total_count), {}, request);
-                                                util.logInfo(request,`debug total_count: %j`,{total_count : Number(data[0].total_count),request});
+                                                util.logInfo(request,`activityListUpdateDueDateAlterCount debug total_count: %j`,{total_count : Number(data[0].total_count),request});
                                                 //global.logger.write('debug', 'Monthly Summary (percentageScore): ' + percentageScore, {}, request);
-                                                util.logInfo(request,`debug Monthly Summary (percentageScore): %j`,{percentageScore : percentageScore,request});
+                                                util.logInfo(request,`activityListUpdateDueDateAlterCount debug Monthly Summary (percentageScore): %j`,{percentageScore : percentageScore,request});
 
                                                 // Monthly Summary Update
                                                 activityCommonService.monthlySummaryInsert(request, {
@@ -1248,14 +1248,14 @@ function ActivityUpdateService(objectCollection) {
                                                 }).catch((err) => {
                                                     // console.log('\x1b[31m Error:\x1b[0m', err)
                                                     //global.logger.write('debug', 'Error ' + JSON.stringify(err, null, 2), err, request);
-                                                    util.logError(request,`debug Error %j`, {error : JSON.stringify(err, null, 2), err, request });
+                                                    util.logError(request,`monthlySummaryInsert debug Error %j`, {error : JSON.stringify(err, null, 2), err, request });
 
                                                 });
 
                                             }).catch((err) => {
                                                 // console.log('\x1b[31m Error:\x1b[0m', err)
                                                 //global.logger.write('debug', 'Error ' + JSON.stringify(err, null, 2), err, request);
-                                                util.logError(request,`debug Error %j`, {error : JSON.stringify(err, null, 2), err, request });
+                                                util.logError(request,`activityListUpdateDueDateAlterCount debug Error %j`, {error : JSON.stringify(err, null, 2), err, request });
 
                                             });
                                     }
@@ -1267,7 +1267,7 @@ function ActivityUpdateService(objectCollection) {
                     } else {
                         // console.log('Else Part');
                         //global.logger.write('conLog', 'Else Part', {}, request);
-                        util.logInfo(request,`conLog Else Part %j`,{request});
+                        util.logInfo(request,`alterActivityCover Else Part %j`,{request});
                     }
                 }
 
@@ -1462,7 +1462,7 @@ function ActivityUpdateService(objectCollection) {
         return new Promise((resolve, reject) => {
             // console.log('coverAlterJson : ', coverAlterJson);
             //global.logger.write('debug', 'coverAlterJson: ' + JSON.stringify(coverAlterJson, null, 2), {}, request);
-            util.logInfo(request,`debug coverAlterJson: %j`,{coverAlterJson : JSON.stringify(coverAlterJson, null, 2),request});
+            util.logInfo(request,`callAlterActivityCover debug coverAlterJson: %j`,{coverAlterJson : JSON.stringify(coverAlterJson, null, 2),request});
 
             let event = {
                 name: "alterActivityCover",
@@ -1501,7 +1501,7 @@ function ActivityUpdateService(objectCollection) {
                 if (err) {
                     //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                     //global.logger.write('serverError', "Error in queueWrapper raiseActivityEvent", err, request);
-                    throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
+                    throw new Error('raiseActivityEvent Crashing the Server to get notified from the kafka broker cluster about the new Leader');
                 }
                 resolve();
             });
@@ -1521,7 +1521,7 @@ function ActivityUpdateService(objectCollection) {
             if (err === false) {
                 // console.log('data[0].activity_owner_asset_id :' + data[0].activity_owner_asset_id);
                 //global.logger.write('debug', 'data[0].activity_owner_asset_id: ' + data[0].activity_owner_asset_id, {}, request);
-                util.logInfo(request,`debug data[0].activity_owner_asset_id:  %j`,{activity_owner_asset_id : data[0].activity_owner_asset_id,request});
+                util.logInfo(request,`getActivityDetails debug data[0].activity_owner_asset_id:  %j`,{activity_owner_asset_id : data[0].activity_owner_asset_id,request});
 
                 //creator asset id and lead asset id if it mathces 29 shouldn't be called
 
@@ -1592,7 +1592,7 @@ function ActivityUpdateService(objectCollection) {
                                     .catch((err) => {
                                         // console.log("Error updating the existing participant as owner: ", err);
                                         //global.logger.write('debug', 'Error updating the existing participant as owner: ' + err, err, request);
-                                        util.logError(request,`debug Error updating the existing participant as owner: Error %j`, { err,request });
+                                        util.logError(request,`activityAssetMappingUpdateAssetAccess debug Error updating the existing participant as owner: Error %j`, { err,request });
                                     });
 
                                 activityListAlterOwner(request, function (err, data) {
@@ -1666,7 +1666,7 @@ function ActivityUpdateService(objectCollection) {
                             activityStreamTypeId = 1; //by default so that we know
                             //console.log('adding streamtype id 1506');
                             //global.logger.write('conLog', 'adding streamtype id 1', {}, request)
-                            util.logInfo(request,`conLog adding streamtype id 1 %j`,{request});
+                            util.logInfo(request,`assetActivityListUpdateChannel adding streamtype id 1 %j`,{request});
                             break;
                     };
 
@@ -1930,7 +1930,7 @@ function ActivityUpdateService(objectCollection) {
                     pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
                     // console.log('PubNub Message : ', pubnubMsg);
                     //global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
-                    util.logInfo(request,`debug PubNub Message: %j`,{PubNub_Message : JSON.stringify(pubnubMsg, null, 2),request});
+                    util.logInfo(request,`resetAssetUnreadCount debug PubNub Message: %j`,{PubNub_Message : JSON.stringify(pubnubMsg, null, 2),request});
 
                     activityPushService.pubNubPush(request, pubnubMsg, function (err, data) {});
                 }
@@ -2009,7 +2009,7 @@ function ActivityUpdateService(objectCollection) {
                         pubnubMsg.activity_type_category_id = request.activity_type_category_id || 0;
                         // console.log('PubNub Message : ', pubnubMsg);
                         //global.logger.write('debug', 'PubNub Message: ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
-                        util.logInfo(request,`debug PubNub Message:  %j`,{PubNub_Message : JSON.stringify(pubnubMsg, null, 2),request});
+                        util.logInfo(request,`resetAssetUnreadCount debug PubNub Message:  %j`,{PubNub_Message : JSON.stringify(pubnubMsg, null, 2),request});
 
                         let pushRequest = Object.assign({}, request);
                         pushRequest.activity_id = activityID;
@@ -2093,7 +2093,7 @@ function ActivityUpdateService(objectCollection) {
             getResponseRateForFiles(request, 1).then((monthlyData) => {
                 // console.log('Monthly Data : ', monthlyData);
                 //global.logger.write('debug', 'Monthly Data: ' + JSON.stringify(monthlyData, null, 2), {}, request);
-                util.logInfo(request,`debug Monthly Data:  %j`,{Monthly_Data : JSON.stringify(monthlyData, null, 2),request});
+                util.logInfo(request,`getResponseRateForFiles debug Monthly Data:  %j`,{Monthly_Data : JSON.stringify(monthlyData, null, 2),request});
 
                 let percentage = 0;
                 let avgReadTime = 0;
@@ -2111,13 +2111,13 @@ function ActivityUpdateService(objectCollection) {
                 // console.log('Percentage : ' + percentage);
 
                 //global.logger.write('debug', 'Number Of ReceivedFileUpdates: ' + noOfReceivedFileUpdates, {}, request);
-                util.logInfo(request,`debug Number Of ReceivedFileUpdates:  %j`,{noOfReceivedFileUpdates : noOfReceivedFileUpdates,request});
+                util.logInfo(request,`getResponseRateForFiles debug Number Of ReceivedFileUpdates:  %j`,{noOfReceivedFileUpdates : noOfReceivedFileUpdates,request});
                 //global.logger.write('debug', 'Number Of RespondedFileUpdates: ' + noOfRespondedFileUpdates, {}, request);
-                util.logInfo(request,`debug Number Of RespondedFileUpdates:  %j`,{noOfRespondedFileUpdates : noOfRespondedFileUpdates,request});
+                util.logInfo(request,`getResponseRateForFiles debug Number Of RespondedFileUpdates:  %j`,{noOfRespondedFileUpdates : noOfRespondedFileUpdates,request});
                 //global.logger.write('debug', 'Percentage: ' + percentage, {}, request);
-                util.logInfo(request,`debug Percentage: %j`,{percentage : percentage,request});
+                util.logInfo(request,`getResponseRateForFiles debug Percentage: %j`,{percentage : percentage,request});
                 //global.logger.write('debug', 'avgReadTime: ' + avgReadTime, {}, request);
-                util.logInfo(request,`debug avgReadTime: %j`,{avgReadTime : avgReadTime,request});
+                util.logInfo(request,`getResponseRateForFiles debug avgReadTime: %j`,{avgReadTime : avgReadTime,request});
 
                 //Insert into monthly summary table
                 let monthlyCollection = {};
@@ -2138,7 +2138,7 @@ function ActivityUpdateService(objectCollection) {
             getResponseRateForFiles(request, 2).then((weeklyData) => {
                 console.log('Weekly Data : ', weeklyData);
                 //global.logger.write('debug', 'Weekly Data: ' + JSON.stringify(weeklyData, null, 2), {}, request);
-                util.logInfo(request,`debug Weekly Data:  %j`,{Weekly_Data : JSON.stringify(weeklyData, null, 2),request});
+                util.logInfo(request,`getResponseRateForFiles debug Weekly Data:  %j`,{Weekly_Data : JSON.stringify(weeklyData, null, 2),request});
 
                 let percentage = 0;
                 let avgReadTime = 0;
@@ -2156,13 +2156,13 @@ function ActivityUpdateService(objectCollection) {
                 // console.log('Percentage : ' + percentage);
 
                 //global.logger.write('debug', 'Number Of ReceivedFileUpdates : ' + noOfReceivedFileUpdates, {}, request);
-                util.logInfo(request,`debug Number Of ReceivedFileUpdates :  %j`,{noOfReceivedFileUpdates : noOfReceivedFileUpdates,request});
+                util.logInfo(request,`getResponseRateForFiles debug Number Of ReceivedFileUpdates :  %j`,{noOfReceivedFileUpdates : noOfReceivedFileUpdates,request});
                 //global.logger.write('debug', 'Number Of RespondedFileUpdates : ' + noOfRespondedFileUpdates, {}, request);
-                util.logInfo(request,`debug Number Of RespondedFileUpdates :  %j`,{noOfRespondedFileUpdates : noOfRespondedFileUpdates,request});
+                util.logInfo(request,`getResponseRateForFiles debug Number Of RespondedFileUpdates :  %j`,{noOfRespondedFileUpdates : noOfRespondedFileUpdates,request});
                 //global.logger.write('debug', 'Percentage : ' + percentage, {}, request);
-                util.logInfo(request,`debug Percentage : %j`,{percentage : percentage,request});
+                util.logInfo(request,`getResponseRateForFiles debug Percentage : %j`,{percentage : percentage,request});
                 //global.logger.write('debug', 'avgReadTime: ' + avgReadTime, {}, request);
-                util.logInfo(request,`debug avgReadTime :  %j`,{avgReadTime : avgReadTime,request});
+                util.logInfo(request,`getResponseRateForFiles debug avgReadTime :  %j`,{avgReadTime : avgReadTime,request});
 
                 //Insert into weekly summary table
                 let weeklyCollection = {};
@@ -2224,14 +2224,14 @@ function ActivityUpdateService(objectCollection) {
                         if (err === false) {
                             let configRespHours = data[0].account_config_response_hours;
                             //global.logger.write('debug', 'Response hours in Config file  : ' + configRespHours, {}, request);
-                            util.logInfo(request,`debug Response hours in Config file  :  %j`,{configRespHours : configRespHours,request});
+                            util.logInfo(request,`retrieveAccountList debug Response hours in Config file  :  %j`,{configRespHours : configRespHours,request});
 
                             //diff will be in milli seconds
                             let diff = util.differenceDatetimes(request.datetime_log, util.replaceDefaultDatetime(creationDate));
                             diff = diff / 3600000;
                             diff = Number(diff);
                             //global.logger.write('debug', 'Difference  : ' + diff, {}, request);
-                            util.logInfo(request,`debug Difference  :  %j`,{Difference : diff,request});
+                            util.logInfo(request,`retrieveAccountList debug Difference  :  %j`,{Difference : diff,request});
                             (diff <= configRespHours) ? onTimeFlag = 1: onTimeFlag = 0;
 
                             //Update the flag
@@ -2250,11 +2250,11 @@ function ActivityUpdateService(objectCollection) {
                                             }
 
                                             //global.logger.write('debug', 'Number Of ReceivedInmails : ' + noOfReceivedInmails, {}, request);
-                                            util.logInfo(request,`debug Number Of ReceivedInmails :  %j`,{noOfReceivedInmails : noOfReceivedInmails,request});
+                                            util.logInfo(request,`getInmailCounts debug Number Of ReceivedInmails :  %j`,{noOfReceivedInmails : noOfReceivedInmails,request});
                                             //global.logger.write('debug', 'Number Of RespondedInmails : ' + noOfRespondedInmails, {}, request);
-                                            util.logInfo(request,`debug Number Of RespondedInmails : %j`,{noOfRespondedInmails : noOfRespondedInmails,request});
+                                            util.logInfo(request,`getInmailCounts debug Number Of RespondedInmails : %j`,{noOfRespondedInmails : noOfRespondedInmails,request});
                                             //global.logger.write('debug', 'Percentage : ' + percentage, {}, request);
-                                            util.logInfo(request,`debug Percentage : %j`,{Percentage : percentage,request});
+                                            util.logInfo(request,`getInmailCounts debug Percentage : %j`,{Percentage : percentage,request});
 
                                             //Insert into monthly summary table
                                             let monthlyCollection = {};
@@ -2282,11 +2282,11 @@ function ActivityUpdateService(objectCollection) {
                                             }
 
                                             //global.logger.write('debug', 'Number Of ReceivedInmails : ' + noOfReceivedInmails, {}, request);
-                                            util.logInfo(request,`debug Number Of ReceivedInmails :  %j`,{noOfReceivedInmails : noOfReceivedInmails,request});
+                                            util.logInfo(request,`getInmailCounts debug Number Of ReceivedInmails :  %j`,{noOfReceivedInmails : noOfReceivedInmails,request});
                                             //global.logger.write('debug', 'Number Of RespondedInmails : ' + noOfRespondedInmails, {}, request);
-                                            util.logInfo(request,`debug Number Of RespondedInmails : %j`,{noOfRespondedInmails : noOfRespondedInmails,request});
+                                            util.logInfo(request,`getInmailCounts debug Number Of RespondedInmails : %j`,{noOfRespondedInmails : noOfRespondedInmails,request});
                                             //global.logger.write('debug', 'Percentage : ' + percentage, {}, request);
-                                            util.logInfo(request,`debug Percentage : %j`,{Percentage : percentage,request});
+                                            util.logInfo(request,`getInmailCounts debug Percentage : %j`,{Percentage : percentage,request});
 
                                             //Insert into weekly summary table
                                             let weeklyCollection = {};
@@ -2331,7 +2331,7 @@ function ActivityUpdateService(objectCollection) {
     this.archiveAssetAndActivity = function (request, callback) {
 
         //global.logger.write('conLog', 'Inside the archiveAssetAndActivity service', {}, request);
-        util.logInfo(request,`conLog Inside the archiveAssetAndActivity service %j`,{request});
+        util.logInfo(request,`archiveAssetAndActivity Inside the archiveAssetAndActivity service %j`,{request});
         request.datetime_log = util.getCurrentUTCTime();
 
         // 1.3 => Insert entry in asset timeline
@@ -2546,7 +2546,7 @@ function ActivityUpdateService(objectCollection) {
                                         } else {
                                             console.log("archiveAssetAndActivity service raised: ", event);
                                             //global.logger.write('debug', 'archiveAssetAndActivity service raised: ' + JSON.stringify(event, null, 2), event, request);
-                                            util.logInfo(request,`debug archiveAssetAndActivity service raised: %j`,{raised_event : JSON.stringify(event, null, 2), event, request});
+                                            util.logInfo(request,`raiseActivityEvent debug archiveAssetAndActivity service raised: %j`,{raised_event : JSON.stringify(event, null, 2), event, request});
 
                                         }
                                     });
@@ -2576,7 +2576,7 @@ function ActivityUpdateService(objectCollection) {
                 };
                 // console.log("coWorkerActivityData: ", coWorkerActivityData);
                 //global.logger.write('debug', 'coWorkerActivityData: ' + JSON.stringify(coWorkerActivityData, null, 2), coWorkerActivityData, request);
-                util.logInfo(request,`debug coWorkerActivityData: %j`,{coWorker_ActivityData : JSON.stringify(coWorkerActivityData, null, 2), coWorkerActivityData, request});
+                util.logInfo(request,`getCoWorkerActivityId debug coWorkerActivityData: %j`,{coWorker_ActivityData : JSON.stringify(coWorkerActivityData, null, 2), coWorkerActivityData, request});
                 // 4.1 Reset the desk details in the inline data and also in the asset 
                 // columns in the row data of the co-worker contact card activity of the operating employee
                 // 
@@ -2846,7 +2846,7 @@ function ActivityUpdateService(objectCollection) {
                             } else {
                                 // console.log("removeEmployeetoDeskMapping service raised: ", event);
                                 //global.logger.write('debug', "removeEmployeetoDeskMapping service raised: " + JSON.stringify(event, null, 2), event, request);
-                                util.logInfo(request,`debug removeEmployeetoDeskMapping service raised: %j`,{raised_event : JSON.stringify(event, null, 2), event, request});
+                                util.logInfo(request,`raiseActivityEvent debug removeEmployeetoDeskMapping service raised: %j`,{raised_event : JSON.stringify(event, null, 2), event, request});
                                 callback(false, request)
                             }
                         });

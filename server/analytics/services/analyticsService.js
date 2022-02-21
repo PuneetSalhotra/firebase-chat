@@ -160,13 +160,13 @@ function AnalyticsService(objectCollection)
         let [err1, staticValues] = await self.getwidgetStaticValueDetails(request);
         if(err1) {
             //global.logger.write('conLog', "get Widget Chart Id | based on widget_type_id | Error: ", err, {});
-            util.logError(request,`conLog get Widget Chart Id | based on widget_type_id | Error %j`, { err1 });
+            util.logError(request,`getwidgetStaticValueDetails get Widget Chart Id | based on widget_type_id | Error %j`, { err1 });
             return [true, {message: "Error creating Widget"}];
         }
         
         //global.logger.write('conLog', 'staticValues : ', {}, {});
         //global.logger.write('conLog', staticValues, {}, {});
-        util.logInfo(request,`conLog  %j`,{staticValues : staticValues, request});
+        util.logInfo(request,`getwidgetStaticValueDetails  %j`,{staticValues : staticValues, request});
 
         request.widget_chart_id = staticValues[0].widget_type_chart_id;
         request.flag_app = staticValues[0].flag_mobile_enabled;
@@ -189,7 +189,7 @@ function AnalyticsService(objectCollection)
         const [err, activityData] = await createActivity(request);
         if (err) {
             //global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
-            util.logError(request,`createAssetBundle | createActivity | Error : %j`, { err });
+            util.logError(request,`createActivity createAssetBundle | createActivity | Error : %j`, { err });
             return [true, {message: "Error creating activity"}];
         }
         //global.logger.write('conLog', "createAssetBundle | createActivity | activityData: " + activityData, {}, {});
@@ -199,7 +199,7 @@ function AnalyticsService(objectCollection)
         let [widgetErr, widgetResponse] = await this.widgetListInsert(request);
         if(widgetErr) {
             //global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
-            util.logError(request,`createAssetBundle | createActivity | Error: %j`, { err });
+            util.logError(request,`widgetListInsert createAssetBundle | createActivity | Error: %j`, { err });
             return [true, {message: "Error creating Widget"}];
         }            
         //console.log('widgetResponse : ', widgetResponse);
@@ -266,13 +266,13 @@ function AnalyticsService(objectCollection)
         
         if(err1) {
             //global.logger.write('conLog', "get Widget Chart Id | based on widget_type_id | Error: ", err, {});
-            util.logError(request,`conLog get Widget Chart Id | based on widget_type_id | Error %j`, { err1 });
+            util.logError(request,`getwidgetStaticValueDetails get Widget Chart Id | based on widget_type_id | Error %j`, { err1 });
             return [true, {message: "Error creating Widget"}];
         }
         
         //global.logger.write('conLog', 'staticValues : ', {}, {});
         //global.logger.write('conLog', staticValues, {}, {});
-        util.logInfo(request,`conLog  %j`,{staticValues : staticValues, request});
+        util.logInfo(request,`getwidgetStaticValueDetails  %j`,{staticValues : staticValues, request});
 
         request.widget_chart_id = staticValues[0].widget_type_chart_id;
         request.flag_app = staticValues[0].flag_mobile_enabled;
@@ -296,7 +296,7 @@ function AnalyticsService(objectCollection)
         const [err, activityData] = await createActivity(request);
         if (err) {
             //global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
-            util.logError(request,`conLog createAssetBundle | createActivity | Error: %j`, { err });
+            util.logError(request,`createActivity createAssetBundle | createActivity | Error: %j`, { err });
             return [true, {message: "Error creating activity"}];
         }
         
@@ -315,7 +315,7 @@ function AnalyticsService(objectCollection)
             let [widgetErr, widgetResponse] = await this.widgetListInsert(request);
             if(widgetErr) {
                 //global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
-                util.logError(request,`conLog createAssetBundle | createActivity | Error: %j`, { err });
+                util.logError(request,`widgetListInsert createAssetBundle | createActivity | Error: %j`, { err });
                 return [true, {message: "Error creating Widget"}];
             }            
 

@@ -22,7 +22,7 @@ function ResponseWrapper(util) {
 
         try {
             //global.logger.write('response', 'response', response, request);
-            util.logInfo(request,`response response %j`,{response , request});
+            util.logInfo(request,`getResponse response response %j`,{response , request});
             logger.info(`service_id ${request.bundle_transaction_id || 0}`, { type: 'server_response', request_body: request, response });
         } catch (e) { }
 

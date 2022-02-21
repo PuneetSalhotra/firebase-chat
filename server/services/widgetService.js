@@ -114,7 +114,7 @@ function WidgetService(objCollection) {
 
                             //console.log(widgetArr);
                             //global.logger.write('conLog', widgetArr, {}, request);
-                            util.logInfo(request,`conLog %j`,{widgetArr, request});
+                            util.logInfo(request,`getWorkforceWidgetTimeline conLog %j`,{widgetArr, request});
                         });
                     }).then(function () {
                         callback(false, responseArr, 200);

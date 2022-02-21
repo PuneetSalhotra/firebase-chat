@@ -161,12 +161,12 @@ let Consumer = function () {
             try {
 
                 //global.logger.write('conLog', `topic ${message.topic} partition ${message.partition} offset ${message.offset}`, {}, {});
-                util.logInfo({},`conLog `,{topic : message.topic, partition : message.partition, offset : message.offset});
+                util.logInfo({},`consumer.on message conLog `,{topic : message.topic, partition : message.partition, offset : message.offset});
                 let kafkaMsgId = message.topic + '_' + message.partition + '_' + message.offset;
                 //global.logger.write('conLog', 'kafkaMsgId : ' + kafkaMsgId, {}, {});
-                util.logInfo({},`conLog `,{kafkaMsgId : kafkaMsgId});
+                util.logInfo({},`consumer.on message conLog `,{kafkaMsgId : kafkaMsgId});
                 //global.logger.write('conLog', 'getting this key from Redis : ' + message.topic + '_' + message.partition, {}, {});
-                util.logInfo({},`conLog getting this key from Redis`,{topic : message.topic, partition : message.partition});
+                util.logInfo({},`consumer.on message conLog getting this key from Redis`,{topic : message.topic, partition : message.partition});
 
                 let messageJson = JSON.parse(message.value || '{}');
 
@@ -198,10 +198,10 @@ let Consumer = function () {
 
                     activityCommonService.checkingPartitionOffset(request, (err, data) => {
                         //global.logger.write('conLog', 'err from checkingPartitionOffset : ' + err, {}, request);
-                        util.logError(request,`conLog err from checkingPartitionOffset Error %j`, { err,request });
+                        util.logError(request,`checkingPartitionOffset err from checkingPartitionOffset Error %j`, { err,request });
                         if (err === false) {
                             //global.logger.write('conLog', 'Consuming the message', {}, request);
-                            util.logInfo(request,`conLog Consuming the message %j`,{request});
+                            util.logInfo(request,`checkingPartitionOffset Consuming the message %j`,{request});
                             activityCommonService.partitionOffsetInsert(request, (err, data) => {});                        
                             consumingMsg(message, kafkaMsgId, objCollection).then(async () => {
                                 if (Number(request.pubnub_push) === 1) {
@@ -217,7 +217,7 @@ let Consumer = function () {
 
                         } else {
                             //global.logger.write('conLog', 'Before calling this duplicateMsgUniqueIdInsert', {}, request);
-                            util.logInfo(request,`conLog Before calling this duplicateMsgUniqueIdInsert %j`,{request});
+                            util.logInfo(request,`checkingPartitionOffset Before calling this duplicateMsgUniqueIdInsert %j`,{request});
                             activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data) => { });
                         }
                     });
@@ -339,11 +339,11 @@ let Consumer = function () {
             }], (err, data) => {
                 if (err) {
                     //global.logger.write('conLog', "err:" + JSON.stringify(err), {}, {});
-                    util.logError({},`conLog error in setting in asset parity Error %j`, { err: JSON.stringify(err)});
+                    util.logError({},`sendOffsetCommitRequest  Error %j`, { err: JSON.stringify(err)});
                     reject(err);
                 } else {
                     //global.logger.write('conLog', 'successfully offset ' + message.offset + ' is committed', {}, {});
-                    util.logInfo({},`conLog successfully offset is committed %j`,{message_offset : message.offset});
+                    util.logInfo({},`sendOffsetCommitRequest successfully offset is committed %j`,{message_offset : message.offset});
                     resolve();
                 }
             });
@@ -356,11 +356,11 @@ let Consumer = function () {
             cacheWrapper.setKafkaMessageUniqueId(message.topic + '_' + message.partition, message.offset, (err, data) => {
                 if (err === false) {
                     //global.logger.write('conLog', 'Successfully set the Kafka message Unique Id in Redis', {}, {});
-                    util.logInfo({},`conLog Successfully set the Kafka message Unique Id in Redis`,{});
+                    util.logInfo({},`setKafkaMessageUniqueId Successfully set the Kafka message Unique Id in Redis`,{});
                     resolve();
                 } else {
                     //global.logger.write('conLog', 'Unable to set the Kafka message Unique Id in the Redis : ' + JSON.stringify(err), {}, {});
-                    util.logError({},`conLog Unable to set the Kafka message Unique Id in the Redis %j`, { err : JSON.stringify(err)});
+                    util.logError({},`setKafkaMessageUniqueId Unable to set the Kafka message Unique Id in the Redis %j`, { err : JSON.stringify(err)});
                     reject(err);
                 }
             });
@@ -376,9 +376,9 @@ let Consumer = function () {
             //console.log('Received message.offset : ' + message.offset);
             //global.logger.write('debug', 'data : ' + JSON.stringify(data), {}, {});
             //global.logger.write('conLog', 'kafkaMsgId : ' + kafkaMsgId, {}, {});
-            util.logInfo({},`conLog kafkaMsgId %j`,{kafkaMsgId : kafkaMsgId});
+            util.logInfo({},`consumingMsg kafkaMsgId %j`,{kafkaMsgId : kafkaMsgId});
             //global.logger.write('conLog', 'Received message.offset : ' + message.offset, {}, {});
-            util.logInfo({},`conLog Received message.offset %j`,{message_offset : message.offset});
+            util.logInfo({},`consumingMsg Received message.offset %j`,{message_offset : message.offset});
 
             //if(data < message.offset) { //I think this should be greater than to current offset                                
             // global.logger.write('debug', message.value, {}, JSON.parse(message.value)['payload']);
@@ -408,7 +408,7 @@ let Consumer = function () {
                     let newClass;
 
                     //global.logger.write('conLog', 'jsFile : ' + jsFile, {}, {});
-                    util.logInfo({},`conLog jsFile %j`,{jsFile : jsFile});
+                    util.logInfo({},`consumingMsg jsFile %j`,{jsFile : jsFile});
                     try {
                         newClass = require(jsFile);
                     } catch (e) {
@@ -421,7 +421,7 @@ let Consumer = function () {
 
                     let serviceObj = eval("new " + newClass + "(objCollection)");
                     //global.logger.write('conLog', 'serviceObj : ', serviceObj, {}, {});
-                    util.logInfo({},`conLog serviceObj %j`,{serviceObj : serviceObj});
+                    util.logInfo({},`consumingMsg serviceObj %j`,{serviceObj : serviceObj});
                     serviceObjectCollection[serviceFile] = serviceObj;
 
                     if(asyncFlag === 1) {
@@ -433,11 +433,11 @@ let Consumer = function () {
                         serviceObj[method](messageJson['payload'], function (err, data) {
                             if (err) {
                                 //global.logger.write('debug', err, {}, messageJson['payload']);
-                                util.logError({},`debug Error %j`, {payload : messageJson['payload'], err : err});
+                                util.logError({},`consumingMsg debug Error %j`, {payload : messageJson['payload'], err : err});
                                 resolve();
                             } else {
                                 //global.logger.write('debug', data, {}, messageJson['payload']);
-                                util.logInfo({},`debug data %j`,{payload : messageJson['payload'], data });
+                                util.logInfo({},`consumingMsg debug data %j`,{payload : messageJson['payload'], data });
     
                                 //Commit the offset
                                 //commitingOffset(message).then(()=>{}).catch((err)=>{ console.log(err);});
@@ -460,11 +460,11 @@ let Consumer = function () {
                         serviceObjectCollection[serviceName][method](messageJson['payload'], function (err, data) {
                             if (err) {
                                 //global.logger.write('debug', err, {}, messageJson['payload']);
-                                util.logError({},`debug Error %j`, {payload : messageJson['payload'], err : err});
+                                util.logError({},`consumingMsg debug Error %j`, {payload : messageJson['payload'], err : err});
                                 resolve();
                             } else {
                                 //global.logger.write('debug', data, {}, messageJson['payload']);
-                                util.logInfo({},`debug data %j`,{payload : messageJson['payload'], data });
+                                util.logInfo({},`consumingMsg debug data %j`,{payload : messageJson['payload'], data });
     
                                 //Commit the offset
                                 //commitingOffset(message).then(()=>{}).catch((err)=>{ console.log(err);});

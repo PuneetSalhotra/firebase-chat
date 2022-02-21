@@ -1202,7 +1202,7 @@ function ActivityService(objectCollection) {
         if (activityTypeCategoryId === 38) {
             // console.log('Inside sendPush');
             //global.logger.write('conLog', 'Inside sendPush', {}, request);
-            util.logInfo(request,`conLog Inside sendPush %j`,{request});
+            util.logInfo(request,`activityListInsert Inside sendPush %j`,{request});
 
             sendPushPam(request).then(() => {});
         }
@@ -1803,15 +1803,15 @@ function ActivityService(objectCollection) {
             if (err) {
                 // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
                 //global.logger.write('debug', err, err, request);
-                util.logError(request,`debug Error %j`, { err,request });
+                util.logError(request,`raiseActivityEvent debug Error %j`, { err,request });
                 //global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent : ' + JSON.stringify(resp, null, 2), err, request);
-                util.logError(request,`debug Error in queueWrapper raiseActivityEvent : Error %j`, {error: JSON.stringify(resp, null, 2), err,request });
+                util.logError(request,`raiseActivityEvent debug Error in queueWrapper raiseActivityEvent : Error %j`, {error: JSON.stringify(resp, null, 2), err,request });
 
                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
             } else {
                 // console.log('\x1b[36m%s\x1b[0m', 'Successfullly raised SWIPE IN activity event.');
                 //global.logger.write('conLog', 'Successfullly raised SWIPE IN activity event.', {}, request);
-                util.logInfo(request,`conLog Successfullly raised SWIPE IN activity event. %j`,{request});
+                util.logInfo(request,`raiseActivityEvent Successfullly raised SWIPE IN activity event. %j`,{request});
             }
         });
     }
@@ -1862,13 +1862,13 @@ function ActivityService(objectCollection) {
                         }).then(() => {
                             // console.log('ARNS : ', data);
                             //global.logger.write('debug', 'ARNS: ' + JSON.stringify(data, null, 2), {}, request);
-                            util.logInfo(request,`debug ARNS: %j`,{ARNS : JSON.stringify(data, null, 2),request});
+                            util.logInfo(request,`sendPushPam debug ARNS: %j`,{ARNS : JSON.stringify(data, null, 2),request});
 
                             if (data.length > 0) {
                                 activityPushService.pamSendPush(request, data, objectCollection, function (err, resp) {});
                             } else {
                                 //global.logger.write('conLog', 'No arns', {}, request);
-                                util.logInfo(request,`conLog No arns %j`,{request});
+                                util.logInfo(request,`sendPushPam No arns %j`,{request});
                             }
 
                             resolve();
@@ -1998,7 +1998,7 @@ function ActivityService(objectCollection) {
                     callback(err, data);
                     //console.log(err);
                     //global.logger.write('serverError', err, err, request);
-                    util.logError(request,`serverError Error %j`, { err,request });
+                    util.logError(request,`activityListUpdateStatus serverError Error %j`, { err,request });
                     return;
                 }
             });
@@ -2171,7 +2171,7 @@ function ActivityService(objectCollection) {
                 } else {
                     //console.log('error while fetching from transaction data');
                     //global.logger.write('conLog', 'error while fetching from transaction data', {}, request);
-                    util.logInfo(request,`conLog error while fetching from transaction data %j`,{request});
+                    util.logInfo(request,`getFormTransactionRecords error while fetching from transaction data %j`,{request});
                 }
             });
         });
@@ -2399,7 +2399,7 @@ function ActivityService(objectCollection) {
                     activityStreamTypeId = 11; //by default so that we know
                     //console.log('adding streamtype id 11');
                     //global.logger.write('conLog', 'adding streamtype id 11', {}, request);
-                    util.logInfo(request,`conLog adding streamtype id 11 %j`,{request});
+                    util.logInfo(request,`alterActivityStatus adding streamtype id 11 %j`,{request});
                     break;
             }
             request.activity_stream_type_id = activityStreamTypeId;
@@ -2465,14 +2465,14 @@ function ActivityService(objectCollection) {
                     order_logged_statuses = widgetFieldsStatusesData.ORDER_LOGGED_STATUSES;//new Array(282624, 282642, 282671, 282557, 282588);//
 
                     //global.logger.write('conLog', '*****order_caf_approval_statuses*******'+Object.keys(order_caf_approval_statuses)+' '+String(request.activity_status_id), {}, request);
-                    util.logInfo(request,`conLog *****order_caf_approval_statuses******* %j`,{Object_keys_order_caf_approval_statuses : Object.keys(order_caf_approval_statuses),request_activity_status_id : String(request.activity_status_id),request});
+                    util.logInfo(request,`activityListUpdateStatus *****order_caf_approval_statuses******* %j`,{Object_keys_order_caf_approval_statuses : Object.keys(order_caf_approval_statuses),request_activity_status_id : String(request.activity_status_id),request});
                     //global.logger.write('conLog', '*****order_logged_statuses*******'+Object.keys(order_logged_statuses)+' '+String(request.activity_status_id), {}, request);
-                    util.logInfo(request,`conLog *****order_logged_statuses******* %j`,{Object_keys_order_logged_statuses : Object.keys(order_logged_statuses), request_activity_status_id : String(request.activity_status_id), request});
+                    util.logInfo(request,`activityListUpdateStatus *****order_logged_statuses******* %j`,{Object_keys_order_logged_statuses : Object.keys(order_logged_statuses), request_activity_status_id : String(request.activity_status_id), request});
 
                     if(Object.keys(order_caf_approval_statuses).includes(String(request.activity_status_id))) {
 
                         //global.logger.write('conLog', '*****ALTER CAF APPROVAL STATUS DATETIME*******', {}, request);
-                        util.logInfo(request,`conLog *****ALTER CAF APPROVAL STATUS DATETIME******* %j`,{request});
+                        util.logInfo(request,`activityListUpdateStatus *****ALTER CAF APPROVAL STATUS DATETIME******* %j`,{request});
                         request['workflow_activity_id'] = request.activity_id;
                         request['order_caf_approval_datetime'] = util.addUnitsToDateTime(util.replaceDefaultDatetime(util.getCurrentUTCTime()), 5.5, 'hours');
                         request['order_caf_approval_log_diff'] = 0;
@@ -2483,7 +2483,7 @@ function ActivityService(objectCollection) {
                     }else if(Object.keys(order_logged_statuses).includes(String(request.activity_status_id))){
 
                         //global.logger.write('conLog', '*****ALTER ORDER LOGGED STATUS DATETIME*******', {}, request);
-                        util.logInfo(request,`conLog *****ALTER ORDER LOGGED STATUS DATETIME******* %j`,{request});
+                        util.logInfo(request,`activityListUpdateStatus *****ALTER ORDER LOGGED STATUS DATETIME******* %j`,{request});
                         request['workflow_activity_id'] = request.activity_id;
                         request['order_logged_datetime'] = util.addUnitsToDateTime(util.replaceDefaultDatetime(util.getCurrentUTCTime()), 5.5, 'hours');
                         request['order_trigger_log_diff'] = 0;
@@ -2527,7 +2527,7 @@ function ActivityService(objectCollection) {
                 
                 if (Number(request.device_os_id) === 9) {
                     //global.logger.write('conLog', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
-                    util.logInfo(request,`conLog *****ALTER STATUS : HITTING WIDGET ENGINE******* %j`,{request});
+                    util.logInfo(request,`activityListUpdateStatus *****ALTER STATUS : HITTING WIDGET ENGINE******* %j`,{request});
                     request['source_id'] = 3;
                     //sendRequesttoWidgetEngine(request);
                 }
@@ -2537,7 +2537,7 @@ function ActivityService(objectCollection) {
                 if([9,48,53,31,63].indexOf(activityTypeCategroyId) > -1){
 
                     //global.logger.write('conLog', '*****ALTER STATUS : STATUS CHANGE TXN INSERT*******', {}, request);
-                    util.logInfo(request,`conLog *****ALTER STATUS : STATUS CHANGE TXN INSERT******* %j`,{request});
+                    util.logInfo(request,`activityListUpdateStatus *****ALTER STATUS : STATUS CHANGE TXN INSERT******* %j`,{request});
 
                     if (Number(request.activity_status_id) === Number(data[0].idExistingActivityStatus)) {
                         request.status_changed_flag = 0;
@@ -2576,7 +2576,7 @@ function ActivityService(objectCollection) {
                                         await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
                                             .then((resp) => {
                                                 //global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
-                                                util.logInfo(request,`debug Bot Engine Trigger Response: %j`,{Response : JSON.stringify(resp),request});
+                                                util.logInfo(request,`activityListUpdateStatus debug Bot Engine Trigger Response: %j`,{Response : JSON.stringify(resp),request});
                                             });
 
                                         break;
@@ -2597,11 +2597,11 @@ function ActivityService(objectCollection) {
                         }
                     } catch (botInitError) {
                         //global.logger.write('error', botInitError, botInitError, request);
-                        util.logError(request,`Error %j`, { botInitError,request });
+                        util.logError(request,`activityListUpdateStatus Error %j`, { botInitError,request });
                     }
 
                     //global.logger.write('conLog', '*****STATUS CHANGE FLAG : ' + request.status_changed_flag, {}, request);
-                    util.logInfo(request,`conLog *****STATUS CHANGE FLAG :  %j`,{request_status_changed_flag : request.status_changed_flag,request});
+                    util.logInfo(request,`activityListUpdateStatus *****STATUS CHANGE FLAG :  %j`,{request_status_changed_flag : request.status_changed_flag,request});
                     
                     let timeDuration = util.differenceDatetimes(util.getCurrentUTCTime(), util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated));
                     if (Number(data[0].idExistingActivityStatus) > 0 && Number(request.activity_status_id) > 0) {
@@ -2631,12 +2631,12 @@ function ActivityService(objectCollection) {
                                 rmbotService.triggerAIOnStatusChange(request); */
                             }
                             //global.logger.write('conLog', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
-                            util.logInfo(request,`conLog *****ALTER STATUS : HITTING WIDGET ENGINE******* %j`,{request});
+                            util.logInfo(request,`activityStatusChangeTxnInsertV2 *****ALTER STATUS : HITTING WIDGET ENGINE******* %j`,{request});
                             request['source_id'] = 3;
                             //sendRequesttoWidgetEngine(request);
                         }).catch((err)=>{
                             //global.logger.write('conLog', '*****ERROR INSERT : activityStatusChangeTxnInsertV2 '+err, {}, request);
-                            util.logError(request,`conLog *****ERROR INSERT : activityStatusChangeTxnInsertV2 Error %j`, { err,request });
+                            util.logError(request,`activityStatusChangeTxnInsertV2 *****ERROR INSERT : activityStatusChangeTxnInsertV2 Error %j`, { err,request });
                         })
                         //Capture workflow, customer and industry exposure for a desk asset
                         //await captureWorkExperienceForDeskAsset(request);
@@ -2872,7 +2872,7 @@ function ActivityService(objectCollection) {
                 // });
                 // 
                 //global.logger.write('conLog', "Calling updateActivityLogLastUpdatedDatetime", {}, request);
-                util.logInfo(request,`conLog Calling updateActivityLogLastUpdatedDatetime %j`,{request});
+                util.logInfo(request,`activityListUpdateStatus Calling updateActivityLogLastUpdatedDatetime %j`,{request});
                 try {
                     activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.creator_asset_id || request.asset_id), function (err, data) {
 
@@ -2880,10 +2880,10 @@ function ActivityService(objectCollection) {
 
                 } catch (error) {
                     //global.logger.write('debug', error, {}, request);
-                    util.logError(request,`debug Error %j`, { error,request });
+                    util.logError(request,`activityListUpdateStatus debug Error %j`, { error,request });
                 }
                 //global.logger.write('conLog', "DONE with updateActivityLogLastUpdatedDatetime", {}, request);
-                util.logInfo(request,`conLog DONE with updateActivityLogLastUpdatedDatetime %j`,{request});
+                util.logInfo(request,`activityListUpdateStatus DONE with updateActivityLogLastUpdatedDatetime %j`,{request});
                 // 
                 // 
                 // 
@@ -2913,20 +2913,20 @@ function ActivityService(objectCollection) {
                     //     vodafoneStatusUpdate(request, activityCommonService, objectCollection);
                     // });
                     //global.logger.write('debug', 'Calling vodafoneStatusUpdate...', {}, request);
-                    util.logInfo(request,`debug Calling vodafoneStatusUpdate... %j`,{request});
+                    util.logInfo(request,`activityListUpdateStatus debug Calling vodafoneStatusUpdate... %j`,{request});
                     //vodafoneStatusUpdate(request, activityCommonService, objectCollection);
 
                     //makeRequest to /vodafone/feasibility_checker/update BOT4
                     request.worflow_trigger_url = util.getWorkFlowUrl(request.url);
                     //global.logger.write('debug', 'worflow_trigger_url: ' + request.worflow_trigger_url, {}, request);
-                    util.logInfo(request,`debug worflow_trigger_url: %j`,{request_worflow_trigger_url : request.worflow_trigger_url,request});
+                    util.logInfo(request,`activityListUpdateStatus debug worflow_trigger_url: %j`,{request_worflow_trigger_url : request.worflow_trigger_url,request});
 
                     activityCommonService.getWorkflowForAGivenUrl(request).then((data) => {
                         //global.logger.write('debug', 'workflow_execution_url: ' + data[0].workflow_execution_url, {}, request);
-                        util.logInfo(request,`debug workflow_execution_url: %j`,{data_workflow_execution_url : duradata[0].workflow_execution_urltion,request});
+                        util.logInfo(request,`getWorkflowForAGivenUrldebug workflow_execution_url: %j`,{data_workflow_execution_url : duradata[0].workflow_execution_urltion,request});
                         activityCommonService.makeRequest(request, data[0].workflow_execution_url, 1).then((resp) => {
                             //global.logger.write('debug', resp, {}, request);
-                            util.logInfo(request,`debug %j`,{resp,request});
+                            util.logInfo(request,`getWorkflowForAGivenUrl debug %j`,{resp,request});
                         });
                     });
                 }
@@ -3195,11 +3195,11 @@ function ActivityService(objectCollection) {
                                             }
 
                                             //global.logger.write('conLog', 'Number Of ReceivedPostits : ' + noOfReceivedPostits, {}, request);
-                                            util.logInfo(request,`conLog Number Of ReceivedPostits : %j`,{Number_Of_ReceivedPostits : noOfReceivedPostits,request});
+                                            util.logInfo(request,`getPostItCounts Number Of ReceivedPostits : %j`,{Number_Of_ReceivedPostits : noOfReceivedPostits,request});
                                             //global.logger.write('conLog', 'Number Of RespondedPostits : ' + noOfRespondedPostits, {}, request);
-                                            util.logInfo(request,`conLog Number Of RespondedPostits : %j`,{Number_Of_RespondedPostits : noOfRespondedPostits,request});
+                                            util.logInfo(request,`getPostItCounts Number Of RespondedPostits : %j`,{Number_Of_RespondedPostits : noOfRespondedPostits,request});
                                             //global.logger.write('conLog', 'Percentage : ' + percentage, {}, request);
-                                            util.logInfo(request,`conLog Percentage : %j`,{Percentage : percentage,request});
+                                            util.logInfo(request,`getPostItCounts Percentage : %j`,{Percentage : percentage,request});
 
                                             //Insert into monthly summary table
                                             let monthlyCollection = {};
@@ -3228,11 +3228,11 @@ function ActivityService(objectCollection) {
                                             }
 
                                             //global.logger.write('conLog', 'Number Of ReceivedPostits : ' + noOfReceivedPostits, {}, request);
-                                            util.logInfo(request,`conLog Number Of ReceivedPostits : %j`,{Number_Of_ReceivedPostits : noOfReceivedPostits,request});
+                                            util.logInfo(request,`getPostItCounts Number Of ReceivedPostits : %j`,{Number_Of_ReceivedPostits : noOfReceivedPostits,request});
                                             //global.logger.write('conLog', 'Number Of RespondedPostits : ' + noOfRespondedPostits, {}, request);
-                                            util.logInfo(request,`conLog Number Of RespondedPostits : %j`,{Number_Of_RespondedPostits : noOfRespondedPostits,request});
+                                            util.logInfo(request,`getPostItCounts Number Of RespondedPostits : %j`,{Number_Of_RespondedPostits : noOfRespondedPostits,request});
                                             //global.logger.write('conLog', 'Percentage : ' + percentage, {}, request);
-                                            util.logInfo(request,`conLog Percentage : %j`,{Percentage : percentage,request});
+                                            util.logInfo(request,`getPostItCounts Percentage : %j`,{Percentage : percentage,request});
 
                                             //Insert into weekly summary table
                                             let weeklyCollection = {};
@@ -3494,9 +3494,9 @@ function ActivityService(objectCollection) {
                     // console.log('dueDate : ', dueDate);
 
                     //global.logger.write('debug', 'util.getCurrentUTCTime(): ' + util.getCurrentUTCTime(), {}, request);
-                    util.logInfo(request,`debug util.getCurrentUTCTime(): %j`,{util_getCurrentUTCTime : util.getCurrentUTCTime(),request});
+                    util.logInfo(request,`getActivityDetails debug util.getCurrentUTCTime(): %j`,{util_getCurrentUTCTime : util.getCurrentUTCTime(),request});
                     //global.logger.write('debug', 'dueDate: ' + dueDate, {}, request);
-                    util.logInfo(request,`debug dueDate : %j`,{dueDate : dueDate,request});
+                    util.logInfo(request,`getActivityDetails debug dueDate : %j`,{dueDate : dueDate,request});
 
                     if (request.hasOwnProperty('set_flag')) {
                         if (request.set_flag == 0) {
@@ -3853,7 +3853,7 @@ function ActivityService(objectCollection) {
                                         activityCommonService.getAssetAverageRating(request, collection).then((assetAverageRating) => {
                                             console.log(assetAverageRating);
                                             //global.logger.write('debug', 'assetAverageRating' + assetAverageRating, {}, request);
-                                            util.logInfo(request,`debug assetAverageRating %j`,{assetAverageRating : assetAverageRating,request});
+                                            util.logInfo(request,`getAssetAverageRating debug assetAverageRating %j`,{assetAverageRating : assetAverageRating,request});
 
                                             let monthlySummaryCollection = {};
                                             monthlySummaryCollection.summary_id = 19;
@@ -3948,11 +3948,11 @@ function ActivityService(objectCollection) {
         // console.log('weekly Percentage : ', percentage);
 
         //global.logger.write('debug', 'weekly Count: ' + count, {}, request);
-        util.logInfo(request,`debug weekly Count:  %j`,{weekly_Count : count,request});
+        util.logInfo(request,`acceptanceStatsSummaryInsert debug weekly Count:  %j`,{weekly_Count : count,request});
         //global.logger.write('debug', 'weekly Total Count: ' + totalCount, {}, request);
-        util.logInfo(request,`debug weekly Total Count: %j`,{weekly_Total_Count : totalCount,request});
+        util.logInfo(request,`acceptanceStatsSummaryInsert debug weekly Total Count: %j`,{weekly_Total_Count : totalCount,request});
         //global.logger.write('debug', 'weekly Percentage: ' + percentage, {}, request);
-        util.logInfo(request,`debug weekly Percentage: %j`,{weekly_Percentage : percentage,request});
+        util.logInfo(request,`acceptanceStatsSummaryInsert debug weekly Percentage: %j`,{weekly_Percentage : percentage,request});
 
         collection.summary_id = summaryIds.weekly;
         collection.asset_id = request.asset_id;
@@ -3972,11 +3972,11 @@ function ActivityService(objectCollection) {
             // console.log('monthly Percentage : ', percentage);
 
             //global.logger.write('debug', 'monthly Count: ' + count, {}, request);
-            util.logInfo(request,`debug monthly Count: %j`,{monthly_Count : count,request});
+            util.logInfo(request,`weeklySummaryInsert debug monthly Count: %j`,{monthly_Count : count,request});
             //global.logger.write('debug', 'monthly Total Count: ' + totalCount, {}, request);
-            util.logInfo(request,`debug monthly Total Count: %j`,{monthly_Total_Count : totalCount,request});
+            util.logInfo(request,`weeklySummaryInsert debug monthly Total Count: %j`,{monthly_Total_Count : totalCount,request});
             //global.logger.write('debug', 'monthly Percentage: ' + percentage, {}, request);
-            util.logInfo(request,`debug monthly Percentage: %j`,{monthly_Percentage : percentage,request});
+            util.logInfo(request,`weeklySummaryInsert debug monthly Percentage: %j`,{monthly_Percentage : percentage,request});
 
             collection.summary_id = summaryIds.monthly;
             collection.entity_bigint_1 = totalCount;
@@ -4120,7 +4120,7 @@ function ActivityService(objectCollection) {
                 } else {
                     // console.log(err);
                     //global.logger.write('serverError', err, err, request);
-                    util.logError(request,`serverError Error %j`, { err,request });
+                    util.logError(request,`activityAssetMappingInsertParticipantAssign serverError Error %j`, { err,request });
 
                 }
             });
@@ -4132,7 +4132,7 @@ function ActivityService(objectCollection) {
     function sendRequesttoWidgetEngine(request) {
 
         //global.logger.write('conLog', '********IN HITTING WIDGET *********************************************: ', {}, request);
-        util.logInfo(request,`conLog ********IN HITTING WIDGET *********************************************:  %j`,{request});
+        util.logInfo(request,`sendRequesttoWidgetEngine ********IN HITTING WIDGET *********************************************:  %j`,{request});
         if (request.activity_type_category_id == 48) { //form and submitted state  
 
             activityCommonService.getActivityCollection(request).then((activityData) => { // get activity form_id and form_transaction id
@@ -4168,7 +4168,7 @@ function ActivityService(objectCollection) {
                     payload: widgetEngineQueueMessage
                 };
                 //global.logger.write('conLog', 'Hitting Widget Engine with request:' + event, {}, request);
-                util.logInfo(request,`conLog Hitting Widget Engine with request: %j`,{event,request});
+                util.logInfo(request,`sendRequesttoWidgetEngine Hitting Widget Engine with request: %j`,{event,request});
 
                 queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
             //});
@@ -4611,7 +4611,7 @@ function ActivityService(objectCollection) {
     function updateWidgetAggrStatus(request) {
         return new Promise((resolve, reject) => {
             //global.logger.write('DEBUG', '::: UPDATING WIDGET AGGR STATUS :::', {}, request);
-            util.logInfo(request,`DEBUG ::: UPDATING WIDGET AGGR STATUS ::: %j`,{request});
+            util.logInfo(request,`updateWidgetAggrStatus DEBUG ::: UPDATING WIDGET AGGR STATUS ::: %j`,{request});
             let paramsArr = new Array(
                 request.activity_id,
                 request.workforce_id,
@@ -5807,7 +5807,7 @@ function ActivityService(objectCollection) {
     function activtyWidgetListInsert(request) {
         return new Promise((resolve, reject) => {
             //global.logger.write('DEBUG', '::: activtyWidgetListInsert  :::', {}, request);
-            util.logInfo(request,`DEBUG ::: activtyWidgetListInsert  ::: %j`,{request});
+            util.logInfo(request,`activtyWidgetListInsert DEBUG ::: activtyWidgetListInsert  ::: %j`,{request});
             let paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,

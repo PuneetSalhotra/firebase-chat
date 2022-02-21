@@ -124,7 +124,7 @@ function PamListingController(objCollection) {
             } else {
                 console.log('did not get proper response');
                 //global.logger.write('response', 'did not get proper response', err, req.body);
-                util.logError(req,`response did not get proper response Error %j`, { err,body : req.body });
+                util.logError(req.body,`getActivityAssetCategoryDifferential response did not get proper response Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }

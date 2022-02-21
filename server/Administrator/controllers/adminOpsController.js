@@ -497,7 +497,7 @@ function AdminOpsController(objCollection) {
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
             //global.logger.write('conLog', err, {}, {});
-            util.logError(req,`conLog Error %j`, { err });
+            util.logError(req.body,`organization/ai_bot/config/alter Error %j`, { err });
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
@@ -509,7 +509,7 @@ function AdminOpsController(objCollection) {
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
             //global.logger.write('conLog', err, {}, {});
-            util.logError(req,`conLog Error %j`, { err });
+            util.logError(req.body,`organization/config/update Error %j`, { err });
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
@@ -521,7 +521,7 @@ function AdminOpsController(objCollection) {
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
             //global.logger.write('conLog', err, {}, {});
-            util.logError(req,`conLog Error %j`, { err });
+            util.logError(req.body,`organization/form-tag/update Error %j`, { err });
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
@@ -543,7 +543,7 @@ function AdminOpsController(objCollection) {
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
             //global.logger.write('conLog', err, {}, {});
-            util.logError(req,`conLog Error %j`, { err });
+            util.logError(req.body,`organization/ai_bot/set Error %j`, { err });
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
@@ -554,7 +554,7 @@ function AdminOpsController(objCollection) {
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
             //global.logger.write('conLog', err, err, err);
-            util.logError(req,`conLog Error %j`, { err });
+            util.logError(req.body,`/asset/signup Error %j`, { err });
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });

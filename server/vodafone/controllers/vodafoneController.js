@@ -40,7 +40,7 @@ function VodafoneController(objCollection) {
         queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
             if (err) {
                 //global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
-                util.logError(req,`conLog Error in queueWrapper raiseActivityEvent: %j`, { error : JSON.stringify(err), err, req });
+                util.logError(req.body,`conLog Error in queueWrapper raiseActivityEvent: %j`, { error : JSON.stringify(err), err, body : req.body });
                 res.json(responseWrapper.getResponse(err, {}, -5999, req));
                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
             } else {
@@ -63,7 +63,7 @@ function VodafoneController(objCollection) {
         queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
             if (err) {
                 //global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
-                util.logError(req,`conLog Error in queueWrapper raiseActivityEvent: Error %j`, {error : JSON.stringify(err), err, req });
+                util.logError(req.body,`conLog Error in queueWrapper raiseActivityEvent: Error %j`, {error : JSON.stringify(err), err, body : req.body });
                 res.json(responseWrapper.getResponse(err, {}, -5999, req));
                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
             } else {
@@ -97,7 +97,7 @@ function VodafoneController(objCollection) {
         queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
             if (err) {
                 //global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
-                util.logError(req,`conLog Error in queueWrapper raiseActivityEvent: Error %j`, {error : JSON.stringify(err), err, req });
+                util.logError(req.body,`conLog Error in queueWrapper raiseActivityEvent: Error %j`, {error : JSON.stringify(err), err, bosy:  req.body });
                 res.json(responseWrapper.getResponse(err, {}, -5999, req));
                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
             } else {
@@ -151,7 +151,7 @@ function VodafoneController(objCollection) {
         queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
             if (err) {
                 //global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req.body);
-                util.logError(req,`conLog Error in queueWrapper raiseActivityEvent: Error %j`, {error : JSON.stringify(err), err, body : req.body });
+                util.logError(req.body,`conLog Error in queueWrapper raiseActivityEvent: Error %j`, {error : JSON.stringify(err), err, body : req.body });
                 res.json(responseWrapper.getResponse(err, {}, -5999, req));
                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
             } else {
@@ -198,11 +198,11 @@ function VodafoneController(objCollection) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
                                             //global.logger.write('conLog', "error in setting in asset parity", err, req.body);
-                                            util.logError(req,`conLog error in setting in asset parity Error %j`, { err, body : req.body });
+                                            util.logError(req.body,`setAssetParity conLog error in setting in asset parity Error %j`, { err, body : req.body });
                                         } else
                                             //console.log("asset parity is set successfully")
                                             //global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
-                                            util.logInfo(req,`conLog asset parity is set successfully %j`,{ body : req.body});
+                                            util.logInfo(req.body,`setAssetParity conLog asset parity is set successfully %j`,{ body : req.body});
 
                                     });
                                 }
@@ -342,7 +342,7 @@ function VodafoneController(objCollection) {
         queueWrapper.raiseActivityEvent(event, req.body.activity_id, (err, resp) => {
             if (err) {
                 //global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, req);
-                util.logError(req,`conLog Error in queueWrapper raiseActivityEvent: Error %j`, {error : JSON.stringify(err), err, req });
+                util.logError(req.body,`conLog Error in queueWrapper raiseActivityEvent: Error %j`, {error : JSON.stringify(err), err, body : req.body });
                 return res.json(responseWrapper.getResponse(err, {
                     err
                 }, -5999999, req.body));
@@ -422,7 +422,7 @@ function VodafoneController(objCollection) {
     app.post('/' + global.config.version + '/workflow_reference/activity_type/search', async (req, res) =>{       
         try {            
             //global.logger.write('conLog', req.body, {}, {});
-            util.logInfo(req,`conLog %j`,{body : req.body});
+            util.logInfo(req.body,`/workflow_reference/activity_type/search conLog %j`,{body : req.body});
             let result = await vodafoneService.searchWFBasedOnActivityType(req.body);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {
@@ -435,7 +435,7 @@ function VodafoneController(objCollection) {
     app.post('/' + global.config.version + '/document_reference/attachment_type/search', async (req, res) =>{        
         try {            
             //global.logger.write('conLog', req.body, {}, {});
-            util.logInfo(req,`conLog %j`,{body : req.body});
+            util.logInfo(req.body,`/document_reference/attachment_type/search conLog %j`,{body : req.body});
             let result = await vodafoneService.searchDocBasedOnAttachmentType(req.body);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {
