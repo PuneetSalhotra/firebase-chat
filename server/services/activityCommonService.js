@@ -7510,6 +7510,38 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         }
         return [error, responseData];
     }
+
+    this.searchCuidFromElastic = async (request) => {
+
+        let error = true,
+            responseData = [];
+        try {
+            request.search_string = request.search_string || request.cuid || "";
+            let searchString = `activity_cuid_1 : ${request.search_string} OR activity_cuid_2 : ${request.search_string} OR activity_cuid_3 : ${request.search_string}`
+            let query = `/${global.config.elasticActivitySearch48Table}/_search?q=${searchString}`;
+
+            query = encodeURI(query);
+
+            query = query + "&from=" + 0 + "&size=" + 1000;
+
+            const result = await client.transport.request({
+                method: "GET",
+                path: query,
+            });
+
+            for (let i = 0; i < result.hits.hits.length; i++) {
+
+                if (result.hits.hits[i]._source.log_state < 3) {
+                    responseData.push(result.hits.hits[i]._source)
+                }
+            }
+            error = false
+        } catch (e) {
+            error = e;
+            logger.error("Error searching CUID data from elastic ", { error: e, request })
+        }
+        return [error, responseData];
+    }
 }
 
 
