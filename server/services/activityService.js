@@ -343,6 +343,9 @@ function ActivityService(objectCollection) {
                             }
 
                             if(activityTypeCategroyId === 53){
+                                let workflowTitleExpression = request.activity_title.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'');
+                                workflowTitleExpression = workflowTitleExpression.split(' ').join('');
+                                request.expression = workflowTitleExpression;
                                 self.activityUpdateExpression(request);
                             }
 

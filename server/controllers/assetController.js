@@ -1163,12 +1163,12 @@ function AssetController(objCollection) {
         }
     });
 	
-    app.post('/' + global.config.version + '/asset/list/update/last_seen_date_time', async function (req, res) {
-        const [err, resData] = await assetService.assetListUpdateLastSeenDateTime(req.body);
+    app.post('/' + global.config.version + '/asset/list/selected/manager', async function (req, res) {
+        const [err, resData] = await assetService.getAssetListForSelectedManager(req.body);
         if (!err) {
             res.json(responseWrapper.getResponse({}, resData, 200, req.body));
         } else {
-            console.log("/asset/list/manager/search | Error: ", err);
+            console.log("/asset/list/selected/manager | Error: ", err);
             res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
         }
     });

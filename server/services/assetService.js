@@ -6420,6 +6420,117 @@ this.getQrBarcodeFeeback = async(request) => {
                             responseData[0] = "";
                             responseData[1] = data;
                             resolve(responseData);
+                        } else if ([31,32,33].includes(Number(request.flag))){
+
+                            if (data.length == 0) {
+                                
+                                singleData.query_status = 0;
+                                singleData.tag_id = 0;
+                                singleData.tag_name = "All";
+
+                                data.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+
+                            } else if (data.length == 1) {
+
+                                if(data[0].tag_type_id == 0){
+                                    if(request.tag_type_id == 0){
+                                        singleData.query_status = 0;
+                                        singleData.tag_id = 0;
+                                        singleData.tag_name = "All";
+
+                                        responseData[0] = "";
+                                        responseData[1] = singleData;
+                                        //console.log("responseData ", responseData);
+                                        resolve(responseData);
+                                    }else if(request.tag_type_id > 0){
+                                        tagListOfTagTypeSelectV1(request).then((resData) => {
+                                            singleData.query_status = 0;
+                                            singleData.tag_id = 0;
+                                            singleData.tag_name = "All";
+    
+                                            resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                            responseData[0] = "";
+                                            responseData[1] = resData;
+                                            //console.log("responseData ", responseData);
+                                            resolve(responseData);
+    
+                                        });
+                                    }
+
+
+                                }else if(data[0].tag_type_id > 0){
+                                    if(data[0].tag_id == 0){
+                                        tagListOfTagTypeSelectV1(request).then((resData) => {
+                                            singleData.query_status = 0;
+                                            singleData.tag_id = 0;
+                                            singleData.tag_name = "All";
+    
+                                            resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                            responseData[0] = "";
+                                            responseData[1] = resData;
+                                            //console.log("responseData ", responseData);
+                                            resolve(responseData);
+    
+                                        });
+                                    }else if(data[0].tag_id > 0){
+                                        responseData[0] = "";
+                                        responseData[1] = data;
+                                        resolve(responseData);
+                                    }
+                                }else{
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }                               
+                            } else {    
+                                
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+                            }  
+
+                        } else if ([34,35,36].includes(Number(request.flag))){
+                            if (data.length == 0) {
+                                
+                                singleData.query_status = 0;
+                                singleData.tag_type_id = 0;
+                                singleData.tag_type_name = "All";
+
+                                data.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+
+                            } else if (data.length == 1) {
+
+                                if (data[0].tag_type_id == 0) {
+                                    // get the list of tag types from organization_list
+                                    tagTypeListUnderAVertical(request).then((resData) => {
+                                        singleData.query_status = 0;
+                                        singleData.tag_tpye_id = 0;
+                                        singleData.tag_type_name = "All";
+
+                                        resData.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                        responseData[0] = "";
+                                        responseData[1] = resData;
+                                        //console.log("responseData ", responseData);
+                                        resolve(responseData);
+
+                                    });
+                                } else {
+                                    responseData[0] = "";
+                                    responseData[1] = data;
+                                    resolve(responseData);
+                                }
+                            } else {    
+                                
+                                responseData[0] = "";
+                                responseData[1] = data;
+                                resolve(responseData);
+                            }
                         } else {
 
                             if(!request.hasOwnProperty("resource_tag_dynamic_enabled"))
@@ -6786,6 +6897,27 @@ this.getQrBarcodeFeeback = async(request) => {
             }
         });
     };
+
+    function tagTypeListUnderAVertical(request) {
+        return new Promise((resolve, reject) => {
+            var paramsArr = new Array(
+                request.organization_id,
+                request.flag
+            );
+            var queryString = util.getQueryString('ds_v1_organization_list_select_tag', paramsArr);
+            if (queryString != '') {
+                db.executeQuery(1, queryString, request, function (err, data) {
+                    if(err === false){
+                        console.log(data[0].tag);
+                        resolve(JSON.parse(data[0].tag));
+                    }else{
+                        reject(err);
+                    }
+                    
+                });
+            }
+        });
+    };    
 
     async function tagEntityMappingSelect(request) {
         return new Promise((resolve, reject) => {
@@ -8446,6 +8578,38 @@ this.getQrBarcodeFeeback = async(request) => {
                     error = err;
                 })
         }
+        return [error, responseData];
+    };
+
+    this.getAssetListForSelectedManager = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.manager_asset_id,
+            request.workforce_tag_id,
+            request.workforce_id,
+            request.account_id,
+            request.asset_tag_id_1,
+            request.asset_tag_id_2,
+            request.asset_tag_id_3,
+            request.flag,
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_1_asset_list_select_manager', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
         return [error, responseData];
     };
 
