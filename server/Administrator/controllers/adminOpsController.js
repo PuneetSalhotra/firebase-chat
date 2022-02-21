@@ -1323,6 +1323,16 @@ function AdminOpsController(objCollection) {
             }
         });
 
+        app.post("/" + global.config.version + "/admin/form/field/gemification/score/update", async function (req, res) {
+            const [err, result] = await adminOpsService.workforceFormFieldMappingGemificationScoreUpdate(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/admin/form/field/gemification/score/update | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
 
 }
 

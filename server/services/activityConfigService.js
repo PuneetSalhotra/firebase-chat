@@ -984,7 +984,7 @@ function ActivityConfigService(db,util,objCollection) {
         //IF p_flag = 2 THEN search only CUID 2 - GST Number
         //IF p_flag = 3 THEN search only CUID 3 - Account Code
         //IF p_flag = 4 THEN search only expression - Account Name
-        request.activity_type_category_id = 48;
+        request.activity_type_category_id = request.activity_type_category_id ? request.activity_type_category_id : 48;
 
         let error = false,
             finalResponse = {
@@ -1002,7 +1002,7 @@ function ActivityConfigService(db,util,objCollection) {
         if(Number(request.flag_check) === 1) { //Check Workflow Title
             workflowTitle = request.workflow_title;
             workflowTitle = workflowTitle.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'');
-            workflowTitle = workflowTitle.split(' ').join('')
+            workflowTitle = workflowTitle.split(' ').join('');
             console.log("workflowTitle : ",workflowTitle);
 
             request.search_string = workflowTitle;
