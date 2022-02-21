@@ -649,6 +649,16 @@ function TasiController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/tasi/entity/target/mapping/history/select/v1', async function (req, res) {
+        const [err, resData] = await tasiService.entitytargetMappingHistorySelectV1(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/entity/target/mapping/history/select/v1 | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/tasi/input/list/history/list', async function (req, res) {
         const [err, resData] = await tasiService.inputListHistorySelect(req.body);
         if (!err) {
@@ -1005,6 +1015,96 @@ function TasiController(objCollection) {
             res.json(responseWrapper.getResponse({}, resData, 200, req.body));
         } else {
             console.log("/tasi/asset_type/sip/target/list | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/widget/type/role/mapping/asset/list', async function (req, res) {
+        const [err, resData] = await tasiService.widgetTypeAssetTypeMappingAssetList(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/widget/type/role/mapping/asset/list | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/widget/type/role/mapping/asset/list/v1', async function (req, res) {
+        const [err, resData] = await tasiService.widgetTypeAssetTypeMappingAssetListV1(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/widget/type/role/mapping/asset/list/v1 | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/account/target/settings/asset/list', async function (req, res) {
+        const [err, resData] = await tasiService.accountTargetSettingSelectAssetList(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/account/target/settings/asset/list | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/entity/target/mapping/select', async function (req, res) {
+        const [err, resData] = await tasiService.tasiEntityTargetMappingSelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/entity/target/mapping/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/entity/target/mapping/select/v1', async function (req, res) {
+        const [err, resData] = await tasiService.tasiEntityTargetMappingSelectV1(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/entity/target/mapping/select/v1 | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/entity/target/mapping/update/v1', async function (req, res) {
+        const [err, resData] = await tasiService.entityTargetMappingTargetUpdate(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/entity/target/mapping/update/v1 | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/widget_type/asset_type/mapping/code/list', async function (req, res) {
+        const [err, resData] = await tasiService.widgetTypeAssetTypeMappingCodeSelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/widget_type/asset_type/mapping/code/list | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/widget_type/asset_type/mapping/role/list', async function (req, res) {
+        const [err, resData] = await tasiService.widgetTypeAssetTypeMappingRoleSelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/widget_type/asset_type/mapping/role/list | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/entity/target/mapping/outlier/flag/update', async function (req, res) {
+        const [err, resData] = await tasiService.entityTargetMappingOutlierFlagUpdate(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/entity/target/mapping/outlier/flag/update | Error: ", err);
             res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
         }
     });

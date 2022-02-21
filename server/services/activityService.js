@@ -343,6 +343,9 @@ function ActivityService(objectCollection) {
                             }
 
                             if(activityTypeCategroyId === 53){
+                                let workflowTitleExpression = request.activity_title.toLowerCase().replace(/pvt/gi,'private').replace(/ltd/gi,'limited').replace(/\s+/gi,'');
+                                workflowTitleExpression = workflowTitleExpression.split(' ').join('');
+                                request.expression = workflowTitleExpression;
                                 self.activityUpdateExpression(request);
                             }
 
@@ -2547,7 +2550,7 @@ function ActivityService(objectCollection) {
                             let botsListData = await activityCommonService.getBotsMappedToActType(botEngineRequest);
                             if (botsListData.length > 0) {
                                 botEngineRequest.bot_id = botsListData[0].bot_id;
-                                let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
+                                let botEngineRequestHandleType = global.config.BOT_ENGINE_REQUEST_HANDLE_TYPE;
                                 botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
 
                                 util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: botEngineRequest });

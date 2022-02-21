@@ -55,6 +55,21 @@ function ActivityTimelineService(objectCollection) {
             request.activity_stream_type_id = 728;
         }
         
+        if(activityStreamTypeId == 728) {
+           
+            let [err, botResponse] = await activityCommonService.getMappedBotSteps({
+                organization_id: request.organization_id,
+                bot_id: 0,
+                form_id: request.form_id,
+                field_id: 0,
+                start_from: 0,
+                limit_value: 1
+            }, 0);
+            if(botResponse.length > 0) {
+                await fireBotEngineInitWorkflow(request);
+            }
+        }
+        
         // if(supressTimelineEntries.includes(Number(request.form_id)) && Number(request.activity_stream_type_id)==713 ){
         //     activityStreamTypeId = 728;
         //     request.activity_stream_type_id = 728;
@@ -277,6 +292,21 @@ function ActivityTimelineService(objectCollection) {
         if (!err && data.length > 0) {
             activityStreamTypeId = 728;
             request.activity_stream_type_id = 728;
+        }
+
+        if(activityStreamTypeId == 728) {
+           
+            let [err, botResponse] = await activityCommonService.getMappedBotSteps({
+                organization_id: request.organization_id,
+                bot_id: 0,
+                form_id: request.form_id,
+                field_id: 0,
+                start_from: 0,
+                limit_value: 1
+            }, 0);
+            if(botResponse.length > 0) {
+                await fireBotEngineInitWorkflow(request);
+            }
         }
 
         util.logInfo(request,` 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 ASYNC - ADD Timeline Transaction - ENTRY 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒 🕒`);
@@ -1187,7 +1217,7 @@ function ActivityTimelineService(objectCollection) {
                     // Bot log - Bot is defined
                     activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 1);
 
-                    let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
+                    let botEngineRequestHandleType = global.config.BOT_ENGINE_REQUEST_HANDLE_TYPE;
                     util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: botEngineRequest });
 
                     botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
@@ -1292,7 +1322,7 @@ function ActivityTimelineService(objectCollection) {
 
                     util.logInfo(request,`fireBotEngineInitWorkflow | botEngineRequest: `, botEngineRequest);
 
-                    let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
+                    let botEngineRequestHandleType = await global.config.BOT_ENGINE_REQUEST_HANDLE_TYPE;
                     util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: botEngineRequest });
                     botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
                     switch (botEngineRequestHandleType) {
@@ -2969,13 +2999,14 @@ function ActivityTimelineService(objectCollection) {
             params.push(util.getCurrentUTCTime()); // IN p_transaction_datetime DATETIME
             params.push(request.datetime_log); // IN p_log_datetime DATETIME
             params.push(request.entity_datetime_2); // IN p_entity_datetime_2 DATETIME
+            params.push(row.field_gamification_score || 0); // IN p_field_gamification_score 
 
             util.logInfo(request,`addFormEntries params %j`, params);
 
             //var queryString = util.getQueryString('ds_v1_activity_form_transaction_insert', params);
             // var queryString = util.getQueryString('ds_v1_1_activity_form_transaction_insert', params); //BETA
             // var queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
-            var queryString = util.getQueryString('ds_v1_3_activity_form_transaction_insert', params); //BETA
+            var queryString = util.getQueryString('ds_v1_4_activity_form_transaction_insert', params); //BETA
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, async function (err, data) {
                     if (Object.keys(poFields).includes(String(row.field_id))) {
@@ -3827,11 +3858,12 @@ async function addFormEntriesAsync(request) {
             params.push(util.getCurrentUTCTime()); // IN p_transaction_datetime DATETIME
             params.push(request.datetime_log); // IN p_log_datetime DATETIME
             params.push(request.entity_datetime_2); // IN p_entity_datetime_2 DATETIME
+            params.push(row.field_gamification_score || 0); // IN p_field_gamification_score 
 
             util.logInfo(request,`addFormEntriesAsync params %j`,params);
 
             // const queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
-            const queryString = util.getQueryString('ds_v1_3_activity_form_transaction_insert', params); //BETA
+            const queryString = util.getQueryString('ds_v1_4_activity_form_transaction_insert', params); //BETA
             if (queryString != '') {
                 await db.executeQueryPromise(0, queryString, request)
                 .then(async (data) => {

@@ -2439,6 +2439,7 @@ function FormConfigService(objCollection) {
                 formFieldCollection.data_type_combo_value,
                 formFieldCollection.data_type_id,
                 formFieldCollection.next_field_id,
+                formFieldCollection.gamification_score || 0,
                 request.form_id,
                 request.organization_id,
                 request.asset_id,
@@ -2447,7 +2448,7 @@ function FormConfigService(objCollection) {
 
             //const queryString = util.getQueryString('ds_p1_1_workforce_form_field_mapping_insert', paramsArr);
             //const queryString = util.getQueryString('ds_p1_2_workforce_form_field_mapping_insert', paramsArr);
-            const queryString = util.getQueryString('ds_p1_3_workforce_form_field_mapping_insert', paramsArr);            
+            const queryString = util.getQueryString('ds_p1_4_workforce_form_field_mapping_insert', paramsArr);            
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
@@ -3661,7 +3662,7 @@ function FormConfigService(objCollection) {
                 try {
                     setTimeout(async () => {
 
-                        let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
+                        let botEngineRequestHandleType = global.config.BOT_ENGINE_REQUEST_HANDLE_TYPE;
                         util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: newRequest });
                         botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
                         switch (botEngineRequestHandleType) {
@@ -3704,7 +3705,7 @@ function FormConfigService(objCollection) {
                 newRequest.workflow_activity_id = workflowActivityId;
                 try {
                     setTimeout(async () => {
-                        let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
+                        let botEngineRequestHandleType = global.config.BOT_ENGINE_REQUEST_HANDLE_TYPE;
                         util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: newRequest });
                         botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
                         switch (botEngineRequestHandleType) {
@@ -3789,7 +3790,7 @@ function FormConfigService(objCollection) {
 
             await sleep(3000);
             try {
-                let botEngineRequestHandleType = await cacheWrapper.getKeyValueFromCache('BOT_ENGINE_REQUEST_HANDLE_TYPE');
+                let botEngineRequestHandleType = global.config.BOT_ENGINE_REQUEST_HANDLE_TYPE;
                 util.logInfo(request, `[BotEngineTrigger] Bot Engine request handle type ${botEngineRequestHandleType} %j`, { request: initBotEngineRequest });
                 botEngineRequestHandleType = botEngineRequestHandleType.toLowerCase();
                 switch (botEngineRequestHandleType) {

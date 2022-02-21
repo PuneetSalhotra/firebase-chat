@@ -1647,6 +1647,29 @@ function PamListingService(objectCollection) {
         }
         return [error, responseData];
     };
+    this.getDiscountPromocode = async function (request) {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.account_id,
+            request.workforce_id,
+            request.organization_id,
+            request.promo_start_datetime,
+            request.promo_end_datetime,
+        );
+        let queryString = util.getQueryString('pm_v1_discount_promocode_select', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
 };
 
 module.exports = PamListingService;
