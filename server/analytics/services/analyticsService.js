@@ -3394,7 +3394,10 @@ function AnalyticsService(objectCollection)
                      request.filter_organization_id,
                      request.filter_asset_tag_1 || 0,
                      request.filter_asset_tag_2 || 0,
-                     request.filter_asset_tag_3 || 0
+                     request.filter_asset_tag_3 || 0,
+                     request.filter_asset_tag_type_1 || 0,
+                     request.filter_asset_tag_type_2 || 0,
+                     request.filter_asset_tag_type_3 || 0
                     );
             
             let queryString = util.getQueryString('ds_v2_3_activity_search_list_select_widget_drilldown_oppty', paramsArray);
@@ -4539,19 +4542,20 @@ function AnalyticsService(objectCollection)
             error = true;
         
         const paramsArr = [     
-              request.organization_id,
-              request.account_id,
-              request.type_flag,
-              request.target_account_id,
-              request.tag_id,
-              request.tag_type_id,
-              request.filter_is_search,
-              request.filter_search_string,
-              request.page_start || 0,
-              request.page_limit || 50
+            request.organization_id,
+            request.account_id,
+            request.workforce_tag_id,
+            request.flag,
+            request.target_account_id,
+            request.tag_id,
+            request.tag_type_id,
+            request.is_search,
+            request.search_string,
+            request.start_from || 0,
+            request.limit_value || 50
         ];
 
-        const queryString = util.getQueryString('ds_v1_tag_list_select_dashobard_filters', paramsArr);
+        const queryString = util.getQueryString('ds_v1_1_tag_list_select_dashboard_filters', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
               .then((data) => {

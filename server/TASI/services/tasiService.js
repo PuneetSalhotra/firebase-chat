@@ -3504,7 +3504,7 @@ function TasiService(objectCollection) {
 
         const paramsArr = new Array(
             request.asset_id,
-            request.organization_id,
+            request.organization_id, 
             request.period_start_datetime,
             request.datetime_end,
             request.financial_year,
@@ -3512,8 +3512,9 @@ function TasiService(objectCollection) {
             request.widget_type_category_id,
             request.asset_tag_id_1,
             request.workforce_tag_id,
+            request.product_id,
             request.account_id,
-            request.start_from,
+            request.start_from, 
             request.limit_value
         );
 
@@ -3690,16 +3691,17 @@ function TasiService(objectCollection) {
 
         const paramsArr = new Array(
             request.flag,
-            request.organization_id,
-            request.widget_type_id,
+            request.organization_id, 
+            request.widget_type_id, 
             request.widget_type_category_id,
             request.timeline_id,
             request.period_start_datetime,
             request.period_end_datetime,
             request.financial_year,
-            request.asset_type_id,
+            request.asset_type_id, 
             request.workforce_tag_id,
-            request.start_from,
+            request.product_id || 0,
+            request.start_from, 
             request.limit_value
         );
 
