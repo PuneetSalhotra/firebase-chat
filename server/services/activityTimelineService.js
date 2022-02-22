@@ -78,7 +78,6 @@ function ActivityTimelineService(objectCollection) {
         activityCommonService.updateAssetLocation(request, function (err, data) {});
 
         if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) { // add form case
-
             setTimeout(() => {
                 getActivityIdBasedOnTransId(request)
                     .then(async (data) => {
@@ -2999,7 +2998,8 @@ function ActivityTimelineService(objectCollection) {
             params.push(util.getCurrentUTCTime()); // IN p_transaction_datetime DATETIME
             params.push(request.datetime_log); // IN p_log_datetime DATETIME
             params.push(request.entity_datetime_2); // IN p_entity_datetime_2 DATETIME
-            params.push(row.field_gamification_score || 0); // IN p_field_gamification_score 
+            params.push(row.field_gamification_score || 0); // IN p_field_gamification_score
+            params.push(request.is_refill === 1 || request.is_resubmit === 1 ? 1 : 0); //refill or resubmit
 
             util.logInfo(request,`addFormEntries params %j`, params);
 
@@ -3859,6 +3859,7 @@ async function addFormEntriesAsync(request) {
             params.push(request.datetime_log); // IN p_log_datetime DATETIME
             params.push(request.entity_datetime_2); // IN p_entity_datetime_2 DATETIME
             params.push(row.field_gamification_score || 0); // IN p_field_gamification_score 
+            params.push(request.is_refill === 1 || request.is_resubmit === 1 ? 1 : 0); //refill or resubmit case
 
             util.logInfo(request,`addFormEntriesAsync params %j`,params);
 
