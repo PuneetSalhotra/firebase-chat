@@ -3394,7 +3394,10 @@ function AnalyticsService(objectCollection)
                      request.filter_organization_id,
                      request.filter_asset_tag_1 || 0,
                      request.filter_asset_tag_2 || 0,
-                     request.filter_asset_tag_3 || 0
+                     request.filter_asset_tag_3 || 0,
+                     request.filter_asset_tag_type_1 || 0,
+                     request.filter_asset_tag_type_2 || 0,
+                     request.filter_asset_tag_type_3 || 0
                     );
             
             let queryString = util.getQueryString('ds_v2_3_activity_search_list_select_widget_drilldown_oppty', paramsArray);
