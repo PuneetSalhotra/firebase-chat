@@ -15,12 +15,20 @@ apps:
     exec_mode: fork
     node_args: "--max_old_space_size=2048"
 
-  - name : "Staging_Bot_Consumer"
+  - name : "Staging_Bot_Consumer1"
     env: {NODE_ENV: staging}
     script   : ./botConsumer.js
-    instances: max    
+    instances: 1    
     out_file: '/dev/null'
-    exec_mode: cluster
+    exec_mode: fork
+    node_args: "--max_old_space_size=1024"
+
+  - name : "Staging_Bot_Consumer2"
+    env: {NODE_ENV: staging}
+    script   : ./botConsumer.js
+    instances: 1    
+    out_file: '/dev/null'
+    exec_mode: fork
     node_args: "--max_old_space_size=1024"
 
   # - name : "Staging_LogConsumerZero"
