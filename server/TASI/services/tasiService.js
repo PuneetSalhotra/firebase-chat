@@ -3700,7 +3700,7 @@ function TasiService(objectCollection) {
             request.financial_year,
             request.asset_type_id, 
             request.workforce_tag_id,
-            request.product_id,
+            request.product_id || 0,
             request.start_from, 
             request.limit_value
         );
