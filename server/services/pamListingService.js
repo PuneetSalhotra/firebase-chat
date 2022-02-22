@@ -1346,11 +1346,12 @@ function PamListingService(objectCollection) {
 
         let paramsArr = new Array(
             request.organization_id,
+            request.account_id || 0,
             request.activity_type_category_id,
             request.page_start,
             request.page_limit
         );
-        const queryString = util.getQueryString('pm_v1_tag_entity_mapping_select_category', paramsArr);
+        const queryString = util.getQueryString('pm_v1_1_tag_entity_mapping_select_category', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
