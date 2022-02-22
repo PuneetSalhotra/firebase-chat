@@ -736,7 +736,7 @@ function PamController(objCollection) {
         if (!err) {
             res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            console.log("/pam/get/discount/promocode Error: ", err)
+            console.log("/pam/get/inventory/current/quantity Error: ", err)
             res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });	
@@ -754,12 +754,19 @@ function PamController(objCollection) {
         if (!err) {
             res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            console.log("/pam/update/minimum/count/assetlist Error: ", err)
+            console.log("/pam/get/minimum/count/assetlist Error: ", err)
             res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });	
-
-    
+    app.post('/' + global.config.version + '/pam/get/product/wise/sale', async function (req, res) {
+        const [err, data] = await pamService.productWiseSale(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/pam/get/product/wise/sale Error: ", err)
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });	  
 };
 
 module.exports = PamController;
