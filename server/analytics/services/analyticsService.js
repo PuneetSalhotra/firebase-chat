@@ -2296,8 +2296,8 @@ function AnalyticsService(objectCollection)
                 request.filter_hierarchy = 0;
             }
 
-            if(request.tag_type_id == 130)
-                request.filter_asset_id = request.asset_id;
+            //if(request.tag_type_id == 130)
+            //    request.filter_asset_id = request.asset_id;
 
             //if([131,132,133,134].includes(request.widget_type_id))
              //   request.filter_asset_id = request.asset_id;
@@ -2371,6 +2371,7 @@ function AnalyticsService(objectCollection)
                         request.filter_asset_tag_type_1 || 0,
                         request.filter_asset_tag_type_2 || 0,
                         request.filter_asset_tag_type_3 || 0,
+                        request.asset_id,
                         parseInt(request.page_start) || 0,
                         parseInt(request.page_limit) || 50
                     );
@@ -3140,8 +3141,8 @@ function AnalyticsService(objectCollection)
             console.log('request.filter_search_string :: '+ request.filter_search_string);
             console.log('request.filter_mapping_activity_id :: '+ request.filter_mapping_activity_id);
 
-            if(request.tag_type_id == 130)
-            request.filter_asset_id = request.asset_id;
+            //if(request.tag_type_id == 130)
+            //request.filter_asset_id = request.asset_id;
             
             //if([131,132,133,134].includes(request.widget_type_id))
             //    request.filter_asset_id = request.asset_id;
@@ -3215,7 +3216,8 @@ function AnalyticsService(objectCollection)
                      request.filter_asset_tag_3 || 0,
                      request.filter_asset_tag_type_1 || 0,
                      request.filter_asset_tag_type_2 || 0,
-                     request.filter_asset_tag_type_3 || 0
+                     request.filter_asset_tag_type_3 || 0,
+                     request.asset_id
                  );
             
             let queryString = util.getQueryString('ds_v2_3_activity_search_list_select_widget_drilldown_search', paramsArray);
@@ -3324,8 +3326,8 @@ function AnalyticsService(objectCollection)
             console.log('request.filter_search_string :: '+ request.filter_search_string);
             console.log('request.filter_mapping_activity_id :: '+ request.filter_mapping_activity_id);
 
-            if(request.tag_type_id == 130)
-            request.filter_asset_id = request.asset_id;
+            //if(request.tag_type_id == 130)
+            //request.filter_asset_id = request.asset_id;
             
             //if([131,132,133,134].includes(request.widget_type_id))
             //    request.filter_asset_id = request.asset_id;
@@ -3397,7 +3399,8 @@ function AnalyticsService(objectCollection)
                      request.filter_asset_tag_3 || 0,
                      request.filter_asset_tag_type_1 || 0,
                      request.filter_asset_tag_type_2 || 0,
-                     request.filter_asset_tag_type_3 || 0
+                     request.filter_asset_tag_type_3 || 0,
+                     request.asset_id
                     );
             
             let queryString = util.getQueryString('ds_v2_3_activity_search_list_select_widget_drilldown_oppty', paramsArray);
@@ -5203,8 +5206,8 @@ function AnalyticsService(objectCollection)
                 request.filter_hierarchy = 0;
             }
 
-            if (request.tag_type_id == 130)
-                request.filter_asset_id = request.asset_id;
+            //if (request.tag_type_id == 130)
+            //    request.filter_asset_id = request.asset_id;
 
             console.log('request.filter_is_datetime_considered :: ' + request.filter_is_datetime_considered);
 
@@ -6116,8 +6119,8 @@ function AnalyticsService(objectCollection)
                 request.filter_hierarchy = 0;
             }
 
-            if (request.tag_type_id == 130)
-                request.filter_asset_id = request.asset_id;
+            //if (request.tag_type_id == 130)
+            //    request.filter_asset_id = request.asset_id;
 
             console.log('request.filter_is_datetime_considered :: ' + request.filter_is_datetime_considered);
 
