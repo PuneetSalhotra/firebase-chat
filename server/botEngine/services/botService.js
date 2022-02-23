@@ -15601,7 +15601,7 @@ if(workflowActivityData.length==0){
                     fieldValue = formInlineData[counter].field_value.split('|')[1];
                 }
                 else if(Number(formInlineData[counter].field_data_type_id) === 59){
-                    fieldValue = formInlineData[counter].data_entity_text_1
+                    fieldValue = formInlineData[counter].field_value.split('|')[1];
                 }
                 else{
                     fieldValue = formInlineData[counter].field_value;
