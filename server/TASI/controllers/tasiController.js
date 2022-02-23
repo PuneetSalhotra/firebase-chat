@@ -1108,6 +1108,16 @@ function TasiController(objCollection) {
             res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/tasi/entity/target/mapping/archive', async function (req, res) {
+        const [err, resData] = await tasiService.entityTargetMappingArchive(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/entity/target/mapping/archive | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
 }
 
 module.exports = TasiController;
