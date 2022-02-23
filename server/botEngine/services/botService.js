@@ -9427,6 +9427,13 @@ else{
             } catch (error) {
                 logger.error("updateCUIDBotOperation.queueActivityMappingUpdateCUIDs | Error updating CUID in the queue_activity_mapping table", { type: 'bot_engine', error: serializeError(error), request_body: request });
             }
+
+            try {
+                activityCommonService.actAssetSearchMappingUpdate(request);
+            } catch (error) {
+                logger.error("updateCUIDs | Error updating CUID in the AssetSearchMapping", { type: 'esms_ibm_mq', error: serializeError(error) });
+            }
+
         }
 
         return [false, []];
@@ -10073,13 +10080,17 @@ else{
     }
 
     this.smeGemification = async (request, bot_inline) => {
+        
       util.logInfo(request,`in smeGamification : %j`);
       let activity_inline_data = typeof request.activity_inline_data =="string"?JSON.parse(request.activity_inline_data):request.activity_inline_data;
       //field edit request
+      activity_inline_data = await fieldMappingGamification(request,activity_inline_data);
+      
       util.logInfo(request,`in is_from_field_alter : %j`,request.is_from_field_alter);
       util.logInfo(request,`in is_refill : %j`,request.is_refill);
       util.logInfo(request,`in is_resubmit : %j`,request.is_resubmit);
-      if (request.is_from_field_alter) {
+
+      if (request.is_from_field_alter==1) {
         let [err,gamificationScore] = await getFormGamificationScore(request);
         util.logInfo(request,`previous gemification score length : %j`,gamificationScore.length);
         if(gamificationScore.length>0){
@@ -12354,30 +12365,33 @@ if(workflowActivityData.length==0){
     };
 
     async function activityListSearchCUID(request) {
-        let error = true,
-            responseData = [];
+        // let error = true,
+        //     responseData = [];
 
-        const paramsArr = new Array(
-            request.organization_id,
-            request.activity_type_category_id,
-            request.activity_type_id || 0,
-            request.flag || 0,
-            request.search_string,
-            request.page_start || 0,
-            request.page_limit || 50
-        );
-        const queryString = util.getQueryString('ds_v1_activity_list_search_cuid', paramsArr);
+        // const paramsArr = new Array(
+        //     request.organization_id,
+        //     request.activity_type_category_id,
+        //     request.activity_type_id || 0,
+        //     request.flag || 0,
+        //     request.search_string,
+        //     request.page_start || 0,
+        //     request.page_limit || 50
+        // );
+        // const queryString = util.getQueryString('ds_v1_activity_list_search_cuid', paramsArr);
 
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                })
-        }
+        // if (queryString !== '') {
+        //     await db.executeQueryPromise(1, queryString, request)
+        //         .then((data) => {
+        //             responseData = data;
+        //             error = false;
+        //         })
+        //         .catch((err) => {
+        //             error = err;
+        //         })
+        // }
+
+        const [error, responseData] = await activityCommonService.searchCuidFromElastic(request);
+
         return [error, responseData];
     }
 
@@ -17637,6 +17651,49 @@ if(workflowActivityData.length==0){
             util.logError(request, `Error inserting bot operation message `, { type: "bot_consumer", error: serializeError(e) })
         }
 
+    }
+    async function formFieldGamificationData(request){
+        let responseData = [],
+            error = true;
+        let paramsArr = [
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.form_id,
+            '1970-01-01 00:00:00',
+            0,
+            100
+        ];
+        let queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+
+    }
+
+    async function fieldMappingGamification(request, inline_data) {
+      let [err, data] = await formFieldGamificationData(request);
+      for (let i = 0; i < data.length; i++) {
+        try {
+            console.log("index",i)
+          let each = await data.find(
+            (val) => val.field_id == inline_data[i].field_id
+          );
+          inline_data[i].field_gamification_score_value =
+            each.field_gamification_score_value;
+        } catch (err1) {
+          continue;
+        }
+      }
+      return inline_data;
     }
 
 }
