@@ -12,6 +12,7 @@ function ActivityUpdateService(objectCollection) {
     var queueWrapper = objectCollection.queueWrapper;
     var makeRequest = require('request');
     //const moment = require('moment');
+    const { serializeError } = require('serialize-error')
 
     const ActivityListingService = require("../services/activityListingService");
     const activityListingService = new ActivityListingService(objectCollection);
@@ -2902,6 +2903,95 @@ function ActivityUpdateService(objectCollection) {
         }
     };
 
+    this.activityListUpdateSubTypeV2 = async (request) => {
+        let responseData = [], error = true;
+        var paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_id,
+            request.activity_sub_type_id,
+            request.activity_sub_type_name,
+            request.log_asset_id,
+            request.log_datetime || util.getCurrentUTCTime()
+        );
+
+        var queryString = util.getQueryString('ds_v2_activity_list_update_sub_type', paramsArr);
+
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+            return [error, responseData];
+        }
+    };
+
+    this.activityListUpdateParentV2 = async (request) => {
+        let responseData = [], error = true;
+        var paramsArr = new Array(
+            request.activity_id,
+            request.organization_id,
+            request.parent_activity_id,
+            "",
+            0,
+            "",
+            0,
+            "",
+            request.asset_id,
+            request.log_datetime || util.getCurrentUTCTime()
+        );
+
+        var queryString = util.getQueryString('ds_v2_activity_list_update_parent', paramsArr);
+
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+            return [error, responseData];
+        }
+    };
+
+    this.activityMappingParentUpdate = async (request) => {
+        let responseData = [], error = true;
+        try {
+            request.activity_sub_type_id = 1;
+            request.activity_sub_type_name = "Parent Workflow"
+            let [err1, data1] = await this.activityListUpdateSubTypeV2(request);
+
+            let [err2, data2] = await this.activityListUpdateParentV2(request);
+
+            try {
+                activityCommonService.actAssetSearchMappingUpdate({ activity_id: request.activity_id || request.workflow_activity_id, organization_id: request.organization_id, asset_id: request.asset_id })
+            } catch (error) {
+                util.logError(request, `activityMappingParentUpdate updateCUIDs | Error updating CUID in the AssetSearchMapping Error %j`, { type: 'esms_ibm_mq', error: serializeError(error), request });
+            }
+            try {
+                activityCommonService.actAssetSearchMappingUpdate({ activity_id: request.parent_activity_id, organization_id: request.organization_id, asset_id: request.asset_id })
+            } catch (error) {
+                util.logError(request, `activityMappingParentUpdate updateCUIDs | Error updating CUID in the AssetSearchMapping Error %j`, { type: 'esms_ibm_mq', error: serializeError(error), request });
+            }
+            error = false;
+            responseData = [{ "message": "Activity details updated successfully" }];
+            util.logInfo(request, `activityMappingParentUpdate Activity details updated successfully %j`, { request });
+        }
+        catch (err) {
+            responseData = [{ "message": "Error while updating activity details" }];
+            util.logError(request, `activityMappingParentUpdate Error while updating activity details %j`, { err, request });
+        }
+        finally {
+            return [error, responseData];
+        }
+    };
     
 }
 
