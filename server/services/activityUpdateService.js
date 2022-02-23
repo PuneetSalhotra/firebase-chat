@@ -2909,7 +2909,7 @@ function ActivityUpdateService(objectCollection) {
             request.organization_id,
             request.account_id,
             request.workforce_id,
-            request.activity_id,
+            request.parent_activity_id,
             request.activity_sub_type_id,
             request.activity_sub_type_name,
             request.log_asset_id,
