@@ -2373,7 +2373,7 @@ function AnalyticsService(objectCollection)
                         request.filter_asset_tag_type_3 || 0,
                         request.asset_id,
                         parseInt(request.page_start) || 0,
-                        parseInt(request.page_limit) || 50,
+                        parseInt(request.page_limit) || 50
                     );
 
                     let counter = 1; 
