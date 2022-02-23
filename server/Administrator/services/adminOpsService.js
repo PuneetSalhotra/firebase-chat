@@ -12175,7 +12175,8 @@ if (queryString !== '') {
             request.form_id,
             request.form_transaction_id,
             request.asset_id,
-            request.form_transaction_datetime,
+            request.start_datetime,
+            request.end_datetime,
             request.start_from, 
             request.limit_value
         );
@@ -12239,6 +12240,32 @@ if (queryString !== '') {
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.workforceFormMappingRolebackFlagUpdate = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.form_id,
+          request.flag_disable_rollback_refill,
+          request.asset_id
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_mapping_update_flag_disable_rollback_refill', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;

@@ -1363,6 +1363,16 @@ function AdminOpsController(objCollection) {
             }
         });
 
+        app.post("/" + global.config.version + "/admin/workforce/form/mapping/roleback/flag/update", async function (req, res) {
+            const [err, result] = await adminOpsService.workforceFormMappingRolebackFlagUpdate(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/admin/workforce/form/mapping/roleback/flag/update | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
 
 }
 
