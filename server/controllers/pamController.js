@@ -767,6 +767,16 @@ function PamController(objCollection) {
             res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });	  
+    app.post('/' + global.config.version + '/pam/menu/recommend/set', async function (req, res) { 
+        
+        let [err,result] = await pamService.setChefRecommendedMenu(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            console.log("/pam/menu/recommend/set | Error: ", err);
+            res.json(responseWrapper.getResponse(true, result, -9999, req.body));
+        }
+    });    
 };
 
 module.exports = PamController;

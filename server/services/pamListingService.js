@@ -1671,6 +1671,41 @@ function PamListingService(objectCollection) {
         }
         return [error, responseData];
     };
+
+    this.getMenuLinkedtoParticularTagV1 = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_category_id,
+            request.activity_type_id,
+            request.tag_id,
+            request.tag_type_id,
+            request.tag_type_category_id,
+            request.menu_tag_id,
+            request.menu_sub_tag_id,
+            request.is_search,
+            request.search_string,
+            request.flag || 0,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('pm_v2_activity_asset_mapping_select_menu_search', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                	responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, responseData];
+    }      
 };
 
 module.exports = PamListingService;

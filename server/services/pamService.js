@@ -6092,7 +6092,7 @@ this.getChildOfAParent = async (request) => {
     );
     let queryString = util.getQueryString('pm_pam_module_role_mapping_update_log_state', paramsArr);
     if (queryString != '') {
-        await db.executeQueryPromise(1, queryString, request)
+        await db.executeQueryPromise(0, queryString, request)
             .then((data) => {
                 responseData = data;
                 console.log(responseData,'responseData');
@@ -6121,7 +6121,7 @@ this.getChildOfAParent = async (request) => {
             );
         let queryString = util.getQueryString('pm_pam_module_role_mapping_multiple_insert', paramsArr);
         if (queryString != '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -6174,7 +6174,7 @@ this.getChildOfAParent = async (request) => {
         );
     let queryString = util.getQueryString('pm_pam_module_role_mapping_multiple_delete', paramsArr);
     if (queryString != '') {
-        await db.executeQueryPromise(1, queryString, request)
+        await db.executeQueryPromise(0, queryString, request)
             .then((data) => {
                 responseData = data;
                 error = false;
@@ -6505,7 +6505,7 @@ this.getChildOfAParent = async (request) => {
         );
         let queryString = util.getQueryString('pm_v1_discount_promotion_code_insert', paramsArr);
         if (queryString != '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -6528,7 +6528,7 @@ this.getChildOfAParent = async (request) => {
         );
         let queryString = util.getQueryString('pm_v1_asset_list_update_minimum_count', paramsArr);
         if (queryString != '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -6627,6 +6627,30 @@ this.getChildOfAParent = async (request) => {
         }
         return [error, responseData];
     };
+
+    this.setChefRecommendedMenu = async function (request) {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_id,
+            request.recommend_flag,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+        let queryString = util.getQueryString('pm_v1_activity_list_update_chef_recommended', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };    
 };
 
 module.exports = PamService;
