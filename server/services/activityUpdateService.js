@@ -2912,7 +2912,7 @@ function ActivityUpdateService(objectCollection) {
             request.parent_activity_id,
             request.activity_sub_type_id,
             request.activity_sub_type_name,
-            request.log_asset_id,
+            request.asset_id,
             request.log_datetime || util.getCurrentUTCTime()
         );
 
