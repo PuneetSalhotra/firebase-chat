@@ -1417,8 +1417,12 @@ function PamListingService(objectCollection) {
         const queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_menu_search', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                	responseData = data;
+                .then(async(data) => {
+                    responseData = data;
+                    for (i = 0; i < data.length; i++) {
+                        let [errr, ResData] = await this.getActivityAssetCategory(request, data[i].activity_id);
+                        data[i]['Ingredients'] = ResData;
+                    }
                     error = false;
                 })
                 .catch((err) => {
@@ -1671,6 +1675,27 @@ function PamListingService(objectCollection) {
         }
         return [error, responseData];
     };
+    this.getActivityAssetCategory = async function (request, activity_id) {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.organization_id,
+            activity_id,
+            request.asset_type_category_id = 41
+        );
+        const queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_asset_category', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
 
     this.getMenuLinkedtoParticularTagV1 = async function (request) {
 
@@ -1694,18 +1719,16 @@ function PamListingService(objectCollection) {
         );
         const queryString = util.getQueryString('pm_v2_activity_asset_mapping_select_menu_search', paramsArr);
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                 	responseData = data;
-                    error = false;
+					error = false;
                 })
                 .catch((err) => {
                     error = err;
                 })
         }
-
-        return [error, responseData];
-    }      
+	}    
 };
 
 module.exports = PamListingService;
