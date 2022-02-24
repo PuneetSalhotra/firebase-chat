@@ -3458,6 +3458,28 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 				});
 				
 	    	}
+            else if (request.hasOwnProperty('is_menu_orders')) {
+                //get the member of the reservation
+                //get the discount of the member
+                var start_from = 0;
+                var limit_value = 50;
+                var row_count = 0;
+                getReservationMemberDiscount(request, idReservation).then((data) => {
+                    //console.log(data[0].memberDiscount); 
+                    global.logger.write('debug', 'Discount ' + JSON.stringify(data), {}, request);
+                    getMenuItemOrderBilling(request, idReservation, data[0].nameReservation, data[0].idMember, data[0].nameMember, data[0].memberDiscount, data[0].serviceChargePercentage, data[0].memberEnabled).then((resevationBillAmount) => {
+
+                        global.logger.write('conLog', 'resevationBill ' + resevationBillAmount.total_price, {}, request);
+
+                        if (request.hasOwnProperty('is_insert')) {
+                            pamEventBillingInsert(request, data[0].idEvent, data[0].titleEvent, idReservation, data[0].nameReservation, data[0].idActivityStatusType, data[0].nameActivityStatusType, data[0].idMember, data[0].nameMember, resevationBillAmount.total_price);
+                        }
+                        resolve(resevationBillAmount);
+
+                    });
+
+                });
+            }
             else{    
 	    		if(request.hasOwnProperty('is_room_posting'))
 	    		pamEventBillingInsert(request, 0, '', idReservation, '', 0, '', 0, '', 0);
@@ -3957,6 +3979,236 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 
                 });
                 
+            }).then(() => {
+                //console.log("Reservation "+idReservation+" is done");
+                global.logger.write('conLog', 'Reservation ' + idReservation + ' is done', {}, request);
+                resolve({
+                    total_price,
+                    total_discount,
+                    total_tax,
+                    gst_percent,
+                    total_mrp,
+                    total_service_charge
+                });
+            });
+
+
+        });
+    };
+    function getMenuItemOrderBilling(request, idReservation, nameReservation, idMember, nameMember, discount, serviceChargePercentage, memberEnabled) {
+        return new Promise((resolve, reject) => {
+            var total_mrp = 0;
+            var total_discount = 0;
+            var total_tax = 0;
+            let total_service_charge = 0;
+            let total_item_tax = 0;
+            var total_price = 0;
+            var item_discount = 0;
+            var orderActivityId = 0;
+            let gst_percent = 18;
+            console.log("memberEnabled", memberEnabled);
+            let is_nc = memberEnabled == 4 ? 1 : 0;
+            // console.log("req1",typeof request.activity_inline_data);
+            let inline_data = typeof request.activity_inline_data == 'string' ? JSON.parse(request.activity_inline_data) : request.activity_inline_data;
+            // console.log('inl',inline_data)
+            forEachAsync(inline_data, (next1, rowData1) => {
+                // console.log(JSON.parse(rowData1.activity_inline_data).activity_type_id,'activity_type_id');
+                //reservation_id create
+                let cost = 0;
+                let tax_percent = 0;
+                let dis_amount = 0;
+                let tax_amount = 0;
+                let item_tax_amount = 0;
+                let service_charge_tax_amount = 0;
+                let price_after_discount = 0;
+                let final_price = 0;
+                let service_charge = 0;
+                let price_after_service_charge = 0;
+                let activity_type_name = '';
+
+                orderActivityId = rowData1.activity_id;
+                let inlinDataParsed = rowData1.activity_inline_data;
+                if (inlinDataParsed.activity_type_id == 52049) {
+                    activity_type_name = 'Food';
+                } else if (inlinDataParsed.activity_type_id == 52050) {
+                    activity_type_name = 'Spirits';
+                } else if (inlinDataParsed.activity_type_id == 52051) {
+                    activity_type_name = 'Cocktails';
+                } else {
+                    activity_type_name = 'Others';
+                }
+
+                if (inlinDataParsed.is_full_bottle == 0) {
+                    cost = rowData1.activity_priority_enabled * inlinDataParsed.item_price;
+                    //console.log("cost1", cost);
+                } else if (inlinDataParsed.is_full_bottle == 1) {
+                    cost = rowData1.activity_priority_enabled * inlinDataParsed.item_full_price;
+                    //console.log("cost2", cost);
+                }
+
+                if (is_nc) {
+                    cost = 0;
+                }
+
+                if (rowData1.activity_status_type_id == 126 || rowData1.activity_status_type_id == 139 || rowData1.activity_status_type_id == 104) {
+                    cost = 0;
+                }
+
+                item_discount = discount;
+
+                if (rowData1.form_id == 1)
+                    item_discount = 0;
+
+                dis_amount = (cost * item_discount) / 100;
+                total_mrp = total_mrp + cost;
+
+                price_after_discount = cost - dis_amount;
+                tax_percent = inlinDataParsed.tax;
+
+                service_charge = (price_after_discount * serviceChargePercentage) / 100;
+
+                item_tax_amount = (cost * tax_percent) / 100;
+                service_charge_tax_amount = (service_charge * gst_percent) / 100
+
+                total_service_charge = service_charge + total_service_charge;
+                total_item_tax = total_item_tax + item_tax_amount;
+
+                price_after_service_charge = cost + service_charge;
+                tax_amount = item_tax_amount + service_charge_tax_amount;
+                final_price = price_after_service_charge + tax_amount;
+
+                total_price = total_price + final_price;
+                //console.log('total price '+total_price);
+                total_tax = total_tax + tax_amount;
+                total_discount = total_discount + dis_amount;
+
+                //pam_order_list insert
+                var attributeArray = {
+                    event_id: request.activity_id,
+                    reservation_id: idReservation,
+                    reservation_name: nameReservation,
+                    member_id: idMember,
+                    member_name: nameMember,
+                    order_status_type_id: rowData1.activity_status_type_id,
+                    order_status_type_name: rowData1.activity_status_type_name,
+                    order_type_id: inlinDataParsed.activity_type_id,
+                    order_type_name: activity_type_name,
+                    order_id: rowData1.activity_id,
+                    menu_id: rowData1.channel_activity_id,
+                    order_name: rowData1.activity_title,
+                    order_quantity: rowData1.activity_priority_enabled,
+                    order_unit_price: inlinDataParsed.item_price,
+                    is_full_bottle: inlinDataParsed.is_full_bottle,
+                    full_bottle_price: inlinDataParsed.item_full_price,
+                    choices: inlinDataParsed.item_choices,
+                    choices_count: 0,
+                    order_price: cost,
+                    service_charge_percent: serviceChargePercentage,
+                    service_charge: service_charge,
+                    discount_percent: item_discount,
+                    discount: dis_amount,
+                    price_after_discount: price_after_discount,
+                    tax_percent: tax_percent,
+                    tax: tax_amount,
+                    final_price: final_price,
+                    log_datetime: request.datetime_log,
+                    log_asset_id: rowData1.log_asset_id,
+                    log_asset_first_name: rowData1.log_asset_first_name,
+                    option_id: inlinDataParsed.option_id
+                };
+
+                pamOrderInsert(request, attributeArray).then(() => {
+                    global.logger.write('conLog', 'OrderId cost: ' + cost + ' service_charge: ' + service_charge + ' item_tax_amount: ' + item_tax_amount + ' service_charge_tax_amount:' + service_charge_tax_amount + ' orderId: ' + rowData1.activity_id + '-menuId: ' + rowData1.channel_activity_id + ' : ' + final_price, {}, request);
+                    if (inlinDataParsed.hasOwnProperty('item_choice_price_tax')) {
+                        var arr = inlinDataParsed.item_choice_price_tax;
+                        //for (key in arr)
+                        forEachAsync(arr, (next2, choiceData) => {
+
+                            let choice_cost = 0;
+                            let dis_amount = 0;
+                            let choice_tax_percent = 0;
+                            let choice_tax_amount = 0;
+                            let choice_item_tax_amount = 0;
+                            let choice_service_charge_tax_amount = 0;
+                            let choice_service_charge = 0;
+                            let choice_price_after_discount = 0;
+                            let choice_final_price = 0;
+                            let choice_price_after_service_charge = 0;
+
+                            choice_cost = choiceData.quantity * choiceData.price;
+
+                            if (is_nc) {
+                                choice_cost = 0;
+                            }
+
+                            total_mrp = total_mrp + choice_cost;
+
+                            if (rowData1.activity_status_type_id == 126 || rowData1.activity_status_type_id == 139 || rowData1.activity_status_type_id == 104) {
+                                choice_cost = 0;
+                            }
+
+                            item_discount = discount;
+
+                            if (choiceData.hasOwnProperty('form_id')) {
+                                if (choiceData.form_id == 1)
+                                    item_discount = 0;
+                            }
+
+                            dis_amount = (choice_cost * item_discount) / 100;
+                            choice_price_after_discount = choice_cost - dis_amount;
+
+                            choice_tax_percent = choiceData.tax;
+                            choice_service_charge = (choice_price_after_discount * serviceChargePercentage) / 100;
+                            choice_item_tax_amount = (choice_cost * choice_tax_percent) / 100;
+                            choice_service_charge_tax_amount = (choice_service_charge * gst_percent) / 100;
+
+                            total_service_charge = total_service_charge + choice_service_charge;
+
+                            choice_price_after_service_charge = choice_cost + choice_service_charge;
+                            choice_tax_amount = choice_item_tax_amount + choice_service_charge_tax_amount;
+                            choice_final_price = choice_price_after_service_charge + choice_tax_amount;
+
+                            total_price = total_price + choice_final_price;
+                            //console.log('IN Choice total price '+total_price);
+                            total_tax = total_tax + choice_tax_amount;
+                            total_discount = total_discount + dis_amount;
+
+                            attributeArray.order_type_id = 54536;
+                            attributeArray.order_type_name = 'Others';
+                            attributeArray.order_id = rowData1.activity_id;
+                            attributeArray.menu_id = choiceData.activity_id;
+                            attributeArray.order_name = choiceData.name;
+                            attributeArray.order_quantity = choiceData.quantity;
+                            attributeArray.order_unit_price = choiceData.price;
+                            attributeArray.is_full_bottle = 0;
+                            attributeArray.full_bottle_price = 0;
+                            attributeArray.choices = '';
+                            attributeArray.choices_count = 0;
+                            attributeArray.order_price = choice_cost;
+                            attributeArray.service_charge_percent = serviceChargePercentage;
+                            attributeArray.service_charge = choice_service_charge;
+                            attributeArray.discount_percent = item_discount;
+                            attributeArray.discount = dis_amount;
+                            attributeArray.price_after_discount = choice_price_after_discount;
+                            attributeArray.tax_percent = choice_tax_percent;
+                            attributeArray.tax = choice_tax_amount;
+                            attributeArray.final_price = choice_final_price;
+                            attributeArray.option_id = 1;
+                            pamOrderInsert(request, attributeArray).then(() => {
+                                global.logger.write('conLog', 'OrderId choice_cost: ' + choice_cost + ' choice_service_charge: ' + choice_service_charge + ' choice_item_tax_amount: ' + choice_item_tax_amount + ' choice_service_charge_tax_amount: ' + choice_service_charge_tax_amount + ' orderId: ' + rowData1.activity_id + '-menuId: ' + choiceData.activity_id + ' : ' + choice_final_price, {}, request);
+                                next2();
+                            });
+                        }).then(() => {
+                            next1();
+                        })
+
+                    } else {							//console.log(request.activity_id+'-'+final_price);
+
+                        next1();
+                    }
+
+                });
+
             }).then(() => {
                 //console.log("Reservation "+idReservation+" is done");
                 global.logger.write('conLog', 'Reservation ' + idReservation + ' is done', {}, request);
@@ -5345,9 +5597,9 @@ this.getChildOfAParent = async (request) => {
                      break;
         }
         const header = [
-            ["Most Ordered Food", "Count"],
-            ["Most Ordered Spirit:", "Count"],
-            ["Most Ordered Cocktail:", "Count"],
+            [["Most Ordered Food", "Count"]],
+            [["Most Ordered Spirit:", "Count"]],
+            [["Most Ordered Cocktail:", "Count"]],
             [
                 [
                     "SNo",
@@ -5459,8 +5711,9 @@ this.getChildOfAParent = async (request) => {
                     "Discount",
                 ],
             ],
+          [  ["Total Cover Charges"]],
         ];
-        for (let i = 1; i <= 13; i++) {
+        for (let i = 1; i <= 14; i++) {
             let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
@@ -5486,7 +5739,7 @@ this.getChildOfAParent = async (request) => {
                         //monthly checks
                         if(request.type_flag==1){
                             SaleReportType="MonthlyReport";
-                            start_date=(request.start_date).split(" ")[0];
+                            start_date=Current_Date;
                             end_date=(request.end_date).split(" ")[0];
                         }
                         else{
@@ -5505,11 +5758,7 @@ this.getChildOfAParent = async (request) => {
                                             cellDates: true,
                                             cellStyles: true,
                                         }
-                                    );
-                                    let fileSize  = stat.size;
-                                    let fileSizeKB  = Math.round((fileSize *0.001)*100) /100;
-                                    let fileSizeMB  = Math.round((fileSizeKB *0.001)*100) /100;
-                                    console.log('::::::FileSize in MB:::::::::',fileSizeMB);
+                                    );                                
                                     salesReoprt(wb, responseData);
                                 } else if (err.code === "ENOENT") {
                                     let nwb = XLSX.utils.book_new();
@@ -5603,48 +5852,54 @@ this.getChildOfAParent = async (request) => {
                             switch (i) {
                                 //MOST ORDERED FOOD
                                 case 1:
-                                    responseDataValues = Object.values(responseData[0]);
-                                    let result = Object.assign.apply({},
-                                        header[0].map((v, i) => ({
-                                            [v]: responseDataValues[i],
-                                        }))
+                                    XLSX.utils.sheet_add_aoa(
+                                        wb.Sheets["Summary"],
+                                        header[0],
+                                        { origin: "G12" }
                                     );
-                                    ws = XLSX.utils.sheet_add_json(wb.Sheets.Summary, [result], {
+                                    let responseData1 = responseData[0] || 0;
+                                    XLSX.utils.sheet_add_json(
+                                        wb.Sheets.Summary,
+                                        [responseData1], {
                                         origin: "G13",
-                                        cellStyles: true,
-                                    });
+                                        skipHeader: true,
+                                        dateNF: 'dd"."mm"."yyyy',
+                                    }
+                                    );
                                     break;
-                                    // MOST ORDERED SPIRITS
+                                // MOST ORDERED SPIRITS
                                 case 2:
-                                    responseDataValues = Object.values(responseData[0]);
-                                    let result1 = Object.assign.apply({},
-                                        header[1].map((v, i) => ({
-                                            [v]: responseDataValues[i],
-                                        }))
+                                    XLSX.utils.sheet_add_aoa(
+                                        wb.Sheets["Summary"],
+                                        header[1],
+                                        { origin: "G16" }
                                     );
-                                    ws = XLSX.utils.sheet_add_json(
+                                    let responseData2 = responseData[0] || 0;
+                                    XLSX.utils.sheet_add_json(
                                         wb.Sheets.Summary,
-                                        [result1], {
-                                            origin: "G16",
-                                        }
+                                        [responseData2], {
+                                        origin: "G17",
+                                        skipHeader: true,
+                                        dateNF: 'dd"."mm"."yyyy',
+                                    }
                                     );
-
                                     break;
-                                    //MOST ORDERED COCKTAILS
+                                //MOST ORDERED COCKTAILS
                                 case 3:
-                                    responseDataValues = Object.values(responseData[0]);
-                                    let result2 = Object.assign.apply({},
-                                        header[2].map((v, i) => ({
-                                            [v]: responseDataValues[i],
-                                        }))
+                                    XLSX.utils.sheet_add_aoa(
+                                        wb.Sheets["Summary"],
+                                        header[2],
+                                        { origin: "G19" }
                                     );
-                                    ws = XLSX.utils.sheet_add_json(
+                                    let responseData3 = responseData[0] || 0;
+                                    XLSX.utils.sheet_add_json(
                                         wb.Sheets.Summary,
-                                        [result2], {
-                                            origin: "G20",
-                                        }
+                                        [responseData3], {
+                                        origin: "G20",
+                                        skipHeader: true,
+                                        dateNF: 'dd"."mm"."yyyy',
+                                    }
                                     );
-
                                     break;
                                     //RESERVATION WISE BILLING
                                 case 4:
@@ -5853,6 +6108,21 @@ this.getChildOfAParent = async (request) => {
                                             skipHeader: true,
                                             dateNF: 'dd"."mm"."yyyy',
                                         }
+                                    );
+                                case 14:
+                                    let totalCoverCharge = responseData.map(item => JSON.parse(item.activity_inline_data).paid_amount || 0).reduce((prev, curr) => Number(prev) + Number(curr), 0);
+                                    XLSX.utils.sheet_add_aoa(
+                                        wb.Sheets["Summary"],
+                                        header[10],
+                                        { origin: "D31" }
+                                    );
+                                    XLSX.utils.sheet_add_aoa(
+                                        wb.Sheets.Summary,
+                                        [[totalCoverCharge]], {
+                                        origin: "D32",
+                                        skipHeader: true,
+                                        dateNF: 'dd"."mm"."yyyy',
+                                    }
                                     );
 
                                     break;
@@ -6489,10 +6759,12 @@ this.getChildOfAParent = async (request) => {
             request.promo_title,
             request.promo_description,
             request.discount_maximum_value,
-            request.promo_minimum_bill,
+            request.promo_minimum_bil,
             request.promo_start_datetime,
             request.promo_end_datetime,
             request.promo_level_id,
+            request.promo_value,
+            request.promo_code_image_url,
             request.discount_type_id,
             request.discount_type_name,
             request.discountable_menu_items,
