@@ -802,6 +802,10 @@ function Util(objectCollection) {
         var value = moment().endOf('month').format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
+    this.getEndDateOfMonth = function () {
+        var value = moment().endOf('month').format("YYYY-MM-DD");
+        return value;
+    };
 
     this.getcurrentTime = function () {
         var date = new Date();
