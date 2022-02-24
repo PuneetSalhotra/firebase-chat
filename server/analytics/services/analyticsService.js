@@ -8238,7 +8238,7 @@ function AnalyticsService(objectCollection)
         const queryString = util.getQueryString('ds_v1_report_transaction_update_download_count', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
