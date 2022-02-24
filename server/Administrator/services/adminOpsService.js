@@ -12259,7 +12259,8 @@ if (queryString !== '') {
           request.organization_id,
           request.form_id,
           request.flag_disable_rollback_refill,
-          request.asset_id
+          request.asset_id,
+          util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_workforce_form_mapping_update_flag_disable_rollback_refill', paramsArr);
 
