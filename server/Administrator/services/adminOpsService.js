@@ -11701,13 +11701,14 @@ if (queryString !== '') {
         const paramsArr = new Array(
             request.organization_id,
             request.header_id,
+            request.conversion_format || "",
             request.tag_type_id,
             request.sequence_id,
             request.header_name,
             request.log_asset_id,
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_v1_widget_drilldown_header_mapping_update', paramsArr);
+        const queryString = util.getQueryString('ds_v1_1_widget_drilldown_header_mapping_update', paramsArr);
 
 
         if (queryString !== '') {
