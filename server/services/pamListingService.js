@@ -4,13 +4,13 @@
 
 function PamListingService(objectCollection) {
 
-    var db = objectCollection.db;
-    var util = objectCollection.util;
-    var forEachAsync = objectCollection.forEachAsync;
+    let db = objectCollection.db;
+    let util = objectCollection.util;
+    let forEachAsync = objectCollection.forEachAsync;
 
 
     this.getOrdersUnderAReservation = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.reservation_id,
             request.order_activity_type_category_id,
             request.access_role_id,
@@ -18,7 +18,7 @@ function PamListingService(objectCollection) {
             request.start_limit,
             request.end_limit
         );
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_sub_tasks_category', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_sub_tasks_category', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -34,9 +34,9 @@ function PamListingService(objectCollection) {
 
     function formatOrdersData(data) {
         return new Promise((resolve, reject) => {
-            var responseArr = new Array();
+            let responseArr = new Array();
             forEachAsync(data, function (next, row) {
-                var rowData = {
+                let rowData = {
                     'activity_id': util.replaceDefaultNumber(row['activity_id']),
                     'activity_title': util.replaceDefaultString(row['activity_title']),
                     'activity_status_type_id': util.replaceDefaultNumber(row['activity_status_type_id']),
@@ -62,7 +62,7 @@ function PamListingService(objectCollection) {
     };
 
     this.assetAccountListDiff = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -71,7 +71,7 @@ function PamListingService(objectCollection) {
             util.replaceQueryLimit(request.page_limit)
         );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_select_differential', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_select_differential', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -94,10 +94,10 @@ function PamListingService(objectCollection) {
 
 
     //PAM
-    var formatAssetAccountListDiff = function (data, callback) {
-        var responseData = new Array();
+    let formatAssetAccountListDiff = function (data, callback) {
+        let responseData = new Array();
         forEachAsync(data, function (next, rowData) {
-            var rowDataArr = {};
+            let rowDataArr = {};
             rowDataArr.asset_id = util.replaceDefaultNumber(rowData['asset_id']);
             rowDataArr.asset_first_name = util.replaceDefaultString(rowData['asset_first_name']);
             rowDataArr.asset_last_name = util.replaceDefaultString(rowData['asset_last_name']);
@@ -199,10 +199,10 @@ function PamListingService(objectCollection) {
     };
 
     this.assetTimeline = function (request, callback) {
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.target_asset_id,
             request.timeline_transaction_id,
@@ -210,7 +210,7 @@ function PamListingService(objectCollection) {
             request.page_start,
             util.replaceQueryLimit(request.page_limit)
         );
-        var queryString = util.getQueryString('ds_v1_asset_timeline_transaction_select_differential', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_timeline_transaction_select_differential', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -236,10 +236,10 @@ function PamListingService(objectCollection) {
 
     };
 
-    var formatAssetTimelineList = function (data, callback) {
-        var responseData = new Array();
+    let formatAssetTimelineList = function (data, callback) {
+        let responseData = new Array();
         forEachAsync(data, function (next, rowData) {
-            var rowDataArr = {};
+            let rowDataArr = {};
             rowDataArr.activity_id = util.replaceDefaultNumber(rowData['activity_id']);
             rowDataArr.activity_type_id = util.replaceDefaultNumber(rowData['activity_type_id']);
             rowDataArr.activity_type_category_id = util.replaceDefaultNumber(rowData['activity_type_category_id']);
@@ -282,7 +282,7 @@ function PamListingService(objectCollection) {
 
     this.getFavouriteOrdersOfMember = function (request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -290,7 +290,7 @@ function PamListingService(objectCollection) {
                 request.start_limit,
                 request.end_limit
             );
-            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_member_favourites', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_member_favourites', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     console.log("err " + err);
@@ -309,9 +309,9 @@ function PamListingService(objectCollection) {
 
     function formatMemberOrdersData(data) {
         return new Promise((resolve, reject) => {
-            var responseArr = new Array();
+            let responseArr = new Array();
             forEachAsync(data, function (next, row) {
-                var rowData = {
+                let rowData = {
                     'count': util.replaceDefaultNumber(row['count']),
                     'activity_title': util.replaceDefaultString(row['activity_tite']),
 
@@ -326,7 +326,7 @@ function PamListingService(objectCollection) {
 
     this.getCategoryActivitiesOfAsset = function (request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.target_asset_id,
@@ -336,7 +336,7 @@ function PamListingService(objectCollection) {
                 request.start_limit,
                 request.end_limit
             );
-            var queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_select_asset_category', paramsArr);
+            let queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_select_asset_category', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     console.log("err " + err);
@@ -355,7 +355,7 @@ function PamListingService(objectCollection) {
 
     this.getActivityParticipantsCategory = function (request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.activity_id,
@@ -365,7 +365,7 @@ function PamListingService(objectCollection) {
                 request.start_limit,
                 request.end_limit
             );
-            var queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_select_participants_category', paramsArr);
+            let queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_select_participants_category', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     console.log("err " + err);
@@ -384,7 +384,7 @@ function PamListingService(objectCollection) {
 
     this.getActivityListCategory = function (request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -394,7 +394,7 @@ function PamListingService(objectCollection) {
                 request.start_limit,
                 request.end_limit
             );
-            var queryString = util.getQueryString('ds_v1_activity_list_select_category', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_list_select_category', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     console.log("err " + err);
@@ -413,7 +413,7 @@ function PamListingService(objectCollection) {
 
     this.getMemberEventVisitHistory = function (request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.target_asset_id,
@@ -423,7 +423,7 @@ function PamListingService(objectCollection) {
                 request.start_limit,
                 request.end_limit
             );
-            var queryString = util.getQueryString('pm_v1_pam_event_billing_select', paramsArr);
+            let queryString = util.getQueryString('pm_v1_pam_event_billing_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     console.log("err " + err);
@@ -445,9 +445,9 @@ function PamListingService(objectCollection) {
 
     function formatMemberHistoryData(data) {
         return new Promise((resolve, reject) => {
-            var responseArr = new Array();
+            let responseArr = new Array();
             forEachAsync(data, function (next, row) {
-                var rowData = {
+                let rowData = {
                     'event_id': util.replaceDefaultNumber(row['event_id']),
                     'event_name': util.replaceDefaultString(row['event_name']),
                     'event_date': util.replaceDefaultDate(row['event_date']),
@@ -463,7 +463,7 @@ function PamListingService(objectCollection) {
 
     this.getActivitiesAllCategories = function (request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.parent_activity_id,
@@ -477,7 +477,7 @@ function PamListingService(objectCollection) {
                 request.start_limit,
                 request.end_limit
             );
-            var queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_all_categories', paramsArr);
+            let queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_all_categories', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     console.log("err " + err);
@@ -495,8 +495,8 @@ function PamListingService(objectCollection) {
     };
 
     this.getActivityAssetCategoryDifferential = function (request, callback) {
-        var paramsArr = new Array();
-        var queryString = '';
+        let paramsArr = new Array();
+        let queryString = '';
         paramsArr = new Array(
             request.organization_id,
             request.account_id,
@@ -531,10 +531,10 @@ function PamListingService(objectCollection) {
     };
 
     //PAM
-    var formatActivityAccountListing = function (data, callback) {
-        var responseData = new Array();
+    let formatActivityAccountListing = function (data, callback) {
+        let responseData = new Array();
         data.forEach(function (rowData, index) {
-            var rowDataArr = {
+            let rowDataArr = {
                 "activity_id": util.replaceDefaultNumber(rowData['activity_id']),
                 "activity_title": util.replaceDefaultString(util.ucfirst(util.decodeSpecialChars(rowData['activity_title']))),
                 "activity_description": util.replaceDefaultString(util.decodeSpecialChars(rowData['activity_description'])),
@@ -667,8 +667,8 @@ function PamListingService(objectCollection) {
 
     this.getActivityAssetCategoryDifferentialCount = function (request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array();
-            var queryString = '';
+            let paramsArr = new Array();
+            let queryString = '';
             paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
@@ -693,7 +693,7 @@ function PamListingService(objectCollection) {
     };
 
     this.assetAccountListCategoryDiff = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -703,7 +703,7 @@ function PamListingService(objectCollection) {
             util.replaceQueryLimit(request.page_limit)
         );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_select_category_differential', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_select_category_differential', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -726,7 +726,7 @@ function PamListingService(objectCollection) {
 
     this.assetAccountListCategoryDiffCount = function (request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -734,7 +734,7 @@ function PamListingService(objectCollection) {
                 request.datetime_differential
             );
 
-            var queryString = util.getQueryString('ds_v1_asset_list_select_category_differential_count', paramsArr);
+            let queryString = util.getQueryString('ds_v1_asset_list_select_category_differential_count', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     console.log("err " + err);
@@ -751,7 +751,7 @@ function PamListingService(objectCollection) {
     
     this.activityAssetMappingCategorySearch = function (request) {
 		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
+	        let paramsArr = new Array(
 	                request.organization_id,
 	                request.account_id,
 	                request.workforce_id,
@@ -768,7 +768,7 @@ function PamListingService(objectCollection) {
                 	util.replaceQueryLimit(request.page_limit)
 	                );
 	
-	        var queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_category_search_date', paramsArr);
+	        let queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_category_search_date', paramsArr);
 	        if (queryString != '') {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
@@ -789,9 +789,9 @@ function PamListingService(objectCollection) {
     
     function formatInventoryData(data){
         return new Promise((resolve, reject)=>{
-            var responseArr = new Array();
+            let responseArr = new Array();
             forEachAsync(data, function (next, row) {
-                var rowData = {
+                let rowData = {
                     'activity_id': util.replaceDefaultNumber(row['activity_id']),
                     'activity_title': util.replaceDefaultString(row['activity_title']),
                     'asset_id': util.replaceDefaultNumber(row['asset_id']),
@@ -816,10 +816,10 @@ function PamListingService(objectCollection) {
     
 	
     this.activityTimeline = function (request, callback) {
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,
                 request.timeline_transaction_id,
@@ -827,7 +827,7 @@ function PamListingService(objectCollection) {
                 request.page_start,
                 util.replaceQueryLimit(request.page_limit)
                 );
-        var queryString = util.getQueryString('ds_v1_2_activity_timeline_transaction_select_differential', paramsArr);
+        let queryString = util.getQueryString('ds_v1_2_activity_timeline_transaction_select_differential', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -853,7 +853,7 @@ function PamListingService(objectCollection) {
     
     this.averages = function (request) {
 		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
+	        let paramsArr = new Array(
 	        		request.organization_id,
 	        		request.account_id,
 					request.event_activity_id,
@@ -862,7 +862,7 @@ function PamListingService(objectCollection) {
 					request.end_date
 	                );
 	
-	        var queryString = util.getQueryString('pm_v1_pam_order_list_select_averages', paramsArr);
+	        let queryString = util.getQueryString('pm_v1_pam_order_list_select_averages', paramsArr);
 	        if (queryString != '') {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
@@ -878,7 +878,7 @@ function PamListingService(objectCollection) {
     
     this.mostOrdered = function (request) {
 		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
+	        let paramsArr = new Array(
 	        	    request.organization_id,
 	        		request.account_id,
 					request.event_activity_id,
@@ -888,7 +888,7 @@ function PamListingService(objectCollection) {
 					request.end_date
 	                );
 	
-	        var queryString = util.getQueryString('pm_v1_pam_order_list_max_ordered', paramsArr);
+	        let queryString = util.getQueryString('pm_v1_pam_order_list_max_ordered', paramsArr);
 	        if (queryString != '') {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
@@ -904,7 +904,7 @@ function PamListingService(objectCollection) {
     
     this.billByItemType = function (request) {
 		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
+	        let paramsArr = new Array(
 	        		request.organization_id,
 	        		request.account_id,
 					request.event_activity_id,
@@ -915,7 +915,7 @@ function PamListingService(objectCollection) {
 					request.is_type
 	                );
 	
-	        var queryString = util.getQueryString('pm_v1_pam_order_list_select_bill_group_by', paramsArr);
+	        let queryString = util.getQueryString('pm_v1_pam_order_list_select_bill_group_by', paramsArr);
 	        if (queryString != '') {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
@@ -931,7 +931,7 @@ function PamListingService(objectCollection) {
     
     this.getEventBydate = function (request) {
 		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
+	        let paramsArr = new Array(
 	        		request.organization_id,
 	        		request.account_id,
 					request.activity_type_category_id,
@@ -941,7 +941,7 @@ function PamListingService(objectCollection) {
                 	util.replaceQueryLimit(request.page_limit)
 	                );
 	
-	        var queryString = util.getQueryString('pm_v1_activity_list_select_date_events', paramsArr);
+	        let queryString = util.getQueryString('pm_v1_activity_list_select_date_events', paramsArr);
 	        if (queryString != '') {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
@@ -957,11 +957,11 @@ function PamListingService(objectCollection) {
     
     this.getAssetDetails = function (request) {
     return new Promise((resolve, reject)=>{
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.target_asset_id
         );
-        var queryString = util.getQueryString('pm_v1_asset_list_select', paramsArr);
+        let queryString = util.getQueryString('pm_v1_asset_list_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
 				 if(err === false) {
@@ -976,7 +976,7 @@ function PamListingService(objectCollection) {
     
    this.billingAmountByPaymentType = function (request) {
 		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
+	        let paramsArr = new Array(
 	        		request.organization_id,
 	        		request.account_id,
 					request.event_activity_id,
@@ -985,7 +985,7 @@ function PamListingService(objectCollection) {
 					request.end_date
 	                );
 	
-	        var queryString = util.getQueryString('pm_v1_pam_event_billing_select_event_billing', paramsArr);
+	        let queryString = util.getQueryString('pm_v1_pam_event_billing_select_event_billing', paramsArr);
 	        if (queryString != '') {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
@@ -1001,7 +1001,7 @@ function PamListingService(objectCollection) {
     
     this.getInventoryConsumption = function (request) {
 		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
+	        let paramsArr = new Array(
 	        		request.organization_id,
 	        		request.account_id,
 					request.event_activity_id,
@@ -1012,7 +1012,7 @@ function PamListingService(objectCollection) {
 					request.end_limit
 	                );
 	
-	        var queryString = util.getQueryString('pm_v1_pam_inventory_consumption_select_consumption', paramsArr);
+	        let queryString = util.getQueryString('pm_v1_pam_inventory_consumption_select_consumption', paramsArr);
 	        if (queryString != '') {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
@@ -1028,7 +1028,7 @@ function PamListingService(objectCollection) {
     
     this.userAuthenticate = function (request) {
 		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
+	        let paramsArr = new Array(
 	        		request.organization_id,
 	        		request.account_id,
 	        		request.workforce_id,
@@ -1037,7 +1037,7 @@ function PamListingService(objectCollection) {
 					request.password
 	                );
 	
-	        var queryString = util.getQueryString('pm_v1_asset_list_select_user_authenticate', paramsArr);
+	        let queryString = util.getQueryString('pm_v1_asset_list_select_user_authenticate', paramsArr);
 	        if (queryString != '') {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
@@ -1054,7 +1054,7 @@ function PamListingService(objectCollection) {
     
    this.coversBetweenDates = function (request) {
 		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
+	        let paramsArr = new Array(
 	        		request.organization_id,
 	        		request.account_id,
 	        		request.event_activity_id,
@@ -1063,7 +1063,7 @@ function PamListingService(objectCollection) {
 					request.end_datetime
 	                );
 	
-	        var queryString = util.getQueryString('pm_v1_activity_list_select_covers_between_dates', paramsArr);
+	        let queryString = util.getQueryString('pm_v1_activity_list_select_covers_between_dates', paramsArr);
 	        if (queryString != '') {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
@@ -1080,12 +1080,12 @@ function PamListingService(objectCollection) {
     
     this.getActivityDetails = function (request) {
 		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(	        		
+	        let paramsArr = new Array(	        		
 	        		request.activity_id,
 	        		request.organization_id
 	                );
 	
-	        var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+	        let queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
 	        if (queryString != '') {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
@@ -1103,7 +1103,7 @@ function PamListingService(objectCollection) {
       
     this.getMemberVisitedCount = function (request) {
 			return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
+	        let paramsArr = new Array(
 	        		request.organization_id,
 	        		request.account_id,
 	        		request.member_asset_id,
@@ -1112,7 +1112,7 @@ function PamListingService(objectCollection) {
 	        		request.page_limit
 	                );
 	
-	        var queryString = util.getQueryString('pm_v1_pam_order_list_select_visit_counts', paramsArr);
+	        let queryString = util.getQueryString('pm_v1_pam_order_list_select_visit_counts', paramsArr);
 	        if (queryString != '') {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
@@ -1129,7 +1129,7 @@ function PamListingService(objectCollection) {
     
     this.getReservationWiseBilling = function (request) {
 			return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
+	        let paramsArr = new Array(
 	        		request.organization_id,
 	        		request.account_id,
 					request.event_activity_id,
@@ -1140,7 +1140,7 @@ function PamListingService(objectCollection) {
 					request.end_limit
 	                );
 	
-	        var queryString = util.getQueryString('pm_v1_pam_event_billing_select_reservation_billing', paramsArr);
+	        let queryString = util.getQueryString('pm_v1_pam_event_billing_select_reservation_billing', paramsArr);
 	        if (queryString != '') {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
@@ -1157,7 +1157,7 @@ function PamListingService(objectCollection) {
 	
         this.getMemberReservations = function (request) {
 			return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
+	        let paramsArr = new Array(
 	        		request.organization_id,
 	        		request.account_id,
 	        		request.member_asset_id,
@@ -1166,7 +1166,7 @@ function PamListingService(objectCollection) {
 					request.end_limit
 	                );
 	
-	        var queryString = util.getQueryString('pm_v1_pam_event_billing_select_member_reservations', paramsArr);
+	        let queryString = util.getQueryString('pm_v1_pam_event_billing_select_member_reservations', paramsArr);
 	        if (queryString != '') {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
@@ -1183,7 +1183,7 @@ function PamListingService(objectCollection) {
 	
      this.getReservationOrders = function (request) {
 			return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
+	        let paramsArr = new Array(
 	        		request.organization_id,
 	        		request.account_id,
 	        		request.reservation_activity_id,
@@ -1192,7 +1192,7 @@ function PamListingService(objectCollection) {
 					request.end_limit
 	                );
 	
-	        var queryString = util.getQueryString('pm_v1_pam_order_list_select_reservation_orders', paramsArr);
+	        let queryString = util.getQueryString('pm_v1_pam_order_list_select_reservation_orders', paramsArr);
 	        if (queryString != '') {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
@@ -1209,7 +1209,7 @@ function PamListingService(objectCollection) {
     
     this.getUnpaidReservations = function (request) {
 			return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
+	        let paramsArr = new Array(
 	        		request.organization_id,
 	        		request.account_id,
 	        		request.member_asset_id,
@@ -1218,7 +1218,7 @@ function PamListingService(objectCollection) {
 					request.end_limit
 	                );
 	
-	        var queryString = util.getQueryString('pm_v1_pam_event_billing_select_unpaid_reservations', paramsArr);
+	        let queryString = util.getQueryString('pm_v1_pam_event_billing_select_unpaid_reservations', paramsArr);
 	        if (queryString != '') {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
@@ -1235,7 +1235,7 @@ function PamListingService(objectCollection) {
 	
     this.getEventBydatetime = function (request) {
 		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
+	        let paramsArr = new Array(
 	        		request.organization_id,
 	        		request.account_id,
 					request.activity_type_category_id,
@@ -1244,7 +1244,7 @@ function PamListingService(objectCollection) {
                 	util.replaceQueryLimit(request.page_limit)
 	                );
 	
-	        var queryString = util.getQueryString('pm_v1_activity_list_select_event_datetime', paramsArr);
+	        let queryString = util.getQueryString('pm_v1_activity_list_select_event_datetime', paramsArr);
 	        if (queryString != '') {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
@@ -1260,7 +1260,7 @@ function PamListingService(objectCollection) {
     
     this.getReservationListSearch = function (request) {
 		return new Promise((resolve, reject)=>{
-        var paramsArr = new Array(
+        let paramsArr = new Array(
         		request.organization_id,
         		request.parent_activity_id,
         		request.activity_type_category_id,
@@ -1271,7 +1271,7 @@ function PamListingService(objectCollection) {
 				request.end_limit
                 );
 
-        var queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_reservations_search', paramsArr);
+        let queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_reservations_search', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
             	//console.log("err "+err);
@@ -1288,13 +1288,13 @@ function PamListingService(objectCollection) {
     
     this.getEventCovers = function (request) {
 		return new Promise((resolve, reject)=>{
-        var paramsArr = new Array(
+        let paramsArr = new Array(
         		request.organization_id,
         		request.account_id,
         		request.event_id
                 );
 
-        var queryString = util.getQueryString('pm_v1_activity_list_select_event_covers', paramsArr);
+        let queryString = util.getQueryString('pm_v1_activity_list_select_event_covers', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
             	//console.log("err "+err);
@@ -1493,10 +1493,10 @@ function PamListingService(objectCollection) {
 
     this.getTableDetails = function (request) {
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.table_asset_id
             );
-            var queryString = util.getQueryString('pm_v1_asset_list_select_table', paramsArr);
+            let queryString = util.getQueryString('pm_v1_asset_list_select_table', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                      if(err === false) {
@@ -1512,13 +1512,13 @@ function PamListingService(objectCollection) {
     //Get PAM Role Module Mapping Details for the given asset_type_id
     this.getPamRoleModuleMappingDetails = function (request) {
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.asset_type_id,
                 request.start_limit,
                 request.end_limit
             );
-            var queryString = util.getQueryString('ds_p1_pam_module_role_mapping_select_asset_type', paramsArr);
+            let queryString = util.getQueryString('ds_p1_pam_module_role_mapping_select_asset_type', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                         if(err === false) {
@@ -1535,7 +1535,7 @@ function PamListingService(objectCollection) {
       let responseData = [],
             error = true;
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 request.organization_id,
                 request.activity_type_category_id,
                 request.parent_activity_id,
@@ -1561,7 +1561,7 @@ function PamListingService(objectCollection) {
         let responseData = {},
               error = true;
   
-          var paramsArr = new Array(
+          let paramsArr = new Array(
                   request.organization_id,
                   request.activity_type_category_id,
                   request.parent_activity_id,
@@ -1590,7 +1590,7 @@ function PamListingService(objectCollection) {
         let responseData = [],
               error = true;
   
-          var paramsArr = new Array(
+          let paramsArr = new Array(
                   request.organization_id,
                   request.activity_type_category_id,
                   request.parent_activity_id,

@@ -5,7 +5,7 @@ class ActivityListService {
 
 getStatusCounts(data) {
     return new Promise((resolve, reject) => {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 data.organization_id,
                 data.account_id,
                 data.workforce_id,
@@ -21,7 +21,7 @@ getStatusCounts(data) {
          *  IN p_activity_id BIGINT(20), IN p_form_id BIGINT(20), IN p_access_level_id TINYINT(4), IN p_start_datetime DATETIME,
          *   IN p_end_datetime DATETIME
          */
-        var queryString = this.objCollection.util.getQueryString('ds_p1_1_activity_list_select_file_count_level', paramsArr);
+        let queryString = this.objCollection.util.getQueryString('ds_p1_1_activity_list_select_file_count_level', paramsArr);
         if (queryString === '')
             return reject();
         this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
@@ -38,7 +38,7 @@ wait(milliseconds) {
 
 getFileCount(data) {
     return new Promise((resolve, reject) => {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 data.organization_id,
                 data.account_id,
                 data.workforce_id,
@@ -49,7 +49,7 @@ getFileCount(data) {
                 data.start,
                 data.end
                 );
-        var queryString = this.objCollection.util.getQueryString('ds_p1_activity_list_select_file_count_datetime', paramsArr);
+        let queryString = this.objCollection.util.getQueryString('ds_p1_activity_list_select_file_count_datetime', paramsArr);
         if (queryString === '')
             return reject();
         this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
@@ -64,7 +64,7 @@ insertUpdate(data){
     return new Promise((resolve, reject) => {
 // IN p_widget_id BIGINT(20), IN p_activity_id BIGINT(20), IN p_field_id BIGINT(20), IN p_field_value DECIMAL(16,4), 
 // IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_log_datetime DATETIME
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 data.widget_id,
                 data.workflow_activity_id,
                 data.activity_id,
@@ -81,7 +81,7 @@ insertUpdate(data){
         let temp ={};
         let newReq = Object.assign({}, data);
 
-        var queryString = this.objCollection.util.getQueryString('ds_p1_widget_activity_field_transaction_insert', paramsArr);
+        let queryString = this.objCollection.util.getQueryString('ds_p1_widget_activity_field_transaction_insert', paramsArr);
         if (queryString === '')
             return reject();
         this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {

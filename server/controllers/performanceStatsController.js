@@ -3,14 +3,14 @@
  * 
  */
 
-var PerformanceStatsService = require("../services/performanceStatsService");
+let PerformanceStatsService = require("../services/performanceStatsService");
 
 function PerformanceStatsController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
-    var performanceStatsService = new PerformanceStatsService(objCollection);
-    var util = objCollection.util;    
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
+    let performanceStatsService = new PerformanceStatsService(objCollection);
+    let util = objCollection.util;    
     
     //BETA Task List Counts
     app.post('/' + global.config.version + '/asset/access/task/counts', function (req, res) {

@@ -1,7 +1,7 @@
-var CommonDocusignService = require("../services/docusignService");
+let CommonDocusignService = require("../services/docusignService");
 
 function docusignController(objCollection) {
-  var responseWrapper = objCollection.responseWrapper;
+  let responseWrapper = objCollection.responseWrapper;
   // var app = objCollection.app;
   const xmlparser = require('express-xml-bodyparser');
   const express = require('express')
@@ -10,7 +10,7 @@ function docusignController(objCollection) {
     , MemoryStore = require('memorystore')(session)
     , passport = require('passport') 
     , max_session_min = 180 ;
-    var app = objCollection.app
+    let app = objCollection.app
     .use(cookieParser())
     .use(session({
     secret: config.sessionSecret,

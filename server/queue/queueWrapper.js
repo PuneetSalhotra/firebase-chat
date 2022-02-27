@@ -38,8 +38,9 @@ function QueueWrapper(producer, cacheWrapper) {
 
         //event.payload.pubnub_push = 0;
         
-        global.logger.write('conLog', 'producing to key: ' + activityId.toString(), {}, event.payload);        
-        var payloads = [{
+        //global.logger.write('conLog', 'producing to key: ' + activityId.toString(), {}, event.payload); 
+        util.logInfo({},`raiseActivityEvent producing to key:  %j`,{activityId : activityId.toString(), payload : event.payload});       
+        let payloads = [{
             topic: global.config.TOPIC_NAME,
             messages: JSON.stringify((event)),
             key: activityId.toString()
@@ -63,18 +64,21 @@ function QueueWrapper(producer, cacheWrapper) {
         //var partition = Number(activityId) % 3;
         //var partition = 0;        
         //global.logger.write('debug', 'producing to partition id: ' + partition, {}, event.payload);
-        global.logger.write('conLog', 'producing to key: ' + activityId.toString(), {}, event.payload);
-        var payloads = [{
+        //global.logger.write('conLog', 'producing to key: ' + activityId.toString(), {}, event.payload);
+        util.logInfo({},`raiseFormWidgetEvent producing to key: %j`,{activityId : activityId.toString(),payload : event.payload});
+        let payloads = [{
             topic: global.config.WIDGET_TOPIC_NAME,
             messages: JSON.stringify((event)),
             key: activityId.toString()
         }];
         producer.send(payloads, function (err, data) {
             if (err) {                
-                global.logger.write('serverError', 'error in producing data : ' + err, err, event.payload);
+                //global.logger.write('serverError', 'error in producing data : ' + err, err, event.payload);
+                util.logError({},`raiseFormWidgetEvent serverError error in producing data Error %j`, {error : err,payload : event.payload });
                 // callback(true, err);
             } else {
-                global.logger.write('debug', 'Producer success callback message ' + JSON.stringify(data), JSON.stringify(data), event.payload);
+                //global.logger.write('debug', 'Producer success callback message ' + JSON.stringify(data), JSON.stringify(data), event.payload);
+                util.logInfo({},`raiseFormWidgetEvent debug Producer success callback message %j`,{message : JSON.stringify(data),data : JSON.stringify(data),payload : event.payload});
                 // callback(false, 'Producer success callback message');
             }            
         });        
@@ -82,7 +86,7 @@ function QueueWrapper(producer, cacheWrapper) {
     
     this.raiseLogEvent = async function(event) {         
                     
-            var payloads = [{
+            let payloads = [{
                 topic: global.config.LOGS_TOPIC_NAME,
                 messages: JSON.stringify((event))                
             }];
@@ -119,8 +123,9 @@ function QueueWrapper(producer, cacheWrapper) {
             let channelId, newChannelId;
             event.payload.pubnub_push = 1;
             
-            global.logger.write('conLog', 'producing to key: ' + activityId.toString(), {}, event.payload);        
-            var payloads = [{
+            //global.logger.write('conLog', 'producing to key: ' + activityId.toString(), {}, event.payload);
+            util.logInfo({},`raiseActivityEventPromise producing to key: %j`,{activityId : activityId.toString(), payload : event.payload});        
+            let payloads = [{
                 topic: global.config.TOPIC_NAME,
                 messages: JSON.stringify((event)),
                 key: activityId.toString()
@@ -206,8 +211,9 @@ function QueueWrapper(producer, cacheWrapper) {
 
             event.payload.pubnub_push = 1;
 
-            global.logger.write('conLog', 'producing to key: ' + activityID.toString(), {}, event.payload);
-            var payloads = [{
+            //global.logger.write('conLog', 'producing to key: ' + activityID.toString(), {}, event.payload);
+            util.logInfo({},`raiseActivityEventToTopicPromise producing to key: %j`,{activityID : activityID.toString(), payload : event.payload});
+            let payloads = [{
                 topic: topicName,
                 messages: JSON.stringify((event)),
                 key: activityID.toString()

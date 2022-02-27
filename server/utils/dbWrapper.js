@@ -4,24 +4,24 @@
 
 const logger = require("../logger/winstonLogger");
 
-var mysql = require('mysql');
-var redis = require('redis');
-var moment = require('moment');
+let mysql = require('mysql');
+let redis = require('redis');
+let moment = require('moment');
 
-var clusterConfig = {
+let clusterConfig = {
     canRetry: true,
     removeNodeErrorCount: 5, // Remove the node immediately when connection fails.
     restoreNodeTimeout: 1000, //Milliseconds
     defaultSelector: 'ORDER'
 };
 let slave1HealthCheckFlag = true;
-var writeCluster = mysql.createPoolCluster();
-var readCluster = mysql.createPoolCluster(clusterConfig);
+let writeCluster = mysql.createPoolCluster();
+let readCluster = mysql.createPoolCluster(clusterConfig);
 
 const writeClusterForHealthCheck = mysql.createPoolCluster();
-var readClusterForHealthCheck = mysql.createPoolCluster(clusterConfig);
+let readClusterForHealthCheck = mysql.createPoolCluster(clusterConfig);
 
-var readClusterForAccountSearch = mysql.createPoolCluster(clusterConfig);
+let readClusterForAccountSearch = mysql.createPoolCluster(clusterConfig);
 
 let redisSubscriber;
 let redisClient;
@@ -187,7 +187,7 @@ const checkDBInstanceAvailablityV1 = async (flag) => {
     });
 };
 
-var executeQuery = function (flag, queryString, request, callback) {
+let executeQuery = function (flag, queryString, request, callback) {
     let label;
     /*
      * flag = 0 --> master
@@ -195,7 +195,7 @@ var executeQuery = function (flag, queryString, request, callback) {
      * flag = 2 --> slave 2
      */
 
-    var conPool;
+    let conPool;
     switch (flag) {
         case 0:
             conPool = writeCluster;
@@ -276,7 +276,7 @@ var executeQuery = function (flag, queryString, request, callback) {
     }
 };
 
-var executeQueryPromise = function (flag, queryString, request) {
+let executeQueryPromise = function (flag, queryString, request) {
     return new Promise((resolve, reject) => {
         let conPool;
         let label;
@@ -362,7 +362,7 @@ var executeQueryPromise = function (flag, queryString, request) {
     });
 };
 
-var executeRawQueryPromise = function (flag, queryString, request) {
+let executeRawQueryPromise = function (flag, queryString, request) {
     return new Promise((resolve, reject) => {
         let conPool;
         let label;
@@ -468,9 +468,9 @@ var executeRawQueryPromise = function (flag, queryString, request) {
     });
 }*/
 
-var getQueryString = function (callName, paramsArr) {
+let getQueryString = function (callName, paramsArr) {
 
-    var queryString = "CALL " + callName + "(";
+    let queryString = "CALL " + callName + "(";
     paramsArr.forEach(function (item, index) {
         if (index === (paramsArr.length - 1))
             queryString = queryString + "'" + item + "'";
@@ -481,14 +481,14 @@ var getQueryString = function (callName, paramsArr) {
     return queryString;
 };
 
-var executeRecursiveQuery = function (flag, start, limit, callName, paramsArr, callback) {
-    var returnData = [];
-    var nextLimit = parseInt(limit + start);
-    var checkAndFetchRecords = function (start) {
+let executeRecursiveQuery = function (flag, start, limit, callName, paramsArr, callback) {
+    let returnData = [];
+    let nextLimit = parseInt(limit + start);
+    let checkAndFetchRecords = function (start) {
         nextLimit = parseInt(limit + start);
         paramsArr.push(start);
         paramsArr.push(limit);
-        var queryString = getQueryString(callName, paramsArr);
+        let queryString = getQueryString(callName, paramsArr);
         paramsArr.pop();
         paramsArr.pop();
 

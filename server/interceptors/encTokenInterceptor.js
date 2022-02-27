@@ -15,25 +15,33 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
             case '/' + global.config.version + '/activity/access/asset/list/v3': 
             cacheWrapper.getTokenAuth(asset_id, function (err, encToken) {
                 if (err) {                               
-                    global.logger.write('appError', 'Redis token Checking error : ' + JSON.stringify(err), err, req.body);
+                    //global.logger.write('appError', 'Redis token Checking error : ' + JSON.stringify(err), err, req.body);
+                    util.logError(req.body,`getTokenAuth appError Redis token Checking Error %j`, { error : JSON.stringify(err), err,body : req.body });
                     res.json(responseWrapper.getResponse(null, {}, -7998, req.body));
                     return;
                 } else {                                    
-                    global.logger.write('conLog', 'got from cache layer : ' + encToken, {}, req.body);
-                    global.logger.write('conLog', 'got from request body : ' + req.body.asset_token_auth, {}, req.body);
+                    //global.logger.write('conLog', 'got from cache layer : ' + encToken, {}, req.body);
+                    util.logInfo(req.body,`getTokenAuth got from cache layer %j`,{encToken : encToken,body : req.body});
+                    //global.logger.write('conLog', 'got from request body : ' + req.body.asset_token_auth, {}, req.body);
+                    util.logInfo(req.body,`getTokenAuth got from request body : %j`,{asset_token_auth : req.body.asset_token_auth,body : req.body});
                     
                     if (req.body.asset_token_auth === 'undefined') {
-                        global.logger.write('conLog', 'req.url : ' + req.url, {}, req.body);
-                        global.logger.write('serverError', 'Redis encToken checking failed : ' + JSON.stringify(err), {}, {});
+                        //global.logger.write('conLog', 'req.url : ' + req.url, {}, req.body);
+                        util.logInfo(req.body,`getTokenAuth %j`,{req_url : req.url, body : req.body});
+                        //global.logger.write('serverError', 'Redis encToken checking failed : ' + JSON.stringify(err), {}, {});
+                        util.logError(req.body,`getTokenAuth serverError Redis encToken checking failed Error %j`, { error : JSON.stringify(err)});
                         res.json(responseWrapper.getResponse(null, {}, -3204, req.body));
                         return;
                     } else if (encToken === req.body.asset_token_auth) {
-                        global.logger.write('conLog', 'successfully redis encToken checking is done', {}, {});
+                        //global.logger.write('conLog', 'successfully redis encToken checking is done', {}, {});
+                        util.logInfo(req.body,`getTokenAuth successfully redis encToken checking is done %j`,{});
                         //proceed = true;
                         next();
                     } else {
-                        global.logger.write('conLog', 'req.url : ' + req.url, {}, req.body);
-                        global.logger.write('serverError', 'Redis encToken checking failed : ' + JSON.stringify(err), {}, {});
+                        //global.logger.write('conLog', 'req.url : ' + req.url, {}, req.body);
+                        util.logInfo(req.body,`getTokenAuth %j`,{req_url : req.url, body : req.body});
+                        //global.logger.write('serverError', 'Redis encToken checking failed : ' + JSON.stringify(err), {}, {});
+                        util.logError(req.body,`getTokenAuth serverError Redis encToken checking failed Error %j`, { error : JSON.stringify(err)});
                         res.json(responseWrapper.getResponse(null, {}, -3204, req.body));
                         return;
                     }
@@ -62,7 +70,7 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                 
                 
                 req.body.service_id = "";
-                var bundleTransactionId = TimeUuid.now();
+                let bundleTransactionId = TimeUuid.now();
                 req.body.bundle_transaction_id = bundleTransactionId;
                 req.body.url = req.url;
                 
@@ -87,14 +95,18 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                     //res.status(500).send('internal server error');
                 } else if (req.body.url.includes('/' + global.config.version + '/account/')) {
                     req.body['module'] = 'asset';
-                    global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
-                    global.logger.write('conLog', 'bypassing enc token checking as request is from account', {}, req.body);
+                    //global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                    util.logInfo(req.body,`EncTokenInterceptor /account/ request %j`,{request : JSON.stringify(req.body, null, 2)});
+                    //global.logger.write('conLog', 'bypassing enc token checking as request is from account', {}, req.body);
+                    util.logInfo(req.body,`EncTokenInterceptor /account/ bypassing enc token checking as request is from account %j`,{body : req.body});
                     next();
                 } else if (req.body.url.includes('/' + global.config.version + '/docusign/webhook')) {
                     next();
                 } else if (req.body.url.includes('/' + global.config.version + '/zoho/')) {
-                    global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
-                    global.logger.write('conLog', 'bypassing enc token checking as request is for zoho services', {}, req.body);
+                    //global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                    util.logInfo(req.body,`EncTokenInterceptor /zoho/ request %j`,{request : JSON.stringify(req.body, null, 2)});
+                    //global.logger.write('conLog', 'bypassing enc token checking as request is for zoho services', {}, req.body);
+                    util.logInfo(req.body,`EncTokenInterceptor /zoho/ bypassing enc token checking as request is for zoho services %j`,{body : req.body});
                     next();
                 } else {
 
@@ -106,58 +118,69 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                             //case '/' + global.config.version + '/sms-dlvry/nexmo':
                             //case '/' + global.config.version + '/sms-dlvry/twilio':
                             req.body['module'] = 'device';
-                            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            //global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            util.logInfo(req.body,`EncTokenInterceptor /asset/passcode/alter/v2 request %j`,{request : JSON.stringify(req.body, null, 2)});
                             next();
                             break;
                         case '/' + global.config.version + '/asset/passcode/check':
                             req.body['module'] = 'device';
-                            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            //global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            util.logInfo(req.body,`EncTokenInterceptor /asset/passcode/check request %j`,{request : JSON.stringify(req.body, null, 2)});
                             next();
                             break;
                         case '/' + global.config.version + '/asset/link/set':
                             req.body['module'] = 'asset';
-                            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            //global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            util.logInfo(req.body,`EncTokenInterceptor /asset/link/set request %j`,{request : JSON.stringify(req.body, null, 2)});
                             next();
                             break;
                         case '/' + global.config.version + '/asset/phonenumber/access/organization/list':
                         case '/' + global.config.version + '/phone_number/verify/invite':                            
                             req.body['module'] = 'asset';
-                            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            //global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            util.logInfo(req.body,`EncTokenInterceptor /phone_number/verify/invite request %j`,{request : JSON.stringify(req.body, null, 2)});
                             next();
                             break;
                         case '/' + global.config.version + '/pam/asset/cover/alter/clockin':
                             req.body['module'] = 'asset';
-                            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            //global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            util.logInfo(req.body,`EncTokenInterceptor /pam/asset/cover/alter/clockin request %j`,{request : JSON.stringify(req.body, null, 2)});
                             next();
                             break;
                         case '/' + global.config.version + '/asset/status/collection':
                             req.body['module'] = 'asset';
-                            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            //global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            util.logInfo(req.body,`EncTokenInterceptor /asset/status/collection request %j`,{request : JSON.stringify(req.body, null, 2)});
                             next();
                             break;
                         case '/' + global.config.version + '/pam/asset/passcode/check':
                             req.body['module'] = 'device';
-                            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            //global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            util.logInfo(req.body,`EncTokenInterceptor /pam/asset/passcode/check request %j`,{request : JSON.stringify(req.body, null, 2)});
                             next();
                             break;    
                         case '/' + global.config.version + '/pam/asset/passcode/alter/v1':
                             req.body['module'] = 'device';
-                            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            //global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            util.logInfo(req.body,`EncTokenInterceptor /pam/asset/passcode/alter/v1 request %j`,{request : JSON.stringify(req.body, null, 2)});
                             next();
                             break;  
                         case '/' + global.config.version + '/asset/signup':
                             req.body['module'] = 'device';
-                            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            //global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            util.logInfo(req.body,`EncTokenInterceptor /asset/signup request %j`,{request : JSON.stringify(req.body, null, 2)});
                             next();
                             break;      
                         case '/' + global.config.version + '/email/passcode/generate':
                             req.body['module'] = 'device';
-                            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            //global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            util.logInfo(req.body,`EncTokenInterceptor /email/passcode/generate request %j`,{request : JSON.stringify(req.body, null, 2)});
                             next();
                             break;    
                         case '/' + global.config.version + '/email/passcode/verify':
                             req.body['module'] = 'device';
-                            global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            //global.logger.write('request', JSON.stringify(req.body, null, 2), {}, {});
+                            util.logInfo(req.body,`EncTokenInterceptor /email/passcode/verify request %j`,{request : JSON.stringify(req.body, null, 2)});
                             next();
                             break;                                                                                                                              
                         case '/' + global.config.version + '/send/email':
@@ -214,31 +237,40 @@ function EncTokenInterceptor(app, cacheWrapper, responseWrapper, util) {
                                 
                             }
                             //console.log('Module : ' + req.body['module']);
-                            global.logger.write('conLog', 'Module : ' + req.body['module'], {}, req.body);
+                            //global.logger.write('conLog', 'Module : ' + req.body['module'], {}, req.body);
+                            util.logInfo(req.body,`EncTokenInterceptor  %j`,{Module : req.body['module'],body : req.body});
 
-                            var asset_id = req.body.auth_asset_id || req.body.asset_id;
+                            let asset_id = req.body.auth_asset_id || req.body.asset_id;
 
                             
                             cacheWrapper.getTokenAuth(asset_id, function (err, encToken) {
                                 if (err) {                               
-                                    global.logger.write('appError', 'Redis token Checking error : ' + JSON.stringify(err), err, req.body);
+                                    //global.logger.write('appError', 'Redis token Checking error : ' + JSON.stringify(err), err, req.body);
+                                    util.logError(req.body,`getTokenAuth appError Redis token Checking Error %j`, {error : JSON.stringify(err), err,body : req.body });
                                     res.json(responseWrapper.getResponse(null, {}, -7998, req.body));
                                     return;
                                 } else {                                    
-                                    global.logger.write('conLog', 'got from cache layer : ' + encToken, {}, req.body);
-                                    global.logger.write('conLog', 'got from request body : ' + req.body.asset_token_auth, {}, req.body);
+                                    //global.logger.write('conLog', 'got from cache layer : ' + encToken, {}, req.body);
+                                    util.logInfo(req.body,`getTokenAuth got from cache layer %j`,{encToken : encToken, body : req.body});
+                                    //global.logger.write('conLog', 'got from request body : ' + req.body.asset_token_auth, {}, req.body);
+                                    util.logInfo(req.body,`getTokenAuth got from request body  %j`,{asset_token_auth : req.body.asset_token_auth, body : req.body});
 
                                     if (req.body.asset_token_auth === 'undefined') {
-                                        global.logger.write('conLog', 'req.url : ' + req.url, {}, req.body);
-                                        global.logger.write('serverError', 'Redis encToken checking failed : ' + JSON.stringify(err), {}, {});
+                                        //global.logger.write('conLog', 'req.url : ' + req.url, {}, req.body);
+                                        util.logInfo(req.body,`getTokenAuth req.url %j`,{req_url : req.url, body : req.body});
+                                        //global.logger.write('serverError', 'Redis encToken checking failed : ' + JSON.stringify(err), {}, {});
+                                        util.logError(req.body,`getTokenAuth serverError Redis encToken checking failed Error %j`, {error : JSON.stringify(err),  err});
                                         res.json(responseWrapper.getResponse(null, {}, -3204, req.body));
                                         return;
                                     } else if (encToken === req.body.asset_token_auth) {
-                                        global.logger.write('conLog', 'successfully redis encToken checking is done', {}, {});
+                                        //global.logger.write('conLog', 'successfully redis encToken checking is done', {}, {});
+                                        util.logInfo(req.body,`getTokenAuth successfully redis encToken checking is done %j`,{});
                                         next();
                                     } else {
-                                        global.logger.write('conLog', 'req.url : ' + req.url, {}, req.body);
-                                        global.logger.write('serverError', 'Redis encToken checking failed : ' + JSON.stringify(err), {}, {});
+                                        //global.logger.write('conLog', 'req.url : ' + req.url, {}, req.body);
+                                        util.logInfo(req.body,`getTokenAuth req.url %j`,{req_url : req.url, body : req.body});
+                                        //global.logger.write('serverError', 'Redis encToken checking failed : ' + JSON.stringify(err), {}, {});
+                                        util.logError(req.body,`getTokenAuth serverError Redis encToken checking failed Error %j`, {error : JSON.stringify(err),  err});
                                         res.json(responseWrapper.getResponse(null, {}, -3204, req.body));
                                         return;
                                     }

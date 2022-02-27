@@ -8,7 +8,7 @@ class WidgetTransactionService {
 
     getByPeriodFlag(lookupData) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     lookupData.widget_id,
                     lookupData.date,
                     lookupData.period_flag,
@@ -24,7 +24,7 @@ class WidgetTransactionService {
             /*"p_form_submission_date = DATE(IST(form_submission_datetime IN UTC))
              Asseme the widget timezone is IST
              p_period_flag = 0"*/
-            var queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_select_widget_flag', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_select_widget_flag', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
@@ -38,7 +38,7 @@ class WidgetTransactionService {
 
     create(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.widget_id,
                     data.asset_id,
                     data.organization_id,
@@ -51,7 +51,7 @@ class WidgetTransactionService {
              IN p_widget_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), 
              IN p_form_submission_date DATE, IN p_submitted_field_value_sum DOUBLE(16,4), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
              "*/
-            var queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_insert_single_dimension_aggregate', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_insert_single_dimension_aggregate', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
@@ -64,7 +64,7 @@ class WidgetTransactionService {
 
     update(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.organization_id,
                     data.widget_id,
                     data.widget_transaction_id,
@@ -76,7 +76,7 @@ class WidgetTransactionService {
              IN p_organization_id BIGINT(20), IN p_widget_transaction_id BIGINT(20), IN p_form_submission_date DATE, 
              IN p_submitted_field_value_sum DOUBLE(16,4)
              " */
-            var queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_update_single_dimension_aggregate', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_update_single_dimension_aggregate', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
@@ -89,7 +89,7 @@ class WidgetTransactionService {
 
     getByDayAndFields(lookupData) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     lookupData[0].widget_id,
                     lookupData[0].date,
                     lookupData[0].entity_id,
@@ -107,7 +107,7 @@ class WidgetTransactionService {
              IN p_widget_id BIGINT(20), IN p_form_submission_date DATE, IN p_field_id1 BIGINT(20), 
              IN p_field_id2 BIGINT(20), IN p_period_flag TINYINT(4)
              "*/
-            var queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_select_widget_field_flag', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_select_widget_field_flag', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
@@ -120,7 +120,7 @@ class WidgetTransactionService {
 
     createMultiDimAggregare(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.widget_id,
                     data.asset_id,
                     data.organization_id,
@@ -134,7 +134,7 @@ class WidgetTransactionService {
              IN p_widget_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_form_submission_date DATE,
              IN p_index_value TINYINT(4),  IN p_submitted_field_value_sum DOUBLE(16,4), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
              "*/
-            var queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_insert_multi_dimension_aggregate', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_insert_multi_dimension_aggregate', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
@@ -147,7 +147,7 @@ class WidgetTransactionService {
 
     updateMultiDimAggregate(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.widget_id,
                     data.widget_transaction_id,
                     data.organization_id,
@@ -161,7 +161,7 @@ class WidgetTransactionService {
              IN p_widget_transaction_id BIGINT(20),IN p_organization_id BIGINT(20), IN p_form_submission_date DATE, 
              IN p_index_value TINYINT(4),  IN p_sum_value DOUBLE(16,4), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
              "*/
-            var queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_update_multi_dimension_aggregate', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_update_multi_dimension_aggregate', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
@@ -174,7 +174,7 @@ class WidgetTransactionService {
 
     createFrequencyDistribution(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.widget_id,
                     data.asset_id,
                     data.organization_id,
@@ -187,7 +187,7 @@ class WidgetTransactionService {
              IN p_widget_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), 
              IN p_form_submission_date DATE, IN p_submitted_form_count BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
              "*/
-            var queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_insert_form_submission_count', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_insert_form_submission_count', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
@@ -200,7 +200,7 @@ class WidgetTransactionService {
 
     updateFrequencyDistribution(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.widget_transaction_id,
                     data.widget_id,
                     data.date,
@@ -212,7 +212,7 @@ class WidgetTransactionService {
              IN p_widget_transaction_id BIGINT(20), IN p_widget_id BIGINT(20), 
              IN p_form_submission_date DATE, IN p_widget_form_count BIGINT(20), IN p_log_datetime DATETIME
              "*/
-            var queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_update_form_submission_count', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_update_form_submission_count', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
@@ -225,7 +225,7 @@ class WidgetTransactionService {
 
     getByChoice(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.widget_id,
                     data.date,
                     data.choice,
@@ -239,7 +239,7 @@ class WidgetTransactionService {
                     );
             /*"ds_p1_widget_transaction_select_widget_choice_flag
              IN p_widget_id BIGINT(20), IN p_form_submission_date DATE, IN p_choice DOUBLE(16,4), IN p_period_flag TINYINT(4)"*/
-            var queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_select_widget_choice_flag', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_select_widget_choice_flag', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
@@ -252,7 +252,7 @@ class WidgetTransactionService {
 
     createMultiValueVisualization(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.widget_id,
                     data.asset_id,
                     data.organization_id,
@@ -266,7 +266,7 @@ class WidgetTransactionService {
              IN p_widget_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_form_submission_date DATE, 
              IN p_submitted_field_value_sum DOUBLE(16,4),  IN p_submitted_choice VARCHAR(300), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
              "*/
-            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_insert_multi_value_visualization', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_insert_multi_value_visualization', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
@@ -279,7 +279,7 @@ class WidgetTransactionService {
 
     updateMultiValueVisualization(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.organization_id,
                     data.widget_id,
                     data.widget_transaction_id,
@@ -293,7 +293,7 @@ class WidgetTransactionService {
              IN p_form_submission_date DATE, IN p_choice VARCHAR(300), IN p_sum_value DOUBLE(16,4)
              "
              "*/
-            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_update_multi_value_visualization', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_update_multi_value_visualization', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
@@ -306,7 +306,7 @@ class WidgetTransactionService {
     
     getWidgetByStatusPeriodFlag(lookupData) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     lookupData.widget_id,
                     lookupData.date,
                     lookupData.period_flag,
@@ -320,7 +320,7 @@ class WidgetTransactionService {
                     lookupData.activity_type_id
                     );
 
-            var queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_select_file_status_flag', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_1_widget_transaction_select_file_status_flag', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
@@ -334,7 +334,7 @@ class WidgetTransactionService {
     
     createFileStatusDistribution(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.widget_id,
                     data.asset_id,
                     data.organization_id,
@@ -351,7 +351,7 @@ class WidgetTransactionService {
              IN p_status_count BIGINT(20), IN p_status_type_id SMALLINT(6), IN p_status_type_name VARCHAR(50),
              IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME */
             
-            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_insert_form_file_status_count', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_insert_form_file_status_count', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
@@ -364,7 +364,7 @@ class WidgetTransactionService {
     
     updateFileStatusDistribution(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.widget_transaction_id,
                     data.widget_id,
                     data.date,
@@ -379,7 +379,7 @@ class WidgetTransactionService {
              IN p_widget_form_count BIGINT(20), IN p_activity_status_type_id SMALLINT(6), IN p_activity_status_type_name VARCHAR(50),
              IN p_log_asset_id BIGINT(20),IN p_log_datetime DATETIME
                 */
-            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_update_form_file_status_count', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_update_form_file_status_count', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
@@ -392,7 +392,7 @@ class WidgetTransactionService {
     
     getWidgetByStatusPeriodAggrFlag(lookupData) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     lookupData.widget_id,
                     lookupData.date,
                     lookupData.period_flag,
@@ -405,7 +405,7 @@ class WidgetTransactionService {
                     lookupData.from_status_id
                     );
 
-            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_select_file_status_aggr_flag', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_select_file_status_aggr_flag', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
@@ -419,7 +419,7 @@ class WidgetTransactionService {
     
     createFileStatusDuration(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.widget_id,
                     data.asset_id,
                     data.organization_id,
@@ -432,7 +432,7 @@ class WidgetTransactionService {
             /* ds_p1_widget_transaction_insert_form_file_status_duration
               */
             
-            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_insert_form_file_status_duration', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_insert_form_file_status_duration', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
@@ -445,7 +445,7 @@ class WidgetTransactionService {
     
     updateFileStatusDuration(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.widget_transaction_id,
                     data.widget_id,
                     data.date,
@@ -456,7 +456,7 @@ class WidgetTransactionService {
             /* "ds_p1_widget_transaction_update_form_file_status_duration
              
                 */
-            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_update_form_file_status_duration', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_update_form_file_status_duration', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
@@ -469,7 +469,7 @@ class WidgetTransactionService {
     
     createFileStatusTransition(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.widget_id,
                     data.asset_id,
                     data.organization_id,
@@ -482,7 +482,7 @@ class WidgetTransactionService {
             /* ds_p1_widget_transaction_insert_form_file_status_duration
               */
             
-            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_insert_form_file_status_transition', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_insert_form_file_status_transition', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
@@ -495,7 +495,7 @@ class WidgetTransactionService {
     
     updateFileStatusTransition(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.widget_transaction_id,
                     data.widget_id,
                     data.date,
@@ -506,7 +506,7 @@ class WidgetTransactionService {
             /* "ds_p1_widget_transaction_update_form_file_status_duration
              
                 */
-            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_update_form_file_status_transition', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_update_form_file_status_transition', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
@@ -520,14 +520,14 @@ class WidgetTransactionService {
     
     getWidgetTxnsOfAWidget(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
             		data.organization_id,
             		data.widget_id,
             		data.date                    
                     );
             /*"ds_v1_widget_transaction_select_widget_date
              */
-            var queryString = this.objCollection.util.getQueryString('ds_v1_widget_transaction_select_widget_date', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_v1_widget_transaction_select_widget_date', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
@@ -541,7 +541,7 @@ class WidgetTransactionService {
     
     createFileDistribution(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.widget_id,
                     data.asset_id,
                     data.organization_id,
@@ -551,7 +551,7 @@ class WidgetTransactionService {
                     this.objCollection.util.getCurrentUTCTime()
                     );
             
-            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_insert_form_file_count', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_insert_form_file_count', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {
@@ -564,7 +564,7 @@ class WidgetTransactionService {
     
     updateFileDistribution(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.widget_transaction_id,
                     data.widget_id,
                     data.date,
@@ -573,7 +573,7 @@ class WidgetTransactionService {
                     this.objCollection.util.getCurrentUTCTime()
                     );
 
-            var queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_update_form_file_count', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_widget_transaction_update_form_file_count', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(0, queryString, {}, function (err, data) {

@@ -96,7 +96,7 @@ function PortalController(objCollection) {
      * Get assets in the workforce
      */
     app.post('/' + global.config.version + '/assetListSelectAllDesks', async (req, res) => {
-        var string = "assetListSelectAllDesks - " + JSON.stringify(req.body);
+        let string = "assetListSelectAllDesks - " + JSON.stringify(req.body);
         objCollection.util.writeLogs(string);
 
         let [err, result] = await portalService.assetListSelectAllDesks(req.body);

@@ -1,23 +1,23 @@
 /*
  * author: Nani Kalyan V
  */
-var fs = require('fs');
-var uuid = require('uuid');
-var AwsSns = require('../utils/snsWrapper');
-var makingRequest = require('request');
+let fs = require('fs');
+let uuid = require('uuid');
+let AwsSns = require('../utils/snsWrapper');
+let makingRequest = require('request');
 const nodeUtil = require('util');
 let TinyURL = require('tinyurl');
 const XLSX = require('xlsx');
 
 function PamService(objectCollection) {
 
-    var db = objectCollection.db;
-    var util = objectCollection.util;
-    var forEachAsync = objectCollection.forEachAsync;
-    var cacheWrapper = objectCollection.cacheWrapper;
-    var queueWrapper = objectCollection.queueWrapper;
-    var activityCommonService = objectCollection.activityCommonService;
-    var sns = new AwsSns();
+    let db = objectCollection.db;
+    let util = objectCollection.util;
+    let forEachAsync = objectCollection.forEachAsync;
+    let cacheWrapper = objectCollection.cacheWrapper;
+    let queueWrapper = objectCollection.queueWrapper;
+    let activityCommonService = objectCollection.activityCommonService;
+    let sns = new AwsSns();
     // SMS
     // const smsEngine = require('../utils/smsEngine');
 
@@ -26,13 +26,13 @@ function PamService(objectCollection) {
           
     this.ivrService = function(request, callback) {
         console.log('Request params received for ivr Service : ' , request);
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime; 
         
-        var response = {};
-        var threshold = 0;
-        var eventStartDateTime;
-        var reservationCreatedDateTime;
+        let response = {};
+        let threshold = 0;
+        let eventStartDateTime;
+        let reservationCreatedDateTime;
         response.member = 0;
         response.member_name = '';
         response.called_before = '';
@@ -56,7 +56,7 @@ function PamService(objectCollection) {
                     response.member_name = data.asset_first_name;
                 } else {
                     //Send Sms                    
-            var txt = "Thank you for calling in today. As i was mentioning on the call, to become a member you need to be recommended by one of our existing members.";
+            let txt = "Thank you for calling in today. As i was mentioning on the call, to become a member you need to be recommended by one of our existing members.";
                 txt += " Email me at pam@puddingandmink.com to get further details. -PAM";
                 
                     console.log('SMS text : \n', txt);
@@ -79,13 +79,13 @@ function PamService(objectCollection) {
                         request.activity_type_category_id = 42;
                         request.activity_type_id = 51734;
                         request.activity_title = request.phone_number;
-                        var x = {};
+                        let x = {};
                         x.country_code = request.country_code;
                         x.phone_number = request.phone_number;
                         
                         request.activity_inline_data = JSON.stringify(x);
                         
-                        var event = {
+                        let event = {
                             name: "addActivity",
                             service: "activityService",
                             method: "addActivity",
@@ -109,13 +109,13 @@ function PamService(objectCollection) {
                                   (data.length > 0) ? ((data[0].reservation_count < threshold) ? response.reservation_available ='true' : response.reservation_available = 'false') : response.reservation_available = -99;
 
                                   //SMS Logic
-                                  var nextAvailableDateTime;
+                                  let nextAvailableDateTime;
                                   (response.called_before == 'true')?
                                        nextAvailableDateTime = util.addUnitsToDateTime(eventStartDateTime,6.5,'hours') :
                                        nextAvailableDateTime = util.addUnitsToDateTime(logDatetime,6.5,'hours');
 
                                   if(response.reservation_available == 'false') {
-var text = "Dear "+response.member_name+","+" Currently, there are no tables available for reservation. Please call us back after " + nextAvailableDateTime;
+                                    let text = "Dear "+response.member_name+","+" Currently, there are no tables available for reservation. Please call us back after " + nextAvailableDateTime;
 text+= " to check if there are any tables available for reservation.";
                                            console.log('SMS text : \n', text + "\n");
                                            util.pamSendSmsMvaayoo(text, request.country_code, request.phone_number, function(err,res){});
@@ -139,7 +139,7 @@ text+= " to check if there are any tables available for reservation.";
                                                    expiryDateTime = util.addUnitsToDateTime(reservationCreatedDateTime,6.5,'hours');
                                            
                                                 expiryDateTime = util.getDatetimewithAmPm(expiryDateTime);
-                                                var reservationCode = resp[0].activity_sub_type_name;
+                                                let reservationCode = resp[0].activity_sub_type_name;
                                             
                                                console.log('Expiry DAte time : ', expiryDateTime);
 /*var smsText = "Dear "+response.member_name+" , Your reservation for today is confirmed. Please use the following reservation code " + resp[0].activity_sub_type_name;
@@ -160,7 +160,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                                             activityCommonService.getActivityDetails(request, 0, function(err, data){
                                                 if(err === false) {
                                                     //console.log('Activity Details : ' , data);
-                                                    var inlineJson = JSON.parse(data[0].activity_inline_data);
+                                                    let inlineJson = JSON.parse(data[0].activity_inline_data);
                                                     request.no_of_guests = util.replaceDefaultNumber(inlineJson.party_size);
                                                     activityCommonService.sendSmsCode(request).then(()=>{});
                                                  } else {
@@ -209,22 +209,22 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
      } */
     
     this.getWorkforceDifferential = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.differential_datetime,
                 request.page_start,
                 util.replaceQueryLimit(request.page_limit)
                 );
-        var queryString = util.getQueryString('ds_p1_workforce_list_select_differential', paramsArr);
+        let queryString = util.getQueryString('ds_p1_workforce_list_select_differential', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if(err === false){
                    if (data.length > 0) {
                     //console.log(data);
-                    var responseData = new Array();
+                    let responseData = new Array();
                     forEachAsync(data, function (next, row) {
-                            var rowData = {
+                            let rowData = {
                             "workforce_id": util.replaceDefaultNumber(row['workforce_id']),
                             "workforce_name": util.replaceDefaultString(row['workforce_name']),
                             "workforce_image_path": util.replaceDefaultString(row['workforce_image_path']),
@@ -278,14 +278,14 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         }
     };
 
-    var identifyCaller = function (request, callback) {
-        var paramsArr = new Array(
+    let identifyCaller = function (request, callback) {
+        let paramsArr = new Array(
                 request.organization_id || 351, //,
                 request.asset_type_category_id || 30, //,
                 request.phone_number,
                 request.country_code
                 );
-        var queryString = util.getQueryString('ds_v1_asset_list_select_phone_number_category', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_select_phone_number_category', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if(err === false) {
@@ -298,7 +298,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         }
     };
     
-    var getCalledTime = function (request, callback) {        
+    let getCalledTime = function (request, callback) {        
         getEventDatetime(request).then((resp)=>{
             if(resp.length > 0) {
                 callback(false, resp);
@@ -307,12 +307,12 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 console.log(util.getDayStartDatetimeIST());
                 console.log(util.getDayEndDatetimeIST());
 
-                var paramsArr1 = new Array(
+                let paramsArr1 = new Array(
                         request.organization_id || 351,
                         util.addUnitsToDateTime(util.getDayStartDatetimeIST(),-5.5,'hours'),
                         util.addUnitsToDateTime(util.getDayEndDatetimeIST(),-5.5,'hours')
                         );
-                var queryString1 = util.getQueryString('ds_v1_activity_list_select_event_dt_between', paramsArr1);
+                let queryString1 = util.getQueryString('ds_v1_activity_list_select_event_dt_between', paramsArr1);
                 if (queryString1 != '') {
                     db.executeQuery(1, queryString1, request, function (err, data) {
                        console.log('getCalledTime :', data);
@@ -327,12 +327,12 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 
      function getEventDatetime (request){ 
         return new Promise((resolve, reject)=>{
-            var paramsArr1 = new Array(
+            let paramsArr1 = new Array(
                 request.organization_id || 351,
                 request.account_id || 452,
                 request.datetime_log
                 );
-            var queryString1 = util.getQueryString('ds_v1_activity_list_select_event_datetime', paramsArr1);
+            let queryString1 = util.getQueryString('ds_v1_activity_list_select_event_datetime', paramsArr1);
             if (queryString1 != '') {
                 db.executeQuery(1, queryString1, request, function (err, data) {
                    console.log('getEventDatetime :', data);
@@ -342,12 +342,12 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         })        
     };
     
-    var getReservationsCount = function (eventActivityId, callback) {
-        var paramsArr = new Array(
+    let getReservationsCount = function (eventActivityId, callback) {
+        let paramsArr = new Array(
                 request.organization_id || 351,
                 eventActivityId
                 );
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_reservation_count', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_reservation_count', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, eventActivityId, function (err, data) {
                 console.log('getReservationsCount :', data);
@@ -359,13 +359,13 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     
     function getReservationDetails(eventActivityId, memberAssetId) {
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id || 351, //
                 request.account_id || 452, //,
                 eventActivityId,
                 memberAssetId
                 );
-            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_reservation', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_reservation', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, eventActivityId, function (err, data) {
                     console.log('Reservation Details :', data);
@@ -377,13 +377,13 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     };
     
     this.generatePasscode = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.page_start,
                 request.page_limit
                 );
-        var queryString = util.getQueryString('ds_p1_asset_list_select_all_admin_desks', paramsArr);
+        let queryString = util.getQueryString('ds_p1_asset_list_select_all_admin_desks', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
@@ -400,10 +400,10 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     };
     
     this.assetAccessAdd = function (request, callback) {
-        var dateTimeLog = util.getCurrentUTCTime();
+        let dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 request.user_asset_id,
                 request.asset_email_id,
                 request.asset_access_role_id,
@@ -419,7 +419,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 request.datetime_log
                 );
 
-        var queryString = util.getQueryString('ds_p1_asset_access_mapping_insert', paramsArr);
+        let queryString = util.getQueryString('ds_p1_asset_access_mapping_insert', paramsArr);
         if (queryString != '') {
             //global.logger.write(queryString, request, 'asset', 'trace');
             db.executeQuery(0, queryString, request, function (err, assetData) {
@@ -435,7 +435,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     }
     
     this.getUserAccessDetails = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -444,7 +444,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 request.page_start,
                 util.replaceQueryLimit(request.page_limit)
                 );
-        var queryString = util.getQueryString('ds_v1_asset_access_mapping_select_asset_access', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_access_mapping_select_asset_access', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if(err === false){
@@ -466,8 +466,8 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     };
     
     this.getAssetAccessAccountLevelDifferential = function (request, callback) {
-        var paramsArr = new Array();
-        var queryString = '';
+        let paramsArr = new Array();
+        let queryString = '';
         paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
@@ -497,10 +497,10 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     };
     
    this.getMenuItemIngredients = function(request, callback) {
-        var activityArray = JSON.parse(request.menu_activity_array);
+        let activityArray = JSON.parse(request.menu_activity_array);
         request['len'] = activityArray.length;
-        var response = new Array();
-        var globalStationIds =  new Array();
+        let response = new Array();
+        let globalStationIds =  new Array();
         
         forEachAsync(activityArray, function (next, activityId) {
             //console.log(activityId);
@@ -533,7 +533,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                     
                     forEachAsync(response, function (next, index) {
                             //console.log(index.menu_activity_id);
-                            var x = (index.status === true)? 1 : 0;
+                            let x = (index.status === true)? 1 : 0;
                             changeActivityStatus(request, index.menu_activity_id, x).then(()=>{
                                 next();
                             });                            
@@ -591,13 +591,13 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     
     function getActivityStatusId(request, activityId) {
        return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                request.organization_id,
                request.account_id,
                request.workforce_id,
                request.activity_status_type_id
                );
-            var queryString = util.getQueryString('ds_v1_workforce_activity_status_mapping_select_status', paramsArr);
+            let queryString = util.getQueryString('ds_v1_workforce_activity_status_mapping_select_status', paramsArr);
               if (queryString != '') {
                   db.executeQuery(1, queryString, request, function (err, resp) {
                       if (err === false) {
@@ -606,7 +606,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                             request.activity_status_id = resp[0].activity_status_id;
                             request.activity_id = activityId;
                                                         
-                            var event = {
+                            let event = {
                                 name: "alterActivityStatus",
                                 //service: "activityService",
                                 service: "pamUpdateService",
@@ -691,10 +691,10 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
          })
     } */
     
-     var formatAssetAccountDataLevel = function (data, callback) {
-        var responseArr = new Array();
+     let formatAssetAccountDataLevel = function (data, callback) {
+        let responseArr = new Array();
         forEachAsync(data, function (next, row) {
-            var rowData = {
+            let rowData = {
                 'user_mapping_id': util.replaceDefaultNumber(row['user_mapping_id']),
                 'user_asset_id': util.replaceDefaultNumber(row['user_asset_id']),
                 'user_asset_first_name': util.replaceDefaultString(row['user_asset_first_name']),
@@ -797,7 +797,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     
     
     this.updateOperatingAssetDetails = function (request, callback) {
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         
         pamGetEmpStations(request).then((data)=>{        	
@@ -835,14 +835,14 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     
     function pamGetEmpStations(request) {
         return new Promise((resolve, reject)=>{
-             var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.asset_id,
                 0,
                 50
                 );
-        var queryString = util.getQueryString('ds_v1_asset_list_select_employee_stations', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_select_employee_stations', paramsArr);
         if (queryString != '') {            
             db.executeQuery(1, queryString, request, function (err, data) {
                 console.log('Getemp stations: ' + JSON.stringify(data));
@@ -854,7 +854,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     
     function pamAssetListUpdateOperatingAsset(request, assetId, operatingAsstId) {
          return new Promise((resolve, reject)=>{
-             var paramsArr = new Array(
+             let paramsArr = new Array(
                 assetId,
                 request.workforce_id,
                 request.account_id,
@@ -864,7 +864,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 request.datetime_log
                 );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (err === false) ? resolve() : reject(err);
@@ -875,7 +875,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         
     function pamAssetListUpdateOperatingAssetUnoccupied(request) {
          return new Promise((resolve, reject)=>{
-             var paramsArr = new Array(
+             let paramsArr = new Array(
                 request.work_station_asset_id,
                 request.workforce_id,
                 request.account_id,
@@ -885,7 +885,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 request.datetime_log
                 );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset_unoccupied', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_update_operating_asset_unoccupied', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (err === false) ? resolve(data) : reject(err);
@@ -896,14 +896,14 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     
     function pamAssetListHistoryInsert(request, updateTypeId, assetId) {
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 assetId, //request.work_station_asset_id,
                 request.organization_id,
                 updateTypeId,
                 request.datetime_log
                 );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_history_insert', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_history_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
               (err === false) ?  resolve() : reject(err);
@@ -914,11 +914,11 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     
     function getAssetDetails(request) {
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.work_station_asset_id
                 );
-            var queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
+            let queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log('get Asset Details : ' + JSON.stringify(data));
@@ -930,14 +930,14 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     
     //Main function
     this.stationAssignAlter = function(request, callback){
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         request['activity_type_category_id'] = 38;
         
         assignMinWaitTimeStation(request).then((data)=>{
-           var minStationId = data;
+           let minStationId = data;
            console.log('minStationId :',minStationId);
-           var tempArray = new Array();
+           let tempArray = new Array();
            tempArray.push({"asset_id":minStationId,"access_role_id":"123","message_unique_id": util.getMessageUniqueId(request.asset_id),"workforce_id":request.workforce_id,"organization_id":request.organization_id,"account_id":request.account_id});
            request['activity_participant_collection'] = JSON.stringify(tempArray);
            
@@ -979,16 +979,16 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     
     function getSumOpenOrderTimingsPerStation(request, stationAssetIds) {
       return new Promise((resolve, reject)=>{
-        var minTime = 9999999999;
-        var minStationId;
+        let minTime = 9999999999;
+        let minStationId;
         
         forEachAsync(stationAssetIds, function (next, row) {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
               request.organization_id,
               request.account_id,
               row
               );
-            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_station_waiting_mins', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_station_waiting_mins', paramsArr);
             if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 console.log(data);
@@ -1008,7 +1008,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     };
     
     this.pamAssignParticipant = function(request, callback) {
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         console.log("pamAssignParticipant : " +JSON.stringify(request.activity_participant_collection, null, 2))
         pamAssignCoworker(request, function(err, resp){
@@ -1028,36 +1028,39 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     };
     
     //Add Paritipant ==============================================================
-    var pamAssignCoworker = function (request, callback) { //Addparticipant Request
+    let pamAssignCoworker = function (request, callback) { //Addparticipant Request
 
-        var loopAddParticipant = function (participantCollection, index, maxIndex) {
+        let loopAddParticipant = function (participantCollection, index, maxIndex) {
             iterateAddParticipant(participantCollection, index, maxIndex, function (err, data) {});
         };
 
-        var iterateAddParticipant = function (participantCollection, index, maxIndex, callback) {
-            var participantData = participantCollection[index];
+        let iterateAddParticipant = function (participantCollection, index, maxIndex, callback) {
+            let participantData = participantCollection[index];
             isParticipantAlreadyAssigned(participantData, request.activity_id, request, function (err, alreadyAssignedStatus, newRecordStatus) {
                 if ((err === false) && (!alreadyAssignedStatus)) {
                     //proceed and add a participant
                     addParticipant(request, participantData, newRecordStatus, function (err, data) {
                         if (err === false) {
                             //console.log("participant successfully added");
-                            global.logger.write('conLog', 'participant successfully added', {}, request)
-                            var nextIndex = index + 1;
+                            //global.logger.write('conLog', 'participant successfully added', {}, request)
+                            util.logInfo(request,`addParticipant conLog participant successfully added %j`,{ request});
+                            let nextIndex = index + 1;
                             if (nextIndex <= maxIndex) {
                                 loopAddParticipant(participantCollection, nextIndex, maxIndex);
                             }
                             callback(false, true);
                         } else {
                             console.log(err);
-                            global.logger.write('serverError', '' + err, {}, request)
+                            //global.logger.write('serverError', '' + err, {}, request)
+                            util.logError(request,`addParticipant serverError Error %j`, { err, request });
                             callback(true, err);
                         }
                     }.bind(this));
                 } else {
                     if (alreadyAssignedStatus > 0) {
-                        global.logger.write('conLog', 'participant already assigned', {}, request)
-                        var nextIndex = index + 1;
+                        //global.logger.write('conLog', 'participant already assigned', {}, request)
+                        util.logInfo(request,`isParticipantAlreadyAssigned participant already assigned %j`,{ request});
+                        let nextIndex = index + 1;
                         if (nextIndex <= maxIndex) {
                             loopAddParticipant(participantCollection, nextIndex, maxIndex);
                         }
@@ -1070,10 +1073,10 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
 
         };
         activityCommonService.updateAssetLocation(request, function (err, data) {});
-        var activityStreamTypeId = 2; //Older 2:added participant
+        let activityStreamTypeId = 2; //Older 2:added participant
         console.log('request.activity_type_category_id : ', request.activity_type_category_id);
         if (request.hasOwnProperty('activity_type_category_id')) {
-            var activityTypeCategroyId = Number(request.activity_type_category_id);
+            let activityTypeCategroyId = Number(request.activity_type_category_id);
             console.log('activityTypeCategroyId : ', activityTypeCategroyId);
             switch (activityTypeCategroyId) {
                 //PAM
@@ -1100,13 +1103,13 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         console.log('activityStreamTypeId : ', activityStreamTypeId);
         request['activity_streamtype_id'] = activityStreamTypeId;
         activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) { });
-        var index = 0;       
-        var activityParticipantCollection = JSON.parse(request.activity_participant_collection);
-        var maxIndex = activityParticipantCollection.length - 1;
+        let index = 0;       
+        let activityParticipantCollection = JSON.parse(request.activity_participant_collection);
+        let maxIndex = activityParticipantCollection.length - 1;
         //var maxIndex = request.activity_participant_collection.length - 1;
         iterateAddParticipant(activityParticipantCollection, index, maxIndex, function (err, data) {
 	      	  if(activityTypeCategroyId == 37) {                    
-	              var newRequest = Object.assign({}, request);
+	              let newRequest = Object.assign({}, request);
 			  if(request.hasOwnProperty('is_non_queue')){
 	              		sendSmsCodeParticipant(newRequest, function(err, data){});
 				}
@@ -1122,8 +1125,8 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         });
     };
     
-    var addParticipant = function (request, participantData, newRecordStatus, callback) {
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
+    let addParticipant = function (request, participantData, newRecordStatus, callback) {
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
         
         if (newRecordStatus) {
             activityAssetMappingInsertParticipantAssign(request, participantData, function (err, data) {
@@ -1145,7 +1148,8 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
             });
         } else {
             //console.log('re-assigining to the archived row');
-            global.logger.write('conLog', 're-assigining to the archived row', {}, request)
+            //global.logger.write('conLog', 're-assigining to the archived row', {}, request)
+            util.logInfo(request,`addParticipant conLog re-assigining to the archived row %j`,{request});
             activityAssetMappingUpdateParticipantReAssign(request, participantData, function (err, data) {
                 if (err === false) {
                     activityCommonService.assetActivityListHistoryInsert(request, participantData.asset_id, 502, function (err, restult) {
@@ -1168,27 +1172,27 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         }
     };
     
-    var isParticipantAlreadyAssigned = function (assetCollection, activityId, request, callback) {
-        var fieldId = 0;
+    let isParticipantAlreadyAssigned = function (assetCollection, activityId, request, callback) {
+        let fieldId = 0;
         console.log('In isParticipantAlreadyAssigned - assetCollection : ', assetCollection);
         if (assetCollection.hasOwnProperty('field_id')) {
             fieldId = assetCollection.field_id;
         }
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 activityId,
                 assetCollection.asset_id,
                 assetCollection.organization_id,
                 fieldId
                 );
-        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_select_check_participant_appr", paramsArr);
+        let queryString = util.getQueryString("ds_v1_activity_asset_mapping_select_check_participant_appr", paramsArr);
 
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false)
                 {
                     //var queryStatus = (data.length > 0) ? (data[0]['log_state']< 3)?true:false : false;
-                    var queryStatus = false;
-                    var newRecordFalg = false;
+                    let queryStatus = false;
+                    let newRecordFalg = false;
                     if (data.length > 0) {
                         if (data[0]['log_state'] < 3) {
                             queryStatus = true;
@@ -1205,25 +1209,26 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 } else {
                     callback(true, err);
                     console.log('nani : ', err);
-                    global.logger.write('serverError', err, err, request)
+                    //global.logger.write('serverError', err, err, request)
+                    util.logError(request,`isParticipantAlreadyAssigned serverError Error %j`, { err, request });
                     return;
                 }
             });
         }
     };
     
-    var activityAssetMappingInsertParticipantAssign = function (request, participantData, callback) {
-        var fieldId = 0;
+    let activityAssetMappingInsertParticipantAssign = function (request, participantData, callback) {
+        let fieldId = 0;
         console.log('In function activityAssetMappingInsertParticipantAssign - participantData : ', participantData);
-        var quantityUnitType = (request.hasOwnProperty('quantity_unit_type')) ? request.quantity_unit_type : '';
-        var quantityUnitValue = (request.hasOwnProperty('quantity_unit_value')) ? request.quantity_unit_value : -1;
-        var optionId = (request.hasOwnProperty('option_id')) ? request.option_id : -1;
-        var optionName = (request.hasOwnProperty('option_name')) ? request.option_name : '';
+        let quantityUnitType = (request.hasOwnProperty('quantity_unit_type')) ? request.quantity_unit_type : '';
+        let quantityUnitValue = (request.hasOwnProperty('quantity_unit_value')) ? request.quantity_unit_value : -1;
+        let optionId = (request.hasOwnProperty('option_id')) ? request.option_id : -1;
+        let optionName = (request.hasOwnProperty('option_name')) ? request.option_name : '';
         
         if (participantData.hasOwnProperty('field_id')) {
             fieldId = participantData.field_id;
         }
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 request.activity_id,
                 participantData.asset_id,
                 participantData.workforce_id,
@@ -1241,7 +1246,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 optionId,
                 optionName
                 );
-        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_pam", paramsArr);
+        let queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_pam", paramsArr);
         //var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_appr_ingre", paramsArr);
         //var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_appr", paramsArr);
 
@@ -1255,19 +1260,20 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError','' + err, request)
+                    //global.logger.write('serverError','' + err, request)
+                    util.logError(request,`activityAssetMappingInsertParticipantAssign serverError Error %j`, { err, request });
                     return;
                 }
             });
         }
     };
     
-    var activityAssetMappingUpdateParticipantReAssign = function (request, participantData, callback) {
-        var fieldId = 0;
+    let activityAssetMappingUpdateParticipantReAssign = function (request, participantData, callback) {
+        let fieldId = 0;
         if (participantData.hasOwnProperty('field_id')) {
             fieldId = participantData.field_id;
         }
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 request.activity_id,
                 participantData.asset_id,
                 participantData.organization_id,
@@ -1275,7 +1281,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 request.asset_id,
                 request.datetime_log
                 );
-        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_reassign_participant_appr", paramsArr);
+        let queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_reassign_participant_appr", paramsArr);
 
         if (queryString !== '') {
 
@@ -1287,7 +1293,8 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, err, request)
+                    //global.logger.write('serverError', err, err, request)
+                    util.logError(request,`activityAssetMappingUpdateParticipantReAssign serverError Error %j`, { err, request });
                     return;
                 }
             });
@@ -1297,12 +1304,12 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     //End Add Participant======================================================
     
     this.bulkStatusAlter = function(request, callback){
-        var logDatetime = util.getCurrentUTCTime();        
+        let logDatetime = util.getCurrentUTCTime();        
         request['datetime_log'] = logDatetime;
-        var newRequest = new Array();
-        var cnt = 0;
+        let newRequest = new Array();
+        let cnt = 0;
         
-        var orderActivityCollection = JSON.parse(request.order_activity_collection);        
+        let orderActivityCollection = JSON.parse(request.order_activity_collection);        
         forEachAsync(orderActivityCollection, function (next, x) {
             newRequest[cnt] = Object.assign({}, request);
             newRequest[cnt].activity_id = x.activity_id;
@@ -1326,12 +1333,12 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     //Alter Activity Status
     function pamAlterActivityStatus(request){
         return new Promise((resolve, reject)=>{
-            var activityStreamTypeId;
-            var activityStatusId = Number(request.activity_status_id);
-            var activityStatusTypeId = Number(request.activity_status_type_id) || 103;
+            let activityStreamTypeId;
+            let activityStatusId = Number(request.activity_status_id);
+            let activityStatusTypeId = Number(request.activity_status_type_id) || 103;
             
             if (request.hasOwnProperty('activity_type_category_id')) {
-                var activityTypeCategroyId = Number(request.activity_type_category_id);
+                let activityTypeCategroyId = Number(request.activity_type_category_id);
                 switch (activityTypeCategroyId) {
                     //PAM
                     case 36:    //Menu Item
@@ -1375,12 +1382,12 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         //Alter Activity Status
     function pamBulkAlterActivityStatus(request){
         return new Promise((resolve, reject)=>{
-            var activityStreamTypeId;
-            var activityStatusId = Number(request.activity_status_id);
-            var activityStatusTypeId = Number(request.activity_status_type_id) || 103;
+            let activityStreamTypeId;
+            let activityStatusId = Number(request.activity_status_id);
+            let activityStatusTypeId = Number(request.activity_status_type_id) || 103;
             
             if (request.hasOwnProperty('activity_type_category_id')) {
-                var activityTypeCategroyId = Number(request.activity_type_category_id);
+                let activityTypeCategroyId = Number(request.activity_type_category_id);
                 switch (activityTypeCategroyId) {
                     //PAM
                     case 36:    //Menu Item
@@ -1422,7 +1429,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     
     function activityListUpdateStatus(request) {
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -1432,7 +1439,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 request.datetime_log,
                 request.activity_sub_type_id
                 );
-            var queryString = util.getQueryString("ds_v1_activity_list_update_status_pam2", paramsArr);
+            let queryString = util.getQueryString("ds_v1_activity_list_update_status_pam2", paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                    (err === false)? resolve() : reject(err);                        
@@ -1443,7 +1450,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     
     function activityListUpdateStatusBulk(request) {
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -1453,7 +1460,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                 request.asset_id,
                 request.datetime_log
                 );
-            var queryString = util.getQueryString("ds_v1_activity_list_update_status_pam", paramsArr);
+            let queryString = util.getQueryString("ds_v1_activity_list_update_status_pam", paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                    (err === false)? resolve() : reject(err);                        
@@ -1464,7 +1471,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     
     function assetActivityListUpdateStatusBulk(request, activityStatusId, activityStatusTypeId){
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array();
+            let paramsArr = new Array();
             activityCommonService.getAllParticipants(request, function (err, participantsData) {
                 if (err === false) {
                     participantsData.forEach(function (rowData, index) {
@@ -1492,7 +1499,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
     
     function assetActivityListUpdateStatus(request, activityStatusId, activityStatusTypeId){
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array();
+            let paramsArr = new Array();
             activityCommonService.getAllParticipants(request, function (err, participantsData) {
                 if (err === false) {
                     participantsData.forEach(function (rowData, index) {
@@ -1527,7 +1534,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         if(request.hasOwnProperty('track_gps_datetime')){
             request.datetime_log = request.track_gps_datetime;
         }  else {
-            var logDatetime = util.getCurrentUTCTime();        
+            let logDatetime = util.getCurrentUTCTime();        
             request['datetime_log'] = logDatetime;
         }
         getCalledTime(request, function(err, data){
@@ -1576,10 +1583,10 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
                               
                               if(resp[0].entered_covers == 0){
                                 pamGetAssetDetails(request).then((data)=>{                                        
-                                    var phoneNumber = util.replaceDefaultNumber(data[0].asset_phone_number);
-                                    var countryCode = util.replaceDefaultNumber(data[0].asset_phone_country_code);
+                                    let phoneNumber = util.replaceDefaultNumber(data[0].asset_phone_number);
+                                    let countryCode = util.replaceDefaultNumber(data[0].asset_phone_country_code);
 
-                                    var text = `Dear ${util.replaceDefaultString(resp[0].operating_asset_first_name)},\nYour first guest has arrived and the billing for this reservation is active. If the reservation code is being misused, please call us -GreneOS`;
+                                    let text = `Dear ${util.replaceDefaultString(resp[0].operating_asset_first_name)},\nYour first guest has arrived and the billing for this reservation is active. If the reservation code is being misused, please call us -GreneOS`;
                                                               
                                     self.sendSms(countryCode,phoneNumber,text);    
                                 });
@@ -1631,7 +1638,7 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
            }
        });
    } else if(request.app_code == 3){
-        var isMember = 0;
+        let isMember = 0;
         //Checking whether member exists
         checkingFourDgtUniqueCode(request, request.reservation_code, function(err1, data){ //err1 true - array; false - code
             //Member Exists
@@ -1707,8 +1714,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
    
  function assetStatusUpdate(request) {
      return new Promise((resolve, reject)=>{
-        var paramsArr = new Array();
-        var queryString = '';
+        let paramsArr = new Array();
+        let queryString = '';
         paramsArr = new Array(
                 request.asset_id,
                 request.organization_id,
@@ -1730,8 +1737,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
  
  function getMemberAssetId(request, activityId) {
      return new Promise((resolve, reject)=>{
-        var paramsArr = new Array();
-        var queryString = '';
+        let paramsArr = new Array();
+        let queryString = '';
         paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
@@ -1752,7 +1759,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
    }
    
   this.itemOrderWsCheck = function(request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.item_activity_id,
@@ -1761,7 +1768,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 1
                 );
 
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants_category', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants_category', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if(err === false) {
@@ -1772,7 +1779,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                         //then assign
                         request.activity_id = request.item_activity_id;
                         request.activity_type_category_id = 38;
-                        var event = {
+                        let event = {
                             name: "assignParticipnt",
                             service: "activityParticipantService",
                             method: "assignCoworker",
@@ -1781,7 +1788,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                         //console.log('Request before the queuewrapper : ', request);
                         queueWrapper.raiseActivityEvent(event, request.item_activity_id, (err, resp)=>{});
                         
-                        var response = {};
+                        let response = {};
                         activityCommonService.getActivityDetails(request, 0, function(err, data){
                             if(err == false) {
                                 response.asset_id = Number(request.station_asset_id);
@@ -1810,13 +1817,13 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     };
    
    this.updatePhonePasscode = function(request, callback) {
-        var logDatetime = util.getCurrentUTCTime();        
+        let logDatetime = util.getCurrentUTCTime();        
         request['datetime_log'] = logDatetime;        
        console.log('Request parameters : ', request);
        
        activityCommonService.generateUniqueCode(request, (err, code)=>{
             if(err === false){
-                var paramsArr = new Array(
+                let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.target_asset_id,
@@ -1824,7 +1831,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.asset_id,
                 request.datetime_log
                 );
-                var queryString = util.getQueryString('ds_v1_asset_list_update_passcode_pam', paramsArr);
+                let queryString = util.getQueryString('ds_v1_asset_list_update_passcode_pam', paramsArr);
                 if (queryString != '') {
                     db.executeQuery(0, queryString, request, function (err, data) {
                         if (err === false) {
@@ -1843,10 +1850,10 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     };
     
     this.assetListUpdate = function(request, callback) {
-        var logDatetime = util.getCurrentUTCTime();        
+        let logDatetime = util.getCurrentUTCTime();        
         request['datetime_log'] = logDatetime;
         
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 request.target_asset_id,
                 request.organization_id,
                 request.asset_first_name,
@@ -1865,7 +1872,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 );
 
         //var queryString = util.getQueryString('ds_v1_asset_list_update_pam', paramsArr);
-        var queryString = util.getQueryString('ds_v1_1_asset_list_update_pam', paramsArr);
+        let queryString = util.getQueryString('ds_v1_1_asset_list_update_pam', paramsArr);
         if (queryString != '') {
             //global.logger.write(queryString, request, 'asset', 'trace');
             db.executeQuery(0, queryString, request, function (err, assetData) {
@@ -1881,10 +1888,10 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     };
     
     this.assetAddForPAM = function (request, callback) {
-        var dateTimeLog = util.getCurrentUTCTime();
+        let dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
         
-        var assetTypeCtgId;
+        let assetTypeCtgId;
         (request.hasOwnProperty('asset_type_category_id')) ? assetTypeCtgId = request.asset_type_category_id : assetTypeCtgId = 0;
         
         if(assetTypeCtgId == 29 || assetTypeCtgId == 2 || assetTypeCtgId == 3) {
@@ -1904,8 +1911,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
         }
     };
     
-    var addAssetPamSubfn = function (request, callback) {
-            var paramsArr = new Array(
+    let addAssetPamSubfn = function (request, callback) {
+            let paramsArr = new Array(
                 request.asset_first_name,
                 request.asset_last_name,
                 request.asset_description,
@@ -1931,7 +1938,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.discount_percent || 0
                 );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_insert_pam', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_insert_pam', paramsArr);
         if (queryString != '') {
             //global.logger.write(queryString, request, 'asset', 'trace');
             db.executeQuery(0, queryString, request, function (err, assetData) {
@@ -1954,7 +1961,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                     }
                     
                     if(assetData[0].asset_type_category_id == 29 || assetData[0].asset_type_category_id == 2 || assetData[0].asset_type_category_id == 3) {
-                        var authTokenCollection = {
+                        let authTokenCollection = {
                             "asset_id": assetData[0]['asset_id'],
                             "workforce_id": request.workforce_id,
                             "account_id": request.account_id,
@@ -1982,13 +1989,13 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     
     function retrieveAccountWorkforces(request) {
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 0,
                 50
                 );
-            var queryString = util.getQueryString('ds_v1_workforce_list_select_account', paramsArr);
+            let queryString = util.getQueryString('ds_v1_workforce_list_select_account', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -1999,7 +2006,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     
     function createActivityTypeForAllWorkforces(request, workforceId) {
         return new Promise((resolve, reject)=>{
-           var paramsArr = new Array(
+           let paramsArr = new Array(
             request.activity_type_name,
             request.activity_type_description,
             request.activity_type_category_id,
@@ -2027,7 +2034,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 // request.datetime_log
                 );
             // var queryString = util.getQueryString('ds_v1_workforce_activity_type_mapping_insert', paramsArr);
-            var queryString = util.getQueryString('pm_v1_workforce_activity_type_mapping_insert', paramsArr);
+            let queryString = util.getQueryString('pm_v1_workforce_activity_type_mapping_insert', paramsArr);
 
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
@@ -2039,13 +2046,13 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     
     function workForceActivityTypeHistoryInsert(request) {
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.activity_type_id,
                 request.organization_id,
                 request.update_type_id || 0, //update type id
                 request.datetime_log
                 );
-            var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_history_insert', paramsArr);
+            let queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_history_insert', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -2054,14 +2061,14 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
         });
     }
     
-    var assetListHistoryInsert = function (request, assetId, organizationId, updateTypeId, datetimeLog, callback) {
-        var paramsArr = new Array(
+    let assetListHistoryInsert = function (request, assetId, organizationId, updateTypeId, datetimeLog, callback) {
+        let paramsArr = new Array(
                 assetId,
                 organizationId,
                 updateTypeId,
                 datetimeLog
                 );
-        var queryString = util.getQueryString('ds_v1_asset_list_history_insert', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_history_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                (err === false) ? callback(false, true): callback(err, false);                
@@ -2070,22 +2077,22 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     };
     
     this.updateInvtQty = function(request, callback) {
-        var dateTimeLog = util.getCurrentUTCTime();
+        let dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
         
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 request.activity_id,
                 request.organization_id,
                 0,
                 50
                 );
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, participantData) {
                if(err === false) {                   
                     forEachAsync(participantData, function (next, row) {
                         console.log('participant asset_id : ', row.asset_id);
-                        var participantAssetId = row.asset_id;
+                        let participantAssetId = row.asset_id;
                         
                         updateActQuantity(request, participantAssetId).then(()=>{}).catch(()=>{ 
                                 callback(true, err, -9999);
@@ -2103,7 +2110,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     
     function updateActQuantity(request, participantAssetId) {
         return new Promise((resolve, reject)=>{
-             var paramsArr = new Array(
+             let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -2113,7 +2120,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.asset_id,
                 request.datetime_log
                 );
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_actual_quantity', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_actual_quantity', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                (err === false) ? resolve(): reject(err);                
@@ -2123,10 +2130,10 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     };
     
     this.updateTitleDesc = function(request, callback) {
-        var dateTimeLog = util.getCurrentUTCTime();
+        let dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
         
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 request.activity_id,
                 request.organization_id,
                 request.activity_inline_data,
@@ -2135,7 +2142,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.asset_id,
                 request.datetime_log
                 );
-        var queryString = util.getQueryString('ds_v1_activity_list_update_title_inline', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_list_update_title_inline', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                if(err === false) {
@@ -2163,7 +2170,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     
     function updateActInline(request, participantAssetId) {
         return new Promise((resolve, reject)=>{
-             var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.activity_id,
                 participantAssetId,
                 request.organization_id,
@@ -2173,7 +2180,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.asset_id,
                 request.datetime_log
                 );
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_title_inline', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_title_inline', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                (err === false) ? resolve(): reject(err);                
@@ -2184,10 +2191,10 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     
     //PAM
     this.assetClockIn = function (request, callback) {
-        var dateTimeLog = util.getCurrentUTCTime();
+        let dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
-        var response = {};
-        var assetId;
+        let response = {};
+        let assetId;
 
         assetListSelectPasscode(request, function (err, resp) {
             if (err === false) {
@@ -2250,12 +2257,12 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     this.assetClockOut = function (request, callback) {
         console.log('Before assetClockOut : \n', request);
         
-        var dateTimeLog = util.getCurrentUTCTime();        
+        let dateTimeLog = util.getCurrentUTCTime();        
         request['datetime_log'] = dateTimeLog;
         request['asset_assigned_status_id'] = 0;
         request['asset_session_status_id'] = 0;
         
-        var assetID;
+        let assetID;
         
         if(!request.hasOwnProperty('workstation_asset_id')) {
             request.workstation_asset_id = 0;
@@ -2285,14 +2292,14 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     };
      
     //PAM
-    var assetListSelectPasscode = function (request, callback) {
-        var response = {};
-        var paramsArr = new Array(
+    let assetListSelectPasscode = function (request, callback) {
+        let response = {};
+        let paramsArr = new Array(
                 request.organization_id,
                 request.passcode
                 );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_select_passcode', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_select_passcode', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, assetId) {
                 if (err === false) {
@@ -2315,7 +2322,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     //PAM
     function assetListUpdateStatusPush(request, assetId){
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 assetId,
                 request.organization_id,
                 request.asset_clocked_status_id,
@@ -2333,7 +2340,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.push_notification_id,
                 request.asset_push_arn
                 );
-        var queryString = util.getQueryString('ds_v1_asset_list_update_clocked_status_push', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_update_clocked_status_push', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, assetData) {
                 (err === false)? resolve(false) : reject(err);
@@ -2343,14 +2350,14 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     };
     
     this.cancelItem = function(request, callback){
-        var dateTimeLog = util.getCurrentUTCTime();
+        let dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
         
-        var activityStatusId;
-        var activityStatusTypeId;
-        var response = {};
+        let activityStatusId;
+        let activityStatusTypeId;
+        let response = {};
         
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -2360,7 +2367,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.asset_id,
                 request.datetime_log
                 );
-            var queryString = util.getQueryString('ds_v1_activity_list_update_status_cancel', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_list_update_status_cancel', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, resp) {
                 	activityCommonService.activityListHistoryInsert(request, 413, function (err, result) {});
@@ -2411,7 +2418,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     
     function updateStatusCancel(request, assetId, activityStatusId, activityStatusTypeId){
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -2422,7 +2429,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.asset_id, //log_asset_id
                 request.datetime_log
                 );
-            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_status_cancel', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_status_cancel', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, resp) {
                     (err === false)? resolve() : reject(err);
@@ -2432,11 +2439,11 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     };
     
     this.preparingItem = function(request, callback){
-        var dateTimeLog = util.getCurrentUTCTime();
+        let dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
-        var response = {};
+        let response = {};
         
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 request.activity_id,
                 request.station_asset_id,            
                 request.activity_status_id,
@@ -2445,7 +2452,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.asset_id,
                 request.datetime_log
                 );
-        var queryString = util.getQueryString('ds_v1_activity_list_update_status_station', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_list_update_status_station', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, resp) {
             	activityCommonService.activityListHistoryInsert(request, 414, function (err, result) {});
@@ -2463,7 +2470,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                                 response.activity_owner_asset_type_category_id = util.replaceDefaultNumber(data[0].activity_owner_asset_type_category_id);
                                 
                                 if((response.activity_owner_asset_id == request.station_asset_id) && (response.activity_status_type_id == 125)) {
-                                    var x = {};
+                                    let x = {};
                                     x.asset_id = request.station_asset_id;
                                     x.workforce_id = request.workforce_id;
                                     x.account_id = request.account_id;
@@ -2526,8 +2533,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     
     function updateStatusDateTimes(request) {
         return new Promise((resolve, reject)=>{
-            var servedAtBar = (request.hasOwnProperty('served_at_bar'))? request.served_at_bar : 0;            
-            var paramsArr = new Array(
+            let servedAtBar = (request.hasOwnProperty('served_at_bar'))? request.served_at_bar : 0;            
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.activity_id,
@@ -2536,7 +2543,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.asset_id,
                 request.datetime_log
                 );
-            var queryString = util.getQueryString('ds_v1_activity_list_update_order_status_datetime', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_list_update_order_status_datetime', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, resp) {
                     if (err === false) {
@@ -2564,7 +2571,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     
     function updateStatusDttmsParticipants(request, assetId, servedAtBar){
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.activity_id,
@@ -2574,7 +2581,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.asset_id, //log_asset_id
                 request.datetime_log
                 );
-            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_order_status_datetime', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_order_status_datetime', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, resp) {
                     (err === false)? resolve() : reject(err);
@@ -2585,7 +2592,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     
     function updateStatusPreparing(request, assetId, activityStatusId, activityStatusTypeId){
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.activity_id,
                 assetId, //p_asset_id
                 request.station_asset_id,
@@ -2595,7 +2602,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.asset_id, //log_asset_id
                 request.datetime_log
                 );
-            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_status_station', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_status_station', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, resp) {
                     (err === false)? resolve() : reject(err);
@@ -2605,10 +2612,10 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     };
     
     this.coverInlineAlter = function(request, callback) {
-        var dateTimeLog = util.getCurrentUTCTime();
+        let dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
         
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.target_asset_id,
             request.organization_id,
             request.asset_first_name,
@@ -2617,7 +2624,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
             request.asset_id,
             request.datetime_log
             );
-        var queryString = util.getQueryString('ds_v1_asset_list_update_cover_inline_data', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_update_cover_inline_data', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, resp) {
                 if(err === false){
@@ -2633,11 +2640,11 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     
     function sendSmsCode(request) {
         return((resolve, reject)=>{
-            var reservationCode;
-            var expiryDatetime;
-            var tableNames = "";
-            var noOfGuests;
-            var cnt = 0;               
+            let reservationCode;
+            let expiryDatetime;
+            let tableNames = "";
+            let noOfGuests;
+            let cnt = 0;               
             
             activityCommonService.getAllParticipants(request, function(err, participantData){
                 if(err === false){                    
@@ -2653,7 +2660,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                         
                     }).then(() => {
                          noOfGuests = request.no_of_guest - 1;                         
-                         var text = "Hi "+request.member_name+","+" I have reserved table number "+tableNames+" for your group tonight, your reservation code is "+reservationCode+".";
+                         let text = "Hi "+request.member_name+","+" I have reserved table number "+tableNames+" for your group tonight, your reservation code is "+reservationCode+".";
                              text += " Feel free to forward this message to your other "+noOfGuests+" guests, they can use the same code to enter.";
                              text += " Remember the entry is only from the parking garage @ Radisson Blu Banjara Hills. Looking forward to hosting your group tonight.";
                              text += " PS - I will be forced to release the table block if no one shows up before "+expiryDatetime+"."+" -PAM";
@@ -2672,7 +2679,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
    
    
    this.getEventDetails = function(request, callback) {
-       var logDatetime = util.getCurrentUTCTime();
+       let logDatetime = util.getCurrentUTCTime();
        request['datetime_log'] = logDatetime;
         
         pamGetActivityDetails(request, request.event_id).then((activityData)=>{
@@ -2681,7 +2688,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                               logDatetime)) {
                                   callback(false, activityData, 200);
             } else{ 
-                var diff = util.differenceDatetimes(util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected) , logDatetime);
+                let diff = util.differenceDatetimes(util.replaceDefaultDatetime(activityData[0].activity_datetime_start_expected) , logDatetime);
                 if(Math.sign(diff) === 1) {
                     console.log('diff1 : ', diff);
                     diff = diff / 3600000;
@@ -2699,7 +2706,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
    
    function pamGetActivityDetails(request, activityId) {
        return new Promise((resolve, reject)=>{
-        var paramsArr;
+        let paramsArr;
         if (Number(activityId > 0)) {
             paramsArr = new Array(
                     activityId,
@@ -2711,7 +2718,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                     request.organization_id
                     );
         }
-        var queryString = util.getQueryString('ds_v1_activity_list_select_pam', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_list_select_pam', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 (err === false) ? resolve(data) : reject(err);                
@@ -2721,7 +2728,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
    }
    
    this.sendMemberPassCode = function(request, callback) {
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         console.log('Request params : ', request);
         //let supportNumber = "916309386175";
@@ -2796,7 +2803,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
    function updatePC(request, code) {
         return new Promise((resolve, reject)=>{
             console.log('Request : ', request);
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.target_asset_id,
@@ -2804,7 +2811,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.asset_id,
                 request.datetime_log
                 );
-                var queryString = util.getQueryString('ds_v1_asset_list_update_passcode_pam', paramsArr);
+                let queryString = util.getQueryString('ds_v1_asset_list_update_passcode_pam', paramsArr);
                 if (queryString != '') {
                     db.executeQuery(0, queryString, request, function (err, data) {
                         if (err === false) {
@@ -2824,7 +2831,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
    
     generateUniqueCode = function(request, callback) {
           function generateCode() { //personal code
-                var phoneCode = util.randomInt(10001,49999).toString();                
+                let phoneCode = util.randomInt(10001,49999).toString();                
                 checkingFourDgtUniqueCode(request,phoneCode, (err, data)=>{
                     (err === false) ? callback(false, data) : generateCode();                    
                 });
@@ -2832,14 +2839,14 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
             generateCode();
     };
     
-    var checkingFourDgtUniqueCode = function(request, code, callback) {
-        var paramsArr = new Array(
+    let checkingFourDgtUniqueCode = function(request, code, callback) {
+        let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 code      
                 );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_passcode_check_member', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_passcode_check_member', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {                
                 console.log('data : ', data);
@@ -2853,7 +2860,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     };
     
     this.paymentStatusAlter = function(request, callback) {
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         
         pamAlterActivityStatus(request).then(()=>{
@@ -2863,7 +2870,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
         })
     };
     
-    var assignUnassignParticipantPam = function(request, participantData, status, callback) {
+    let assignUnassignParticipantPam = function(request, participantData, status, callback) {
         updateActivityListOwnerLeadPam(request, participantData, status, function(err, data){
                             if(err === false) { //You will get it from participant collection
                                 if(participantData.asset_category_id == 32 || 
@@ -2909,9 +2916,9 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                         });
     };
     
-    var updateActivityListOwnerLeadPam = function(request, participantCollection, status, callback) {
-        var flag = (status === 1) ? 1 : 0;
-        var paramsArr = new Array(
+    let updateActivityListOwnerLeadPam = function(request, participantCollection, status, callback) {
+        let flag = (status === 1) ? 1 : 0;
+        let paramsArr = new Array(
                 request.activity_id,
                 participantCollection.asset_id,
                 request.organization_id,
@@ -2921,7 +2928,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.asset_id,
                 request.datetime_log
                 );
-        var queryString = util.getQueryString("ds_v1_activity_list_update_owner_lead_pam", paramsArr);
+        let queryString = util.getQueryString("ds_v1_activity_list_update_owner_lead_pam", paramsArr);
         if (queryString != '') {
 
             db.executeQuery(0, queryString, request, function (err, data) {
@@ -2932,7 +2939,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, err, request)
+                    //global.logger.write('serverError', err, err, request)
+                    util.logError(request,`updateActivityListOwnerLeadPam serverError Error %j`, { err, request });
                     return;
                 }
             });
@@ -2941,13 +2949,13 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     
     this.insertAssetTimeline = function(request, callback) {
     	
-    	var activityStreamTypeId = 323;
+    	let activityStreamTypeId = 323;
     	if(request.hasOwnProperty('stream_type_id')){
     		activityStreamTypeId = request.stream_type_id;
     	}
     	//var obj= request.activity_timeline_collection;
-    	var obj= JSON.parse(request.activity_timeline_collection);
-    	 var newAssetCollection = {
+    	let obj= JSON.parse(request.activity_timeline_collection);
+        let newAssetCollection = {
                  organization_id: obj.organization_id,
                  account_id: obj.account_id,
                  workforce_id: obj.workforce_id,
@@ -2963,21 +2971,21 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     
     function assetTimelineInsert(request, participantData, streamTypeId, callback) {
         //console.log('vnk streamTypeId : ', streamTypeId);
-        var assetId = request.asset_id;
-        var organizationId = request.organization_id;
-        var accountId = request.account_id;
-        var workforceId = request.workforce_id;
-        var messageUniqueId = request.message_unique_id;
-        var entityTypeId = 0;
-        var entityText1 = request.activity_timeline_text;
-        var entityText2 = "";
-        var entityText3 = "";
-        var activityTimelineCollection = "{}"; //BETA
-        var retryFlag = 0;
-        var formTransactionId = 0;
-        var dataTypeId = 0;
-        var formId = 0;
-        var logDatetime = util.getCurrentUTCTime();
+        let assetId = request.asset_id;
+        let organizationId = request.organization_id;
+        let accountId = request.account_id;
+        let workforceId = request.workforce_id;
+        let messageUniqueId = request.message_unique_id;
+        let entityTypeId = 0;
+        let entityText1 = request.activity_timeline_text;
+        let entityText2 = "";
+        let entityText3 = "";
+        let activityTimelineCollection = "{}"; //BETA
+        let retryFlag = 0;
+        let formTransactionId = 0;
+        let dataTypeId = 0;
+        let formId = 0;
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         
         if (Number(request.device_os_id) === 5)
@@ -2992,7 +3000,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
         }
         console.log('participantData.length '+participantData+'   '+participantData.asset_id+' '+workforceId+' '+accountId+' '+organizationId);
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 request.activity_id,
                 assetId,
                 workforceId,
@@ -3029,7 +3037,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.track_gps_datetime,
                 request.datetime_log
                 );
-        var queryString = util.getQueryString("ds_v1_2_asset_timeline_transaction_insert", paramsArr);
+                let queryString = util.getQueryString("ds_v1_2_asset_timeline_transaction_insert", paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false)
@@ -3039,7 +3047,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, err, request)
+                    //global.logger.write('serverError', err, err, request)
+                    util.logError(request,`assetTimelineInsert serverError Error %j`, { err, request });
                     return;
                 }
             });
@@ -3047,10 +3056,10 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     };
     
     this.assetListUpdateDesc = function(request, callback) {
-        var logDatetime = util.getCurrentUTCTime();        
+        let logDatetime = util.getCurrentUTCTime();        
         request['datetime_log'] = logDatetime;
         
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 request.target_asset_id,
                 request.organization_id,
                 request.asset_qrcode_image_path,
@@ -3058,7 +3067,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.datetime_log
                 );
 
-        var queryString = util.getQueryString('ds_v1_1_asset_list_update_desc_pam', paramsArr);
+        let queryString = util.getQueryString('ds_v1_1_asset_list_update_desc_pam', paramsArr);
         if (queryString != '') {            
             db.executeQuery(0, queryString, request, function (err, assetData) {
                 if (err === false) {                    
@@ -3073,9 +3082,9 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     
     this.deactivateAsset = function (request) {
     return new Promise((resolve, reject)=>{
-    	var logDatetime = util.getCurrentUTCTime();        
+    	let logDatetime = util.getCurrentUTCTime();        
         request['datetime_log'] = logDatetime;
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 request.target_asset_id,
                 request.organization_id,
                 request.activate_flag,
@@ -3083,7 +3092,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.datetime_log
                 );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_update_activate_status', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_update_activate_status', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, assetData) {
                 if (err === false) {                    
@@ -3105,8 +3114,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
      };
      
          this.insertActivityTimeline = function(request, callback) {
-     	var obj= JSON.parse(request.activity_timeline_collection);
-    	 var newAssetCollection = {
+     	let obj= JSON.parse(request.activity_timeline_collection);
+    	 let newAssetCollection = {
                  organization_id: obj.organization_id,
                  account_id: obj.account_id,
                  workforce_id: obj.workforce_id,
@@ -3122,21 +3131,21 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     
      function activityTimelineInsert(request, participantData, callback) {
         //console.log('vnk streamTypeId : ', streamTypeId);
-        var assetId = request.asset_id;
-        var organizationId = request.organization_id;
-        var accountId = request.account_id;
-        var workforceId = request.workforce_id;
-        var messageUniqueId = request.message_unique_id;
-        var entityTypeId = 0;
-        var entityText1 = request.activity_timeline_text;
-        var entityText2 = "";
-        var entityText3 = "";
-        var activityTimelineCollection = "{}"; //BETA
-        var retryFlag = 0;
-        var formTransactionId = 0;
-        var dataTypeId = 0;
-        var formId = 0;
-        var logDatetime = util.getCurrentUTCTime();
+        let assetId = request.asset_id;
+        let organizationId = request.organization_id;
+        let accountId = request.account_id;
+        let workforceId = request.workforce_id;
+        let messageUniqueId = request.message_unique_id;
+        let entityTypeId = 0;
+        let entityText1 = request.activity_timeline_text;
+        let entityText2 = "";
+        let entityText3 = "";
+        let activityTimelineCollection = "{}"; //BETA
+        let retryFlag = 0;
+        let formTransactionId = 0;
+        let dataTypeId = 0;
+        let formId = 0;
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         
         if (Number(request.device_os_id) === 5)
@@ -3151,7 +3160,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
         }
         console.log('participantData.length '+participantData+'   '+participantData.asset_id+' '+workforceId+' '+accountId+' '+organizationId);
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
                 request.activity_id,
                 assetId,
                 workforceId,
@@ -3188,7 +3197,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.track_gps_datetime,
                 request.datetime_log
                 );
-        var queryString = util.getQueryString("ds_v1_2_activity_timeline_transaction_insert", paramsArr);
+        let queryString = util.getQueryString("ds_v1_2_activity_timeline_transaction_insert", paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false)
@@ -3198,7 +3207,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, err, request)
+                    //global.logger.write('serverError', err, err, request)
+                    util.logError(request,`activityTimelineInsert serverError Error %j`, { err, request });
                     return;
                 }
             });
@@ -3207,19 +3217,19 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 	
         function sendSmsCodeParticipant(request, callback){
     	
-            var reservationCode;
-            var expiryDatetime;
-            var tableNames = "";
-            var noOfGuests = 0;
-            var cnt = 0;
+            let reservationCode;
+            let expiryDatetime;
+            let tableNames = "";
+            let noOfGuests = 0;
+            let cnt = 0;
             
-            var memberName;
-            var countryCode;
-            var phoneNumber;                      
-            var reservationCreatedDatetime;
-            var reservationStartDatetime;
+            let memberName;
+            let countryCode;
+            let phoneNumber;                      
+            let reservationCreatedDatetime;
+            let reservationStartDatetime;
             
-            var participantData = JSON.parse(request.activity_participant_collection);
+            let participantData = JSON.parse(request.activity_participant_collection);
                     forEachAsync(participantData, function (next, row) {
                         cnt++;                                              
                         if(row.asset_category_id == 30){
@@ -3246,7 +3256,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                                         tableNames += data[0].asset_first_name + "-";
                                         
                                         console.log('data[0].asset_inline_data : ' , data[0].asset_inline_data);
-                                        var inlineJson = JSON.parse(data[0].asset_inline_data);
+                                        let inlineJson = JSON.parse(data[0].asset_inline_data);
                                         noOfGuests += util.replaceDefaultNumber(inlineJson.element_cover_capacity);
                                         next();
                                     });
@@ -3257,13 +3267,13 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                         
                     }).then(async() => {
                          //noOfGuests--;
-                         var text;
+                         let text;
                          console.log('memberName : ', memberName);
                          console.log('countryCode: ', countryCode);
                          console.log('phoneNumber : ', phoneNumber);
                          console.log('tableNames : ', tableNames);
                          
-                         var expiryDateTime = util.addUnitsToDateTime(util.replaceDefaultDatetime(request.event_start_datetime),5.5,'hours');
+                         let expiryDateTime = util.addUnitsToDateTime(util.replaceDefaultDatetime(request.event_start_datetime),5.5,'hours');
                          //expiryDateTime = util.getDatewithndrdth(expiryDateTime);
                          expiryDateTime = util.getFormatedSlashDate(expiryDateTime);
                          
@@ -3313,11 +3323,11 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
    
       function pamGetAssetDetails(request) {
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id || 351, //,
                 request.work_station_asset_id
                 );
-            var queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
+            let queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {                    
                     (err === false)? resolve(data) : reject(err);
@@ -3328,13 +3338,13 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     
       function getActivityDetails(request){
         return new Promise((resolve, reject)=>{
-            var paramsArr;
+            let paramsArr;
             paramsArr = new Array(
                         request.activity_id,
                         request.organization_id
                         );
 
-            var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false)? resolve(data) : reject(err);
@@ -3346,7 +3356,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     this.eventReport = function (request) {
     	return new Promise((resolve, reject)=>{
     	//get the list of reservations (not cancelled)
-    		var totalBill = 0;
+    		let totalBill = 0;
     	this.getEventReservations(request,1).then((reservationList)=>{ // ArrayofArrays
 			forEachAsync(reservationList, (next, reservation)=>{  
 				console.log('reservation:'+reservation);
@@ -3376,8 +3386,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 	       
 	       // if (queryString != '') {
 	        	if(is_recursive == 1){
-	        		var queryString = 'pm_v1_activity_list_select_event_reservations';
-	    	        var paramsArr = new Array(
+	        		let queryString = 'pm_v1_activity_list_select_event_reservations';
+	    	        let paramsArr = new Array(
 	    	        		request.organization_id,
 	    	        		request.account_id,
 	    	        		request.activity_id,
@@ -3392,7 +3402,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 		               }
 		            });
 	        	}else{
-	    	        var paramsArr = new Array(
+	    	        let paramsArr = new Array(
 	    	        		request.organization_id,
 	    	        		request.account_id,
 	    	        		request.activity_id,
@@ -3400,7 +3410,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 	    	        		request.page_start,
 	    	        		request.page_limit
 	    	                );	
-	    	        var queryString = util.getQueryString('pm_v1_activity_list_select_event_reservations', paramsArr);
+	    	        let queryString = util.getQueryString('pm_v1_activity_list_select_event_reservations', paramsArr);
 	        		db.executeQuery(1, queryString, request, function (err, data) {
 	                    (err === false)? resolve(data) : reject(err);
 	                });
@@ -3414,16 +3424,18 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 	    	if(request.hasOwnProperty('is_report')){
 	    		//get the member of the reservation
 	    		//get the discount of the member
-	    		var start_from = 0;
-	    		var limit_value = 50;
-	    		var row_count = 0;
+	    		let start_from = 0;
+	    		let limit_value = 50;
+	    		let row_count = 0;
 				getReservationMemberDiscount(request, idReservation).then((data)=>{
 						console.log(data[0].memberDiscount); 
-					global.logger.write('debug','Discount '+ JSON.stringify(data), {},request);
+					//global.logger.write('debug','Discount '+ JSON.stringify(data), {},request);
+                    util.logInfo(request,`processReservationBilling debug Discount %j`,{Discount : JSON.stringify(data), request});
 					
 					getReservationBilling(request, idReservation, data[0].nameReservation, data[0].idMember, data[0].nameMember, data[0].memberDiscount, data[0].serviceChargePercentage, data[0].memberEnabled).then((resevationBillAmount)=>{
 						
-						global.logger.write('conLog', 'resevationBill ' + resevationBillAmount.total_price, {}, request);
+						//global.logger.write('conLog', 'resevationBill ' + resevationBillAmount.total_price, {}, request);
+                        util.logInfo(request,`processReservationBilling conLog resevationBill %j`,{resevationBillAmount_total_price : resevationBillAmount.total_price, request});
 						
 						if(request.hasOwnProperty('is_insert')){
 							pamEventBillingInsert(request, data[0].idEvent, data[0].titleEvent, idReservation, data[0].nameReservation, data[0].idActivityStatusType, data[0].nameActivityStatusType, data[0].idMember, data[0].nameMember, resevationBillAmount.total_price);
@@ -3438,15 +3450,17 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
            else if(request.hasOwnProperty('is_cash_and_carry')){
 	    		//get the member of the reservation
 	    		//get the discount of the member
-	    		var start_from = 0;
-	    		var limit_value = 50;
-	    		var row_count = 0;
+	    		let start_from = 0;
+	    		let limit_value = 50;
+	    		let row_count = 0;
 				getReservationMemberDiscount(request, idReservation).then((data)=>{
 						//console.log(data[0].memberDiscount); 
-					global.logger.write('debug','Discount '+ JSON.stringify(data), {},request);
+					//global.logger.write('debug','Discount '+ JSON.stringify(data), {},request);
+                    util.logInfo(request,`getReservationMemberDiscount debug Discount %j`,{Discount : JSON.stringify(data), request});
 					getCashAndCarryBilling(request, idReservation, data[0].nameReservation, data[0].idMember, data[0].nameMember, data[0].memberDiscount, data[0].serviceChargePercentage, data[0].memberEnabled).then((resevationBillAmount)=>{
 						
-						global.logger.write('conLog', 'resevationBill ' + resevationBillAmount.total_price, {}, request);
+						//global.logger.write('conLog', 'resevationBill ' + resevationBillAmount.total_price, {}, request);
+                        util.logInfo(request,`getCashAndCarryBilling conLog resevationBill %j`,{resevationBillAmount_total_price : resevationBillAmount.total_price, request});
 						
 						if(request.hasOwnProperty('is_insert')){
 							pamEventBillingInsert(request, data[0].idEvent, data[0].titleEvent, idReservation, data[0].nameReservation, data[0].idActivityStatusType, data[0].nameActivityStatusType, data[0].idMember, data[0].nameMember, resevationBillAmount.total_price);
@@ -3490,14 +3504,14 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     
     function getReservationMemberDiscount(request, idReservation){
 		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
+	        let paramsArr = new Array(
 	        		request.organization_id,
 	        		request.account_id,
 	        		30,
 	        		idReservation
 	                );
 	
-	        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_reservation_member', paramsArr);
+	        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_reservation_member', paramsArr);
 	        if (queryString != '') {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
@@ -3513,13 +3527,13 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
    
     function getReservationOrders(request, idReservation){
 		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
+	        let paramsArr = new Array(
 	        		request.organization_id,
 	        		request.account_id,
 	        		idReservation,
 	        		38
 	                );	        
-	        var queryString = 'pm_v1_activity_list_select_reservation_orders';
+	        let queryString = 'pm_v1_activity_list_select_reservation_orders';
 	        if (queryString != '') {
 	            db.executeRecursiveQuery(1, 0, 50, queryString, paramsArr, function (err, data) {
 	               if(err === false) {
@@ -3534,14 +3548,14 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     
     function getReservationBilling(request, idReservation, nameReservation, idMember, nameMember, discount, serviceChargePercentage, memberEnabled){
     	return new Promise((resolve, reject)=>{    		
-			 var total_mrp = 0;
-			 var total_discount = 0;
-			 var total_tax = 0;
+			 let total_mrp = 0;
+			 let total_discount = 0;
+			 let total_tax = 0;
              let total_service_charge = 0;
              let total_item_tax = 0;
-			 var total_price = 0;
-			 var item_discount = 0;
-			 var orderActivityId = 0;
+			 let total_price = 0;
+			 let item_discount = 0;
+			 let orderActivityId = 0;
 			 let gst_percent = 18;
              console.log('memberEnabled', memberEnabled);
              let is_nc = memberEnabled == 4 ? 1 : 0;
@@ -3622,7 +3636,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 						total_discount = total_discount + dis_amount;
 						
 						//pam_order_list insert
-						var attributeArray = {
+						let attributeArray = {
 								event_id: request.activity_id,
 								reservation_id: idReservation,
 								reservation_name: nameReservation,
@@ -3657,10 +3671,11 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 							};
 						
 						pamOrderInsert(request, attributeArray).then(()=>{
-							global.logger.write('conLog', 'OrderId cost: ' + cost+' service_charge: '+ service_charge+' item_tax_amount: '+ item_tax_amount+' service_charge_tax_amount:'+ service_charge_tax_amount+' orderId: '+rowData1.activity_id + '-menuId: ' + rowData1.channel_activity_id + ' : ' + final_price, {}, request);
+							//global.logger.write('conLog', 'OrderId cost: ' + cost+' service_charge: '+ service_charge+' item_tax_amount: '+ item_tax_amount+' service_charge_tax_amount:'+ service_charge_tax_amount+' orderId: '+rowData1.activity_id + '-menuId: ' + rowData1.channel_activity_id + ' : ' + final_price, {}, request);
+                            util.logInfo(request,`pamOrderInsert conLog %j`,{OrderId_cost : cost, service_charge : service_charge, item_tax_amount : item_tax_amount, service_charge_tax_amount : service_charge_tax_amount, orderId : rowData1.activity_id, menuId : rowData1.channel_activity_id, final_price : final_price, request});
 						if(JSON.parse(rowData1.activity_inline_data).hasOwnProperty('item_choice_price_tax'))
 						{
-							var arr = JSON.parse(rowData1.activity_inline_data).item_choice_price_tax;
+							let arr = JSON.parse(rowData1.activity_inline_data).item_choice_price_tax;
 							//for (key in arr)
 							forEachAsync(arr, (next2, choiceData)=>{ 
 								
@@ -3735,7 +3750,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 								attributeArray.final_price=choice_final_price;
 								attributeArray.option_id=1;
 								pamOrderInsert(request, attributeArray).then(()=>{
-									global.logger.write('conLog', 'OrderId choice_cost: ' + choice_cost+' choice_service_charge: '+ choice_service_charge+' choice_item_tax_amount: '+ choice_item_tax_amount+' choice_service_charge_tax_amount: '+ choice_service_charge_tax_amount+' orderId: '+rowData1.activity_id + '-menuId: ' + choiceData.activity_id + ' : ' + choice_final_price, {}, request);
+									//global.logger.write('conLog', 'OrderId choice_cost: ' + choice_cost+' choice_service_charge: '+ choice_service_charge+' choice_item_tax_amount: '+ choice_item_tax_amount+' choice_service_charge_tax_amount: '+ choice_service_charge_tax_amount+' orderId: '+rowData1.activity_id + '-menuId: ' + choiceData.activity_id + ' : ' + choice_final_price, {}, request);
+                                    util.logInfo(request,`pamOrderInsert conLog %j`,{OrderId_choice_cost : choice_cost, choice_service_charge : choice_service_charge, choice_item_tax_amount : choice_item_tax_amount, choice_service_charge_tax_amount : choice_service_charge_tax_amount, orderId : rowData1.activity_id, menuId : choiceData.activity_id, choice_final_price : choice_final_price, request});
 									next2();
 									});
 							}).then(()=>{
@@ -3755,7 +3771,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 					})
 				}).then(()=>{
 					// console.log("Reservation "+idReservation+" is done");
-					global.logger.write('conLog', 'Reservation ' + idReservation + ' is done', {}, request);
+					//global.logger.write('conLog', 'Reservation ' + idReservation + ' is done', {}, request);
+                    util.logInfo(request,`getReservationOrders conLog Reservation ${idReservation} is done %j`,{ request});
 					resolve({total_price, total_discount, total_tax, gst_percent, total_mrp, total_service_charge});
 				});
 			 
@@ -3765,14 +3782,14 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 
     function getCashAndCarryBilling(request, idReservation, nameReservation, idMember, nameMember, discount, serviceChargePercentage, memberEnabled) {
         return new Promise((resolve, reject) => {
-            var total_mrp = 0;
-            var total_discount = 0;
-            var total_tax = 0;
+            let total_mrp = 0;
+            let total_discount = 0;
+            let total_tax = 0;
             let total_service_charge = 0;
             let total_item_tax = 0;
-            var total_price = 0;
-            var item_discount = 0;
-            var orderActivityId = 0;
+            let total_price = 0;
+            let item_discount = 0;
+            let orderActivityId = 0;
             let gst_percent = 18;
             console.log("memberEnabled", memberEnabled);
             let is_nc = memberEnabled == 4 ? 1 : 0;
@@ -3852,7 +3869,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 total_discount = total_discount + dis_amount;
                 
                 //pam_order_list insert
-                var attributeArray = {
+                let attributeArray = {
                         event_id: request.activity_id,
                         reservation_id: idReservation,
                         reservation_name: nameReservation,
@@ -3887,10 +3904,11 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                     };
                 
                 pamOrderInsert(request, attributeArray).then(()=>{
-                    global.logger.write('conLog', 'OrderId cost: ' + cost+' service_charge: '+ service_charge+' item_tax_amount: '+ item_tax_amount+' service_charge_tax_amount:'+ service_charge_tax_amount+' orderId: '+rowData1.activity_id + '-menuId: ' + rowData1.channel_activity_id + ' : ' + final_price, {}, request);
+                    //global.logger.write('conLog', 'OrderId cost: ' + cost+' service_charge: '+ service_charge+' item_tax_amount: '+ item_tax_amount+' service_charge_tax_amount:'+ service_charge_tax_amount+' orderId: '+rowData1.activity_id + '-menuId: ' + rowData1.channel_activity_id + ' : ' + final_price, {}, request);
+                    util.logInfo(request,`pamOrderInsert conLog %j`,{OrderId_cost : cost, service_charge : service_charge, item_tax_amount : item_tax_amount, service_charge_tax_amount : service_charge_tax_amount, orderId : rowData1.activity_id, menuId : rowData1.channel_activity_id, final_price : final_price, request});
                 if(inlinDataParsed.hasOwnProperty('item_choice_price_tax'))
                 {
-                    var arr = inlinDataParsed.item_choice_price_tax;
+                    let arr = inlinDataParsed.item_choice_price_tax;
                     //for (key in arr)
                     forEachAsync(arr, (next2, choiceData)=>{ 
                         
@@ -3965,7 +3983,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                         attributeArray.final_price=choice_final_price;
                         attributeArray.option_id=1;
                         pamOrderInsert(request, attributeArray).then(()=>{
-                            global.logger.write('conLog', 'OrderId choice_cost: ' + choice_cost+' choice_service_charge: '+ choice_service_charge+' choice_item_tax_amount: '+ choice_item_tax_amount+' choice_service_charge_tax_amount: '+ choice_service_charge_tax_amount+' orderId: '+rowData1.activity_id + '-menuId: ' + choiceData.activity_id + ' : ' + choice_final_price, {}, request);
+                            //global.logger.write('conLog', 'OrderId choice_cost: ' + choice_cost+' choice_service_charge: '+ choice_service_charge+' choice_item_tax_amount: '+ choice_item_tax_amount+' choice_service_charge_tax_amount: '+ choice_service_charge_tax_amount+' orderId: '+rowData1.activity_id + '-menuId: ' + choiceData.activity_id + ' : ' + choice_final_price, {}, request);
+                            util.logInfo(request,`pamOrderInsert conLog %j`,{OrderId_choice_cost : choice_cost, choice_service_charge : choice_service_charge, choice_item_tax_amount : choice_item_tax_amount, choice_service_charge_tax_amount : choice_service_charge_tax_amount, orderId : rowData1.activity_id, menuId : choiceData.activity_id, choice_final_price : choice_final_price, request});
                             next2();
                             });
                     }).then(()=>{
@@ -3981,7 +4000,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 
             }).then(() => {
                 //console.log("Reservation "+idReservation+" is done");
-                global.logger.write('conLog', 'Reservation ' + idReservation + ' is done', {}, request);
+                //global.logger.write('conLog', 'Reservation ' + idReservation + ' is done', {}, request);
+                util.logInfo(request,`getCashAndCarryBilling conLog Reservation ${idReservation} is done %j`,{request});
                 resolve({
                     total_price,
                     total_discount,
@@ -4228,7 +4248,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
         
     function pamEventBillingInsert(request, idEvent, nameEvent, idReservation, nameReservation, idStatusType, nameStatusType, idMember, nameMember, billingAmount) {
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -4243,7 +4263,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 billingAmount,
                 request.datetime_log
                 );
-            var queryString = util.getQueryString("pm_v1_1_pam_event_billing_insert", paramsArr);
+            let queryString = util.getQueryString("pm_v1_1_pam_event_billing_insert", paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {                  
                    if(err === false){                	   
@@ -4278,7 +4298,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     function pamOrderListInsert(request, attributeArray){
         return new Promise((resolve, reject)=>{
         	
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -4331,7 +4351,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     }
     
     function getActivityDetailsMaster(request, activityId, callback) {
-        var paramsArr;
+        let paramsArr;
         if (Number(activityId > 0)) {
             paramsArr = new Array(
                 activityId,
@@ -4343,7 +4363,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.organization_id
             );
         }
-        var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {                    
@@ -4358,8 +4378,8 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 
     function getActivityParticipantsCategory(request, activityId, assetTypeCategoryId, optionId) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array();
-            var queryString = '';
+            let paramsArr = new Array();
+            let queryString = '';
             paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
@@ -4405,7 +4425,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
 
     function pamOrderIngredientInsert(request, attributeArray, ingredientData) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 attributeArray.event_id,
@@ -4427,7 +4447,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.datetime_log
             )
 
-            var queryString = util.getQueryString("pm_v1_pam_order_ingredient_mapping_insert", paramsArr);
+            let queryString = util.getQueryString("pm_v1_pam_order_ingredient_mapping_insert", paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
@@ -4489,13 +4509,13 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
     this.assetListSelectPhoneNumber = async(request) => {
         return new Promise((resolve, reject) => {
             // IN p_organization_id bigint(20), IN p_phone_number VARCHAR(20), IN p_country_code SMALLINT(6)
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.phone_number,
                 request.country_code,
             )
 
-            var queryString = util.getQueryString("pm_v1_asset_list_select_phone_number", paramsArr);
+            let queryString = util.getQueryString("pm_v1_asset_list_select_phone_number", paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {
@@ -4543,7 +4563,7 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 let asset = await self.assetListSelectPhoneNumber(request)
                 if(asset.length !== 0)
                 {
-                    var [error, responseData] = await self.assetMappingSelectMemberActivities(request,asset[0].asset_id)
+                    let [error, responseData] = await self.assetMappingSelectMemberActivities(request,asset[0].asset_id)
                     err = false
                     
                 }
@@ -4561,7 +4581,7 @@ this.assetMappingSelectMemberActivities = async (request,asset_id) => {
     let responseData = [],
         error = true;
     
-    var paramsArr = new Array(
+    let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             asset_id,
@@ -4589,7 +4609,7 @@ this.getActivityType = async (request) => {
     let responseData = [],
         error = true;
  
-    var paramsArr = new Array(
+    let paramsArr = new Array(
         request.organization_id,
         request.account_id,
         request.workforce_id,
@@ -4617,7 +4637,7 @@ this.getActivityStatusV1 = async (request) => {
         error = true;
         // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), IN p_activity_status_type_id SMALLINT(6)
 
-    var paramsArr = new Array(
+    let paramsArr = new Array(
         request.organization_id,
         request.account_id,
         request.workforce_id,
@@ -4643,7 +4663,7 @@ this.getActivityStatusV1 = async (request) => {
 const getPamActivityStatusId = () => {
     return new Promise((resolve, reject) => {
         // N p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), IN p_activity_status_type_id SMALLINT(6)
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -4651,7 +4671,7 @@ const getPamActivityStatusId = () => {
             request.activity_status_type_id
         )
 
-        var queryString = util.getQueryString("pm_v1_workforce_activity_status_mapping_select_first_status", paramsArr);
+        let queryString = util.getQueryString("pm_v1_workforce_activity_status_mapping_select_first_status", paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -4749,7 +4769,7 @@ this.getEvent = async (request) => {
 	let responseData = [],
 		error = true;
 
-	var paramsArr = new Array(
+	let paramsArr = new Array(
 		request.organization_id,
 		request.account_id,
 		util.getCurrentUTCTime(),
@@ -4774,15 +4794,15 @@ this.getEvent = async (request) => {
 
 this.addAssetPamSubfnV1 = async function (request) {
 	err = true ,responseData = [];
-	var dateTimeLog = util.getCurrentUTCTime();
+	let dateTimeLog = util.getCurrentUTCTime();
 	request['datetime_log'] = dateTimeLog;
 
-	var assetTypeCtgId;
+	let assetTypeCtgId;
 	(request.hasOwnProperty('asset_type_category_id')) ? assetTypeCtgId = request.asset_type_category_id : assetTypeCtgId = 0;
 
 		request.code = (request.code||'');
 		request.enc_token =(request.enc_token|| '');
-		var paramsArr = new Array(
+		let paramsArr = new Array(
 			request.asset_first_name,
 			request.asset_last_name,
 			request.asset_description,
@@ -4808,7 +4828,7 @@ this.addAssetPamSubfnV1 = async function (request) {
 			request.discount_percent || 0
 			);
 
-	var queryString = util.getQueryString('ds_v1_asset_list_insert_pam', paramsArr);
+	let queryString = util.getQueryString('ds_v1_asset_list_insert_pam', paramsArr);
 	if (queryString != '') {
 		//global.logger.write(queryString, request, 'asset', 'trace');
 		db.executeQuery(0, queryString, request, function (err, assetData) {
@@ -5160,7 +5180,7 @@ this.getCoupanDetails = async (request) => {
         error = true;
         // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), IN p_activity_status_type_id SMALLINT(6)
 
-    var paramsArr = new Array(
+    let paramsArr = new Array(
         request.organization_id,
         request.coupan_code,
         util.getCurrentUTCTime(),
@@ -5187,7 +5207,7 @@ this.updateActivityInlineData = async (request) => {
         error = true;
         // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), IN p_activity_status_type_id SMALLINT(6)
 
-    var paramsArr = new Array(
+    let paramsArr = new Array(
         request.organization_id,
         request.activity_id,
         request.activity_inline_data
@@ -5270,7 +5290,7 @@ this.getChildOfAParent = async (request) => {
         error = true;
         // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), IN p_activity_status_type_id SMALLINT(6)
 
-    var paramsArr = new Array(
+    let paramsArr = new Array(
         request.organization_id,
         request.parent_activity_id,
         request.activity_type_category_id,
@@ -5343,7 +5363,7 @@ this.getChildOfAParent = async (request) => {
         let responseData = [],
             error = true;
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.parent_activity_id,
@@ -5370,7 +5390,7 @@ this.getChildOfAParent = async (request) => {
 
         let responseData = [],
             error = true;
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id ,
             request.group_size ,
             request.date,
@@ -5383,8 +5403,8 @@ this.getChildOfAParent = async (request) => {
             await db.executeQueryPromise(1, queryString, request)
                 .then(async(data) => {
                     if(data.length>0 ){ 
-                        for(var i=0 ;i<data.length;i++){
-                            var paramsArr1 = new Array(
+                        for(let i=0 ;i<data.length;i++){
+                            let paramsArr1 = new Array(
                                 request.organization_id ,
                                 data[i].activity_id,
                                 request.group_size ,
@@ -5438,7 +5458,7 @@ this.getChildOfAParent = async (request) => {
         let responseData = [],
             error = true;
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.page_start,
             request.page_limit
@@ -5762,7 +5782,7 @@ this.getChildOfAParent = async (request) => {
                                     salesReoprt(wb, responseData);
                                 } else if (err.code === "ENOENT") {
                                     let nwb = XLSX.utils.book_new();
-                                    var ws_name = [
+                                    let ws_name = [
                                         "Summary",
                                         "Reservation Wise Report",
                                         "Group By Quantity-item",
@@ -5774,10 +5794,10 @@ this.getChildOfAParent = async (request) => {
                                     ];
                                     /* make worksheet */
                                     for (let i = 0; i < ws_name.length; i++) {
-                                        var ws_data = [
+                                        let ws_data = [
                                             [""]
                                         ];
-                                        var ws = XLSX.utils.aoa_to_sheet(ws_data);
+                                        let ws = XLSX.utils.aoa_to_sheet(ws_data);
 
                                         /* Add the worksheet to the workbook */
                                         XLSX.utils.book_append_sheet(nwb, ws, ws_name[i]);
@@ -6168,11 +6188,13 @@ this.getChildOfAParent = async (request) => {
             "<html></html>",
             (err, data) => {
                 if (err) {
-                    global.logger.write('conLog', "[Send Email On Form Submission | Error]: ", {}, {});
-                    global.logger.write('conLog', err, {}, {});
+                    //global.logger.write('conLog', "[Send Email On Form Submission | Error]: ", {}, {});
+                    //global.logger.write('conLog', err, {}, {});
+                    util.logError(request,`sendEmailV3 conLog [Send Email On Form Submission | Error]: %j`, { err, request });
                 } else {
-                    global.logger.write('conLog', "[Send Email On Form Submission | Response]: " + "Email Sent", {}, {});
-                    global.logger.write('conLog', data, {}, {});
+                    //global.logger.write('conLog', "[Send Email On Form Submission | Response]: " + "Email Sent", {}, {});
+                    //global.logger.write('conLog', data, {}, {});
+                    util.logInfo(request,`sendEmailV3 conLog [Send Email On Form Submission | Response]: Email Sent %j`,{data, request});
                 }                        
             });
         if(process.env == 'pamProd') {
@@ -6183,11 +6205,13 @@ this.getChildOfAParent = async (request) => {
                 "<html></html>",
                 (err, data) => {
                     if (err) {
-                        global.logger.write('conLog', "[Send Email On Form Submission | Error]: ", {}, {});
-                        global.logger.write('conLog', err, {}, {});
+                        //global.logger.write('conLog', "[Send Email On Form Submission | Error]: ", {}, {});
+                        //global.logger.write('conLog', err, {}, {});
+                        util.logError(request,`sendEmailV3 conLog [Send Email On Form Submission | Error]: %j`, { err, request });
                     } else {
-                        global.logger.write('conLog', "[Send Email On Form Submission | Response]: " + "Email Sent", {}, {});
-                        global.logger.write('conLog', data, {}, {});
+                        //global.logger.write('conLog', "[Send Email On Form Submission | Response]: " + "Email Sent", {}, {});
+                        //global.logger.write('conLog', data, {}, {});
+                        util.logInfo(request,`sendEmailV3 conLog [Send Email On Form Submission | Response]: Email Sent %j`,{data, request});
                     }                        
             });
         }
@@ -6550,7 +6574,7 @@ this.getChildOfAParent = async (request) => {
                      salesReoprt(wb, responseData);
                    } else if (err.code === "ENOENT") {
                      let nwb = XLSX.utils.book_new();
-                     var ws_name = [
+                     let ws_name = [
                        "FinancialReporting",
                        "CountofmembersDayMonthwise",
                        "MembersListByVisit",
@@ -6562,8 +6586,8 @@ this.getChildOfAParent = async (request) => {
                      ];
                      /* make worksheet */
                      for (let i = 0; i < ws_name.length; i++) {
-                       var ws_data = [[""]];
-                       var ws = XLSX.utils.aoa_to_sheet(ws_data);
+                       let ws_data = [[""]];
+                       let ws = XLSX.utils.aoa_to_sheet(ws_data);
                        /* Add the worksheet to the workbook */
                        XLSX.utils.book_append_sheet(nwb, ws, ws_name[i]);
                      }
@@ -6703,21 +6727,23 @@ this.getChildOfAParent = async (request) => {
          "<html></html>",
          (err, data) => {
            if (err) {
-             global.logger.write(
-               "conLog",
-               "[Send Email On Form Submission | Error]: ",
-               {},
-               {}
-             );
-             global.logger.write("conLog", err, {}, {});
+            //  global.logger.write(
+            //    "conLog",
+            //    "[Send Email On Form Submission | Error]: ",
+            //    {},
+            //    {}
+            //  );
+            //  global.logger.write("conLog", err, {}, {});
+             util.logError(request,`sendEmailV3 conLog [Send Email On Form Submission | Error]: %j`, { err, request });
            } else {
-             global.logger.write(
-               "conLog",
-               "[Send Email On Form Submission | Response]: " + "Email Sent",
-               {},
-               {}
-             );
-             global.logger.write("conLog", data, {}, {});
+            //  global.logger.write(
+            //    "conLog",
+            //    "[Send Email On Form Submission | Response]: " + "Email Sent",
+            //    {},
+            //    {}
+            //  );
+            //  global.logger.write("conLog", data, {}, {});
+             util.logInfo(request,`sendEmailV3 conLog [Send Email On Form Submission | Response]: Email Sent %j`,{data, request});
            }
          }
        );
@@ -6730,21 +6756,23 @@ this.getChildOfAParent = async (request) => {
            "<html></html>",
            (err, data) => {
              if (err) {
-               global.logger.write(
-                 "conLog",
-                 "[Send Email On Form Submission | Error]: ",
-                 {},
-                 {}
-               );
-               global.logger.write("conLog", err, {}, {});
+            //    global.logger.write(
+            //      "conLog",
+            //      "[Send Email On Form Submission | Error]: ",
+            //      {},
+            //      {}
+            //    );
+            //    global.logger.write("conLog", err, {}, {});
+               util.logError(request,`sendEmailV3 conLog [Send Email On Form Submission | Error]: %j`, { err, request });
              } else {
-               global.logger.write(
-                 "conLog",
-                 "[Send Email On Form Submission | Response]: " + "Email Sent",
-                 {},
-                 {}
-               );
-               global.logger.write("conLog", data, {}, {});
+            //    global.logger.write(
+            //      "conLog",
+            //      "[Send Email On Form Submission | Response]: " + "Email Sent",
+            //      {},
+            //      {}
+            //    );
+            //    global.logger.write("conLog", data, {}, {});
+               util.logInfo(request,`sendEmailV3 conLog [Send Email On Form Submission | Response]: Email Sent %j`,{data, request});
              }
            }
          );

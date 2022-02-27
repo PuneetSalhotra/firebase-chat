@@ -6,7 +6,7 @@ require('../utils/globalConfigV1');
 let Logger = require('../utils/logger.js');
 let kafka = require('kafka-node');
 let kafkaConsumer = kafka.Consumer;
-var kafkaConsumerGroup = kafka.ConsumerGroup;
+let kafkaConsumerGroup = kafka.ConsumerGroup;
 let KafkaProducer = kafka.Producer;
 let Util = require('../utils/util');
 let db = require("../utils/logDbWrapper");
@@ -95,7 +95,7 @@ let Consumer = function () {
    };
        
    // for a single topic pass in a string
-   var consumerGroup = new kafkaConsumerGroup(optionsConsumerGroup, global.config.LOGS_TOPIC_NAME);
+   let consumerGroup = new kafkaConsumerGroup(optionsConsumerGroup, global.config.LOGS_TOPIC_NAME);
 
     new Promise((resolve, reject) => {
         if (kafkaProducer.ready)

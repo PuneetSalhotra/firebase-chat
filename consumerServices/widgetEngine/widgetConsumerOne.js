@@ -1,8 +1,8 @@
 /**
  * author: V Nani Kalyan
  */
-var WidgetEngineConsumer = require("./consumer.js");
-var options = {
+let WidgetEngineConsumer = require("./consumer.js");
+let options = {
     topic: global.config.WIDGET_TOPIC_NAME,
     groupId: global.config.WIDGET_CONSUMER_GROUP_ID,
     autoCommit: true,

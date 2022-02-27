@@ -1,9 +1,9 @@
 /**
  * author: SBK
  */
-var cluster = require('cluster');
+let cluster = require('cluster');
 const http = require('http');
-var numCPUs = require('os').cpus().length;
+let numCPUs = require('os').cpus().length;
 
 if (cluster.isMaster) {
 
@@ -19,8 +19,8 @@ if (cluster.isMaster) {
         cluster.fork();
     });
 } else {
-    var WidgetEngineConsumer = require("./consumer.js");
-    var options = {
+    let WidgetEngineConsumer = require("./consumer.js");
+    let options = {
         partition: Number(process.argv[2]),
         topic: 'desker-form-widgets'
     };

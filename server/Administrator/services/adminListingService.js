@@ -1382,7 +1382,7 @@ function AdminListingService(objectCollection) {
             activityTypeID
         );
 
-        var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_select_id', paramsArr);
+        let queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_select_id', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -1411,7 +1411,7 @@ function AdminListingService(objectCollection) {
             request.limit_value || 50
         );
 
-        var queryString = util.getQueryString('ds_p1_2_workforce_form_field_mapping_select_workflow_fields', paramsArr);
+        let queryString = util.getQueryString('ds_p1_2_workforce_form_field_mapping_select_workflow_fields', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -1436,7 +1436,7 @@ function AdminListingService(objectCollection) {
             request.limit_value || 50
         );
 
-        var queryString = util.getQueryString('ds_v1_activity_type_tag_mapping_select_tag', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_type_tag_mapping_select_tag', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -1512,7 +1512,7 @@ function AdminListingService(objectCollection) {
             request.limit_value || 50
         );
 
-        var queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_id', paramsArr);
+        let queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_id', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -1541,7 +1541,7 @@ function AdminListingService(objectCollection) {
             request.limit_value || 50
         );
 
-        var queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_select_operation_type', paramsArr);
+        let queryString = util.getQueryString('ds_p1_1_bot_operation_mapping_select_operation_type', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {

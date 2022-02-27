@@ -19,12 +19,12 @@ const uuidv4 = require('uuid/v4');
 
 function ActivityTimelineService(objectCollection) {
 
-    var db = objectCollection.db;
-    var activityCommonService = objectCollection.activityCommonService;
-    var util = objectCollection.util;
-    var forEachAsync = objectCollection.forEachAsync;
+    let db = objectCollection.db;
+    let activityCommonService = objectCollection.activityCommonService;
+    let util = objectCollection.util;
+    let forEachAsync = objectCollection.forEachAsync;
     // var activityPushService = objectCollection.activityPushService;
-    var queueWrapper = objectCollection.queueWrapper;
+    let queueWrapper = objectCollection.queueWrapper;
     const cacheWrapper = objectCollection.cacheWrapper;
 
     const ActivityPushService = require('../services/activityPushService');
@@ -781,7 +781,7 @@ function ActivityTimelineService(objectCollection) {
         return new Promise((resolve, reject) => {
 
             try {
-                var formDataJson = JSON.parse(request.activity_timeline_collection);
+                let formDataJson = JSON.parse(request.activity_timeline_collection);
             } catch (exception) {
                 util.logError(request,`exception`, { type: 'timelineStandardCalls', error: serializeError(exception) });
             }
@@ -845,7 +845,7 @@ function ActivityTimelineService(objectCollection) {
                                 activityCommonService.getActivityDetails(request, request.activity_id, function (err, data) {
 
                                     // Replace/append the new chat message to the existing inline data
-                                    var updatedActivityInlineData = JSON.parse(data[0].activity_inline_data);
+                                    let updatedActivityInlineData = JSON.parse(data[0].activity_inline_data);
                                     updatedActivityInlineData.message = JSON.parse(request.activity_timeline_collection);
 
                                     // Update the activity's inline data with the last send chat message
@@ -914,7 +914,7 @@ function ActivityTimelineService(objectCollection) {
             error = true;
 
         try {
-            var formDataJson = JSON.parse(request.activity_timeline_collection);
+            let formDataJson = JSON.parse(request.activity_timeline_collection);
         } catch (exception) {
             util.logError(request,`exception`, { type: 'timeline_stanadard', error: serializeError(exception) });
         }
@@ -1141,7 +1141,8 @@ function ActivityTimelineService(objectCollection) {
                                 console.log('Updating the Queue Json : ', data);
                                 activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(() => {});
                             }).catch((err) => {
-                                global.logger.write('debug', err, {}, newrequest);
+                                //global.logger.write('debug', err, {}, newrequest);
+                                util.logError(request,`queueActivityMappingUpdateInlineData debug Error %j`, { err,newrequest });
                             });
 
                         }
@@ -1170,7 +1171,8 @@ function ActivityTimelineService(objectCollection) {
                                 console.log('Updating the Queue Json : ', data);
                                 activityCommonService.queueHistoryInsert(newrequest, 1402, queueActivityMappingId).then(() => {});
                             }).catch((err) => {
-                                global.logger.write('debug', err, {}, newrequest);
+                                //global.logger.write('debug', err, {}, newrequest);
+                                util.logError(request,`queueActivityMappingUpdateInlineData debug Error %j`, { err,newrequest });
                             });
 
                         }
@@ -1229,7 +1231,8 @@ function ActivityTimelineService(objectCollection) {
                             botEngineRequest.message_id = messageID;
                             await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
                                 .then((resp) => {
-                                    global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                    //global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                    util.logInfo(request,`makeRequest engine/bot/init debug Bot Engine Trigger Response: %j`,{Response : JSON.stringify(resp),request});
                                     let temp = JSON.parse(resp);
 
                                     (Number(temp.status) === 200) ?
@@ -1264,12 +1267,15 @@ function ActivityTimelineService(objectCollection) {
                     activityCommonService.botOperationFlagUpdateBotDefined(botEngineRequest, 0);
                 }
             } else {
-                global.logger.write('debug', "formConfigError: " + formConfigError, {}, request);
-                global.logger.write('debug', "formConfigData: ", {}, request);
-                global.logger.write('debug', formConfigData, {}, request);
+                //global.logger.write('debug', "formConfigError: " + formConfigError, {}, request);
+                util.logInfo(request,`fireBotEngineInitForm debug formConfigError: %j`,{formConfigError : formConfigError,request});
+                //global.logger.write('debug', "formConfigData: ", {}, request);
+                util.logInfo(request,`fireBotEngineInitForm debug formConfigData: %j`,{formConfigData : formConfigData,request});
+                //global.logger.write('debug', formConfigData, {}, request);
             }
         } catch (botInitError) {
-            global.logger.write('error', botInitError, botInitError, botEngineRequest);
+            //global.logger.write('error', botInitError, botInitError, botEngineRequest);
+            util.logError(request,`fireBotEngineInitForm error Error %j`, { botInitError,botEngineRequest });
         }
     }
 
@@ -1382,23 +1388,27 @@ function ActivityTimelineService(objectCollection) {
     //This is to support the feature - Not to increase unread count during timeline entry
     this.addTimelineTransactionV1 = function (request, callback) {
         //console.log('In addTimelineTransactionV1');
-        global.logger.write('conLog', 'In addTimelineTransactionV1', {}, request);
-        var logDatetime = util.getCurrentUTCTime();
+        //global.logger.write('conLog', 'In addTimelineTransactionV1', {}, request);
+        util.logInfo(request,`conLog In addTimelineTransactionV1 %j`,{request});
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
-        var activityStreamTypeId = Number(request.activity_stream_type_id);
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
+        let activityStreamTypeId = Number(request.activity_stream_type_id);
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) { // add form case
-            var formDataJson = JSON.parse(request.activity_timeline_collection);
+            let formDataJson = JSON.parse(request.activity_timeline_collection);
             request.form_id = formDataJson[0]['form_id'];
             //console.log('form id extracted from json is: ' + formDataJson[0]['form_id']);
-            global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
-            var lastObject = formDataJson[formDataJson.length - 1];
+            //global.logger.write('debug', 'form id extracted from json is: ' + formDataJson[0]['form_id'], {}, request);
+            util.logInfo(request,`addTimelineTransactionV1 debug form id extracted from json is: %j`,{form_id : formDataJson[0]['form_id'],request});
+            let lastObject = formDataJson[formDataJson.length - 1];
             //console.log('Last object : ', lastObject)
-            global.logger.write('debug', 'Last object : ' + JSON.stringify(lastObject, null, 2), {}, request);
+            //global.logger.write('debug', 'Last object : ' + JSON.stringify(lastObject, null, 2), {}, request);
+            util.logInfo(request,`addTimelineTransactionV1 debug Last object :  %j`,{Last_object : JSON.stringify(lastObject, null, 2),request});
             if (lastObject.hasOwnProperty('field_value')) {
                 //console.log('Has the field value in the last object')
-                global.logger.write('conLog', 'Has the field value in the last object', {}, request);
+                //global.logger.write('conLog', 'Has the field value in the last object', {}, request);
+                util.logInfo(request,`addTimelineTransactionV1 Has the field value in the last object %j`,{request});
                 //remote Analytics
                 if (request.form_id == 325) {
                     monthlySummaryTransInsert(request).then(() => {});
@@ -1416,13 +1426,14 @@ function ActivityTimelineService(objectCollection) {
             request.form_id = 0;
         }
         try {
-            var formDataJson = JSON.parse(request.activity_timeline_collection);
+            let formDataJson = JSON.parse(request.activity_timeline_collection);
         } catch (exception) {
             //console.log(exception);
-            global.logger.write('debug', exception, {}, request);
+            //global.logger.write('debug', exception, {}, request);
+            util.logError(request,`addTimelineTransactionV1 debug Error %j`, { exception,request });
         }
 
-        var isAddToTimeline = true;
+        let isAddToTimeline = true;
         if (request.hasOwnProperty('flag_timeline_entry'))
             isAddToTimeline = (Number(request.flag_timeline_entry)) > 0 ? true : false;
         if (isAddToTimeline) {
@@ -1452,7 +1463,8 @@ function ActivityTimelineService(objectCollection) {
                         }
                     } else {
                         //console.log('asset_reference is not availale');
-                        global.logger.write('conLog', 'asset_reference is not available', {}, request);
+                        //global.logger.write('conLog', 'asset_reference is not available', {}, request);
+                        util.logInfo(request,`activityTimelineTransactionInsert asset_reference is not available %j`,{request});
                     }
 
 
@@ -1614,13 +1626,13 @@ function ActivityTimelineService(objectCollection) {
     //Insert into monthly summary table
     function monthlySummaryTransInsert(request) {
         return new Promise((resolve, reject) => {
-            var dateTimeLog = util.getCurrentUTCTime();
+            let dateTimeLog = util.getCurrentUTCTime();
             request['datetime_log'] = dateTimeLog;
 
-            var avgHours;
-            var occupiedDesks;
-            var countDesks;
-            var noOfDesks;
+            let avgHours;
+            let occupiedDesks;
+            let countDesks;
+            let noOfDesks;
             getFormTransTimeCardsStats(request).then((data) => {
                 request.viewee_workforce_id = request.workforce_id;
                 activityCommonService.getOccupiedDeskCounts(request, function (err, result) {
@@ -1641,7 +1653,7 @@ function ActivityTimelineService(objectCollection) {
                                 countDesks = resp[0].countDesks;
                                 (occupiedDesks > countDesks) ? noOfDesks = occupiedDesks: noOfDesks = countDesks;
                                 //insert
-                                var paramsArr = new Array(
+                                let paramsArr = new Array(
                                     1, //request.monthly_summary_id,
                                     request.asset_id,
                                     request.workforce_id,
@@ -1677,7 +1689,7 @@ function ActivityTimelineService(objectCollection) {
                                     request.track_gps_datetime,
                                     request.datetime_log
                                 );
-                                var queryString = util.getQueryString('ds_v1_asset_monthly_summary_transaction_insert', paramsArr);
+                                let queryString = util.getQueryString('ds_v1_asset_monthly_summary_transaction_insert', paramsArr);
                                 if (queryString != '') {
                                     db.executeQuery(0, queryString, request, function (err, data) {
                                         (err === false) ? resolve(data): reject(err);
@@ -1698,17 +1710,18 @@ function ActivityTimelineService(objectCollection) {
     //Get total hours of a employee or all employees in an organization
     function getFormTransTimeCardsStats(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.asset_id,
                 request.organization_id,
                 util.getStartDateTimeOfMonth(),
                 util.getEndDateTimeOfMonth()
             );
-            var queryString = util.getQueryString('ds_v1_activity_form_transaction_select_timecard_stats', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_form_transaction_select_timecard_stats', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log('getFormTransTimeCardsStats : \n', data, "\n");
-                    global.logger.write('conLog', 'getFormTransTimeCardsStats : \n' + JSON.stringify(data, null, 2) + "\n", {}, request);
+                    //global.logger.write('conLog', 'getFormTransTimeCardsStats : \n' + JSON.stringify(data, null, 2) + "\n", {}, request);
+                    util.logInfo(request,`conLog getFormTransTimeCardsStats : %j`,{getFormTransTimeCardsStats : JSON.stringify(data, null, 2),request});
                     (err === false) ? resolve(data): reject(err);
                 });
             }
@@ -1718,12 +1731,12 @@ function ActivityTimelineService(objectCollection) {
 
     this.addTimelineComment = function (request, callback) {
         activityCommonService.updateAssetLocation(request, function (err, data) {});
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         //IN p_form_transaction_id BIGINT(20), IN p_form_id BIGINT(20), IN p_field_id BIGINT(20), IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20),
         //IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_stream_type_id SMALLINT(6), IN p_entity_text_1 VARCHAR(1200), IN p_entity_text_2 VARCHAR(4800), IN p_location_latitude DECIMAL(12,8), IN p_location_longitude DECIMAL(12,8), IN p_location_gps_accuracy DOUBLE(16,4), IN p_location_gps_enabled TINYINT(1), IN p_location_address VARCHAR(300), IN p_location_datetime DATETIME, IN p_device_manufacturer_name VARCHAR(50), IN p_device_model_name VARCHAR(50), IN p_device_os_id TINYINT(4), IN p_device_os_name VARCHAR(50), IN p_device_os_version VARCHAR(50), IN p_device_app_version VARCHAR(50), IN p_device_api_version VARCHAR(50), IN p_log_asset_id BIGINT(20), IN p_log_message_unique_id VARCHAR(50), IN p_log_retry TINYINT(1), IN p_log_offline TINYINT(1), IN p_transaction_datetime DATETIME, IN p_log_datetime DATETIME
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.form_transaction_id,
             request.form_id,
             request.form_field_id,
@@ -1756,7 +1769,7 @@ function ActivityTimelineService(objectCollection) {
             request.datetime_log
 
         );
-        var queryString = util.getQueryString('ds_v1_activity_form_field_timeline_transaction_insert', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_form_field_timeline_transaction_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 activityCommonService.updateWholeLotForTimelineComment(request, function (err, data) {});
@@ -1788,14 +1801,14 @@ function ActivityTimelineService(objectCollection) {
     };
 
     this.retrieveFormFieldTimeline = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.form_transaction_id,
             request.form_id,
             request.datetime_differential,
             request.page_start,
             util.replaceQueryLimit(request.page_limit)
         );
-        var queryString = util.getQueryString('ds_v1_activity_form_field_timeline_transaction_select', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_form_field_timeline_transaction_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -1820,16 +1833,16 @@ function ActivityTimelineService(objectCollection) {
 
     this.retrieveFormCollection = function (request, callback) {
         //var activityTypeCategoryId = util.replaceZero(request.activity_type_category_id);
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.form_transaction_id,
             request.form_id,
             request.datetime_differential,
             request.page_start,
             util.replaceQueryLimit(request.page_limit)
         );
-        var queryString = util.getQueryString('ds_v1_activity_form_transaction_select_transaction', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_form_transaction_select_transaction', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
@@ -1883,7 +1896,7 @@ function ActivityTimelineService(objectCollection) {
             console.log("ActivityTimelineService | retrieveTimelineList | orgRateLimitCheckAndSet | Error: ", error);
         }
         // 
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
 
         //console.log('REQUEST - ', request);
@@ -1891,13 +1904,14 @@ function ActivityTimelineService(objectCollection) {
             (Number(request.device_os_id) !== 5) &&
             (Number(request.auth_asset_id) === Number(request.asset_id))
         ) {
-            var pubnubMsg = {};
+            let pubnubMsg = {};
             pubnubMsg.type = 'activity_unread';
             pubnubMsg.organization_id = request.organization_id;
             pubnubMsg.desk_asset_id = request.asset_id;
             pubnubMsg.activity_type_category_id = (Number(request.activity_type_category_id)) === 16 ? 0 : request.activity_type_category_id;
             //console.log('PubNub Message : ', pubnubMsg);
-            global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
+            //global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
+            util.logInfo(request,`retrieveTimelineList debug PubNub Message : %j`,{PubNub_Message : JSON.stringify(pubnubMsg, null, 2),request});
             pubnubWrapper.push(request.asset_id, pubnubMsg, io);
             pubnubWrapper.push(request.organization_id, pubnubMsg, io, isOrgRateLimitExceeded);
 
@@ -1924,9 +1938,9 @@ function ActivityTimelineService(objectCollection) {
                 break;
         }
         activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
-        var activityTypeCategoryId = util.replaceZero(request.activity_type_category_id);
+        let activityTypeCategoryId = util.replaceZero(request.activity_type_category_id);
         if (activityTypeCategoryId > 0) {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,
                 request.timeline_transaction_id || 0,
@@ -1934,7 +1948,7 @@ function ActivityTimelineService(objectCollection) {
                 request.page_start,
                 util.replaceQueryLimit(request.page_limit)
             );
-            var queryString = util.getQueryString('ds_v1_activity_timeline_transaction_select_differential', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_timeline_transaction_select_differential', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {
@@ -1971,19 +1985,20 @@ function ActivityTimelineService(objectCollection) {
             console.log("ActivityTimelineService | retrieveTimelineListV1 | orgRateLimitCheckAndSet | Error: ", error);
         }
         // 
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         if (
             (Number(request.device_os_id) !== 5) &&
             (Number(request.auth_asset_id) === Number(request.asset_id))
         ) {
-            var pubnubMsg = {};
+            let pubnubMsg = {};
             pubnubMsg.type = 'activity_unread';
             pubnubMsg.organization_id = request.organization_id;
             pubnubMsg.desk_asset_id = request.asset_id;
             pubnubMsg.activity_type_category_id = (Number(request.activity_type_category_id)) === 16 ? 0 : request.activity_type_category_id;
             //console.log('PubNub Message : ', pubnubMsg);
-            global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
+            //global.logger.write('debug', 'PubNub Message : ' + JSON.stringify(pubnubMsg, null, 2), {}, request);
+            util.logInfo(request,`retrieveTimelineListV1 debug PubNub Message : %j`,{PubNub_Message : JSON.stringify(pubnubMsg, null, 2),request});
             pubnubWrapper.push(request.asset_id, pubnubMsg, io);
             //pubnubWrapper.push(request.organization_id, pubnubMsg, isOrgRateLimitExceeded);
         }
@@ -2005,13 +2020,13 @@ function ActivityTimelineService(objectCollection) {
                 break;
         }
         activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
-        var activityTypeCategoryId = util.replaceZero(request.activity_type_category_id);
+        let activityTypeCategoryId = util.replaceZero(request.activity_type_category_id);
         if (activityTypeCategoryId > 0) {
             // IN p_organization_id BIGINT(20), IN p_activity_id bigint(20), 
             // IN p_timeline_transaction_id BIGINT(20), IN p_is_previous tinyint(4), 
             // IN p_stream_type_id BIGINT(20), IN p_sort_flag SMALLINT(6), IN p_sort_order TINYINT(4), 
             // IN p_start_from SMALLINT(6), IN p_limit_value smallint(6)
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,
                 request.timeline_transaction_id || 0,
@@ -2022,7 +2037,7 @@ function ActivityTimelineService(objectCollection) {
                 request.page_start,
                 util.replaceQueryLimit(request.page_limit)
             );
-            var queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_differential', paramsArr);
+            let queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_differential', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {
@@ -2052,10 +2067,10 @@ function ActivityTimelineService(objectCollection) {
 
     //PAM
     this.retrieveTimelineListBasedOnAsset = function (request, callback) {
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.asset_id,
             request.timeline_transaction_id,
@@ -2063,7 +2078,7 @@ function ActivityTimelineService(objectCollection) {
             request.page_start,
             util.replaceQueryLimit(request.page_limit)
         );
-        var queryString = util.getQueryString('ds_v1_asset_timeline_transaction_select_differential', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_timeline_transaction_select_differential', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -2089,10 +2104,10 @@ function ActivityTimelineService(objectCollection) {
 
     };
 
-    var formatFormFieldTimeline = function (data, callback) {
-        var responseData = new Array();
+    let formatFormFieldTimeline = function (data, callback) {
+        let responseData = new Array();
         forEachAsync(data, function (next, rowData) {
-            var rowDataArr = {};
+            let rowDataArr = {};
 
             rowDataArr.timeline_transaction_id = util.replaceDefaultNumber(rowData['timeline_transaction_id']);
             rowDataArr.timeline_form_transaction_id = util.replaceDefaultNumber(rowData['timeline_form_transaction_id']);
@@ -2119,10 +2134,10 @@ function ActivityTimelineService(objectCollection) {
     };
 
     //PAM
-    var formatAssetTimelineList = function (data, callback) {
-        var responseData = new Array();
+    let formatAssetTimelineList = function (data, callback) {
+        let responseData = new Array();
         forEachAsync(data, function (next, rowData) {
-            var rowDataArr = {};
+            let rowDataArr = {};
             rowDataArr.activity_id = util.replaceDefaultNumber(rowData['activity_id']);
             rowDataArr.activity_type_id = util.replaceDefaultNumber(rowData['activity_type_id']);
             rowDataArr.activity_type_category_id = util.replaceDefaultNumber(rowData['activity_type_category_id']);
@@ -2162,10 +2177,10 @@ function ActivityTimelineService(objectCollection) {
 
     };
 
-    var formatActivityTimelineList = function (data, activityTypeCategoryId, callback) {
-        var responseData = new Array();
+    let formatActivityTimelineList = function (data, activityTypeCategoryId, callback) {
+        let responseData = new Array();
         forEachAsync(data, function (next, rowData) {
-            var rowDataArr = {};
+            let rowDataArr = {};
             rowDataArr.activity_id = util.replaceDefaultNumber(rowData['activity_id']);
             rowDataArr.activity_type_id = util.replaceDefaultNumber(rowData['activity_type_id']);
             rowDataArr.activity_type_category_id = util.replaceDefaultNumber(rowData['activity_type_category_id']);
@@ -2571,7 +2586,7 @@ function ActivityTimelineService(objectCollection) {
 
     };
 
-    var addFormEntries = function (request, callback) {
+    let addFormEntries = function (request, callback) {
 
         util.logInfo(request,`In ActivtiyTimelineService - Inside the addFormEntries() function.`);
         let formDataJson;
@@ -2621,13 +2636,14 @@ function ActivityTimelineService(objectCollection) {
 
         let workflowReference,documentReference,assetReference;
 
-        var approvalFields = new Array();
+        let approvalFields = new Array();
         forEachAsync(formDataJson, function (next, row) {
+            let datatypeComboId = 0
             if (row.hasOwnProperty('data_type_combo_id')) {
-                var datatypeComboId = row.data_type_combo_id;
-            } else
-                var datatypeComboId = 0;
-            var params = new Array(
+                datatypeComboId = row.data_type_combo_id;
+            }
+
+            let params = new Array(
                 request.form_transaction_id, //0
                 row.form_id, //1
                 row.field_id, //2
@@ -2660,7 +2676,8 @@ function ActivityTimelineService(objectCollection) {
 
             //global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
 
-            var dataTypeId = Number(row.field_data_type_id);
+            let dataTypeId = Number(row.field_data_type_id);
+            let signatureData = null;
             switch (dataTypeId) {
                 case 1: // Date
                 case 2: // future Date
@@ -2742,7 +2759,7 @@ function ActivityTimelineService(objectCollection) {
                     }
                     break;
                 case 18: //Money with currency name
-                    var money = row.field_value.split('|');
+                    let money = row.field_value.split('|');
                     params[15] = money[0];
                     params[18] = money[1];
                     break;
@@ -2785,7 +2802,7 @@ function ActivityTimelineService(objectCollection) {
                     break;
                 case 27: //General Signature with asset reference
                 case 28: //General Picnature with asset reference
-                    var signatureData = row.field_value.split('|');
+                    signatureData = row.field_value.split('|');
                     params[18] = signatureData[0]; //image path
                     params[13] = signatureData[1]; // asset reference
                     params[11] = signatureData[1]; // accepted /rejected flag
@@ -2793,7 +2810,7 @@ function ActivityTimelineService(objectCollection) {
                 case 29: //Coworker Signature with asset reference
                 case 30: //Coworker Picnature with asset reference
                     approvalFields.push(row.field_id);
-                    var signatureData = row.field_value.split('|');
+                    signatureData = row.field_value.split('|');
                     params[18] = signatureData[0]; //image path
                     params[13] = signatureData[1]; // asset reference
                     params[11] = signatureData[1]; // accepted /rejected flag
@@ -3006,7 +3023,7 @@ function ActivityTimelineService(objectCollection) {
             //var queryString = util.getQueryString('ds_v1_activity_form_transaction_insert', params);
             // var queryString = util.getQueryString('ds_v1_1_activity_form_transaction_insert', params); //BETA
             // var queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
-            var queryString = util.getQueryString('ds_v1_4_activity_form_transaction_insert', params); //BETA
+            let queryString = util.getQueryString('ds_v1_4_activity_form_transaction_insert', params); //BETA
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, async function (err, data) {
                     if (Object.keys(poFields).includes(String(row.field_id))) {
@@ -3129,7 +3146,8 @@ function ActivityTimelineService(objectCollection) {
 
     function sendRequesttoWidgetEngine(request) {
 
-        global.logger.write('conLog', '*********************************BEFORE FORM WIDGET *********************************************88 : ', {}, request);
+        //global.logger.write('conLog', '*********************************BEFORE FORM WIDGET *********************************************88 : ', {}, request);
+        util.logInfo(request,`sendRequesttoWidgetEngine *********************************BEFORE FORM WIDGET *********************************************88 :  %j`,{request});
         if (request.activity_type_category_id == 9) { //form and submitted state                    
             activityCommonService.getActivityDetails(request, 0, function (err, activityData) { // get activity form_id and form_transaction id
                 activityCommonService.getWorkflowOfForm(request)
@@ -3138,7 +3156,7 @@ function ActivityTimelineService(objectCollection) {
                         if (formData.length > 0) {
                             idActivityType = formData[0].form_workflow_activity_type_id;
                         }
-                        var widgetEngineQueueMessage = {
+                        let widgetEngineQueueMessage = {
                             form_id: activityData[0].form_id,
                             form_transaction_id: activityData[0].form_transaction_id,
                             organization_id: request.organization_id,
@@ -3160,11 +3178,12 @@ function ActivityTimelineService(objectCollection) {
                             widget_type_category_id: 1,
                             source_id: request.source_id
                         };
-                        var event = {
+                        let event = {
                             name: "Form Based Widget Engine",
                             payload: widgetEngineQueueMessage
                         };
-                        global.logger.write('conLog', 'Hitting Widget Engine with request:' + event, {}, request);
+                        //lobal.logger.write('conLog', 'Hitting Widget Engine with request:' + event, {}, request);
+                        util.logInfo(request,`conLog Hitting Widget Engine with request: %j`,{event,request});
 
                         queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
                     });
@@ -3434,7 +3453,7 @@ async function addFormEntriesAsync(request) {
     //console.log('formDataJson : ', formDataJson);
 
     let workflowReference,documentReference,assetReference;
-    var approvalFields = new Array();
+    let approvalFields = new Array();
     let row;
 
     for(let i=0;i<formDataJson.length; i++) {
@@ -3479,6 +3498,7 @@ async function addFormEntriesAsync(request) {
             //global.logger.write('debug', '\x1b[32m addFormEntriesAsync params - \x1b[0m' + JSON.stringify(params), {}, request);
 
         let dataTypeId = Number(row.field_data_type_id);
+        let signatureData = null;
         switch (dataTypeId) {
             case 1: // Date
             case 2: // future Date
@@ -3568,7 +3588,7 @@ async function addFormEntriesAsync(request) {
                 }
                 break;
             case 18: //Money with currency name
-                var money = row.field_value.split('|');
+                let money = row.field_value.split('|');
                 params[15] = money[0];
                 params[18] = money[1];
                 break;
@@ -3617,7 +3637,7 @@ async function addFormEntriesAsync(request) {
                 break;
             case 27: //General Signature with asset reference
             case 28: //General Picnature with asset reference
-                var signatureData = row.field_value.split('|');
+                signatureData = row.field_value.split('|');
                 params[18] = signatureData[0]; //image path
                 params[13] = signatureData[1]; // asset reference
                 params[11] = signatureData[1]; // accepted /rejected flag
@@ -3625,7 +3645,7 @@ async function addFormEntriesAsync(request) {
             case 29: //Coworker Signature with asset reference
             case 30: //Coworker Picnature with asset reference
                     approvalFields.push(row.field_id);
-                    var signatureData = row.field_value.split('|');
+                    signatureData = row.field_value.split('|');
                     params[18] = signatureData[0]; //image path
                     params[13] = signatureData[1]; // asset reference
                     params[11] = signatureData[1]; // accepted /rejected flag

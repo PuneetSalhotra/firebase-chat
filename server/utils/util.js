@@ -2,14 +2,14 @@
  * author: Sri Sai Venkatesh
  */
 
-var moment = require('moment');
-var request = require("request");
-var twilio = require('twilio');
-var nodemailer = require('nodemailer');
-var tz = require('moment-timezone');
+let moment = require('moment');
+let request = require("request");
+let twilio = require('twilio');
+let nodemailer = require('nodemailer');
+let tz = require('moment-timezone');
 const Nexmo = require('nexmo');
-var fs = require('fs');
-var os = require('os');
+let fs = require('fs');
+let os = require('os');
 const excelToJson = require('convert-excel-to-json');
 const XLSX = require('xlsx');
 const AWS = require('aws-sdk');
@@ -21,7 +21,7 @@ const uuidv4 = require('uuid/v4');
 const db = require("./dbWrapper")
 let ipAddress = ip.address();
 ipAddress = ipAddress.replace(/\./g, '_');
-var axios=require('axios');
+let axios=require('axios');
 
 AWS.config.loadFromPath(`${__dirname}/configS3.json`);
 
@@ -114,13 +114,13 @@ function Util(objectCollection) {
 
 
     this.getSMSString = function (verificationCode) {
-        var msg_body = "MyTony : Use " + verificationCode + " as verification code for registering the MyTony App .";
+        let msg_body = "MyTony : Use " + verificationCode + " as verification code for registering the MyTony App .";
         return (msg_body);
     };
 
     this.hasValidActivityId = function (request) {
         if (request.hasOwnProperty('activity_id')) {
-            var returnValue;
+            let returnValue;
             (this.replaceZero(request.activity_id) <= 0) ? returnValue = false: returnValue = true;
             return returnValue;
         } else
@@ -128,7 +128,7 @@ function Util(objectCollection) {
     };
 
     this.hasValidGenericId = function (request, parameter) {
-        var returnValue;
+        let returnValue;
         if (request.hasOwnProperty(parameter)) {
             (this.replaceZero(request[parameter]) <= 0) ? returnValue = false: returnValue = true;
             return returnValue;
@@ -138,8 +138,8 @@ function Util(objectCollection) {
 
     this.isValidAssetMessageCounter = function (request) {
         if (request.hasOwnProperty('asset_message_counter')) {
-            var returnValue = false;
-            var messageCounter = this.replaceZero(request.asset_message_counter);
+            let returnValue = false;
+            let messageCounter = this.replaceZero(request.asset_message_counter);
             //console.log('after replacing ' + messageCounter);
             (messageCounter === 0) ? returnValue = false: returnValue = true;
             //console.log('returning ' + returnValue);
@@ -151,10 +151,10 @@ function Util(objectCollection) {
     this.sendSmsMvaayoo = function (messageString, countryCode, phoneNumber, callback) {
         //        console.log("inside sendSmsMvaayoo");
         messageString = encodeURI(messageString);
-        var url = "http://api.mvaayoo.com/mvaayooapi/MessageCompose?user=junaid.m@grene.in:greneapple&senderID=MYTONY&receipientno=" + countryCode + "" + phoneNumber + "&dcs=0&msgtxt=" + messageString + "&state=4";
+        let url = "http://api.mvaayoo.com/mvaayooapi/MessageCompose?user=junaid.m@grene.in:greneapple&senderID=MYTONY&receipientno=" + countryCode + "" + phoneNumber + "&dcs=0&msgtxt=" + messageString + "&state=4";
 
         request(url, function (error, response, body) {
-            var res = {};
+            let res = {};
             if (typeof body != 'undefined' && body.indexOf('Status=0') > -1) {
                 res['status'] = 1;
                 res['message'] = "Message sent";
@@ -171,12 +171,13 @@ function Util(objectCollection) {
     this.pamSendSmsMvaayoo = function (messageString, countryCode, phoneNumber, callback) {
         //messageString = encodeURI(messageString);
         messageString = encodeURIComponent(messageString);
-        var url = "http://api.mvaayoo.com/mvaayooapi/MessageCompose?user=junaid.m@grene.in:greneapple&senderID=PUDMNK&receipientno=" + countryCode + "" + phoneNumber + "&dcs=0&msgtxt=" + messageString + "&state=4";
+        let url = "http://api.mvaayoo.com/mvaayooapi/MessageCompose?user=junaid.m@grene.in:greneapple&senderID=PUDMNK&receipientno=" + countryCode + "" + phoneNumber + "&dcs=0&msgtxt=" + messageString + "&state=4";
         //console.log('URL : ', url);
-        global.logger.write('conLog', 'URL : ' + url, {}, {});
+        //global.logger.write('conLog', 'URL : ' + url, {}, {});
+        util.logInfo({},`pamSendSmsMvaayoo conLog URL :  %j`,{URL : url});
 
         request(url, function (error, response, body) {
-            var res = {};
+            let res = {};
             if (typeof body != 'undefined' && body.indexOf('Status=0') > -1) {
                 res['status'] = 1;
                 res['message'] = "Message sent";
@@ -192,10 +193,10 @@ function Util(objectCollection) {
 
     this.sendSmsBulk = function (messageString, countryCode, phoneNumber, callback) {
         messageString = encodeURI(messageString);
-        var url = "http://bulksmsapps.com/apisms.aspx?user=gsaikiran&password=LUHUUI&genkey=094729492&sender=BLUFLK&number=" + countryCode + "" + phoneNumber + "&message=" + messageString;
+        let url = "http://bulksmsapps.com/apisms.aspx?user=gsaikiran&password=LUHUUI&genkey=094729492&sender=BLUFLK&number=" + countryCode + "" + phoneNumber + "&message=" + messageString;
         //console.log(url);
         request(url, function (error, response, body) {
-            var res = {};
+            let res = {};
             if (typeof body != 'undefined' && body.indexOf('Status=0') > -1) {
                 res['status'] = 1;
                 res['message'] = "Message sent";
@@ -223,11 +224,12 @@ function Util(objectCollection) {
         }
 
         //var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A85da7898dc8bd4d79fdd62cd6f5cc4ec&to=" + countryCode + "" + phoneNumber + "&sender=BLUFLK&format=json&message=" + messageString;
-        var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A9113d0c40f299b66cdf5cf654bfc61b8&to=" + countryCode + "" + phoneNumber + "&sender=MYTONY&format=json&message=" + messageString;
+        let url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A9113d0c40f299b66cdf5cf654bfc61b8&to=" + countryCode + "" + phoneNumber + "&sender=MYTONY&format=json&message=" + messageString;
         //console.log(url);
-        global.logger.write('debug', url, {}, {});
+        //global.logger.write('debug', url, {}, {});
+        util.logInfo({},`sendSmsSinfini debug url %j`,{url});
         request(url, function (error, response, body) {
-            var foo = JSON.parse(body);
+            let foo = JSON.parse(body);
 
             //console.log('error : ', error);
             //console.log('body : ' , body);
@@ -235,7 +237,7 @@ function Util(objectCollection) {
             // global.logger.write('debug', 'body : ' + JSON.stringify(body), {}, {});
             logger.info(`SMS Sent To ${phoneNumber}`, { type: 'sms', url, country_code: countryCode, phone_number: phoneNumber, message: messageString, response, body, error });
 
-            var res = {};
+            let res = {};
             if (typeof foo != 'undefined' && foo.status === 1) {
                 res['status'] = 1;
                 res['message'] = "Message sent";
@@ -263,11 +265,12 @@ function Util(objectCollection) {
         }
 
         //var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A85da7898dc8bd4d79fdd62cd6f5cc4ec&to=" + countryCode + "" + phoneNumber + "&sender=BLUFLK&format=json&message=" + messageString;
-        var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A9113d0c40f299b66cdf5cf654bfc61b8&to=" + countryCode + "" + phoneNumber + "&sender=PAMAPP&format=json&message=" + messageString;
+        let url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A9113d0c40f299b66cdf5cf654bfc61b8&to=" + countryCode + "" + phoneNumber + "&sender=PAMAPP&format=json&message=" + messageString;
         //console.log(url);
-        global.logger.write('debug', url, {}, {});
+        //global.logger.write('debug', url, {}, {});
+        util.logInfo({},`pamSendSmsSinfini debug url %j`,{url});
         request(url, function (error, response, body) {
-            var foo = JSON.parse(body);
+            let foo = JSON.parse(body);
 
             //console.log('error : ', error);
             //console.log('body : ' , body);
@@ -275,7 +278,7 @@ function Util(objectCollection) {
             // global.logger.write('debug', 'body : ' + JSON.stringify(body), {}, {});
             logger.info(`SMS Sent To ${phoneNumber}`, { type: 'sms', url, country_code: countryCode, phone_number: phoneNumber, message: messageString, response, body, error });
 
-            var res = {};
+            let res = {};
             if (typeof foo != 'undefined' && foo.status === 1) {
                 res['status'] = 1;
                 res['message'] = "Message sent";
@@ -302,11 +305,12 @@ function Util(objectCollection) {
             return;
         }
 
-        var url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A9113d0c40f299b66cdf5cf654bfc61b8&to=" + countryCode + "" + phoneNumber + "&sender="+senderId+"&format=json&message=" + messageString;
+        let url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A9113d0c40f299b66cdf5cf654bfc61b8&to=" + countryCode + "" + phoneNumber + "&sender="+senderId+"&format=json&message=" + messageString;
         //console.log(url);
-        global.logger.write('debug', url, {}, {});
+        //global.logger.write('debug', url, {}, {});
+        util.logInfo({},`sendSmsSinfiniV1 debug url %j`,{url});
         request(url, function (error, response, body) {
-            var foo = JSON.parse(body);
+            let foo = JSON.parse(body);
 
             //console.log('error : ', error);
             //console.log('body : ' , body);
@@ -314,7 +318,7 @@ function Util(objectCollection) {
             // global.logger.write('debug', 'body : ' + JSON.stringify(body), {}, {});
             logger.info(`SMS Sent To ${phoneNumber}`, { type: 'sms', url, country_code: countryCode, phone_number: phoneNumber, message: messageString, response, body, error });
 
-            var res = {};
+            let res = {};
             if (typeof foo != 'undefined' && foo.status === 1) {
                 res['status'] = 1;
                 res['message'] = "Message sent";
@@ -331,11 +335,13 @@ function Util(objectCollection) {
     this.sendSmsHorizon = function (messageString, countryCode, phoneNumber, callback) {
         //        console.log("inside sendSmsMvaayoo");
         messageString = encodeURI(messageString);
-        var url = "http://smshorizon.co.in/api/sendsms.php?user=GreneRobotics&apikey=oLm0MhRHBt2KPXFRrk8k&mobile="+countryCode+""+phoneNumber+"&message="+messageString+"&senderid=WDDESK&type=txt";
-        global.logger.write('conLog', 'URL: ' + url, {}, {});
+        let url = "http://smshorizon.co.in/api/sendsms.php?user=GreneRobotics&apikey=oLm0MhRHBt2KPXFRrk8k&mobile="+countryCode+""+phoneNumber+"&message="+messageString+"&senderid=WDDESK&type=txt";
+        //global.logger.write('conLog', 'URL: ' + url, {}, {});
+        util.logInfo({},`sendSmsHorizon conLog URL %j`,{URL : url});
         request(url, function (error, response, body) {
-            global.logger.write('debug', 'SMS HORIZON RESP:: ' + body, {}, {});
-            var res = {};            
+            //global.logger.write('debug', 'SMS HORIZON RESP:: ' + body, {}, {});
+            util.logInfo({},`sendSmsHorizon debug SMS HORIZON RESP::  %j`,{body});
+            let res = {};            
             if (typeof body == 'string' && Number(body) > 0) {
                 res['status'] = 1;
                 res['message'] = "Message sent";
@@ -350,15 +356,15 @@ function Util(objectCollection) {
     };
 
     this.sendInternationalTwilioSMS = function (messageString, countryCode, phoneNumber, callback) {
-        var accountSid = global.config.twilioAccountSid; // Your Account SID from www.twilio.com/console
-        var authToken = global.config.twilioAuthToken; // Your Auth Token from www.twilio.com/console
-        var client = new twilio.RestClient(accountSid, authToken);
+        let accountSid = global.config.twilioAccountSid; // Your Account SID from www.twilio.com/console
+        let authToken = global.config.twilioAuthToken; // Your Auth Token from www.twilio.com/console
+        let client = new twilio.RestClient(accountSid, authToken);
         client.messages.create({
             body: messageString,
             to: '+' + countryCode + '' + phoneNumber, // Text this number
             from: '+1 810-637-5928' // From a valid Twilio number
         }, function (err, message) {
-            var res = {};
+            let res = {};
             if (typeof message != 'undefined' && message.sid != '') {
                 res['status'] = 1;
                 res['message'] = "Message sent";
@@ -367,10 +373,12 @@ function Util(objectCollection) {
                 res['message'] = "Message not sent";
             }
             //console.log(res);
-            global.logger.write('debug', res, {}, request);
+            //global.logger.write('debug', res, {}, request);
+            util.logInfo(request,`sendInternationalTwilioSMS debug  %j`,{res, request});
             if (err) {
                 //console.log('err : ', err);
-                global.logger.write('debug', err, {}, request);
+                //global.logger.write('debug', err, {}, request);
+                util.logError(request,`sendInternationalTwilioSMS debug Error %j`, { err, request });
                 callback(err, false);
             } else {
                 callback(false, res);
@@ -391,20 +399,25 @@ function Util(objectCollection) {
         //console.log('To : ', to);
         //console.log('Text : ', text);
 
-        global.logger.write('conLog', 'To : ' + to, {}, request);
-        global.logger.write('conLog', 'Text : ' + text, {}, request);
+        //global.logger.write('conLog', 'To : ' + to, {}, request);
+        util.logInfo(request,`sendInternationalNexmoSMS conLog To : %j`,{To : to, request});
+        //global.logger.write('conLog', 'Text : ' + text, {}, request);
+        util.logInfo(request,`sendInternationalNexmoSMS conLog Text : %j`,{Text : text, request});
 
         nexmo.message.sendSms(from, to, text, (error, response) => {
             if (error) {
-                global.logger.write('debug', error, {}, request);
+                //global.logger.write('debug', error, {}, request);
+                util.logError(request,`nexmo.message.sendSms debug Error %j`, { error, request });
                 throw error;
             } else if (response.messages[0].status != '0') {
                 //console.error(response);
-                global.logger.write('debug', response, {}, request);
+                //global.logger.write('debug', response, {}, request);
+                util.logInfo(request,`nexmo.message.sendSms conLog  %j`,{response, request});
                 throw 'Nexmo returned back a non-zero status';
             } else {
                 //console.log(response);
-                global.logger.write('debug', response, {}, request);
+                //global.logger.write('debug', response, {}, request);
+                util.logInfo(request,`nexmo.message.sendSms conLog %j`,{response, request});
             }
         });
     };
@@ -443,12 +456,12 @@ function Util(objectCollection) {
 
 
     this.getPhoneNumbers = function (request, callback) {
-        var accountSid = global.config.accountSid;
-        var authToken = global.config.authToken;
+        let accountSid = global.config.accountSid;
+        let authToken = global.config.authToken;
 
-        var client = new twilio.RestClient(accountSid, authToken);
+        let client = new twilio.RestClient(accountSid, authToken);
 
-        var country = request.country;
+        let country = request.country;
         //var areaCode = request.area_code;
         //console.log(country,'/n', areaCode);
 
@@ -460,12 +473,12 @@ function Util(objectCollection) {
     }
 
     this.purchaseNumber = function (request, callback) {
-        var accountSid = global.config.accountSid;
-        var authToken = global.config.authToken;
+        let accountSid = global.config.accountSid;
+        let authToken = global.config.authToken;
         
-        var client = new twilio.RestClient(accountSid, authToken);
+        let client = new twilio.RestClient(accountSid, authToken);
 
-        var phoneNumber = request.phone_number;
+        let phoneNumber = request.phone_number;
 
         client.incomingPhoneNumbers.create({
             phoneNumber: phoneNumber
@@ -475,12 +488,12 @@ function Util(objectCollection) {
     }
 
     this.MakeCallTwilio = function (text, passcode, countryCode, phoneNumber, callback) {
-        var accountSid = global.config.twilioAccountSid; // Your Account SID from www.twilio.com/console
-        var authToken = global.config.twilioAuthToken; // Your Auth Token from www.twilio.com/console
+        let accountSid = global.config.twilioAccountSid; // Your Account SID from www.twilio.com/console
+        let authToken = global.config.twilioAuthToken; // Your Auth Token from www.twilio.com/console
         const client = require('twilio')(accountSid, authToken);
-        var toNumber = '+' + countryCode + phoneNumber;
+        let toNumber = '+' + countryCode + phoneNumber;
 
-        var xmlText = "<?xml version='1.0' encoding='UTF-8'?>";
+        let xmlText = "<?xml version='1.0' encoding='UTF-8'?>";
         xmlText += "<Response>"
         xmlText += "<Say voice='alice'>" + text + "</Say>"
         xmlText += "</Response>"
@@ -488,8 +501,10 @@ function Util(objectCollection) {
         //console.log('xmlText : ' + xmlText);
         //console.log(global.config.mobileBaseUrl + global.config.version + '/account/voice_'+passcode);
 
-        global.logger.write('conLog', 'xmlText : ' + xmlText, {}, request);
-        global.logger.write('conLog', global.config.mobileBaseUrl + global.config.version + '/account/voice_' + passcode, {}, request);
+        //global.logger.write('conLog', 'xmlText : ' + xmlText, {}, request);
+        util.logInfo(request,`MakeCallTwilio conLog xmlText : %j`,{xmlText : xmlText, request});
+        //global.logger.write('conLog', global.config.mobileBaseUrl + global.config.version + '/account/voice_' + passcode, {}, request);
+        util.logInfo(request,`MakeCallTwilio conLog  %j`,{global_config_mobileBaseUrl : global.config.mobileBaseUrl + global.config.version + '/account/voice_' + passcode, request});
 
         fs.writeFile(global.config.efsPath + 'twiliovoicesxmlfiles/voice_' + passcode + '.xml', xmlText, function (err) {
             if (err) {
@@ -510,7 +525,7 @@ function Util(objectCollection) {
 
     this.sendSMS = function (messageString, countryCode, phoneNumber, callback) {
         if (countryCode == 91) {
-            var domestic_sms_mode = global.config.domestic_sms_mode;
+            let domestic_sms_mode = global.config.domestic_sms_mode;
             if (domestic_sms_mode == 1) {
                 this.sendSmsMvaayoo(messageString, countryCode, phoneNumber, function (err, res) {
                     callback(err, res);
@@ -539,15 +554,17 @@ function Util(objectCollection) {
             privateKey: `${__dirname}/private.key`
         });
 
-        var jsonText = '[{ "action": "talk", "voiceName": "Russell","text":"';
+        let jsonText = '[{ "action": "talk", "voiceName": "Russell","text":"';
         jsonText += messageString;
         jsonText += '"}]';
 
         //console.log('jsonText : ' + jsonText);
-        global.logger.write('conLog', 'jsonText : ' + jsonText, {}, {});
+        //global.logger.write('conLog', 'jsonText : ' + jsonText, {}, {});
+        util.logInfo(request,`makeCallNexmo conLog jsonText : %j`,{jsonText : jsonText});
         let answerUrl = global.config.mobileBaseUrl + global.config.version + '/account/nexmo/voice_' + passcode + '.json?file=voice_' + passcode + '.json';
         //console.log('Answer Url : ', answerUrl);
-        global.logger.write('conLog', 'Answer Url : ' + answerUrl, {}, {});
+        //global.logger.write('conLog', 'Answer Url : ' + answerUrl, {}, {});
+        util.logInfo(request,`makeCallNexmo conLog Answer Url : %j`,{Answer_Url : answerUrl});
         fs.writeFile(global.config.efsPath + 'nexmovoicesjsonfiles/voice_' + passcode + '.json', jsonText, function (err) {
             if (err) {
                 throw err;
@@ -568,7 +585,8 @@ function Util(objectCollection) {
                         callback(true, error, -3502);
                     } else {
                         //console.log('makeCallNexmo response: ', response);
-                        global.logger.write('debug', 'makeCallNexmo response: ' + JSON.stringify(response), {}, request);
+                        //global.logger.write('debug', 'makeCallNexmo response: ' + JSON.stringify(response), {}, request);
+                        util.logInfo(request,`fs.writeFile debug makeCallNexmo response: %j`,{response : JSON.stringify(response), request});
                         callback(false, response, 200);
                     }
                 });
@@ -591,10 +609,12 @@ function Util(objectCollection) {
             text: messageString
         }];
 
-        global.logger.write('conLog', 'jsonText : ' + jsonText, {}, {});
+        //global.logger.write('conLog', 'jsonText : ' + jsonText, {}, {});
+        util.logInfo(request,`makeCallNexmoV1 conLog jsonText : %j`,{jsonText : jsonText});
         // let answerUrl = 'http://f0ef1a18.ngrok.io/r1' + '/account/nexmo/v1/voice_' + passcode + '.json?file=voice_' + passcode + '.json';
         let answerUrl = global.config.mobileBaseUrl + global.config.version + '/account/nexmo/v1/voice_' + passcode + '.json?file=voice_' + passcode + '.json';
-        global.logger.write('conLog', 'Answer Url : ' + answerUrl, {}, {});
+        //global.logger.write('conLog', 'Answer Url : ' + answerUrl, {}, {});
+        util.logInfo(request,`makeCallNexmoV1 conLog Answer Url : %j`,{Answer_Url : jsonText});
 
         await uploadJsonToS3({}, jsonText, 'nexmo', `voice_${passcode}`);
 
@@ -614,7 +634,8 @@ function Util(objectCollection) {
                 callback(true, error, -3502);
             } else {
                 //console.log('makeCallNexmo response: ', response);
-                global.logger.write('debug', 'makeCallNexmo response: ' + JSON.stringify(response), {}, request);
+                //global.logger.write('debug', 'makeCallNexmo response: ' + JSON.stringify(response), {}, request);
+                util.logInfo(request,`nexmo.calls.create debug makeCallNexmo response: %j`,{response : JSON.stringify(response), request});
                 callback(false, response, 200);
             }
         });
@@ -690,68 +711,68 @@ function Util(objectCollection) {
 
     };
 
-    var htmlEntities = function (str) {
+    let htmlEntities = function (str) {
         return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     };
 
     this.getCurrentUTCTime = function (format) {
-        var now = moment().utc().format(format || "YYYY-MM-DD HH:mm:ss");
+        let now = moment().utc().format(format || "YYYY-MM-DD HH:mm:ss");
         return now;
     };
 
 
     this.getCurrentISTTime = function () {
-        var now = moment().tz('Asia/Kolkata').format("YYYY-MM-DD HH:mm:ss");
+        let now = moment().tz('Asia/Kolkata').format("YYYY-MM-DD HH:mm:ss");
         return now;
     };
 
     this.getOTPHeartBeatCode = function () {
-        var now = moment().tz('Asia/Kolkata').format("DDHHmm");
+        let now = moment().tz('Asia/Kolkata').format("DDHHmm");
         return now;
     };
 
     this.getCurrentDate = function () {
-        var now = moment().utc().format("YYYY-MM-DD");
+        let now = moment().utc().format("YYYY-MM-DD");
         return now;
     };
 
     this.getCurrentMonth = function () {
-        var now = moment().utc().format("MM");
+        let now = moment().utc().format("MM");
         return now;
     };
 
     this.getCurrentYear = function () {
-        var now = moment().utc().format("YYYY");
+        let now = moment().utc().format("YYYY");
         return now;
     };
 
     this.getCurrentUTCTimestamp = function () {
-        var now = moment().utc().valueOf();
+        let now = moment().utc().valueOf();
         return now;
     };
 
     this.getStartDayOfMonth = function () {
-        var value = moment().startOf('month').format("YYYY-MM-DD");
+        let value = moment().startOf('month').format("YYYY-MM-DD");
         return value;
     };
 
     this.getStartDayOfPrevMonth = function () {
-        var value = moment().startOf('month').subtract(1, 'month').format("YYYY-MM-DD");
+        let value = moment().startOf('month').subtract(1, 'month').format("YYYY-MM-DD");
         return value;
     };
 
     this.getStartDayOfWeek = function () {
-        var value = moment().startOf('week').add(1, 'days').format("YYYY-MM-DD");
+        let value = moment().startOf('week').add(1, 'days').format("YYYY-MM-DD");
         return value;
     };
 
     this.getStartDateTimeOfWeek = function () {
-        var value = moment().startOf('week').add(1, 'days').format("YYYY-MM-DD HH:mm:ss");
+        let value = moment().startOf('week').add(1, 'days').format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
 
     this.getEndDayOfWeek = function () {
-        var value = moment().endOf('week').format("YYYY-MM-DD");
+        let value = moment().endOf('week').format("YYYY-MM-DD");
         return value;
     };
 
@@ -761,12 +782,12 @@ function Util(objectCollection) {
             minutes = Number(minutes) * -1;
         } */
        // console.log("substractMinutes datetime :: "+datetime +" "+minutes);
-        var value = moment(datetime).subtract(minutes, 'minutes').format("YYYY-MM-DD HH:mm:ss");
+        let value = moment(datetime).subtract(minutes, 'minutes').format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
 
     this.addMinutes = function (datetime, minutes) {
-         var value = moment(datetime).add(minutes, 'minutes').format("YYYY-MM-DD HH:mm:ss");
+         let value = moment(datetime).add(minutes, 'minutes').format("YYYY-MM-DD HH:mm:ss");
          return value;
      };
 
@@ -779,27 +800,27 @@ function Util(objectCollection) {
         arr.push("THURSDAY");
         arr.push("FRIDAY");
         arr.push("SATURDAY");
-        var value = arr[moment(datetime).weekday()];
+        let value = arr[moment(datetime).weekday()];
         return value;
     };
 
     this.getEndDateTimeOfWeek = function () {
-        var value = moment().endOf('week').add(1, 'days').format("YYYY-MM-DD HH:mm:ss");
+        let value = moment().endOf('week').add(1, 'days').format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
 
     this.getStartDayOfPrevWeek = function () {
-        var value = moment().startOf('week').add(1, 'days').subtract(7, 'days').format("YYYY-MM-DD");
+        let value = moment().startOf('week').add(1, 'days').subtract(7, 'days').format("YYYY-MM-DD");
         return value;
     };
 
     this.getStartDateTimeOfMonth = function () {
-        var value = moment().startOf('month').format("YYYY-MM-DD HH:mm:ss");
+        let value = moment().startOf('month').format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
 
     this.getEndDateTimeOfMonth = function () {
-        var value = moment().endOf('month').format("YYYY-MM-DD HH:mm:ss");
+        let value = moment().endOf('month').format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
     this.getEndDateOfMonth = function () {
@@ -808,31 +829,31 @@ function Util(objectCollection) {
     };
 
     this.getcurrentTime = function () {
-        var date = new Date();
-        var year = date.getFullYear();
-        var month = date.getMonth();
-        var dateVal = date.getDate();
-        var hours = date.getHours();
-        var min = date.getMinutes();
-        var sec = date.getSeconds();
-        var dateTimeString = year + "-" + month + "-" + dateVal + " " + hours + ":" + min + ":" + sec;
+        let date = new Date();
+        let year = date.getFullYear();
+        let month = date.getMonth();
+        let dateVal = date.getDate();
+        let hours = date.getHours();
+        let min = date.getMinutes();
+        let sec = date.getSeconds();
+        let dateTimeString = year + "-" + month + "-" + dateVal + " " + hours + ":" + min + ":" + sec;
         return dateTimeString;
     };
 
     this.getcurrentTimeInMilliSecs = function () {
-        var date = new Date();
-        var year = date.getFullYear();
+        let date = new Date();
+        let year = date.getFullYear();
 
-        var month = date.getMonth();
+        let month = date.getMonth();
         month++;
         month = (month < 10 ? '0' : '') + month;
 
-        var dateVal = date.getDate();
-        var hours = date.getHours();
-        var min = date.getMinutes();
-        var sec = date.getSeconds();
-        var ms = date.getMilliseconds();
-        var dateTimeString = year + month + dateVal + "-" + hours + min + sec + ms;
+        let dateVal = date.getDate();
+        let hours = date.getHours();
+        let min = date.getMinutes();
+        let sec = date.getSeconds();
+        let ms = date.getMilliseconds();
+        let dateTimeString = year + month + dateVal + "-" + hours + min + sec + ms;
         return dateTimeString;
     };
 
@@ -888,7 +909,7 @@ function Util(objectCollection) {
     };
 
     this.getMessageUniqueId = function (assetId) {
-        var messageUniqueId = assetId + this.getCurrentUTCTimestamp() + this.getRandomInt();
+        let messageUniqueId = assetId + this.getCurrentUTCTimestamp() + this.getRandomInt();
         return messageUniqueId;
     };
 
@@ -904,7 +925,7 @@ function Util(objectCollection) {
             //console.log('inside null / undefined case of replaceZero')
             return Number(0);
         } else {
-            var retValue = Number(value);
+            let retValue = Number(value);
             if (isNaN(retValue)) {
                 return 0;
             } else {
@@ -964,67 +985,67 @@ function Util(objectCollection) {
     };
 
     this.getFormatedLogDatetime = function (timeString) {
-        var value = moment(timeString).format("YYYY-MM-DD HH:mm:ss");
+        let value = moment(timeString).format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
 
     this.getFormatedLogDatetimeV1 = function (timeString, format) {
-        var value = moment(timeString, format).format("YYYY-MM-DD HH:mm:ss");
+        let value = moment(timeString, format).format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
 
     this.getFormatedLogDate = function (timeString) {
-        var value = moment(timeString).format("YYYY-MM-DD");
+        let value = moment(timeString).format("YYYY-MM-DD");
         return value;
     };
 
     this.getFormatedSlashDate = function (timeString) {
-        var value = moment(timeString).format("DD/MM/YYYY");
+        let value = moment(timeString).format("DD/MM/YYYY");
         return value;
     };
 
     this.getFormatedLogTime = function (timeString) {
-        var value = moment(timeString).format("HH:mm:ss");
+        let value = moment(timeString).format("HH:mm:ss");
         return value;
     };
 
     this.getFormatedLogYear = function (timeString) {
-        var value = moment(timeString).format("YYYY");
+        let value = moment(timeString).format("YYYY");
         return value;
     };
 
     this.getFormatedLogMonth = function (timeString) {
-        var value = moment(timeString).format("MM");
+        let value = moment(timeString).format("MM");
         return value;
     };
 
     this.getTimestamp = function (timeString) {
-        var value = moment(timeString).valueOf();
+        let value = moment(timeString).valueOf();
         return value;
     };
 
     this.getDatetimewithAmPm = function (timeString) {
-        var value = moment(timeString).format("YYYY-MM-DD hh:mm A");
+        let value = moment(timeString).format("YYYY-MM-DD hh:mm A");
         return value;
     };
 
     this.getDatewithndrdth = function (timeString) {
-        var value = moment(timeString).format("MMM Do");
+        let value = moment(timeString).format("MMM Do");
         return value;
     };
 
     this.addDays = function (timeString, days) {
-        var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").add(days, 'days').format("YYYY-MM-DD HH:mm:ss");
+        let value = moment(timeString, "YYYY-MM-DD HH:mm:ss").add(days, 'days').format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
 
     this.addDaysToGivenDate = function (timeString, days, dateFormat = "YYYY-MM-DD") {
-        var value = moment(timeString, dateFormat).add(days, 'days').format("YYYY-MM-DD");
+        let value = moment(timeString, dateFormat).add(days, 'days').format("YYYY-MM-DD");
         return value;
     };
 
     this.addUnitsToDateTime = function (timeString, days, unit) {
-        var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").add(days, unit).format("YYYY-MM-DD HH:mm:ss");
+        let value = moment(timeString, "YYYY-MM-DD HH:mm:ss").add(days, unit).format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
 
@@ -1034,32 +1055,32 @@ function Util(objectCollection) {
     };
 
     this.subtractDays = function (timeString, days) {
-        var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").subtract(days, 'days').format("YYYY-MM-DD HH:mm:ss");
+        let value = moment(timeString, "YYYY-MM-DD HH:mm:ss").subtract(days, 'days').format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
 
     this.subtractUnitsFromDateTime = function (timeString, days, unit) {
-        var value = moment(timeString, "YYYY-MM-DD HH:mm:ss").subtract(days, unit).format("YYYY-MM-DD HH:mm:ss");
+        let value = moment(timeString, "YYYY-MM-DD HH:mm:ss").subtract(days, unit).format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
     
     this.subtractUnitsFromDateTimeV1 = function (timeString, format, days, unit) {
-        var value = moment(timeString, format).subtract(days, unit).format(format);
+        let value = moment(timeString, format).subtract(days, unit).format(format);
         return value;
     };
 
     this.differenceDatetimes = function (timeString1, timeString2) {
-        var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"));
+        let value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"));
         return value;
     };
 
     this.differenceDatetime = function (timeString1, timeString2) {
-        var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"));
+        let value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"));
         return moment.duration(value)._data;
     };
     this.differenceDatetimeInMin = function (timeString1, timeString2) {
         console.log('came in')
-        var value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"),'minutes');
+        let value = moment(timeString1, "YYYY-MM-DD HH:mm:ss").diff(moment(timeString2, "YYYY-MM-DD HH:mm:ss"),'minutes');
         // let sss = moment.utc(value).format('mm');
         return value;
     };
@@ -1071,12 +1092,12 @@ function Util(objectCollection) {
     };*/
 
     this.getDayStartDatetime = function () {
-        var value = moment().startOf('day').utcOffset("-05:30").format('YYYY-MM-DD HH:mm:ss');
+        let value = moment().startOf('day').utcOffset("-05:30").format('YYYY-MM-DD HH:mm:ss');
         return value;
     };
 
     this.getDayEndDatetime = function () {
-        var value = moment().endOf('day').utcOffset("-05:30").format('YYYY-MM-DD HH:mm:ss');
+        let value = moment().endOf('day').utcOffset("-05:30").format('YYYY-MM-DD HH:mm:ss');
         return value;
     };
 
@@ -1091,12 +1112,12 @@ function Util(objectCollection) {
     };*/
 
     this.getCurrentTimeHHmmIST = function () {
-        var value = moment().tz('Asia/Kolkata').format('hh:mm A');
+        let value = moment().tz('Asia/Kolkata').format('hh:mm A');
         return value;
     };
 
     this.getCurrentTimeHHmmIST_ = function () {
-        var value = moment().tz('Asia/Kolkata').format('HH:mm');
+        let value = moment().tz('Asia/Kolkata').format('HH:mm');
         return value;
     };    
 
@@ -1207,21 +1228,21 @@ function Util(objectCollection) {
     }
 
     this.getDayStartDatetimeIST = function () {
-        var value = moment().tz('Asia/Kolkata').startOf('day').format('YYYY-MM-DD HH:mm:ss');
+        let value = moment().tz('Asia/Kolkata').startOf('day').format('YYYY-MM-DD HH:mm:ss');
         return value;
     };
 
     this.getDayEndDatetimeIST = function () {
-        var value = moment().tz('Asia/Kolkata').endOf('day').format('YYYY-MM-DD HH:mm:ss');
+        let value = moment().tz('Asia/Kolkata').endOf('day').format('YYYY-MM-DD HH:mm:ss');
         return value;
     };
 
     //getDay start time based on the TimeZone
     this.getDayStartDatetimeTZ = function (timezone) {
         (timezone === "") ? timezone = 'Asia/Kolkata': timezone = timezone;
-        var input = moment().tz(timezone).startOf('day');
-        var format = 'YYYY-MM-DD HH:mm:ss';
-        var value = moment.tz(input, format, timezone).utc().format('YYYY-MM-DD HH:mm:ss');
+        let input = moment().tz(timezone).startOf('day');
+        let format = 'YYYY-MM-DD HH:mm:ss';
+        let value = moment.tz(input, format, timezone).utc().format('YYYY-MM-DD HH:mm:ss');
         //console.log('TimeZone : ', timezone);
         //console.log('Start DateTime in given timezone: ', value);        
         return value;
@@ -1230,20 +1251,20 @@ function Util(objectCollection) {
     //getDay end time based on the TimeZone
     this.getDayEndDatetimeTZ = function (timezone) {
         (timezone === "") ? timezone = 'Asia/Kolkata': timezone = timezone;
-        var input = moment().tz(timezone).endOf('day');
-        var format = 'YYYY-MM-DD HH:mm:ss';
-        var value = moment.tz(input, format, timezone).utc().format('YYYY-MM-DD HH:mm:ss');
+        let input = moment().tz(timezone).endOf('day');
+        let format = 'YYYY-MM-DD HH:mm:ss';
+        let value = moment.tz(input, format, timezone).utc().format('YYYY-MM-DD HH:mm:ss');
         //console.log('TimeZone : ', timezone);
         //console.log('End DateTime in given timezone: ', value);
         return value;
     };
 
     this.isDateBetween = function (startDt, endDt, compareDt) {
-        var compareDate = moment(compareDt, "YYYY-MM-DD HH:mm:ss");
-        var startDate = moment(startDt, "YYYY-MM-DD HH:mm:ss");
-        var endDate = moment(endDt, "YYYY-MM-DD HH:mm:ss");
+        let compareDate = moment(compareDt, "YYYY-MM-DD HH:mm:ss");
+        let startDate = moment(startDt, "YYYY-MM-DD HH:mm:ss");
+        let endDate = moment(endDt, "YYYY-MM-DD HH:mm:ss");
 
-        var value = compareDate.isBetween(startDate, endDate);
+        let value = compareDate.isBetween(startDate, endDate);
         return value;
     };
 
@@ -1260,7 +1281,7 @@ function Util(objectCollection) {
     }
 
     this.getFrequency = function (element, arr) {
-        var cnt = 0;
+        let cnt = 0;
         arr.forEach(function (item, index) {
             if (element == item) {
                 cnt++;
@@ -1298,10 +1319,10 @@ function Util(objectCollection) {
     };
 
     this.getImageUrlForSizeM = function (stringUrl, size) {
-        var a = stringUrl.substr(0, stringUrl.lastIndexOf("."));
-        var b = a.slice(-1);
+        let a = stringUrl.substr(0, stringUrl.lastIndexOf("."));
+        let b = a.slice(-1);
         if (b === '_') {
-            var d = new Date();
+            let d = new Date();
             return stringUrl.substr(0, stringUrl.lastIndexOf("_") + 1) + size + stringUrl.substr(stringUrl.lastIndexOf(".")) + "?" + d.getTime();
         } else {
             return stringUrl.substr(0, stringUrl.lastIndexOf(".")) + '_' + size + stringUrl.substr(stringUrl.lastIndexOf("."));
@@ -1309,15 +1330,15 @@ function Util(objectCollection) {
     };
 
     this.getAssetDetails = async function (request) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id || 0,
             request.workforce_id || 0,
             request.asset_id
         );
-        var responseData = [], error = true;
+        let responseData = [], error = true;
 
-        var queryString = this.getQueryString('ds_v1_1_asset_list_select', paramsArr);
+        let queryString = this.getQueryString('ds_v1_1_asset_list_select', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -1332,7 +1353,7 @@ function Util(objectCollection) {
 
     };
     this.sendEmail = function (email, subject, text, htmlTemplate, callback) {
-        var smtpConfig = {
+        let smtpConfig = {
             host: global.config.smtp_host,
             port: global.config.smtp_port,
             secure: false, // use SSL
@@ -1342,10 +1363,10 @@ function Util(objectCollection) {
             }
         };
         // create reusable transporter object using the default SMTP transport
-        var transporter = nodemailer.createTransport(smtpConfig);
+        let transporter = nodemailer.createTransport(smtpConfig);
 
         // setup e-mail data with unicode symbols
-        var mailOptions = {
+        let mailOptions = {
             from: 'BlueFlock <' + global.config.smtp_user + '>', // sender address
             to: email, // list of receivers
             subject: subject, // Subject line
@@ -1369,7 +1390,7 @@ function Util(objectCollection) {
     };
 
     this.sendEmailV1 = function (request, email, subject, text, htmlTemplate, callback) {
-        var smtpConfig = {
+        let smtpConfig = {
             host: global.config.smtp_host,
             port: global.config.smtp_port,
             secure: false, // use SSL
@@ -1380,10 +1401,10 @@ function Util(objectCollection) {
         };
         htmlTemplate = request.html_template
         // create reusable transporter object using the default SMTP transport
-        var transporter = nodemailer.createTransport(smtpConfig);
+        let transporter = nodemailer.createTransport(smtpConfig);
 
         // setup e-mail data with unicode symbols
-        var mailOptions = {
+        let mailOptions = {
             from: 'Vodafon - Idea <' + global.config.smtp_user + '>', // sender address
             to: email, // list of receivers
             subject: subject, // Subject line
@@ -1469,7 +1490,7 @@ function Util(objectCollection) {
         }
 
         // SendSmtpEmail | Values to send a transactional email
-        var sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+        let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
         sendSmtpEmail.to = [{
             "name": request.email_receiver_name || undefined,
             "email": email
@@ -1678,7 +1699,7 @@ function Util(objectCollection) {
         let htmlTemplate = buff.toString('ascii');
 
         // SendSmtpEmail | Values to send a transactional email
-        var sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+        let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
         sendSmtpEmail.to = [{
             "name": request.email_receiver_name || undefined,
             "email": email
@@ -1710,7 +1731,7 @@ function Util(objectCollection) {
         if (typeof type == 'undefined' || type == '' || type == null)
             type = 0;
 
-        var value = '';
+        let value = '';
 
         if (type == 1) {
             value = moment(timeString).format("YYYY-MM-DD HH:mm");
@@ -1721,9 +1742,9 @@ function Util(objectCollection) {
     };
 
     this.convertToTimezone = function (timeString, offsetValue) {
-        var timeStringNew = moment(timeString).valueOf();
+        let timeStringNew = moment(timeString).valueOf();
         timeString = (timeStringNew > 0 && Number(offsetValue) != 'NaN') ? Number(timeStringNew) + Number(offsetValue) : timeString;
-        var value = moment(timeString).format("YYYY-MM-DD HH:mm:ss");
+        let value = moment(timeString).format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
 
@@ -1740,10 +1761,10 @@ function Util(objectCollection) {
     };
 
     this.writeLogs = function (data, isTargeted) {
-        var date = this.getCurrentUTCTime();
-        var locationInServer;
-        var logFilePath;
-        var targetedLogFilePath;
+        let date = this.getCurrentUTCTime();
+        let locationInServer;
+        let logFilePath;
+        let targetedLogFilePath;
 
         if (global.mode === 'prod') {
             locationInServer = global.config.efsPath + 'api/';
@@ -1767,7 +1788,7 @@ function Util(objectCollection) {
             data = JSON.stringify(data);
         }
 
-        var data_to_add = date + ': ' + data;
+        let data_to_add = date + ': ' + data;
         console.log(data);
         if (fs.existsSync(logFilePath)) {
             fs.appendFile(logFilePath, os.EOL + data_to_add, function (err, fd) {
@@ -1813,11 +1834,13 @@ function Util(objectCollection) {
     this.sendSmsHorizon = function (messageString, countryCode, phoneNumber, callback) {
  
         messageString = encodeURI(messageString);
-        var url = "http://smshorizon.co.in/api/sendsms.php?user=GreneRobotics&apikey=oLm0MhRHBt2KPXFRrk8k&mobile="+countryCode+""+phoneNumber+"&message="+messageString+"&senderid=WDDESK&type=txt";
-        global.logger.write('conLog', 'URL: ' + url, {}, {});
+        let url = "http://smshorizon.co.in/api/sendsms.php?user=GreneRobotics&apikey=oLm0MhRHBt2KPXFRrk8k&mobile="+countryCode+""+phoneNumber+"&message="+messageString+"&senderid=WDDESK&type=txt";
+        //global.logger.write('conLog', 'URL: ' + url, {}, {});
+        util.logInfo({},`sendSmsHorizon conLog URL: %j`,{URL : url});
         request(url, function (error, response, body) {
-            global.logger.write('debug', 'SMS HORIZON RESP:: ' + body, {}, {});
-            var res = {};            
+            //global.logger.write('debug', 'SMS HORIZON RESP:: ' + body, {}, {});
+            util.logInfo({},`sendSmsHorizon debug SMS HORIZON RESP:: %j`,{ body});
+            let res = {};            
             if (typeof body == 'string' && Number(body) > 0) {
                 res['status'] = 1;
                 res['message'] = "Message sent";
@@ -2101,7 +2124,7 @@ function Util(objectCollection) {
     this.downloadS3Object = async (request, url) => {
         console.log("came here",url)
         return new Promise(async (resolve) => {
-            var s3 = new AWS.S3();
+            let s3 = new AWS.S3();
             console.log('URL : ', url);
 
             let [BucketName,KeyName,FileName]= await new Promise((resolve) => {
@@ -2165,7 +2188,7 @@ function Util(objectCollection) {
             console.log(bucketName);
             console.log(prefixPath);
 
-            var s3 = new AWS.S3();
+            let s3 = new AWS.S3();
             let params = {
                 Body: fs.createReadStream(filePath + zipFile),
                 Bucket: bucketName,
@@ -2204,7 +2227,7 @@ function Util(objectCollection) {
             console.log(bucketName);
             console.log(prefixPath);
 
-            var s3 = new AWS.S3();
+            let s3 = new AWS.S3();
             let params = {
                 Body: fs.createReadStream(filePath + zipFile),
                 Bucket: bucketName,
@@ -2240,8 +2263,8 @@ function Util(objectCollection) {
             
             let zipFile = 'download_' + this.getMessageUniqueId(request.asset_id) + '.zip';
             let filePath = global.config.efsPath;
-            var output = fs.createWriteStream(filePath + zipFile);
-            var archive = archiver('zip', {
+            let output = fs.createWriteStream(filePath + zipFile);
+            let archive = archiver('zip', {
                 zlib: { level: 9 } // Sets the compression level.
             });
             
@@ -2487,7 +2510,7 @@ function Util(objectCollection) {
     };
 
     this.getCurrentISTDDMMYY = function () {
-        var now = moment().tz('Asia/Kolkata').format("DDMMYY");
+        let now = moment().tz('Asia/Kolkata').format("DDMMYY");
         return now;
     };  
     
@@ -3118,7 +3141,7 @@ function Util(objectCollection) {
 
     this.downloadS3ObjectVil = async (request, url) => {
         return new Promise((resolve) => {
-            var s3 = new AWS.S3();
+            let s3 = new AWS.S3();
             console.log('URL : ', url);
 
             let BucketName = url.slice(8, 25);
@@ -3205,7 +3228,7 @@ function Util(objectCollection) {
 
     this.retriveExcelFromS3V3 = async function(url){
         return new Promise((resolve) => {
-            var s3 = new AWS.S3();
+            let s3 = new AWS.S3();
             console.log('URL : ', url);
         let KeyName = url.slice(63);
         console.log(KeyName)
@@ -3240,7 +3263,7 @@ function Util(objectCollection) {
             
             let bucketData = await this.getDynamicBucketName();
             let bucketName = bucketData[0].bucket_encrypted_name;
-            var s3 = new AWS.S3();
+            let s3 = new AWS.S3();
             let params = {
                 Body: fileData,
                 Bucket: bucketName,
@@ -3263,13 +3286,13 @@ function Util(objectCollection) {
 
     this.ISTtoUTC = function (date) {
         //var value = moment(date).utcOffset("-05:30").format('YYYY-MM-DD HH:mm:ss');
-        var value = moment(date).add(-330, 'minutes').format("YYYY-MM-DD HH:mm:ss")
+        let value = moment(date).add(-330, 'minutes').format("YYYY-MM-DD HH:mm:ss")
         return value;
     };
 
     this.UTCtoIST = function (date) {
         // var value = moment(date).utcOffset("+05:30").format("YYYY-MM-DD HH:mm:ss")
-        var value = moment(date).add(330, 'minutes').format("YYYY-MM-DD HH:mm:ss")
+        let value = moment(date).add(330, 'minutes').format("YYYY-MM-DD HH:mm:ss")
         return value;
     };
 
@@ -3305,7 +3328,7 @@ function Util(objectCollection) {
     }
 
     this.getLastDayOfCurrentQuarterToIST = () => {
-        var value = moment().tz('Asia/Kolkata');
+        let value = moment().tz('Asia/Kolkata');
         let currentQuarter = value.quarter();
         let currentYear = value.year();
         let endMonth = 3 * parseInt(currentQuarter);
@@ -3623,7 +3646,7 @@ function Util(objectCollection) {
 
     this.getStackTrace = () => {
 
-        var stack;
+        let stack;
 
         try {
             throw new Error('');
@@ -3666,7 +3689,7 @@ function Util(objectCollection) {
     this.WhatsappNotification=async(request,memberData,recipientData,templateName)=>{
         let responseData = [];
         let   error = true;   
-        var data = {
+        let data = {
             "channelId":global.config.gallaboxChannelId,
             "channelType": "whatsapp",       
             "recipient":recipientData,
@@ -3678,7 +3701,7 @@ function Util(objectCollection) {
             }
             }
             };
-            var config = {
+            let config = {
                 method: 'post',
                 url:global.config.gallaboxurl,
                 headers:global.config.gallaboxApiCredentials,

@@ -11,7 +11,7 @@ class WidgetRuleService {
 
             let rows = [];
             function loop(opts) {
-                var paramsArr = new Array(
+                let paramsArr = new Array(
                         request.organizationId,
                         request.accountId,
                         request.workforceId,
@@ -23,7 +23,7 @@ class WidgetRuleService {
                         opts.startFrom,                        
                         limit
                         );
-                var queryString = args.util.getQueryString('ds_p1_3_widget_list_select_form', paramsArr);
+                let queryString = args.util.getQueryString('ds_p1_3_widget_list_select_form', paramsArr);
                 if (queryString === '')
                     return reject();
                 args.db.executeQuery(1, queryString, request, function (err, data) {

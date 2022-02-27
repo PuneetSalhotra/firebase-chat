@@ -5,11 +5,11 @@ const logger = require("../logger/winstonLogger");
 const { serializeError } = require('serialize-error');
 function ActivityParticipantService(objectCollection) {
 
-    var db = objectCollection.db;
-    var cacheWrapper = objectCollection.cacheWrapper;
-    var activityCommonService = objectCollection.activityCommonService;
-    var util = objectCollection.util;
-    var sns = objectCollection.sns;
+    let db = objectCollection.db;
+    let cacheWrapper = objectCollection.cacheWrapper;
+    let activityCommonService = objectCollection.activityCommonService;
+    let util = objectCollection.util;
+    let sns = objectCollection.sns;
     // var activityPushService = objectCollection.activityPushService;
 
     const ActivityPushService = require('../services/activityPushService');
@@ -20,17 +20,17 @@ function ActivityParticipantService(objectCollection) {
 
     this.getParticipantsList = function (request, callback) {
 
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.activity_id,
             request.datetime_differential,
             request.page_start,
             util.replaceQueryLimit(request.page_limit)
         );
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants_differential', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_participants_differential', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -51,10 +51,10 @@ function ActivityParticipantService(objectCollection) {
 
     };
 
-    var formatParticipantList = function (data, callback) {
-        var responseData = new Array();
+    let formatParticipantList = function (data, callback) {
+        let responseData = new Array();
         data.forEach(function (rowData, index) {
-            var rowDataArr = {
+            let rowDataArr = {
                 'activity_id': util.replaceDefaultNumber(rowData['activity_id']),
                 'asset_id': util.replaceDefaultNumber(rowData['asset_id']),
                 'account_id': util.replaceDefaultNumber(rowData['account_id']),
@@ -121,7 +121,7 @@ function ActivityParticipantService(objectCollection) {
             util.logError(request,`BotEngine: changeStatus | Activity Details Fetch Error | error: `, { type: 'assignCoworker', error: serializeError(error) });
         }
 
-        var loopAddParticipant = function (participantCollection, index, maxIndex) {
+        let loopAddParticipant = function (participantCollection, index, maxIndex) {
             iterateAddParticipant(participantCollection, index, maxIndex, function (err, data) {
                 if (err === false) {
                     if (index === maxIndex) {
@@ -134,9 +134,9 @@ function ActivityParticipantService(objectCollection) {
             });
         };
 
-        var iterateAddParticipant = function (participantCollection, index, maxIndex, callback) {
+        let iterateAddParticipant = function (participantCollection, index, maxIndex, callback) {
 
-            var participantData = participantCollection[index];
+            let participantData = participantCollection[index];
             activityCommonService.isParticipantAlreadyAssigned(participantData, request.activity_id, request, function (err, alreadyAssignedStatus, newRecordStatus) {
                 if ((err === false) && (!alreadyAssignedStatus)) {
                     //proceed and add a participant
@@ -166,26 +166,29 @@ function ActivityParticipantService(objectCollection) {
                                 }
                                 
                             }*/
-                            global.logger.write('conLog', 'participant successfully added', {}, {})
+                            //global.logger.write('conLog', 'participant successfully added', {}, {})
+                            util.logInfo(request,`isParticipantAlreadyAssigned participant successfully added`,{});
                             //check participant is active in last 48 hrs or not
                             if (activityTypeCategroyId === 28 || activityTypeCategroyId === 8) {
                                 activityPushService.sendSMSNotification(request, objectCollection, participantData.asset_id, function () {});
                             }
-                            var nextIndex = index + 1;
+                            let nextIndex = index + 1;
                             if (nextIndex <= maxIndex) {
                                 loopAddParticipant(participantCollection, nextIndex, maxIndex);
                             }
                             callback(false, true);
                         } else {
                             //console.log(err);
-                            global.logger.write('serverError', err, {}, {})
+                            //global.logger.write('serverError', err, {}, {})
+                            util.logError(request,`isParticipantAlreadyAssigned serverError Error %j`, { err });
                             callback(true, false);
                         }
                     }.bind(this));
                 } else {
                     if (alreadyAssignedStatus > 0) {
                         //console.log("participant already assigned");
-                        global.logger.write('conLog', 'participant already assigned', {}, {});
+                        //global.logger.write('conLog', 'participant already assigned', {}, {});
+                        util.logInfo(request,`isParticipantAlreadyAssigned participant already assigned`,{});
 
                         if(request.activity_type_category_id == 16){
                             request.lead_asset_id = participantData.asset_id;
@@ -196,7 +199,7 @@ function ActivityParticipantService(objectCollection) {
                             console.log("Assigning already added resource as Lead");
                             rmbotService.assignResourceAsLead(request, participantData.asset_id);
                         }
-                        var nextIndex = index + 1;
+                        let nextIndex = index + 1;
                         if (nextIndex <= maxIndex) {
                             loopAddParticipant(participantCollection, nextIndex, maxIndex);
                         }
@@ -209,9 +212,9 @@ function ActivityParticipantService(objectCollection) {
 
         };
         activityCommonService.updateAssetLocation(request, function (err, data) {});
-        var activityStreamTypeId = 2; //Older 2:added participant
+        let activityStreamTypeId = 2; //Older 2:added participant
         if (request.hasOwnProperty('activity_type_category_id')) {
-            var activityTypeCategroyId = Number(request.activity_type_category_id);
+            let activityTypeCategroyId = Number(request.activity_type_category_id);
             switch (activityTypeCategroyId) {
                 case 2: // notepad 
                     activityStreamTypeId = 501;
@@ -320,24 +323,25 @@ function ActivityParticipantService(objectCollection) {
                 default:
                     activityStreamTypeId = 2; //by default so that we know
                     //console.log('adding streamtype id 2');
-                    global.logger.write('conLog', 'adding streamtype id 2', {}, {})
+                    //global.logger.write('conLog', 'adding streamtype id 2', {}, {})
+                    util.logInfo(request,`updateAssetLocation adding streamtype id 2`,{});
                     break;
 
             }
         }
 
-        var logDatetime = util.getCurrentUTCTime();
-        var sendSMSNotification = 0;
+        let logDatetime = util.getCurrentUTCTime();
+        let sendSMSNotification = 0;
         request['datetime_log'] = logDatetime;
         request['activity_streamtype_id'] = activityStreamTypeId;
         activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
-        var index = 0;
-        var activityParticipantCollection = JSON.parse(request.activity_participant_collection);
-        var maxIndex = activityParticipantCollection.length - 1;
+        let index = 0;
+        let activityParticipantCollection = JSON.parse(request.activity_participant_collection);
+        let maxIndex = activityParticipantCollection.length - 1;
         //var maxIndex = request.activity_participant_collection.length - 1;                
         iterateAddParticipant(activityParticipantCollection, index, maxIndex, async(err, data) => {
             if (activityTypeCategroyId == 37) {
-                var newRequest = Object.assign({}, request);
+                let newRequest = Object.assign({}, request);
                 activityCommonService.sendSmsCodeParticipant(newRequest, function (err, data) {});
             }
 
@@ -372,7 +376,8 @@ function ActivityParticipantService(objectCollection) {
                 }
             } else {                
                 //console.log("something is not wright in adding a participant");
-                global.logger.write('serverError', 'something is not right in adding a participant', err, {});
+                //global.logger.write('serverError', 'something is not right in adding a participant', err, {});
+                util.logError(request,`iterateAddParticipant serverError something is not right in adding a participant %j`, { err });
                 callback(false, {}, 200);
             }
         });
@@ -381,7 +386,7 @@ function ActivityParticipantService(objectCollection) {
 
     this.unassignParticicpant = async function (request, callback) {
 
-        var loopUnassignParticipant = function (participantCollection, index, maxIndex) {
+        let loopUnassignParticipant = function (participantCollection, index, maxIndex) {
             iterateUnassignParticipant(participantCollection, index, maxIndex, function (err, data) {
                 if (err === false) {
                     if (index === maxIndex) {
@@ -390,38 +395,41 @@ function ActivityParticipantService(objectCollection) {
                     }
                 } else {
                     //console.log("something is not wright in unassign a participant");
-                    global.logger.write('serverError', 'something is not wright in unassign a participant', err, {})
+                    //global.logger.write('serverError', 'something is not wright in unassign a participant', err, {})
+                    util.logError(request,`iterateUnassignParticipant serverError something is not wright in unassign a participant %j`, { err });
                 }
             });
         };
 
-        var iterateUnassignParticipant = function (participantCollection, index, maxIndex, callback) {
-            var participantData = participantCollection[index];
+        let iterateUnassignParticipant = function (participantCollection, index, maxIndex, callback) {
+            let participantData = participantCollection[index];
             unassignAssetFromActivity(request, participantData, function (err, data) {
                 if (err === false) {
                     //console.log("participant successfully un-assigned");
-                    global.logger.write('debug', 'participant successfully un-assigned', {}, {})
-                    var nextIndex = index + 1;
+                    //global.logger.write('debug', 'participant successfully un-assigned', {}, {})
+                    util.logInfo(request,`unassignAssetFromActivity debug participant successfully un-assigned`,{});
+                    let nextIndex = index + 1;
                     if (nextIndex <= maxIndex) {
                         loopUnassignParticipant(participantCollection, nextIndex, maxIndex);
                     }
                     callback(false, true);
                 } else {
                     //console.log(err);
-                    global.logger.write('serverError', err, err, {})
+                    //global.logger.write('serverError', err, err, {})
+                    util.logError(request,`unassignAssetFromActivity serverError Error %j`, { err });
                     callback(true, false);
                 }
             }.bind(this));
         };
         activityCommonService.updateAssetLocation(request, function (err, data) {});
-        var activityStreamTypeId = 3;
+        let activityStreamTypeId = 3;
         const activityData = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
         if (activityData.length > 0) {
             request.activity_type_category_id = activityData[0].activity_type_category_id;
             console.log("unassignParticicpant | Number(activityData[0].activity_type_category_id): ", Number(activityData[0].activity_type_category_id));
         }
         if (request.hasOwnProperty('activity_type_category_id')) {
-            var activityTypeCategroyId = Number(request.activity_type_category_id);
+            let activityTypeCategroyId = Number(request.activity_type_category_id);
             switch (activityTypeCategroyId) {
                 case 2: // notepad 
                     activityStreamTypeId = 501;
@@ -505,17 +513,18 @@ function ActivityParticipantService(objectCollection) {
                 default:
                     activityStreamTypeId = 3; //by default so that we know
                     //console.log('adding streamtype id 3');
-                    global.logger.write('conLog', 'adding streamtype id 3', {}, request)
+                    //global.logger.write('conLog', 'adding streamtype id 3', {}, request)
+                    util.logInfo(request,`unassignAssetFromActivity adding streamtype id 3 %j`,{request});
                     break;
 
             }
         }
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         request['activity_streamtype_id'] = activityStreamTypeId;
-        var index = 0;
-        var activityParticipantCollection = JSON.parse(request.activity_participant_collection);
-        var maxIndex = activityParticipantCollection.length - 1;
+        let index = 0;
+        let activityParticipantCollection = JSON.parse(request.activity_participant_collection);
+        let maxIndex = activityParticipantCollection.length - 1;
         //var maxIndex = request.activity_participant_collection.length - 1;        
         iterateUnassignParticipant(activityParticipantCollection, index, maxIndex, function (err, data) {
             if (err === false && data === true) {
@@ -526,14 +535,15 @@ function ActivityParticipantService(objectCollection) {
                 }
             } else {
                 //console.log("something is not wright in adding a participant");
-                global.logger.write('serverError', 'something is not right in adding a participant', err, {})
+                //global.logger.write('serverError', 'something is not right in adding a participant', err, {})
+                util.logError(request,`iterateUnassignParticipant serverError something is not right in adding a participant %j`, { err });
             }
         });
     };
 
     this.updateParticipantAccess = function (request, callback) {
 
-        var loopUpdateParticipantAccess = function (participantCollection, index, maxIndex) {
+        let loopUpdateParticipantAccess = function (participantCollection, index, maxIndex) {
             iterateUpdateParticipantAccess(participantCollection, index, maxIndex, function (err, data) {
                 if (err === false) {
                     if (index === maxIndex) {
@@ -543,33 +553,36 @@ function ActivityParticipantService(objectCollection) {
                     }
                 } else {
                     //console.log("something is not wright in unassign a participant");
-                    global.logger.write('serverError', 'something is not wright in unassign a participant', err, {})
+                    //global.logger.write('serverError', 'something is not wright in unassign a participant', err, {})
+                    util.logError(request,`iterateUpdateParticipantAccess serverError something is not wright in unassign a participant %j`, { err });
                 }
             });
         };
 
-        var iterateUpdateParticipantAccess = function (participantCollection, index, maxIndex, callback) {
-            var participantData = participantCollection[index];
+        let iterateUpdateParticipantAccess = function (participantCollection, index, maxIndex, callback) {
+            let participantData = participantCollection[index];
             updateAssetParticipantAccess(request, participantData, function (err, data) {
                 if (err === false) {
                     //console.log("participant successfully updated");
-                    global.logger.write('conLog', 'participant successfully updated', {}, {})
-                    var nextIndex = index + 1;
+                    //global.logger.write('conLog', 'participant successfully updated', {}, {})
+                    util.logInfo(request,`updateAssetParticipantAccess participant successfully updated %j`,{});
+                    let nextIndex = index + 1;
                     if (nextIndex <= maxIndex) {
                         loopUpdateParticipantAccess(participantCollection, nextIndex, maxIndex);
                     }
                     callback(false, true);
                 } else {
                     //console.log(err);
-                    global.logger.write('serverError', err, err, {})
+                    //global.logger.write('serverError', err, err, {})
+                    util.logError(request,`updateAssetParticipantAccess serverError Error %j`, { err });
                     callback(true, false);
                 }
             }.bind(this));
         };
         activityCommonService.updateAssetLocation(request, function (err, data) {});
-        var activityStreamTypeId = 3;
+        let activityStreamTypeId = 3;
         if (request.hasOwnProperty('activity_type_category_id')) {
-            var activityTypeCategroyId = Number(request.activity_type_category_id);
+            let activityTypeCategroyId = Number(request.activity_type_category_id);
             switch (activityTypeCategroyId) {
                 case 2: // notepad 
                     activityStreamTypeId = 4; //adding a default value
@@ -636,18 +649,19 @@ function ActivityParticipantService(objectCollection) {
                 default:
                     activityStreamTypeId = 4; //by default so that we know
                     //console.log('adding streamtype id 4');
-                    global.logger.write('conLog', 'adding streamtype id 4', {}, request)
+                    //global.logger.write('conLog', 'adding streamtype id 4', {}, request)
+                    util.logInfo(request,`updateAssetParticipantAccess adding streamtype id 4 %j`,{request});
                     break;
 
             };
         }
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         request['activity_streamtype_id'] = activityStreamTypeId;
 
-        var index = 0;
-        var activityParticipantCollection = JSON.parse(request.activity_participant_collection);
-        var maxIndex = activityParticipantCollection.length - 1;
+        let index = 0;
+        let activityParticipantCollection = JSON.parse(request.activity_participant_collection);
+        let maxIndex = activityParticipantCollection.length - 1;
         //var maxIndex = request.activity_participant_collection.length - 1;        
         iterateUpdateParticipantAccess(activityParticipantCollection, index, maxIndex, function (err, data) {
             if (err === false && data === true) {
@@ -659,17 +673,18 @@ function ActivityParticipantService(objectCollection) {
                 }
             } else {
                 //console.log("something is not wright in adding a participant");
-                global.logger.write('serverError', 'something is not right in adding a participant', err, {})
+                //global.logger.write('serverError', 'something is not right in adding a participant', err, {})
+                util.logError(request,`iterateUpdateParticipantAccess serverError something is not right in adding a participant Error %j`, { err });
             }
         });
     };
 
-    var addParticipant = function (request, participantData, newRecordStatus, callback) {
-        var fieldId = 0;
+    let addParticipant = function (request, participantData, newRecordStatus, callback) {
+        let fieldId = 0;
         if (participantData.hasOwnProperty('field_id')) {
             fieldId = participantData.field_id;
         }
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
         if (newRecordStatus) {
             if(request.hasOwnProperty('apiVersion') && request.apiVersion == 'v1') {
                 activityAssetMappingInsertParticipantAssignV1(request, participantData, function (err, data) {
@@ -803,7 +818,8 @@ function ActivityParticipantService(objectCollection) {
         
         } else {
             //console.log('re-assigining to the archived row');
-            global.logger.write('conLog', 're-assigining to the archived row', {}, {})
+            //global.logger.write('conLog', 're-assigining to the archived row', {}, {})
+            util.logInfo(request,`addParticipant re-assigining to the archived row %j`,{});
             activityAssetMappingUpdateParticipantReAssign(request, participantData, function (err, data) {
                 if (err === false) {
                     activityPushService.sendPush(request, objectCollection, participantData.asset_id, function () {});
@@ -841,7 +857,8 @@ function ActivityParticipantService(objectCollection) {
                                 });
                             } else {
                                 //console.log('either documnent or a file');
-                                global.logger.write('conLog', 'either documnent or a file', {}, {})
+                                //global.logger.write('conLog', 'either documnent or a file', {}, {})
+                                util.logInfo(request,`assetActivityListHistoryInsert either documnent or a file`,{});
                             }
                         }
 
@@ -859,7 +876,7 @@ function ActivityParticipantService(objectCollection) {
         }
     };
 
-    var assignUnassignParticipantPam = function (request, participantData, status, callback) {
+    let assignUnassignParticipantPam = function (request, participantData, status, callback) {
         updateActivityListOwnerLeadPam(request, participantData, status, function (err, data) {
             if (err === false) { //You will get it from participant collection
                 if (participantData.asset_category_id == 32 ||
@@ -904,9 +921,9 @@ function ActivityParticipantService(objectCollection) {
         });
     };
 
-    var updateActivityListOwnerLeadPam = function (request, participantCollection, status, callback) {
-        var flag = (status === 1) ? 1 : 0;
-        var paramsArr = new Array(
+    let updateActivityListOwnerLeadPam = function (request, participantCollection, status, callback) {
+        let flag = (status === 1) ? 1 : 0;
+        let paramsArr = new Array(
             request.activity_id,
             participantCollection.asset_id,
             request.organization_id,
@@ -916,7 +933,7 @@ function ActivityParticipantService(objectCollection) {
             request.asset_id,
             request.datetime_log
         );
-        var queryString = util.getQueryString("ds_v1_activity_list_update_owner_lead_pam", paramsArr);
+        let queryString = util.getQueryString("ds_v1_activity_list_update_owner_lead_pam", paramsArr);
         if (queryString != '') {
 
             db.executeQuery(0, queryString, request, function (err, data) {
@@ -926,7 +943,8 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, err, {})
+                    //global.logger.write('serverError', err, err, {})
+                    util.logError(request,`updateActivityListOwnerLeadPam serverError Error %j`, { err });
                     return;
                 }
             });
@@ -935,7 +953,7 @@ function ActivityParticipantService(objectCollection) {
 
     //BETA
     this.updateParticipantTimestamp = function (request, callback) {
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
 
         //Update the collaborator joining timestamp
@@ -955,8 +973,8 @@ function ActivityParticipantService(objectCollection) {
     };
 
     //BETA
-    var updateTimeStamp = function (request, callback) {
-        var paramsArr = new Array(
+    let updateTimeStamp = function (request, callback) {
+        let paramsArr = new Array(
             request.activity_id,
             request.target_asset_id,
             request.organization_id,
@@ -964,28 +982,29 @@ function ActivityParticipantService(objectCollection) {
             request.asset_id,
             request.datetime_log
         );
-        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_joining_datetime", paramsArr);
+        let queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_joining_datetime", paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
                     callback(false, true);
                 } else {
-                    global.logger.write('serverError', err, {}, {});
+                    //global.logger.write('serverError', err, {}, {});
+                    util.logError(request,`updateTimeStamp serverError Error %j`, { err });
                     callback(true, err);
                 }
             });
         }
     };
 
-    var activityAssetMappingInsertParticipantAssign = function (request, participantData, callback) {
-        var fieldId = 0;
-        var quantityUnitType = (request.hasOwnProperty('quantity_unit_type')) ? request.quantity_unit_type : '';
-        var quantityUnitValue = (request.hasOwnProperty('quantity_unit_value')) ? request.quantity_unit_value : -1;
+    let activityAssetMappingInsertParticipantAssign = function (request, participantData, callback) {
+        let fieldId = 0;
+        let quantityUnitType = (request.hasOwnProperty('quantity_unit_type')) ? request.quantity_unit_type : '';
+        let quantityUnitValue = (request.hasOwnProperty('quantity_unit_value')) ? request.quantity_unit_value : -1;
 
         if (participantData.hasOwnProperty('field_id')) {
             fieldId = participantData.field_id;
         }
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             participantData.asset_id,
             participantData.workforce_id,
@@ -1001,7 +1020,7 @@ function ActivityParticipantService(objectCollection) {
             quantityUnitType,
             quantityUnitValue
         );
-        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_appr_ingre", paramsArr);
+        let queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_appr_ingre", paramsArr);
         //var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_appr", paramsArr);
 
         if (queryString !== '') {
@@ -1038,17 +1057,18 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, {}, {})
+                    //global.logger.write('serverError', err, {}, {})
+                    util.logError(request,`activityAssetMappingInsertParticipantAssign serverError Error %j`, { err });
                     return;
                 }
             });
         }
     };
 
-    var activityAssetMappingInsertParticipantAssignV1 = function (request, participantData, callback) {
-        var fieldId = 0;
-        var quantityUnitType = (request.hasOwnProperty('quantity_unit_type')) ? request.quantity_unit_type : '';
-        var quantityUnitValue = (request.hasOwnProperty('quantity_unit_value')) ? request.quantity_unit_value : -1;
+    let activityAssetMappingInsertParticipantAssignV1 = function (request, participantData, callback) {
+        let fieldId = 0;
+        let quantityUnitType = (request.hasOwnProperty('quantity_unit_type')) ? request.quantity_unit_type : '';
+        let quantityUnitValue = (request.hasOwnProperty('quantity_unit_value')) ? request.quantity_unit_value : -1;
 
         if (participantData.hasOwnProperty('field_id')) {
             fieldId = participantData.field_id;
@@ -1108,19 +1128,20 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, {}, {})
+                    //global.logger.write('serverError', err, {}, {})
+                    util.logError(request,`activityAssetMappingInsertParticipantAssignV1 serverError Error %j`, { err });
                     return;
                 }
             });
         }
     };
 
-    var activityAssetMappingUpdateParticipantReAssign = function (request, participantData, callback) {
-        var fieldId = 0;
+    let activityAssetMappingUpdateParticipantReAssign = function (request, participantData, callback) {
+        let fieldId = 0;
         if (participantData.hasOwnProperty('field_id')) {
             fieldId = participantData.field_id;
         }
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             participantData.asset_id,
             participantData.organization_id,
@@ -1128,7 +1149,7 @@ function ActivityParticipantService(objectCollection) {
             request.asset_id,
             request.datetime_log
         );
-        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_reassign_participant_appr", paramsArr);
+        let queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_reassign_participant_appr", paramsArr);
 
         if (queryString !== '') {
 
@@ -1148,17 +1169,18 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, {}, {})
+                    //global.logger.write('serverError', err, {}, {})
+                    util.logError(request,`activityAssetMappingUpdateParticipantReAssign serverError Error %j`, { err });
                     return;
                 }
             });
         }
     };
 
-    var activityAssetMappingInsertParticipantUnassign = function (request, participantData, callback) {
+    let activityAssetMappingInsertParticipantUnassign = function (request, participantData, callback) {
         //IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             participantData.asset_id,
             request.organization_id,
@@ -1166,7 +1188,7 @@ function ActivityParticipantService(objectCollection) {
             request.datetime_log
 
         );
-        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_asset_unassign", paramsArr);
+        let queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_asset_unassign", paramsArr);
 
         if (queryString != '') {
 
@@ -1187,23 +1209,24 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, {}, {})
+                    //global.logger.write('serverError', err, {}, {})
+                    util.logError(request,`activityAssetMappingInsertParticipantUnassign serverError Error %j`, { err });
                     return;
                 }
             });
         }
     };
 
-    var updateParticipantCount = function (activityId, organizationId, request, callback) {
-        var paramsArr = new Array(
+    let updateParticipantCount = function (activityId, organizationId, request, callback) {
+        let paramsArr = new Array(
             activityId,
             organizationId
         );
-        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_select_participant_count", paramsArr);
+        let queryString = util.getQueryString("ds_v1_activity_asset_mapping_select_participant_count", paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
-                    var participantCount = data[0].participant_count;
+                    let participantCount = data[0].participant_count;
                     //console.log('participant count retrieved from query is: ' + participantCount);
                     util.logInfo(request,`participant count retrieved from query is: %j`, participantCount);
 
@@ -1269,12 +1292,12 @@ function ActivityParticipantService(objectCollection) {
         }
     };
 
-    var unassignAssetFromActivity = function (request, participantData, callback) {
-        var fieldId = 0;
+    let unassignAssetFromActivity = function (request, participantData, callback) {
+        let fieldId = 0;
         if (participantData.hasOwnProperty('field_id')) {
             fieldId = participantData.field_id;
         }
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
         activityAssetMappingInsertParticipantUnassign(request, participantData, function (err, data) {
             if (err === false) {
 
@@ -1308,9 +1331,9 @@ function ActivityParticipantService(objectCollection) {
         });
     }
 
-    var updateAssetParticipantAccess = function (request, participantData, callback) {
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
-        var fieldId = 0;
+    let updateAssetParticipantAccess = function (request, participantData, callback) {
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
+        let fieldId = 0;
         if (participantData.hasOwnProperty('field_id')) {
             fieldId = participantData.field_id;
         }
@@ -1342,10 +1365,10 @@ function ActivityParticipantService(objectCollection) {
         });
     }
 
-    var activityAssetMappingUpdateParticipantAccess = function (request, participantData, callback) {
+    let activityAssetMappingUpdateParticipantAccess = function (request, participantData, callback) {
         //IN p_activity_id BIGINT(20), IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             participantData.asset_id,
             participantData.organization_id,
@@ -1354,7 +1377,7 @@ function ActivityParticipantService(objectCollection) {
             request.datetime_log
         );
 
-        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_asset_aceess", paramsArr);
+        let queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_asset_aceess", paramsArr);
 
         if (queryString != '') {
 
@@ -1365,7 +1388,8 @@ function ActivityParticipantService(objectCollection) {
                 } else {
                     callback(err, false);
                     //console.log(err);
-                    global.logger.write('serverError', err, err, {})
+                    //global.logger.write('serverError', err, err, {})
+                    util.logError(request,`activityAssetMappingUpdateParticipantAccess serverError Error %j`, { err });
                     return;
                 }
             });
@@ -1373,10 +1397,10 @@ function ActivityParticipantService(objectCollection) {
     };
 
     this.addInviteeAsParticipantToIdCard = function (request, callback) {
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
 
-        var activityParticipantCollection = JSON.parse(request.activity_participant_collection);
+        let activityParticipantCollection = JSON.parse(request.activity_participant_collection);
 
         activityAssetMappingInsertParticipantAssign(request, activityParticipantCollection[0], function (err, data) {
             if (err === false) {
