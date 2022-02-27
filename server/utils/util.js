@@ -174,7 +174,7 @@ function Util(objectCollection) {
         let url = "http://api.mvaayoo.com/mvaayooapi/MessageCompose?user=junaid.m@grene.in:greneapple&senderID=PUDMNK&receipientno=" + countryCode + "" + phoneNumber + "&dcs=0&msgtxt=" + messageString + "&state=4";
         //console.log('URL : ', url);
         //global.logger.write('conLog', 'URL : ' + url, {}, {});
-        util.logInfo({},`pamSendSmsMvaayoo conLog URL :  %j`,{URL : url});
+        this.logInfo({},`pamSendSmsMvaayoo conLog URL :  %j`,{URL : url});
 
         request(url, function (error, response, body) {
             let res = {};
@@ -227,7 +227,7 @@ function Util(objectCollection) {
         let url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A9113d0c40f299b66cdf5cf654bfc61b8&to=" + countryCode + "" + phoneNumber + "&sender=MYTONY&format=json&message=" + messageString;
         //console.log(url);
         //global.logger.write('debug', url, {}, {});
-        util.logInfo({},`sendSmsSinfini debug url %j`,{url});
+        this.logInfo({},`sendSmsSinfini debug url %j`,{url});
         request(url, function (error, response, body) {
             let foo = JSON.parse(body);
 
@@ -268,7 +268,7 @@ function Util(objectCollection) {
         let url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A9113d0c40f299b66cdf5cf654bfc61b8&to=" + countryCode + "" + phoneNumber + "&sender=PAMAPP&format=json&message=" + messageString;
         //console.log(url);
         //global.logger.write('debug', url, {}, {});
-        util.logInfo({},`pamSendSmsSinfini debug url %j`,{url});
+        this.logInfo({},`pamSendSmsSinfini debug url %j`,{url});
         request(url, function (error, response, body) {
             let foo = JSON.parse(body);
 
@@ -308,7 +308,7 @@ function Util(objectCollection) {
         let url = "http://api-alerts.solutionsinfini.com/v3/?method=sms&api_key=A9113d0c40f299b66cdf5cf654bfc61b8&to=" + countryCode + "" + phoneNumber + "&sender="+senderId+"&format=json&message=" + messageString;
         //console.log(url);
         //global.logger.write('debug', url, {}, {});
-        util.logInfo({},`sendSmsSinfiniV1 debug url %j`,{url});
+        this.logInfo({},`sendSmsSinfiniV1 debug url %j`,{url});
         request(url, function (error, response, body) {
             let foo = JSON.parse(body);
 
@@ -337,10 +337,10 @@ function Util(objectCollection) {
         messageString = encodeURI(messageString);
         let url = "http://smshorizon.co.in/api/sendsms.php?user=GreneRobotics&apikey=oLm0MhRHBt2KPXFRrk8k&mobile="+countryCode+""+phoneNumber+"&message="+messageString+"&senderid=WDDESK&type=txt";
         //global.logger.write('conLog', 'URL: ' + url, {}, {});
-        util.logInfo({},`sendSmsHorizon conLog URL %j`,{URL : url});
+        this.logInfo({},`sendSmsHorizon conLog URL %j`,{URL : url});
         request(url, function (error, response, body) {
             //global.logger.write('debug', 'SMS HORIZON RESP:: ' + body, {}, {});
-            util.logInfo({},`sendSmsHorizon debug SMS HORIZON RESP::  %j`,{body});
+            this.logInfo({},`sendSmsHorizon debug SMS HORIZON RESP::  %j`,{body});
             let res = {};            
             if (typeof body == 'string' && Number(body) > 0) {
                 res['status'] = 1;
@@ -374,11 +374,11 @@ function Util(objectCollection) {
             }
             //console.log(res);
             //global.logger.write('debug', res, {}, request);
-            util.logInfo(request,`sendInternationalTwilioSMS debug  %j`,{res, request});
+            this.logInfo(request,`sendInternationalTwilioSMS debug  %j`,{res, request});
             if (err) {
                 //console.log('err : ', err);
                 //global.logger.write('debug', err, {}, request);
-                util.logError(request,`sendInternationalTwilioSMS debug Error %j`, { err, request });
+                this.logError(request,`sendInternationalTwilioSMS debug Error %j`, { err, request });
                 callback(err, false);
             } else {
                 callback(false, res);
@@ -400,24 +400,24 @@ function Util(objectCollection) {
         //console.log('Text : ', text);
 
         //global.logger.write('conLog', 'To : ' + to, {}, request);
-        util.logInfo(request,`sendInternationalNexmoSMS conLog To : %j`,{To : to, request});
+        this.logInfo(request,`sendInternationalNexmoSMS conLog To : %j`,{To : to, request});
         //global.logger.write('conLog', 'Text : ' + text, {}, request);
-        util.logInfo(request,`sendInternationalNexmoSMS conLog Text : %j`,{Text : text, request});
+        this.logInfo(request,`sendInternationalNexmoSMS conLog Text : %j`,{Text : text, request});
 
         nexmo.message.sendSms(from, to, text, (error, response) => {
             if (error) {
                 //global.logger.write('debug', error, {}, request);
-                util.logError(request,`nexmo.message.sendSms debug Error %j`, { error, request });
+                this.logError(request,`nexmo.message.sendSms debug Error %j`, { error, request });
                 throw error;
             } else if (response.messages[0].status != '0') {
                 //console.error(response);
                 //global.logger.write('debug', response, {}, request);
-                util.logInfo(request,`nexmo.message.sendSms conLog  %j`,{response, request});
+                this.logInfo(request,`nexmo.message.sendSms conLog  %j`,{response, request});
                 throw 'Nexmo returned back a non-zero status';
             } else {
                 //console.log(response);
                 //global.logger.write('debug', response, {}, request);
-                util.logInfo(request,`nexmo.message.sendSms conLog %j`,{response, request});
+                this.logInfo(request,`nexmo.message.sendSms conLog %j`,{response, request});
             }
         });
     };
@@ -502,9 +502,9 @@ function Util(objectCollection) {
         //console.log(global.config.mobileBaseUrl + global.config.version + '/account/voice_'+passcode);
 
         //global.logger.write('conLog', 'xmlText : ' + xmlText, {}, request);
-        util.logInfo(request,`MakeCallTwilio conLog xmlText : %j`,{xmlText : xmlText, request});
+        this.logInfo(request,`MakeCallTwilio conLog xmlText : %j`,{xmlText : xmlText, request});
         //global.logger.write('conLog', global.config.mobileBaseUrl + global.config.version + '/account/voice_' + passcode, {}, request);
-        util.logInfo(request,`MakeCallTwilio conLog  %j`,{global_config_mobileBaseUrl : global.config.mobileBaseUrl + global.config.version + '/account/voice_' + passcode, request});
+        this.logInfo(request,`MakeCallTwilio conLog  %j`,{global_config_mobileBaseUrl : global.config.mobileBaseUrl + global.config.version + '/account/voice_' + passcode, request});
 
         fs.writeFile(global.config.efsPath + 'twiliovoicesxmlfiles/voice_' + passcode + '.xml', xmlText, function (err) {
             if (err) {
@@ -560,11 +560,11 @@ function Util(objectCollection) {
 
         //console.log('jsonText : ' + jsonText);
         //global.logger.write('conLog', 'jsonText : ' + jsonText, {}, {});
-        util.logInfo(request,`makeCallNexmo conLog jsonText : %j`,{jsonText : jsonText});
+        this.logInfo(request,`makeCallNexmo conLog jsonText : %j`,{jsonText : jsonText});
         let answerUrl = global.config.mobileBaseUrl + global.config.version + '/account/nexmo/voice_' + passcode + '.json?file=voice_' + passcode + '.json';
         //console.log('Answer Url : ', answerUrl);
         //global.logger.write('conLog', 'Answer Url : ' + answerUrl, {}, {});
-        util.logInfo(request,`makeCallNexmo conLog Answer Url : %j`,{Answer_Url : answerUrl});
+        this.logInfo(request,`makeCallNexmo conLog Answer Url : %j`,{Answer_Url : answerUrl});
         fs.writeFile(global.config.efsPath + 'nexmovoicesjsonfiles/voice_' + passcode + '.json', jsonText, function (err) {
             if (err) {
                 throw err;
@@ -586,7 +586,7 @@ function Util(objectCollection) {
                     } else {
                         //console.log('makeCallNexmo response: ', response);
                         //global.logger.write('debug', 'makeCallNexmo response: ' + JSON.stringify(response), {}, request);
-                        util.logInfo(request,`fs.writeFile debug makeCallNexmo response: %j`,{response : JSON.stringify(response), request});
+                        this.logInfo(request,`fs.writeFile debug makeCallNexmo response: %j`,{response : JSON.stringify(response), request});
                         callback(false, response, 200);
                     }
                 });
@@ -610,11 +610,11 @@ function Util(objectCollection) {
         }];
 
         //global.logger.write('conLog', 'jsonText : ' + jsonText, {}, {});
-        util.logInfo(request,`makeCallNexmoV1 conLog jsonText : %j`,{jsonText : jsonText});
+        this.logInfo(request,`makeCallNexmoV1 conLog jsonText : %j`,{jsonText : jsonText});
         // let answerUrl = 'http://f0ef1a18.ngrok.io/r1' + '/account/nexmo/v1/voice_' + passcode + '.json?file=voice_' + passcode + '.json';
         let answerUrl = global.config.mobileBaseUrl + global.config.version + '/account/nexmo/v1/voice_' + passcode + '.json?file=voice_' + passcode + '.json';
         //global.logger.write('conLog', 'Answer Url : ' + answerUrl, {}, {});
-        util.logInfo(request,`makeCallNexmoV1 conLog Answer Url : %j`,{Answer_Url : jsonText});
+        this.logInfo(request,`makeCallNexmoV1 conLog Answer Url : %j`,{Answer_Url : jsonText});
 
         await uploadJsonToS3({}, jsonText, 'nexmo', `voice_${passcode}`);
 
@@ -635,7 +635,7 @@ function Util(objectCollection) {
             } else {
                 //console.log('makeCallNexmo response: ', response);
                 //global.logger.write('debug', 'makeCallNexmo response: ' + JSON.stringify(response), {}, request);
-                util.logInfo(request,`nexmo.calls.create debug makeCallNexmo response: %j`,{response : JSON.stringify(response), request});
+                this.logInfo(request,`nexmo.calls.create debug makeCallNexmo response: %j`,{response : JSON.stringify(response), request});
                 callback(false, response, 200);
             }
         });
@@ -1836,10 +1836,10 @@ function Util(objectCollection) {
         messageString = encodeURI(messageString);
         let url = "http://smshorizon.co.in/api/sendsms.php?user=GreneRobotics&apikey=oLm0MhRHBt2KPXFRrk8k&mobile="+countryCode+""+phoneNumber+"&message="+messageString+"&senderid=WDDESK&type=txt";
         //global.logger.write('conLog', 'URL: ' + url, {}, {});
-        util.logInfo({},`sendSmsHorizon conLog URL: %j`,{URL : url});
+        this.logInfo({},`sendSmsHorizon conLog URL: %j`,{URL : url});
         request(url, function (error, response, body) {
             //global.logger.write('debug', 'SMS HORIZON RESP:: ' + body, {}, {});
-            util.logInfo({},`sendSmsHorizon debug SMS HORIZON RESP:: %j`,{ body});
+            this.logInfo({},`sendSmsHorizon debug SMS HORIZON RESP:: %j`,{ body});
             let res = {};            
             if (typeof body == 'string' && Number(body) > 0) {
                 res['status'] = 1;
@@ -3668,7 +3668,7 @@ function Util(objectCollection) {
                 message,
                 index
             );
-            const queryString = util.getQueryString('ds_v1_elastic_error_transaction_insert', paramsArr);
+            const queryString = this.getQueryString('ds_v1_elastic_error_transaction_insert', paramsArr);
 
             if (queryString !== '') {
                 await db.executeQueryPromise(0, queryString, request)
