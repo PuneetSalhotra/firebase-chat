@@ -2638,10 +2638,11 @@ function ActivityTimelineService(objectCollection) {
 
         let approvalFields = new Array();
         forEachAsync(formDataJson, function (next, row) {
+            let datatypeComboId = 0
             if (row.hasOwnProperty('data_type_combo_id')) {
-                let datatypeComboId = row.data_type_combo_id;
-            } else
-                let datatypeComboId = 0;
+                datatypeComboId = row.data_type_combo_id;
+            }
+
             let params = new Array(
                 request.form_transaction_id, //0
                 row.form_id, //1
@@ -2676,6 +2677,7 @@ function ActivityTimelineService(objectCollection) {
             //global.logger.write('debug', '\x1b[32m addFormEntries params - \x1b[0m' + JSON.stringify(params), {}, request);
 
             let dataTypeId = Number(row.field_data_type_id);
+            let signatureData = null;
             switch (dataTypeId) {
                 case 1: // Date
                 case 2: // future Date
@@ -2800,7 +2802,7 @@ function ActivityTimelineService(objectCollection) {
                     break;
                 case 27: //General Signature with asset reference
                 case 28: //General Picnature with asset reference
-                    let signatureData = row.field_value.split('|');
+                    signatureData = row.field_value.split('|');
                     params[18] = signatureData[0]; //image path
                     params[13] = signatureData[1]; // asset reference
                     params[11] = signatureData[1]; // accepted /rejected flag
@@ -2808,7 +2810,7 @@ function ActivityTimelineService(objectCollection) {
                 case 29: //Coworker Signature with asset reference
                 case 30: //Coworker Picnature with asset reference
                     approvalFields.push(row.field_id);
-                    let signatureData = row.field_value.split('|');
+                    signatureData = row.field_value.split('|');
                     params[18] = signatureData[0]; //image path
                     params[13] = signatureData[1]; // asset reference
                     params[11] = signatureData[1]; // accepted /rejected flag
@@ -3496,6 +3498,7 @@ async function addFormEntriesAsync(request) {
             //global.logger.write('debug', '\x1b[32m addFormEntriesAsync params - \x1b[0m' + JSON.stringify(params), {}, request);
 
         let dataTypeId = Number(row.field_data_type_id);
+        let signatureData = null;
         switch (dataTypeId) {
             case 1: // Date
             case 2: // future Date
@@ -3634,7 +3637,7 @@ async function addFormEntriesAsync(request) {
                 break;
             case 27: //General Signature with asset reference
             case 28: //General Picnature with asset reference
-                let signatureData = row.field_value.split('|');
+                signatureData = row.field_value.split('|');
                 params[18] = signatureData[0]; //image path
                 params[13] = signatureData[1]; // asset reference
                 params[11] = signatureData[1]; // accepted /rejected flag
@@ -3642,7 +3645,7 @@ async function addFormEntriesAsync(request) {
             case 29: //Coworker Signature with asset reference
             case 30: //Coworker Picnature with asset reference
                     approvalFields.push(row.field_id);
-                    let signatureData = row.field_value.split('|');
+                    signatureData = row.field_value.split('|');
                     params[18] = signatureData[0]; //image path
                     params[13] = signatureData[1]; // asset reference
                     params[11] = signatureData[1]; // accepted /rejected flag

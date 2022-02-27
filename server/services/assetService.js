@@ -1403,18 +1403,19 @@ function AssetService(objectCollection) {
                 let redisPhoneCallMode = await cacheWrapper.getSmsMode('phone_call_mode');
                 redisPhoneCallMode = Number(redisPhoneCallMode);
 
+                let passcode= "", text = "";
                 switch (redisPhoneCallMode) {
                     case 2: //Nexmo
                         //console.log('Making Nexmo Call');
                         //global.logger.write('conLog', 'Making Nexmo Call', {}, request);
                         util.logInfo(request,`sendCallOrSms Making Nexmo Call %j`,{request});
-                        let passcode = request.passcode;
+                        passcode = request.passcode;
                         passcode = passcode.split("");
                         passcode = passcode.toString();
                         passcode = passcode.replace(/,/g, " ");
 
                         //var text = "Your passcode for Mytony App is, " + passcode + ". I repeat, your passcode for Mytony App is, " + passcode + ". Thank you.";
-                        let text = "Your passcode for " + appName + " App is, " + passcode;
+                        text = "Your passcode for " + appName + " App is, " + passcode;
                         text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
                         text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
                         text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
@@ -1436,12 +1437,12 @@ function AssetService(objectCollection) {
                         //console.log('Making Twilio Call');
                         //global.logger.write('conLog', 'Making Twilio Call', {}, request);
                         util.logInfo(request,`sendCallOrSms Making Twilio Call %j`,{request});
-                        let passcode = request.passcode;
+                        passcode = request.passcode;
                         passcode = passcode.split("");
 
                         //var text = "Your passcode is " + passcode + " I repeat," + passcode + " Thank you.";
                         //var text = "Your passcode for Mytony App is, " + passcode + ". I repeat, your passcode for Mytony App is, " + passcode + ". Thank you.";
-                        let text = "Your passcode for " + appName + " App is, " + passcode;
+                        text = "Your passcode for " + appName + " App is, " + passcode;
                         text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
                         text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
                         text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
@@ -2210,7 +2211,7 @@ function AssetService(objectCollection) {
 
     };
 
-    let assetListUpdateLampStatus = function (request, assetId, callback) {
+    var assetListUpdateLampStatus = function (request, assetId, callback) {
 
         let paramsArr = new Array(
             assetId,
@@ -2379,7 +2380,7 @@ function AssetService(objectCollection) {
      });        
      };*/
 
-    let assetListUpdateLampStatus = function (request, assetId, callback) {
+    var assetListUpdateLampStatus = function (request, assetId, callback) {
 
         let paramsArr = new Array(
             assetId,

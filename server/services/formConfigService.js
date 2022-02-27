@@ -1278,6 +1278,7 @@ function FormConfigService(objCollection) {
 
                 let dataTypeId = Number(row.field_data_type_id);
                 request['field_value'] = row.field_value;
+                let signatureData = null;
                 switch (dataTypeId) {
                     case 1: // Date
                     case 2: // future Date
@@ -1462,7 +1463,7 @@ function FormConfigService(objCollection) {
                         break;
                     case 27: //General Signature with asset reference
                     case 28: //General Picnature with asset reference
-                        let signatureData = row.field_value.split('|');
+                        signatureData = row.field_value.split('|');
                         params[18] = signatureData[0]; //image path
                         params[13] = signatureData[1]; // asset reference
                         params[11] = signatureData[1]; // accepted /rejected flag
@@ -1470,7 +1471,7 @@ function FormConfigService(objCollection) {
                     case 29: //Coworker Signature with asset reference
                     case 30: //Coworker Picnature with asset reference
                         approvalFields.push(row.field_id);
-                        let signatureData = row.field_value.split('|');
+                        signatureData = row.field_value.split('|');
                         params[18] = signatureData[0]; //image path
                         params[13] = signatureData[1]; // asset reference
                         params[11] = signatureData[1]; // accepted /rejected flag

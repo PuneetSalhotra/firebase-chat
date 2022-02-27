@@ -78,7 +78,7 @@ function QueueWrapper(producer, cacheWrapper) {
                 // callback(true, err);
             } else {
                 //global.logger.write('debug', 'Producer success callback message ' + JSON.stringify(data), JSON.stringify(data), event.payload);
-                util.logInfo({},`raiseFormWidgetEvent debug Producer success callback message %j`,{message : JSON.stringify(data),JSON.stringify(data),payload : event.payload});
+                util.logInfo({},`raiseFormWidgetEvent debug Producer success callback message %j`,{message : JSON.stringify(data),data : JSON.stringify(data),payload : event.payload});
                 // callback(false, 'Producer success callback message');
             }            
         });        

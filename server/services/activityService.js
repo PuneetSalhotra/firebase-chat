@@ -1267,6 +1267,7 @@ function ActivityService(objectCollection) {
             }
 
         }).then(() => {
+            let ownerAssetID = 0;
             switch (activityTypeCategoryId) {
                 case 2: // notepad
                     /*
@@ -1483,7 +1484,6 @@ function ActivityService(objectCollection) {
                     break;
                 case 10:
                 case 11:
-                    let ownerAssetID;
                     if (request.hasOwnProperty('owner_asset_id')) {
                         (request.owner_asset_id == 0) ? ownerAssetID = request.asset_id: ownerAssetID = request.owner_asset_id;
                     } else {
@@ -1518,7 +1518,7 @@ function ActivityService(objectCollection) {
                     );
                     break;
                 case 16: // Chat
-                    let ownerAssetID = request.owner_asset_id;
+                    ownerAssetID = request.owner_asset_id;
 
                     paramsArr = new Array(
                         request.activity_id,

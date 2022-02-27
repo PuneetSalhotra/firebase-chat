@@ -365,9 +365,9 @@ async function handleImports() {
         global.logger = new Logger(queueWrapper);
 
         //global.logger.write('conLog', 'Kafka Producer is ready', {}, {});
-        util.logInfo({},`conLog Kafka Producer is ready`);
+        console.log(`conLog Kafka Producer is ready`);
         //global.logger.write('conLog', 'BROKER_HOST : ' + global.config.BROKER_HOST, {}, {});
-        util.logInfo({},`conLog BROKER_HOST: %j`,{BROKER_HOST : global.config.BROKER_HOST});
+        console.log(`conLog BROKER_HOST: %j`,{BROKER_HOST : global.config.BROKER_HOST});
 
         let util = new Util({
             cacheWrapper

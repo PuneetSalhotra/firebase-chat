@@ -2329,7 +2329,7 @@ function businessDayCheckFun(curr_date,businessDays){
                 });
         }
 
-        let queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_update_lead', paramsArr);
+        queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_update_lead', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
