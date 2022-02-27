@@ -418,7 +418,8 @@ function FormConfigService(objCollection) {
                 //1 - Millions
                 //2 - Crores
                 "field_value_number_representation": util.replaceDefaultNumber(rowData['field_value_number_representation']),
-                "is_integrations_dependent": util.replaceDefaultNumber(rowData['field_integrations_dependent_enabled'])
+                "is_integrations_dependent": util.replaceDefaultNumber(rowData['field_integrations_dependent_enabled']),
+                "field_gamification_score_value": util.replaceDefaultNumber(rowData['field_gamification_score_value'])
             };
 
             /*if (Number(device_os_id) === 5 && Number(index) === 0 && Number(rowData['field_sequence_id']) === 0)
@@ -2445,6 +2446,7 @@ function FormConfigService(objCollection) {
                 formFieldCollection.data_type_combo_value,
                 formFieldCollection.data_type_id,
                 formFieldCollection.next_field_id,
+                formFieldCollection.gamification_score || 0,
                 request.form_id,
                 request.organization_id,
                 request.asset_id,
@@ -2453,7 +2455,7 @@ function FormConfigService(objCollection) {
 
             //const queryString = util.getQueryString('ds_p1_1_workforce_form_field_mapping_insert', paramsArr);
             //const queryString = util.getQueryString('ds_p1_2_workforce_form_field_mapping_insert', paramsArr);
-            const queryString = util.getQueryString('ds_p1_3_workforce_form_field_mapping_insert', paramsArr);            
+            const queryString = util.getQueryString('ds_p1_4_workforce_form_field_mapping_insert', paramsArr);            
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err) ? reject(err): resolve(data);
@@ -3936,7 +3938,8 @@ function FormConfigService(objCollection) {
                         field_mandatory_enabled: fieldMandatoryEnabled,
                         field_preview_enabled: field.field_preview_enabled,
                         field_value_edit_enabled: field.field_value_edit_enabled,
-                        inline_data: JSON.stringify(field.inline_data)
+                        inline_data: JSON.stringify(field.inline_data),
+                        gamification_score: field.gamification_score || 0,
                     });
                     if (updateError !== false) {
 
@@ -3972,7 +3975,8 @@ function FormConfigService(objCollection) {
                         field_mandatory_enabled: fieldMandatoryEnabled,
                         field_preview_enabled: field.field_preview_enabled,
                         field_value_edit_enabled: field.field_value_edit_enabled,
-                        inline_data: JSON.stringify(field.inline_data)
+                        inline_data: JSON.stringify(field.inline_data),
+                        gamification_score: field.gamification_score || 0,
                     });
                     if (updateError !== false) {
     
@@ -4009,7 +4013,8 @@ function FormConfigService(objCollection) {
                     field_mandatory_enabled: fieldMandatoryEnabled,
                     field_preview_enabled: field.field_preview_enabled,
                     field_value_edit_enabled: field.field_value_edit_enabled,
-                    inline_data: JSON.stringify(field.inline_data)
+                    inline_data: JSON.stringify(field.inline_data),
+                    gamification_score: field.gamification_score || 0,
                 });
                 if (updateError !== false) {
 
@@ -4088,12 +4093,13 @@ function FormConfigService(objCollection) {
             fieldOptions.field_mandatory_enabled,
             fieldOptions.field_preview_enabled,
             fieldOptions.field_value_edit_enabled || 0,
+            fieldOptions.gamification_score || 0, 
             request.organization_id,
             request.asset_id,
             util.getCurrentUTCTime(),
         );
         //const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_update', paramsArr);
-        const queryString = util.getQueryString('ds_p1_1_workforce_form_field_mapping_update', paramsArr);
+        const queryString = util.getQueryString('ds_p1_3_workforce_form_field_mapping_update', paramsArr);
         if (queryString !== '') {
             // console.log(queryString)
             await db.executeQueryPromise(0, queryString, request)

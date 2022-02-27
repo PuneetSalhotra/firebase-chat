@@ -11701,13 +11701,14 @@ if (queryString !== '') {
         const paramsArr = new Array(
             request.organization_id,
             request.header_id,
+            request.conversion_format || "",
             request.tag_type_id,
             request.sequence_id,
             request.header_name,
             request.log_asset_id,
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_v1_widget_drilldown_header_mapping_update', paramsArr);
+        const queryString = util.getQueryString('ds_v1_1_widget_drilldown_header_mapping_update', paramsArr);
 
 
         if (queryString !== '') {
@@ -12122,6 +12123,147 @@ if (queryString !== '') {
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p4_asset_type_access_mapping_insert', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.workforceFormFieldMappingGemificationScoreUpdate = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.field_id,
+          request.form_id,
+          request.organization_id,
+          request.gamification_score,
+          request.asset_id,
+          util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_field_mapping_update_gamification_score', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.assetGamificationTransactionSelect = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.flag,
+            request.activity_id,
+            request.form_id,
+            request.form_transaction_id,
+            request.asset_id,
+            request.start_datetime,
+            request.end_datetime,
+            request.start_from, 
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_v1_asset_gamification_transaction_select', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.assetSummaryTransactionSelect = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.account_id,
+          request.workforce_id,
+          request.asset_id,
+          request.flag,
+          request.summary_id
+        );
+        const queryString = util.getQueryString('ds_v1_1_asset_summary_transaction_select', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.assetMonthlySummaryTransactionFlagSelect = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.asset_id,
+            request.operating_asset_id,
+            request.organization_id,
+            request.flag,
+            request.data_entity_date_1
+        );
+        const queryString = util.getQueryString('ds_p1_asset_monthly_summary_transaction_select_flag', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.workforceFormMappingRolebackFlagUpdate = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.form_id,
+          request.flag_disable_rollback_refill,
+          request.asset_id,
+          util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_form_mapping_update_flag_disable_rollback_refill', paramsArr);
 
 
         if (queryString !== '') {

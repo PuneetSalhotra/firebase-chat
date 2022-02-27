@@ -664,7 +664,12 @@ function ActivityService(objectCollection) {
                                                      }
                                                  }                                                 
                                                  break;
-                                        case 19:     
+                                        case 19: // short text
+                                        case 5 : // Number
+                                        case 6 : // Decimal 
+                                        case 7 : // Scale (0 to 100)
+                                        case 8 : // Scale (0 to 5)
+                                    //  case 18 : // Money with currency name
                                             await activityCommonService.processFieldWidgetData(request, fieldData);   
                                                 break;                                          
                                         default: break;

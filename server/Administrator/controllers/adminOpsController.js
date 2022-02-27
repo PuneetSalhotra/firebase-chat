@@ -1328,6 +1328,56 @@ function AdminOpsController(objCollection) {
             }
         });
 
+        app.post("/" + global.config.version + "/admin/form/field/gemification/score/update", async function (req, res) {
+            const [err, result] = await adminOpsService.workforceFormFieldMappingGemificationScoreUpdate(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/admin/form/field/gemification/score/update | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
+        app.post("/" + global.config.version + "/admin/asset/gamification/transaction/list", async function (req, res) {
+            const [err, result] = await adminOpsService.assetGamificationTransactionSelect(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/admin/asset/gamification/transaction/list | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
+        app.post("/" + global.config.version + "/admin/asset/summary/transaction/list", async function (req, res) {
+            const [err, result] = await adminOpsService.assetSummaryTransactionSelect(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/admin/asset/summary/transaction/list | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
+        app.post("/" + global.config.version + "/admin/asset/monthly/summary/transaction/list", async function (req, res) {
+            const [err, result] = await adminOpsService.assetMonthlySummaryTransactionFlagSelect(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/admin/asset/monthly/summary/transaction/list | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
+        app.post("/" + global.config.version + "/admin/workforce/form/mapping/roleback/flag/update", async function (req, res) {
+            const [err, result] = await adminOpsService.workforceFormMappingRolebackFlagUpdate(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/admin/workforce/form/mapping/roleback/flag/update | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
 
 }
 

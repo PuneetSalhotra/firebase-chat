@@ -823,6 +823,10 @@ function Util(objectCollection) {
         let value = moment().endOf('month').format("YYYY-MM-DD HH:mm:ss");
         return value;
     };
+    this.getEndDateOfMonth = function () {
+        var value = moment().endOf('month').format("YYYY-MM-DD");
+        return value;
+    };
 
     this.getcurrentTime = function () {
         let date = new Date();
@@ -2857,9 +2861,9 @@ function Util(objectCollection) {
                 "ewsMailAttachment": attachment
             }
 
-            // if (emailProviderDetails.hasOwnProperty("email") && emailProviderDetails.email === "vibs.selfcaresupport@vodafoneidea.com") {
-            //     emailSQSQueueUrl = global.config.smpEmailSQSQueueUrl;
-            // }
+            if (emailProviderDetails.hasOwnProperty("email") && emailProviderDetails.email === "vibs.selfcaresupport@vodafoneidea.com") {
+                emailSQSQueueUrl = global.config.smpEmailSQSQueueUrl;
+            }
 
             console.log(JSON.stringify(ewsConfig))
             let sqsMessage = {

@@ -2304,8 +2304,8 @@ function AnalyticsService(objectCollection)
                 request.filter_hierarchy = 0;
             }
 
-            if(request.tag_type_id == 130)
-                request.filter_asset_id = request.asset_id;
+            //if(request.tag_type_id == 130)
+            //    request.filter_asset_id = request.asset_id;
 
             //if([131,132,133,134].includes(request.widget_type_id))
              //   request.filter_asset_id = request.asset_id;
@@ -2376,6 +2376,10 @@ function AnalyticsService(objectCollection)
                         request.filter_asset_tag_1 || 0,
                         request.filter_asset_tag_2 || 0,
                         request.filter_asset_tag_3 || 0,
+                        request.filter_asset_tag_type_1 || 0,
+                        request.filter_asset_tag_type_2 || 0,
+                        request.filter_asset_tag_type_3 || 0,
+                        request.asset_id,
                         parseInt(request.page_start) || 0,
                         parseInt(request.page_limit) || 50
                     );
@@ -2387,7 +2391,7 @@ function AnalyticsService(objectCollection)
                    
                         for(let iteratorM = 0; iteratorM < counter; iteratorM++){
                              paramsArray.push(iteratorM);
-                            tempResult = await db.callDBProcedureR2(request, 'ds_v2_2_activity_search_list_select_widget_values', paramsArray, 1); 
+                            tempResult = await db.callDBProcedureR2(request, 'ds_v2_3_activity_search_list_select_widget_values', paramsArray, 1); 
                             paramsArray.pop();
                             responseArray.push(tempResult[0])
                         }
@@ -2407,7 +2411,7 @@ function AnalyticsService(objectCollection)
                     } else {
                         console.log(paramsArray);
                         paramsArray.push(0);
-                        tempResult = await db.callDBProcedureR2(request, 'ds_v2_2_activity_search_list_select_widget_values', paramsArray, 1); paramsArray.pop();
+                        tempResult = await db.callDBProcedureR2(request, 'ds_v2_3_activity_search_list_select_widget_values', paramsArray, 1); paramsArray.pop();
                         console.log(tempResult);
                      //   let widgetTypes = [23,24,48,49,63,66,37,38,65,61,67,53,54, 39, 40, 41, 42];
                      //   if(widgetTypes.includes(request.widget_type_id)){
@@ -2631,7 +2635,7 @@ function AnalyticsService(objectCollection)
                 responseJson.sequence_id = widgetFlags[iteratorM];
                 verticalResponseAdditonalMap.set(iteratorM, responseJson);
 
-                const queryString = util.getQueryString('ds_v2_2_activity_search_list_select_widget_values_oppty', paramsArray);
+                const queryString = util.getQueryString('ds_v2_3_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
                     await db.executeQueryPromise(1, queryString, request)
@@ -2774,7 +2778,7 @@ function AnalyticsService(objectCollection)
                 responseJson.sequence_id = widgetFlags[iteratorM];
                 verticalResponseAdditonalMap.set(iteratorM, responseJson);
 
-                const queryString = util.getQueryString('ds_v2_2_activity_search_list_select_widget_values_oppty', paramsArray);
+                const queryString = util.getQueryString('ds_v2_3_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
                     await db.executeQueryPromise(1, queryString, request)
@@ -2960,7 +2964,7 @@ function AnalyticsService(objectCollection)
 
                 verticalResponseAdditonalMap.set(iteratorM, responseJson);
 
-                const queryString = util.getQueryString('ds_v2_2_activity_search_list_select_widget_values_oppty', paramsArray);
+                const queryString = util.getQueryString('ds_v2_3_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
                     await db.executeQueryPromise(1, queryString, request)
@@ -3145,8 +3149,8 @@ function AnalyticsService(objectCollection)
             console.log('request.filter_search_string :: '+ request.filter_search_string);
             console.log('request.filter_mapping_activity_id :: '+ request.filter_mapping_activity_id);
 
-            if(request.tag_type_id == 130)
-            request.filter_asset_id = request.asset_id;
+            //if(request.tag_type_id == 130)
+            //request.filter_asset_id = request.asset_id;
             
             //if([131,132,133,134].includes(request.widget_type_id))
             //    request.filter_asset_id = request.asset_id;
@@ -3217,10 +3221,14 @@ function AnalyticsService(objectCollection)
                      request.filter_organization_id,
                      request.filter_asset_tag_1 || 0,
                      request.filter_asset_tag_2 || 0,
-                     request.filter_asset_tag_3 || 0
+                     request.filter_asset_tag_3 || 0,
+                     request.filter_asset_tag_type_1 || 0,
+                     request.filter_asset_tag_type_2 || 0,
+                     request.filter_asset_tag_type_3 || 0,
+                     request.asset_id
                  );
             
-            let queryString = util.getQueryString('ds_v2_2_activity_search_list_select_widget_drilldown_search', paramsArray);
+            let queryString = util.getQueryString('ds_v2_3_activity_search_list_select_widget_drilldown_search', paramsArray);
                 if (queryString !== '') {
                     tempResult = await (db.executeQueryPromise(1, queryString, request));
                 }
@@ -3326,8 +3334,8 @@ function AnalyticsService(objectCollection)
             console.log('request.filter_search_string :: '+ request.filter_search_string);
             console.log('request.filter_mapping_activity_id :: '+ request.filter_mapping_activity_id);
 
-            if(request.tag_type_id == 130)
-            request.filter_asset_id = request.asset_id;
+            //if(request.tag_type_id == 130)
+            //request.filter_asset_id = request.asset_id;
             
             //if([131,132,133,134].includes(request.widget_type_id))
             //    request.filter_asset_id = request.asset_id;
@@ -3396,10 +3404,14 @@ function AnalyticsService(objectCollection)
                      request.filter_organization_id,
                      request.filter_asset_tag_1 || 0,
                      request.filter_asset_tag_2 || 0,
-                     request.filter_asset_tag_3 || 0
+                     request.filter_asset_tag_3 || 0,
+                     request.filter_asset_tag_type_1 || 0,
+                     request.filter_asset_tag_type_2 || 0,
+                     request.filter_asset_tag_type_3 || 0,
+                     request.asset_id
                     );
             
-            let queryString = util.getQueryString('ds_v2_2_activity_search_list_select_widget_drilldown_oppty', paramsArray);
+            let queryString = util.getQueryString('ds_v2_3_activity_search_list_select_widget_drilldown_oppty', paramsArray);
                 if (queryString !== '') {
                     tempResult = await (db.executeQueryPromise(1, queryString, request));
                 }
@@ -4541,19 +4553,20 @@ function AnalyticsService(objectCollection)
             error = true;
         
         const paramsArr = [     
-              request.organization_id,
-              request.account_id,
-              request.type_flag,
-              request.target_account_id,
-              request.tag_id,
-              request.tag_type_id,
-              request.filter_is_search,
-              request.filter_search_string,
-              request.page_start || 0,
-              request.page_limit || 50
+            request.organization_id,
+            request.account_id,
+            request.workforce_tag_id,
+            request.flag,
+            request.target_account_id,
+            request.tag_id,
+            request.tag_type_id,
+            request.is_search,
+            request.search_string,
+            request.start_from || 0,
+            request.limit_value || 50
         ];
 
-        const queryString = util.getQueryString('ds_v1_tag_list_select_dashobard_filters', paramsArr);
+        const queryString = util.getQueryString('ds_v1_1_tag_list_select_dashboard_filters', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
               .then((data) => {
@@ -5201,8 +5214,8 @@ function AnalyticsService(objectCollection)
                 request.filter_hierarchy = 0;
             }
 
-            if (request.tag_type_id == 130)
-                request.filter_asset_id = request.asset_id;
+            //if (request.tag_type_id == 130)
+            //    request.filter_asset_id = request.asset_id;
 
             console.log('request.filter_is_datetime_considered :: ' + request.filter_is_datetime_considered);
 
@@ -6114,8 +6127,8 @@ function AnalyticsService(objectCollection)
                 request.filter_hierarchy = 0;
             }
 
-            if (request.tag_type_id == 130)
-                request.filter_asset_id = request.asset_id;
+            //if (request.tag_type_id == 130)
+            //    request.filter_asset_id = request.asset_id;
 
             console.log('request.filter_is_datetime_considered :: ' + request.filter_is_datetime_considered);
 
@@ -8217,7 +8230,33 @@ function AnalyticsService(objectCollection)
         }
 
         return [false, finalresponse];
-    }       
+    }
+    
+    this.reportTransactionUpdateDownloadCount = async function (request){
+
+        let error= true, responseData = [];
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.report_transaction_id,
+            request.report_id,
+            request.asset_id,
+            request.log_datetime || util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_report_transaction_update_download_count', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;                    
+                })
+        }               
+        return [error,responseData];
+    } 
     
 }
 

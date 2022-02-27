@@ -1346,11 +1346,12 @@ function PamListingService(objectCollection) {
 
         let paramsArr = new Array(
             request.organization_id,
+            request.account_id || 0,
             request.activity_type_category_id,
             request.page_start,
             request.page_limit
         );
-        const queryString = util.getQueryString('pm_v1_tag_entity_mapping_select_category', paramsArr);
+        const queryString = util.getQueryString('pm_v1_1_tag_entity_mapping_select_category', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -1416,8 +1417,12 @@ function PamListingService(objectCollection) {
         const queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_menu_search', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                	responseData = data;
+                .then(async(data) => {
+                    responseData = data;
+                    for (i = 0; i < data.length; i++) {
+                        let [errr, ResData] = await this.getActivityAssetCategory(request, data[i].activity_id);
+                        data[i]['Ingredients'] = ResData;
+                    }
                     error = false;
                 })
                 .catch((err) => {
@@ -1647,6 +1652,83 @@ function PamListingService(objectCollection) {
         }
         return [error, responseData];
     };
+    this.getDiscountPromocode = async function (request) {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.account_id,
+            request.workforce_id,
+            request.organization_id,
+            request.promo_start_datetime,
+            request.promo_end_datetime,
+        );
+        let queryString = util.getQueryString('pm_v1_discount_promocode_select', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+    this.getActivityAssetCategory = async function (request, activity_id) {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.organization_id,
+            activity_id,
+            request.asset_type_category_id = 41
+        );
+        const queryString = util.getQueryString('pm_v1_activity_asset_mapping_select_asset_category', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
+    this.getMenuLinkedtoParticularTagV1 = async function (request) {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.activity_type_category_id,
+            request.activity_type_id,
+            request.tag_id,
+            request.tag_type_id,
+            request.tag_type_category_id,
+            request.menu_tag_id,
+            request.menu_sub_tag_id,
+            request.is_search,
+            request.search_string,
+            request.flag || 0,
+            request.page_start,
+            request.page_limit
+        );
+        const queryString = util.getQueryString('pm_v2_activity_asset_mapping_select_menu_search', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                	responseData = data;
+					error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+	}    
 };
 
 module.exports = PamListingService;

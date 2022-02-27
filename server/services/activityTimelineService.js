@@ -78,7 +78,6 @@ function ActivityTimelineService(objectCollection) {
         activityCommonService.updateAssetLocation(request, function (err, data) {});
 
         if (activityTypeCategoryId === 9 && activityStreamTypeId === 705) { // add form case
-
             setTimeout(() => {
                 getActivityIdBasedOnTransId(request)
                     .then(async (data) => {
@@ -3014,13 +3013,15 @@ function ActivityTimelineService(objectCollection) {
             params.push(util.getCurrentUTCTime()); // IN p_transaction_datetime DATETIME
             params.push(request.datetime_log); // IN p_log_datetime DATETIME
             params.push(request.entity_datetime_2); // IN p_entity_datetime_2 DATETIME
+            params.push(row.field_gamification_score || 0); // IN p_field_gamification_score
+            params.push(request.is_refill === 1 || request.is_resubmit === 1 ? 1 : 0); //refill or resubmit
 
             util.logInfo(request,`addFormEntries params %j`, params);
 
             //var queryString = util.getQueryString('ds_v1_activity_form_transaction_insert', params);
             // var queryString = util.getQueryString('ds_v1_1_activity_form_transaction_insert', params); //BETA
             // var queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
-            let queryString = util.getQueryString('ds_v1_3_activity_form_transaction_insert', params); //BETA
+            let queryString = util.getQueryString('ds_v1_4_activity_form_transaction_insert', params); //BETA
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, async function (err, data) {
                     if (Object.keys(poFields).includes(String(row.field_id))) {
@@ -3874,11 +3875,13 @@ async function addFormEntriesAsync(request) {
             params.push(util.getCurrentUTCTime()); // IN p_transaction_datetime DATETIME
             params.push(request.datetime_log); // IN p_log_datetime DATETIME
             params.push(request.entity_datetime_2); // IN p_entity_datetime_2 DATETIME
+            params.push(row.field_gamification_score || 0); // IN p_field_gamification_score 
+            params.push(request.is_refill === 1 || request.is_resubmit === 1 ? 1 : 0); //refill or resubmit case
 
             util.logInfo(request,`addFormEntriesAsync params %j`,params);
 
             // const queryString = util.getQueryString('ds_v1_2_activity_form_transaction_insert', params); //BETA
-            const queryString = util.getQueryString('ds_v1_3_activity_form_transaction_insert', params); //BETA
+            const queryString = util.getQueryString('ds_v1_4_activity_form_transaction_insert', params); //BETA
             if (queryString != '') {
                 await db.executeQueryPromise(0, queryString, request)
                 .then(async (data) => {

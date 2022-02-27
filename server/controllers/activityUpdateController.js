@@ -721,6 +721,17 @@ function ActivityUpdateController(objCollection) {
             res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+
+    //Added by Akshay Singh
+    app.post('/' + global.config.version + '/activity/map/parent/update', async function (req, res) {
+        const [err, data] = await activityUpdateService.activityMappingParentUpdate(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
     
 }
 

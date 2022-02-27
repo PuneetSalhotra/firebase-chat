@@ -735,7 +735,18 @@ function AnalyticsController(objCollection)
             console.log("/get/sip/periodic/summary | Error: ", err);
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
-    });     
+    });  
+    
+     app.post('/' + global.config.version + '/update/report/download/count', async (req, res) => {
+        try {
+            const [err, result] = await analyticsService.reportTransactionUpdateDownloadCount(req.body);
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } catch (err) {
+            console.log(err)
+            console.log("/update/report/download/count | Error: ", err);
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    }); 
 
     }
 

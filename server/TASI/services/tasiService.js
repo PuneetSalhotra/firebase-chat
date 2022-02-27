@@ -158,12 +158,13 @@ function TasiService(objectCollection) {
             request.asset_type_flag_enable_send_sms,
             request.asset_type_flag_sip_admin_access,
             request.asset_type_flag_enable_dashboard || 0,
+            request.asset_type_flag_enable_gamification || 0,
             request.organization_id,
             request.flag,
             util.getCurrentUTCTime(),
             request.asset_id
         );
-        const queryString = util.getQueryString('ds_p7_workforce_asset_type_mapping_update', paramsArr);
+        const queryString = util.getQueryString('ds_p8_workforce_asset_type_mapping_update', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -3503,7 +3504,7 @@ function TasiService(objectCollection) {
 
         const paramsArr = new Array(
             request.asset_id,
-            request.organization_id,
+            request.organization_id, 
             request.period_start_datetime,
             request.datetime_end,
             request.financial_year,
@@ -3511,8 +3512,9 @@ function TasiService(objectCollection) {
             request.widget_type_category_id,
             request.asset_tag_id_1,
             request.workforce_tag_id,
+            request.product_id,
             request.account_id,
-            request.start_from,
+            request.start_from, 
             request.limit_value
         );
 
@@ -3689,16 +3691,17 @@ function TasiService(objectCollection) {
 
         const paramsArr = new Array(
             request.flag,
-            request.organization_id,
-            request.widget_type_id,
+            request.organization_id, 
+            request.widget_type_id, 
             request.widget_type_category_id,
             request.timeline_id,
             request.period_start_datetime,
             request.period_end_datetime,
             request.financial_year,
-            request.asset_type_id,
+            request.asset_type_id, 
             request.workforce_tag_id,
-            request.start_from,
+            request.product_id || 0,
+            request.start_from, 
             request.limit_value
         );
 
@@ -3768,6 +3771,37 @@ function TasiService(objectCollection) {
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.entityTargetMappingOutlierFlagUpdate = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.target_asset_id,
+            request.flag_type,
+            request.timeline_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.flag_is_outlier,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_1_entity_target_mapping_update_flag_outlier', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;

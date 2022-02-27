@@ -481,6 +481,26 @@ function PamListingController(objCollection) {
             console.log("/pam/get/event/reserved/tables Error: ", err)
             res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
+    });
+    app.post('/' + global.config.version + '/pam/get/discount/promocode', async function (req, res) {
+        const [err, data] = await pamListingService.getDiscountPromocode(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/pam/get/discount/promocode Error: ", err)
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
     });	
+    
+    app.post('/' + global.config.version + '/pam/tag/menu/list/v1', async function (req, res) {
+        const [err, data] = await pamListingService.getMenuLinkedtoParticularTagV1(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("Error: ", err)
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });	   
+     
 };
 module.exports = PamListingController;

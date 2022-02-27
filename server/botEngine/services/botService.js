@@ -2892,6 +2892,22 @@ function BotService(objectCollection) {
                             i.bot_operation_error_message = error;
                         }
                         break;
+
+                    case 60: // Sme Gemification bot
+                        logger.silly("Sme Gemification bot");
+                        logger.silly("Sme Gemification bot %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await this.smeGemification(request, {});
+                            //await handleBotOperationMessageUpdate(request, i, 3);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("Error running the smeGemification", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                        }
+                        break;
                 }
 
                 await handleBotOperationMessageUpdate(request, i);
@@ -9411,6 +9427,13 @@ else{
             } catch (error) {
                 logger.error("updateCUIDBotOperation.queueActivityMappingUpdateCUIDs | Error updating CUID in the queue_activity_mapping table", { type: 'bot_engine', error: serializeError(error), request_body: request });
             }
+
+            try {
+                activityCommonService.actAssetSearchMappingUpdate(request);
+            } catch (error) {
+                logger.error("updateCUIDs | Error updating CUID in the AssetSearchMapping", { type: 'esms_ibm_mq', error: serializeError(error) });
+            }
+
         }
 
         return [false, []];
@@ -10054,6 +10077,301 @@ else{
             await queueWrapper.raiseActivityEventPromise(event1, request.workflow_activity_id);
 
         return [error, responseData];
+    }
+
+    this.smeGemification = async (request, bot_inline) => {
+        
+      util.logInfo(request,`in smeGamification : %j`);
+      let activity_inline_data = {};
+      if(request.hasOwnProperty('activity_inline_data')){
+      activity_inline_data = typeof request.activity_inline_data =="string"?JSON.parse(request.activity_inline_data):request.activity_inline_data;
+      }
+      else{
+        const formTimelineData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+            organization_id: request.organization_id,
+            account_id: request.account_id
+        }, request.workflow_activity_id, request.form_id);
+        if(formTimelineData.length>0){
+            let inlineExtract = JSON.parse(formTimelineData[0].data_entity_inline);
+            activity_inline_data = typeof inlineExtract.form_submitted == 'string' ? JSON.parse(inlineExtract.form_submitted):inlineExtract.form_submitted;
+        }
+      }
+      //field edit request
+      activity_inline_data = await fieldMappingGamification(request,activity_inline_data);
+      
+      util.logInfo(request,`in is_from_field_alter : %j`,request.is_from_field_alter);
+      util.logInfo(request,`in is_refill : %j`,request.is_refill);
+      util.logInfo(request,`in is_resubmit : %j`,request.is_resubmit);
+
+      if (request.is_from_field_alter==1) {
+        let [err,gamificationScore] = await getFormGamificationScore(request,0);
+        util.logInfo(request,`previous gemification score length : %j`,gamificationScore.length);
+        if(gamificationScore.length>0){
+            let previousScore = Number(gamificationScore[0].field_gamification_score_value);
+            if(previousScore == 0 || previousScore == null){
+                return;
+            }
+            let finalScore = await gamificationCountForInlineData(request,activity_inline_data,previousScore,1);
+            
+            request.field_gamification_score = finalScore;
+            util.logInfo(request,`final score : %j`,finalScore);
+            let [err1,gamificationScoreMonthly] = await getFormGamificationScore(request,2);
+            let [err2,gamificationScoreOverall] = await getFormGamificationScore(request,3);
+            let previousScoreOverall = Number(gamificationScoreOverall[0].field_gamification_score_value);
+            let previousScoreMonthly = Number(gamificationScoreMonthly[0].field_gamification_score_value);
+            await updateGamificationScore(request,3);
+            await assetSummaryTransactionInsert(request,previousScoreOverall+Math.abs(previousScore-finalScore));
+            await assetMonthlySummaryTransactionInsert(request,previousScoreMonthly+Math.abs(previousScore-finalScore))
+        }
+        
+      } //resubmit or refill case
+      else if (request.is_refill === 1 || request.is_resubmit === 1) {
+        request.field_gamification_score = 0;
+        await updateGamificationScore(request,request.is_refill === 1?1:2);
+      } //new form submission case
+      else {
+        util.logInfo(request,`new entry : %j`);
+        let finalScore = await gamificationCountForInlineData(request,activity_inline_data,0,0);
+        request.field_gamification_score = finalScore;
+        util.logInfo(request,`final score : %j`,finalScore);
+        util.logInfo(request,`final score inserting into asset summary table: %j`,finalScore);
+        let [err1,gamificationScoreMonthly] = await getFormGamificationScore(request,2);
+            let [err2,gamificationScoreOverall] = await getFormGamificationScore(request,3);
+            let previousScoreOverall = gamificationScoreOverall.length>0?Number(gamificationScoreOverall[0].field_gamification_score_value):0;
+            let previousScoreMonthly = gamificationScoreMonthly.length>0?Number(gamificationScoreMonthly[0].field_gamification_score_value):0;
+            console.log("final overall",previousScoreOverall)
+            console.log("final overall",previousScoreOverall+finalScore);
+            await insertGamificationScore(request);
+            await assetSummaryTransactionInsert(request,previousScoreOverall+finalScore);
+            await assetMonthlySummaryTransactionInsert(request,previousScoreMonthly+finalScore);
+      }
+    };
+
+    async function gamificationCountForInlineData(request,inline_data,gamification_score,is_edit){
+        
+        for await (const eachField of inline_data) {
+            if(is_edit==1){
+              let [err,data] =await formFieldsHistory({...request,field_id:eachField.field_id});
+              if(data.length>1){
+                  continue;
+              }
+            }
+            
+            gamification_score = gamification_score + Number(eachField.field_gamification_score_value || 0);
+            
+        }
+        return gamification_score
+    }
+
+    async function getFormGamificationScore(request,flag) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            flag,
+            request.workflow_activity_id,
+            request.form_id,
+            request.form_transaction_id,
+            request.asset_id,
+            util.getStartDayOfMonth(),
+            util.getEndDateOfMonth(),
+            request.start_from || 0, 
+            request.limit_value || 10
+        );
+        const queryString = util.getQueryString('ds_v1_asset_gamification_transaction_select', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }
+
+    async function assetSummaryTransactionInsert(request,score) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+        7, 
+		request.asset_id, 
+		request.workforce_id, 
+		request.account_id, 
+		request.organization_id, 
+		request.inline_data || '{}', 
+        request.entity_date_1 || '', 
+        request.entity_datetime_1 || '', 
+        request.entity_tinyint_1 || '', 
+        score, 
+        request.entity_double_1 || '', 
+        request.entity_decimal_1 || '', 
+        request.entity_decimal_2 || '', 
+        request.entity_decimal_3 || '', 
+        request.entity_text_1 || '', 
+        request.entity_text_2 || '', 
+        request.location_latitude || '', 
+        request.location_longitude || '', 
+        request.location_gps_accuracy || '', 
+        request.location_gps_enabled || '', 
+        request.location_address || '', 
+        request.location_datetime || '', 
+        request.device_manufacturer_name || '', 
+        request.device_model_name || '', 
+        request.device_os_id || 5, 
+        request.device_os_name || '', 
+        request.device_os_version || '', 
+        request.device_app_version || '', 
+        request.device_api_version || '', 
+        request.log_asset_id || '', 
+        request.log_message_unique_id || '', 
+        request.log_retry || '', 
+        request.log_offline || '', 
+        request.transaction_datetime || '', 
+        util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_asset_summary_transaction_insert', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }
+
+    async function assetMonthlySummaryTransactionInsert(request,score) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          41,
+          request.asset_id || "",
+          request.workforce_id || "",
+          request.account_id || "",
+          request.organization_id || "",
+          util.getStartDayOfMonth(),
+          util.getStartDateTimeOfMonth(),
+          request.entity_tinyint_1 || "",
+          score,
+          request.entity_double_1 || "",
+          request.entity_decimal_1 || "",
+          request.entity_decimal_2 || "",
+          request.entity_decimal_3 || "",
+          request.entity_text_1 || "",
+          request.entity_text_2 || "",
+          request.location_latitude || "",
+          request.location_longitude || "",
+          request.location_gps_accuracy || "",
+          request.location_gps_enabled || "",
+          request.location_address || "",
+          request.location_datetime || "",
+          request.device_manufacturer_name || "",
+          request.device_model_name || "",
+          request.device_os_id || "",
+          request.device_os_name || "",
+          request.device_os_version || "",
+          request.device_app_version || "",
+          request.device_api_version || "",
+          request.log_asset_id || "",
+          request.log_message_unique_id || "",
+          request.log_retry || "",
+          request.log_offline || "",
+          request.transaction_datetime || "",
+          util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_asset_monthly_summary_transaction_insert', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    }
+
+    async function insertGamificationScore(request) {
+      let responseData = [],
+        error = true;
+
+      const paramsArr = new Array(
+        request.organization_id,
+        request.form_transaction_id,
+        util.getCurrentUTCTime(),
+        request.form_id,
+        request.form_name || "",
+        request.field_gamification_score,
+        request.workflow_activity_id,
+        request.asset_id,
+        request.asset_id,
+        util.getCurrentUTCTime()
+      );
+      const queryString = util.getQueryString(
+        "ds_v1_asset_gamification_transaction_insert",
+        paramsArr
+      );
+
+      if (queryString !== "") {
+        await db
+          .executeQueryPromise(0, queryString, request)
+          .then((data) => {
+            responseData = data;
+            error = false;
+          })
+          .catch((err) => {
+            error = err;
+          });
+      }
+      return [error, responseData];
+    }  
+    
+    async function updateGamificationScore(request,flag) {
+      let responseData = [],
+        error = true;
+
+      const paramsArr = new Array(
+        request.workflow_activity_id,
+        request.form_id,
+        request.form_transaction_id,
+        request.asset_id,
+        flag,
+        request.field_gamification_score,
+        util.getCurrentUTCTime()
+      );
+      const queryString = util.getQueryString(
+        "ds_v1_asset_gamification_transaction_update_score",
+        paramsArr
+      );
+
+      if (queryString !== "") {
+        await db
+          .executeQueryPromise(0, queryString, request)
+          .then((data) => {
+            responseData = data;
+            error = false;
+          })
+          .catch((err) => {
+            error = err;
+          });
+      }
+      return [error, responseData];
     }
 
     this.removeDueDateOfWorkflow = async(request, dueDateEdit) => {
@@ -12194,30 +12512,33 @@ if(workflowActivityData.length==0){
     };
 
     async function activityListSearchCUID(request) {
-        let error = true,
-            responseData = [];
+        // let error = true,
+        //     responseData = [];
 
-        const paramsArr = new Array(
-            request.organization_id,
-            request.activity_type_category_id,
-            request.activity_type_id || 0,
-            request.flag || 0,
-            request.search_string,
-            request.page_start || 0,
-            request.page_limit || 50
-        );
-        const queryString = util.getQueryString('ds_v1_activity_list_search_cuid', paramsArr);
+        // const paramsArr = new Array(
+        //     request.organization_id,
+        //     request.activity_type_category_id,
+        //     request.activity_type_id || 0,
+        //     request.flag || 0,
+        //     request.search_string,
+        //     request.page_start || 0,
+        //     request.page_limit || 50
+        // );
+        // const queryString = util.getQueryString('ds_v1_activity_list_search_cuid', paramsArr);
 
-        if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
-                .then((data) => {
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                })
-        }
+        // if (queryString !== '') {
+        //     await db.executeQueryPromise(1, queryString, request)
+        //         .then((data) => {
+        //             responseData = data;
+        //             error = false;
+        //         })
+        //         .catch((err) => {
+        //             error = err;
+        //         })
+        // }
+
+        const [error, responseData] = await activityCommonService.searchCuidFromElastic(request);
+
         return [error, responseData];
     }
 
@@ -15427,7 +15748,7 @@ if(workflowActivityData.length==0){
                     fieldValue = formInlineData[counter].field_value.split('|')[1];
                 }
                 else if(Number(formInlineData[counter].field_data_type_id) === 59){
-                    fieldValue = formInlineData[counter].data_entity_text_1
+                    fieldValue = formInlineData[counter].field_value.split('|')[1];
                 }
                 else{
                     fieldValue = formInlineData[counter].field_value;
@@ -17418,6 +17739,32 @@ if(workflowActivityData.length==0){
         }
         return [error, responseData];
     }
+    async function formFieldsHistory (request) {
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.activity_id,
+            request.organization_id,
+            request.form_transaction_id || 0,
+            request.form_id,
+            request.field_id
+        );
+        const queryString = util.getQueryString('ds_p1_1_activity_form_transaction_select_trans_field_history', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 
     async function handleBotOperationMessageUpdate(request, i = {}) {
 
@@ -17451,6 +17798,49 @@ if(workflowActivityData.length==0){
             util.logError(request, `Error inserting bot operation message `, { type: "bot_consumer", error: serializeError(e) })
         }
 
+    }
+    async function formFieldGamificationData(request){
+        let responseData = [],
+            error = true;
+        let paramsArr = [
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.form_id,
+            '1970-01-01 00:00:00',
+            0,
+            100
+        ];
+        let queryString = util.getQueryString('ds_v1_workforce_form_field_mapping_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+
+    }
+
+    async function fieldMappingGamification(request, inline_data) {
+      let [err, data] = await formFieldGamificationData(request);
+      for (let i = 0; i < data.length; i++) {
+        try {
+            console.log("index",i)
+          let each = await data.find(
+            (val) => val.field_id == inline_data[i].field_id
+          );
+          inline_data[i].field_gamification_score_value =
+            each.field_gamification_score_value;
+        } catch (err1) {
+          continue;
+        }
+      }
+      return inline_data;
     }
 
 }

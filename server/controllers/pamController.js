@@ -724,8 +724,61 @@ function PamController(objCollection) {
             res.json(responseWrapper.getResponse(true, result, -9999, req.body));
         }
     });
-
-    
+    app.post('/' + global.config.version + '/pam/discount/promocode/add', async function (req, res) { 
+        let [err,result] = await pamService.discountPromotionCodeAdd(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            console.log("/pam/discount/promocode/add | Error: ", err);
+            res.json(responseWrapper.getResponse(true, result, -9999, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/pam/get/inventory/current/quantity', async function (req, res) {
+        const [err, data] = await pamService.getInventoryCurrentQuantity(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/pam/get/inventory/current/quantity Error: ", err)
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });	
+    app.post('/' + global.config.version + '/pam/update/minimum/count/assetlist', async function (req, res) {
+        const [err, data] = await pamService.updateMinimumCountAssetlist(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/pam/update/minimum/count/assetlist Error: ", err)
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });	
+    app.post('/' + global.config.version + '/pam/get/minimum/count/assetlist', async function (req, res) {
+        const [err, data] = await pamService.getMinimumCountAssetlist(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/pam/get/minimum/count/assetlist Error: ", err)
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });	
+    app.post('/' + global.config.version + '/pam/get/product/wise/sale', async function (req, res) {
+        const [err, data] = await pamService.productWiseSale(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/pam/get/product/wise/sale Error: ", err)
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });	  
+    app.post('/' + global.config.version + '/pam/menu/recommend/set', async function (req, res) { 
+        
+        let [err,result] = await pamService.setChefRecommendedMenu(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            console.log("/pam/menu/recommend/set | Error: ", err);
+            res.json(responseWrapper.getResponse(true, result, -9999, req.body));
+        }
+    });    
 };
 
 module.exports = PamController;
