@@ -1070,7 +1070,8 @@ function AssetService(objectCollection) {
             "asset_type_flag_enable_dashboard": util.replaceDefaultNumber(rowArray[0]['asset_type_flag_enable_dashboard']),
             "workforce_tag_id": util.replaceDefaultNumber(rowArray[0]['workforce_tag_id']),
             "workforce_tag_name": util.replaceDefaultString(rowArray[0]['workforce_tag_name']),
-            "asset_type_flag_enable_gamification": util.replaceDefaultNumber(rowArray[0]['asset_type_flag_enable_gamification'])
+            "asset_type_flag_enable_gamification": util.replaceDefaultNumber(rowArray[0]['asset_type_flag_enable_gamification']),
+            "organization_ai_bot_enabled": util.replaceDefaultNumber(rowArray[0]['organization_ai_bot_enabled'])
        };
 
         callback(false, rowData);
