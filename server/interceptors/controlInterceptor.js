@@ -1,22 +1,22 @@
 
-var UtilityController = require('../controllers/utilityController');
-var ActivityConfigController = require('../controllers/activityConfigController');
-var ActivityController = require('../controllers/activityController');
-var ActivityParticipantController = require('../controllers/activityParticipantController');
-var ActivityUpdateController = require('../controllers/activityUpdateController');
-var ActivityListingController = require('../controllers/activityListingController');
-var AssetController = require('../controllers/assetController');
-var AssetConfigController = require('../controllers/assetConfigController');
-var ActivityTimelineController = require('../controllers/activityTimelineController');
-var FormConfigController = require('../controllers/formConfigController');
-var WidgetController = require('../controllers/widgetController');
-var AccountController = require('../controllers/accountController');
-var LogController = require('../controllers/logController'); //BETA
-var PamController = require('../controllers/pamController'); //PAM
-var PerformanceStatsController = require('../controllers/performanceStatsController');
-var PamListingController = require('../controllers/pamListingController'); //PAM
-var zohoController = require('../controllers/zohoController');
-var PamUpdateController = require('../controllers/pamUpdateController');
+let UtilityController = require('../controllers/utilityController');
+let ActivityConfigController = require('../controllers/activityConfigController');
+let ActivityController = require('../controllers/activityController');
+let ActivityParticipantController = require('../controllers/activityParticipantController');
+let ActivityUpdateController = require('../controllers/activityUpdateController');
+let ActivityListingController = require('../controllers/activityListingController');
+let AssetController = require('../controllers/assetController');
+let AssetConfigController = require('../controllers/assetConfigController');
+let ActivityTimelineController = require('../controllers/activityTimelineController');
+let FormConfigController = require('../controllers/formConfigController');
+let WidgetController = require('../controllers/widgetController');
+let AccountController = require('../controllers/accountController');
+let LogController = require('../controllers/logController'); //BETA
+let PamController = require('../controllers/pamController'); //PAM
+let PerformanceStatsController = require('../controllers/performanceStatsController');
+let PamListingController = require('../controllers/pamListingController'); //PAM
+let zohoController = require('../controllers/zohoController');
+let PamUpdateController = require('../controllers/pamUpdateController');
 //var FormConfigController = require('../controllers/formConfigController');
 //var FormDataController = require('../controllers/formDataController');
 //var LinkController = require('../controllers/linkController');
@@ -27,8 +27,8 @@ let AnalyticsController = require('../analytics/controllers/analyticsController.
 let AnalyticsOpsController = require('../analytics/controllers/analyticsOpsController.js');
 
 //Vodafone
-var VodafoneController = require('../vodafone/controllers/vodafoneController');
-var BotController = require('../botEngine/controllers/botController');
+let VodafoneController = require('../vodafone/controllers/vodafoneController');
+let BotController = require('../botEngine/controllers/botController');
 const WorkflowQueueController = require('../workflowQueue/controllers/workflowQueueController.js');
 const CommnTemplateController = require('../commnTemplate/controllers/commnTemplateController.js');
 const elasticSearchController = require('../elasticSearch/controllers/elasticSearchController')
@@ -36,7 +36,7 @@ const docusignController = require('../docusign/controllers/docusignController')
 ///////////////////////////////////////////////////////////////////////
 
 //  diffbot
-var DiffbotController = require('../diffbot/controllers/diffbotController')
+let DiffbotController = require('../diffbot/controllers/diffbotController')
 
 // Administrator Services UI
 const AdminListingController = require('../Administrator/controllers/adminListingController');
@@ -58,7 +58,7 @@ const CustomerListingController = require('../Customer/controllers/customerListi
 // const CustomerOpsController = require('../Customer/controllers/customerOpsController');
 
 // Stats
-var StatsController = require('../controllers/statsController');
+let StatsController = require('../controllers/statsController');
 
 // data manament export to pdf
 const DataManagementController = require('../controllers/dataManagementController');

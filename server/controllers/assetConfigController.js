@@ -8,8 +8,8 @@ let AssetConfigService = require("../services/assetConfigService");
 
 function AssetConfigController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
 
     const assetConfigService = new AssetConfigService();
     
@@ -22,7 +22,8 @@ function AssetConfigController(objCollection) {
 
             } else {
                 //console.log('did not get proper response');
-                global.logger.write('debug', 'did not get proper response', err, req.body);
+                //global.logger.write('debug', 'did not get proper response', err, req.body);
+                util.logError(req.body,`getAssetTypesList debug did not get proper response Error %j`, { err,body : req.body });
                 data = new Array();
                 res.json(responseWrapper.getResponse(err, data, statusCode,req.body));
             }

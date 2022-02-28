@@ -22,7 +22,7 @@ class WidgetBase {
     }
 
     convertUTCTimeToRuleTimeZone(time) {
-        var ruleTime = moment.utc(time).utcOffset(this.rule.widget_timezone_offset / (60 * 1000));
+        let ruleTime = moment.utc(time).utcOffset(this.rule.widget_timezone_offset / (60 * 1000));
         return {
             startOfDayInUTC: moment(ruleTime).startOf('day').utc().format("YYYY-MM-DD HH:mm:ss"),
             endOfDayInUTC: moment(ruleTime).endOf('day').utc().format("YYYY-MM-DD HH:mm:ss"),
@@ -43,7 +43,7 @@ class WidgetBase {
     }
 
     convertUTCTimeToRuleTimeZoneByTimeline(time) {
-        var ruleTime = moment.utc(time).utcOffset(this.rule.widget_timezone_offset / (60 * 1000));
+        let ruleTime = moment.utc(time).utcOffset(this.rule.widget_timezone_offset / (60 * 1000));
         if ([0, 1, 2].indexOf(this.rule.widget_timeline_id) !== -1) {
             let startEnd = {
                 startDate: moment(ruleTime).startOf('day').utc().format("YYYY-MM-DD HH:mm:ss"),

@@ -6,12 +6,12 @@ const PayPhiPaymentGatewayService = require('./payPhiGatewayService');
 const PaymentUtil = require('../utils/paymentUtil');
 const logger = require('../../logger/winstonLogger');
 const moment = require('moment');
-var makingRequest = require('request');
+let makingRequest = require('request');
 const nodeUtil = require('util');
 const tinyURL = require('tinyurl');
 function MerchantPaymentService(objectCollection) {
 
-    var db = objectCollection.db;
+    let db = objectCollection.db;
     const util = objectCollection.util;
     const activityCommonService = objectCollection.activityCommonService;
     const paymentUtil = new PaymentUtil(objectCollection);
@@ -2589,7 +2589,7 @@ function MerchantPaymentService(objectCollection) {
         let responseData = [],
             error = true;
     
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -2619,7 +2619,7 @@ function MerchantPaymentService(objectCollection) {
             error = true;
             // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_activity_type_category_id SMALLINT(6), IN p_activity_status_type_id SMALLINT(6)
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -2737,11 +2737,11 @@ function MerchantPaymentService(objectCollection) {
     }
     this.pamGetAssetDetails = (request, organization_id, asset_id) => {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 organization_id || 351, //,
                 asset_id
             );
-            var queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
+            let queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -2752,13 +2752,13 @@ function MerchantPaymentService(objectCollection) {
 
     function getActivityStatusId(request) {
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
                 request.activity_status_type_id
             );
-            var queryString = util.getQueryString('ds_v1_workforce_activity_status_mapping_select_status', paramsArr);
+            let queryString = util.getQueryString('ds_v1_workforce_activity_status_mapping_select_status', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, resp) {
                     if (err === false) {

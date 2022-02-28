@@ -4,7 +4,7 @@ const logger = require("../../logger/winstonLogger");
 //var ActivityUpdateService = require('../../services/activityUpdateService.js');
 //var ActivityTimelineService = require('../../services/activityTimelineService.js');
 const moment = require('moment');
-var makingRequest = require('request');
+let makingRequest = require('request');
 const nodeUtil = require('util');
 
 function RMBotService(objectCollection) {
@@ -13,7 +13,7 @@ function RMBotService(objectCollection) {
 
     const util = objectCollection.util;
     const db = objectCollection.db;
-    var forEachAsync = objectCollection.forEachAsync;
+    let forEachAsync = objectCollection.forEachAsync;
     const activityCommonService = objectCollection.activityCommonService;
 
     this.alterWorkflowLead = async function(request){
@@ -394,10 +394,10 @@ function RMBotService(objectCollection) {
         let hours_array = [];
         let hours_array_map = {};
         let hours_array_endtime_map = {};
-        var map1 = new Map(); 
-        var map2 = new Map(); 
-        var map3 = new Map(); 
-        var map4 = new Map();
+        let map1 = new Map(); 
+        let map2 = new Map(); 
+        let map3 = new Map(); 
+        let map4 = new Map();
         const [err, assetData] = await self.assetListSelectAssetWorkforce(request); 
         //console.log("DATA ::"+assetData[0].asset_inline_data);
         let businessDays = [];
@@ -1551,7 +1551,7 @@ function RMBotService(objectCollection) {
             request.target_asset_id
         );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_select_asset_workforce', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_select_asset_workforce', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -1579,7 +1579,7 @@ function RMBotService(objectCollection) {
             request.entity_id
         );
 
-        var queryString = util.getQueryString('ds_v1_activity_status_change_transaction_select_lead_stats', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_status_change_transaction_select_lead_stats', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -1607,7 +1607,7 @@ function RMBotService(objectCollection) {
             request.entity_id
         );
 
-        var queryString = util.getQueryString('ds_v1_activity_status_change_transaction_select_intime_stats', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_status_change_transaction_select_intime_stats', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -1627,7 +1627,7 @@ function RMBotService(objectCollection) {
         let responseData = [],
             error = true;
        
-        var paramsArr;
+        let paramsArr;
         if (Number(activityId > 0)) {
             paramsArr = new Array(
                 activityId,
@@ -1786,7 +1786,7 @@ function RMBotService(objectCollection) {
             request.datetime_log
         );
 
-        var queryString = util.getQueryString('ds_v1_1_activity_list_update_lead', paramsArr);
+        let queryString = util.getQueryString('ds_v1_1_activity_list_update_lead', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then(async (data) => {
@@ -1877,7 +1877,7 @@ function RMBotService(objectCollection) {
                 });
         }
 
-        var queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_update_lead', paramsArr);
+        let queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_update_lead', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
@@ -2397,7 +2397,7 @@ function RMBotService(objectCollection) {
                 util.getCurrentUTCTime()
             );
 
-            var queryString = util.getQueryString('ds_v1_1_activity_list_update_lead', paramsArr);
+            let queryString = util.getQueryString('ds_v1_1_activity_list_update_lead', paramsArr);
             if (queryString !== '') {
                 await db.executeQueryPromise(0, queryString, request)
                     .then(async (data) => {
@@ -2537,7 +2537,7 @@ function RMBotService(objectCollection) {
                 util.getCurrentUTCTime()
             );
 
-            var queryString = util.getQueryString('ds_v1_asset_list_update_pool_entry', paramsArr);
+            let queryString = util.getQueryString('ds_v1_asset_list_update_pool_entry', paramsArr);
             request.global_array.push({"assetListUpdatePoolEntry":queryString});
             if (queryString !== '') {
                 await db.executeQueryPromise(0, queryString, request)
@@ -2567,7 +2567,7 @@ function RMBotService(objectCollection) {
                     request.datetime_log
                 );
 
-                var queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_update_lead', paramsArr);
+                let queryString = util.getQueryString('ds_v1_1_activity_asset_mapping_update_lead', paramsArr);
                 request.global_array.push({"activityAssetMappingUpdateLead":queryString});
                 if (queryString !== '') {
                     await db.executeQueryPromise(0, queryString, request)
@@ -2651,7 +2651,7 @@ function RMBotService(objectCollection) {
                 request.datetime_log
             );
 
-            var queryString = util.getQueryString('ds_v1_activity_list_update_rm_flags', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_list_update_rm_flags', paramsArr);
             request.global_array.push({"activityListUpdateRMFlags":queryString});
             if (queryString !== '') {
                 await db.executeQueryPromise(0, queryString, request)

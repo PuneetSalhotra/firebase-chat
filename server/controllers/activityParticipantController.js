@@ -3,20 +3,20 @@
  * 
  */
 
-var ParticipantService = require("../services/activityParticipantService");
+let ParticipantService = require("../services/activityParticipantService");
 const ActivityListingService = require("../services/activityListingService");
 
 function ActivityParticipantController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var cacheWrapper = objCollection.cacheWrapper;
-    var queueWrapper = objCollection.queueWrapper;
-    var app = objCollection.app;
-    var util = objCollection.util;
+    let responseWrapper = objCollection.responseWrapper;
+    let cacheWrapper = objCollection.cacheWrapper;
+    let queueWrapper = objCollection.queueWrapper;
+    let app = objCollection.app;
+    let util = objCollection.util;
     
-    var activityCommonService = objCollection.activityCommonService;
+    let activityCommonService = objCollection.activityCommonService;
 
-    var participantService = new ParticipantService(objCollection);
+    let participantService = new ParticipantService(objCollection);
     const activityListingService = new ActivityListingService(objCollection);
 
     app.post('/' + global.config.version + '/activity/participant/list', function (req, res) {
@@ -26,7 +26,8 @@ function ActivityParticipantController(objCollection) {
                 res.json(responseWrapper.getResponse(err, data, statusCode,req.body));
             } else {
                 //console.log('did not get proper response');
-                global.logger.write('debug', 'Did not get proper response', err, req);
+                //global.logger.write('debug', 'Did not get proper response', err, req);
+                util.logError(req.body,`getParticipantsList debug Did not get proper response Error %j`, { err,body : req.body });
 
                 data = new Array();
                 res.json(responseWrapper.getResponse(err, data, statusCode));
@@ -35,14 +36,14 @@ function ActivityParticipantController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/activity/participant/access/set', function (req, res) {
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var productId;
+        let productId;
         
         if(!req.body.hasOwnProperty('product_id')) {
             productId = 1;
@@ -60,8 +61,8 @@ function ActivityParticipantController(objCollection) {
             });
         } */
         
-        var proceedParticipantAccessSet = function () {
-            var event = {
+        let proceedParticipantAccessSet = function () {
+            let event = {
                 name: "assignParticipnt",
                 service: "activityParticipantService",
                 method: "assignCoworker",
@@ -81,11 +82,13 @@ function ActivityParticipantController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
+                                            //global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
+                                            util.logError(req.body,`setAssetParity serverError Error in setting in asset parity Error %j`, { err,body : req.body });
 
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
+                                            //global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
+                                            util.logInfo(req.body,`setAssetParity  Asset parity is set successfully %j`,{body : req.body});
 
                                     });
                                 }
@@ -137,15 +140,15 @@ function ActivityParticipantController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/activity/participant/access/v1/set', function (req, res) {
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
         req.body.apiVersion = 'v1';
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var productId;
+        let productId;
         
         if(!req.body.hasOwnProperty('product_id')) {
             productId = 1;
@@ -163,8 +166,8 @@ function ActivityParticipantController(objCollection) {
             });
         } */
         
-        var proceedParticipantAccessSet = function () {
-            var event = {
+        let proceedParticipantAccessSet = function () {
+            let event = {
                 name: "assignParticipnt",
                 service: "activityParticipantService",
                 method: "assignCoworker",
@@ -184,11 +187,13 @@ function ActivityParticipantController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
+                                            //global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
+                                            util.logError(req.body,`setAssetParity serverError Error in setting in asset parity Error %j`, { err,body : req.body });
 
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
+                                            //global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
+                                            util.logInfo(req.body,`setAssetParity  Asset parity is set successfully %j`,{body : req.body});
 
                                     });
                                 }
@@ -240,15 +245,15 @@ function ActivityParticipantController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/activity/participant/access/reset', function (req, res) {
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedParticipantAccessReset = function () {
-            var event = {
+        let proceedParticipantAccessReset = function () {
+            let event = {
                 name: "unassignParticicpant",
                 service: "activityParticipantService",
                 method: "unassignParticicpant",
@@ -267,10 +272,12 @@ function ActivityParticipantController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError', "Error in setting asset parity", err, req.body);
+                                            //global.logger.write('serverError', "Error in setting asset parity", err, req.body);
+                                            util.logError(req.body,`setAssetParity serverError Error in setting asset parity Error %j`, { err,body : req.body });
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
+                                            //global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
+                                            util.logInfo(req.body,`setAssetParity Asset parity is set successfully %j`,{body : req.body});
 
                                     });
                                 }
@@ -285,7 +292,8 @@ function ActivityParticipantController(objCollection) {
         try {
             JSON.parse(req.body.activity_participant_collection);
             // console.log('no exception so far');
-            global.logger.write('debug', "No exception so far", {}, req.body);
+            //global.logger.write('debug', "No exception so far", {}, req.body);
+            util.logInfo(req.body,`activity/participant/access/reset debug No exception so far %j`,{body : req.body});
 
         } catch (exeption) {
             res.json(responseWrapper.getResponse(false, {}, -3308,req.body));
@@ -318,15 +326,15 @@ function ActivityParticipantController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/activity/participant/access/alter', function (req, res) {
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedParticipantAccessReset = function () {
-            var event = {
+        let proceedParticipantAccessReset = function () {
+            let event = {
                 name: "updateParticipantAccess",
                 service: "activityParticipantService",
                 method: "updateParticipantAccess",
@@ -345,10 +353,12 @@ function ActivityParticipantController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
+                                            //global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
+                                            util.logError(req.body,`setAssetParity serverError Error in setting in asset parity Error %j`, { err,body : req.body });
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
+                                            //global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
+                                            util.logInfo(req.body,`setAssetParity Asset parity is set successfully %j`,{body : req.body});
 
                                     });
                                 }
@@ -388,15 +398,15 @@ function ActivityParticipantController(objCollection) {
 
     //BETA
     app.post('/' + global.config.version + '/activity/participant/timestamp/alter', function (req, res) {
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedParticipantTimestampReset = function () {
-            var event = {
+        let proceedParticipantTimestampReset = function () {
+            let event = {
                 name: "updateParticipantAccess",
                 service: "activityParticipantService",
                 method: "updateParticipantTimestamp",
@@ -415,10 +425,12 @@ function ActivityParticipantController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
+                                            //global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
+                                            util.logError(req.body,`setAssetParity serverError Error in setting in asset parity Error %j`, { err,body : req.body });
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
+                                            //global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
+                                            util.logInfo(req.body,`setAssetParity Asset parity is set successfully %j`,{body : req.body});
 
                                     });
                                 }
@@ -458,15 +470,15 @@ function ActivityParticipantController(objCollection) {
     
     //Adding the invitee as a participant in invitor the ID Card Activity
     app.post('/' + global.config.version + '/activity/access/participant_invitee/set', function (req, res) {
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedParticipantInviteeAccessSet = function () {
-            var event = {
+        let proceedParticipantInviteeAccessSet = function () {
+            let event = {
                 name: "assignParticipntAsInvitee",
                 service: "activityParticipantService",
                 method: "addInviteeAsParticipantToIdCard",
@@ -486,11 +498,13 @@ function ActivityParticipantController(objCollection) {
                                     cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                         if (err) {
                                             //console.log("error in setting in asset parity");
-                                            global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
+                                            //global.logger.write('serverError', "Error in setting in asset parity", err, req.body);
+                                            util.logError(req.body,`setAssetParity serverError Error in setting in asset parity Error %j`, { err,body : req.body });
 
                                         } else
                                             //console.log("asset parity is set successfully")
-                                            global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
+                                            //global.logger.write('conLog', "Asset parity is set successfully", {}, req.body);
+                                            util.logInfo(req.body,`setAssetParity Asset parity is set successfully %j`,{body : req.body});
 
                                     });
                                 }

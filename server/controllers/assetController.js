@@ -3,14 +3,14 @@
  * 
  */
 
-var AssetService = require("../services/assetService");
+let AssetService = require("../services/assetService");
 
 function AssetController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
-    var activityCommonService = objCollection.activityCommonService;
-    var assetService = new AssetService(objCollection);
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
+    let activityCommonService = objCollection.activityCommonService;
+    let assetService = new AssetService(objCollection);
     app.post('/' + global.config.version + '/asset/passcode/alter', function (req, res) {
 
         assetService.getPhoneNumberAssets(req.body, function (err, data, statusCode) {
@@ -556,7 +556,8 @@ function AssetController(objCollection) {
     //Retrieve the asset Timeline Data
     app.post('/' + global.config.version + '/asset/access/timeline/list', async (req, res) => {
         try {            
-            global.logger.write('conLog', req.body, {}, {});
+            //global.logger.write('conLog', req.body, {}, {});
+            util.logInfo(req.body,`/asset/access/timeline/list  %j`,{body : req.body});
             let result = await assetService.getAssetTimelineData(req.body);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {
@@ -574,7 +575,8 @@ function AssetController(objCollection) {
 
     app.post('/' + global.config.version + '/asset/access/queue/list', async (req, res) => {
         try {
-            global.logger.write('conLog', req.body, {}, {});
+            //global.logger.write('conLog', req.body, {}, {});
+            util.logInfo(req.body,`/asset/access/queue/list %j`,{body : req.body});
             let result = await assetService.queueAccessListSelectAsset(req.body);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch (err) {
@@ -620,7 +622,8 @@ function AssetController(objCollection) {
 
     app.post('/' + global.config.version + '/asset_reference/asset_type/search', async (req, res) =>{
         try {            
-            global.logger.write('conLog', req.body, {}, {});
+            //global.logger.write('conLog', req.body, {}, {});
+            util.logInfo(req.body,`/asset_reference/asset_type/search %j`,{body : req.body});
             let result = await assetService.searchAssetRef(req.body);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {

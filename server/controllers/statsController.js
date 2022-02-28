@@ -2,10 +2,10 @@ const StatsService = require("../services/statsService");
 
 function statsController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
-    var statsService = new StatsService(objCollection);
-    var util = objCollection.util;
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
+    let statsService = new StatsService(objCollection);
+    let util = objCollection.util;
 
     app.post('/' + global.config.version + '/stats/signup/count', function statsSignUpCountReqHandler(req, res) {
         statsService.getSignUpCountStats(req.body, function statsSignUpCountCallback(err, data, statusCode) {
@@ -13,7 +13,8 @@ function statsController(objCollection) {
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log("err: ", err);
-                global.logger.write('debug', err, {}, req.body);
+                //global.logger.write('debug', err, {}, req.body);
+                util.logError(req.body,`getSignUpCountStats debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -25,7 +26,8 @@ function statsController(objCollection) {
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log("err: ", err);
-                global.logger.write('debug', err, {}, req.body);
+                //global.logger.write('debug', err, {}, req.body);
+                util.logError(req.body,`getListOfSignUps debug Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -38,7 +40,8 @@ function statsController(objCollection) {
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log("err: ", err);
-                global.logger.write('debug', err, {}, req.body);
+                //global.logger.write('debug', err, {}, req.body);
+                util.logError(req.body,`getTimelineList debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -50,7 +53,7 @@ function statsController(objCollection) {
             if (!err) {
                 console.log("data: ", data);
 
-                var responseJSON = [{
+                let responseJSON = [{
                         "count": 0,
                         "form_id": 837,
                         "activity_status_id": 0,
@@ -144,7 +147,8 @@ function statsController(objCollection) {
 
                 res.json(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
-                global.logger.write('debug', err, {}, req.body);
+                //global.logger.write('debug', err, {}, req.body);
+                util.logError(req.body,`activityListSelectFormCountActivityStatus debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -168,7 +172,8 @@ function statsController(objCollection) {
 
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
-                global.logger.write('debug', err, {}, req.body);
+                //global.logger.write('debug', err, {}, req.body);
+                util.logError(req.body,`activityFormTransactionSelectVodafoneFormValue debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -179,7 +184,7 @@ function statsController(objCollection) {
         statsService.activityFormTransactionSelectVodafoneFormValueDay(req.body, function (err, data, statusCode) {
             console.log("/stats/form/orders/value/daywise: ", data);
             if (!err) {
-                var responseJSON = {
+                let responseJSON = {
                     not_set: [{
                         date: '2018-09-29 00:00:00',
                         value: 0
@@ -491,7 +496,8 @@ function statsController(objCollection) {
                 });
                 res.json(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
-                global.logger.write('debug', err, {}, req.body);
+                //global.logger.write('debug', err, {}, req.body);
+                util.logError(req.body,`activityFormTransactionSelectVodafoneFormValueDay debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -504,7 +510,7 @@ function statsController(objCollection) {
             console.log('/stats/form/orders/count/daywise: ', data);
 
             if (!err) {
-                var responseJSON = {
+                let responseJSON = {
                     not_set: [{
                         date: '2018-09-29 00:00:00',
                         count: 0
@@ -817,7 +823,8 @@ function statsController(objCollection) {
 
                 res.json(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
-                global.logger.write('debug', err, {}, req.body);
+                //global.logger.write('debug', err, {}, req.body);
+                util.logError(req.body,`activityListSelectFormCountActivityStatusDay debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })
@@ -832,7 +839,7 @@ function statsController(objCollection) {
                 // 35	Average time on Resubmit status
                 // 36	Average time on Reinitiate status
                 // 37	TAT - Feasibility Check to Approved
-                var responseJSON = {
+                let responseJSON = {
                     TAT_DV_TO_A: {
                         monthly_summary_id: 33,
                         monthly_summary_name: 'TAT - Document Validation to approved',
@@ -887,7 +894,8 @@ function statsController(objCollection) {
 
                 res.json(responseWrapper.getResponse(err, responseJSON, statusCode, req.body));
             } else {
-                global.logger.write('debug', err, {}, req.body);
+                //global.logger.write('debug', err, {}, req.body);
+                util.logError(req.body,`assetMonthlySummaryTransactionSelectFlag debug Error %j`, { err,body : req.body });
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
         })

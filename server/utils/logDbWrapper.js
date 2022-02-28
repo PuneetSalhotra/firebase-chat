@@ -4,7 +4,7 @@
 
 let mysql = require('mysql');
 
-var writeCluster = mysql.createPoolCluster();
+let writeCluster = mysql.createPoolCluster();
 
 //Adding Master
 writeCluster.add('MASTER', {
@@ -23,7 +23,7 @@ let logExecuteQuery = function (flag, queryString, request, callback) {
      * flag = 1 --> slave 1   
      */
 
-    var conPool;
+    let conPool;
     switch (flag) {
         case 0:
             conPool = writeCluster;            
@@ -81,7 +81,7 @@ let logExecuteRecursiveQuery = function (flag, start, limit, callName, paramsArr
         nextLimit = parseInt(limit + start);
         paramsArr.push(start);
         paramsArr.push(limit);
-        var queryString = getQueryString(callName, paramsArr);
+        let queryString = getQueryString(callName, paramsArr);
         paramsArr.pop();
         paramsArr.pop();
 

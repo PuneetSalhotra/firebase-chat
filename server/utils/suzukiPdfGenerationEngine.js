@@ -17,10 +17,10 @@ const printer = new PdfPrinter(fonts);
 const fs = require('fs');
 
 // tableIndex
-var tableIndex;
+let tableIndex;
 
 // PDF Document Definition
-var pdfDocumentDefinition = {
+let pdfDocumentDefinition = {
     content: [{
             text: 'Aryan Autoagencies Pvt Ltd.',
             style: 'header'
@@ -124,7 +124,7 @@ var pdfDocumentDefinition = {
     pageOrientation: 'landscape',
 };
 
-var a = pdfDocumentDefinition;
+let a = pdfDocumentDefinition;
 
 function generatePdfAndUpload(request, form_id, formSubmissionData, activityFormDataInDB, callback) {
 
@@ -161,7 +161,7 @@ function generatePdfAndUpload(request, form_id, formSubmissionData, activityForm
     }
 
     // On the road price initialization
-    var onTheRoadPrice = 0;
+    let onTheRoadPrice = 0;
 
     // Loop through each field in the submitted form and update the values
     // 
@@ -305,14 +305,14 @@ function generatePdfAndUpload(request, form_id, formSubmissionData, activityForm
 
     // Generate the PDF
     // 
-    var pdfWriteStream = fs.createWriteStream(`pdfs/${request.activity_parent_id}.pdf`);
-    var pdfDoc = printer.createPdfKitDocument(pdfDocumentDefinition);
+    let pdfWriteStream = fs.createWriteStream(`pdfs/${request.activity_parent_id}.pdf`);
+    let pdfDoc = printer.createPdfKitDocument(pdfDocumentDefinition);
     pdfDoc.pipe(pdfWriteStream);
     pdfDoc.end();
 
     // Upload file to S3
     pdfWriteStream.on('close', () => {
-        var params = {
+        let params = {
             Body: fs.createReadStream(pdfFilePath),
             Bucket: "desker-9166-20180126-11192367",
             Key: `${request.activity_parent_id}.pdf`,

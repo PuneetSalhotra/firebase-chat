@@ -2,19 +2,19 @@
  * author: Sri Sai Venkatesh
  */
 
-var aws = require('aws-sdk');
+let aws = require('aws-sdk');
 
 // Load your AWS credentials and try to instantiate the object.
 aws.config.loadFromPath(`${__dirname}/../utils/config.json`);
 
 // Instantiate SQS.
-var sqs = new aws.SQS();
+let sqs = new aws.SQS();
 
 function SqsProducer() {
 
     this.produce = function (message, callback) {
 
-        var params = {
+        let params = {
             MessageBody: message,
             QueueUrl: global.config.SQSqueueUrl,
             DelaySeconds: 0

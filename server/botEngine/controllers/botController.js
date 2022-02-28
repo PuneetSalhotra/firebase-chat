@@ -3,14 +3,14 @@
  * 
  */
 
-var BotService = require("../services/botService");
-var RMBotService = require("../services/rmbotService");
+let BotService = require("../services/botService");
+let RMBotService = require("../services/rmbotService");
 const WorkbookOpsService_VodafoneCustom = require("../../Workbook/services/workbookOpsService_VodafoneCustom");
 
 function BotController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
     //const util = objCollection.util;
     //const cacheWrapper = objCollection.cacheWrapper;
     //const queueWrapper = objCollection.queueWrapper;
@@ -199,7 +199,8 @@ function BotController(objCollection) {
     //Retrieve the workflow steps of a specific bot
     app.post('/' + global.config.version + '/bot/mapping/workflow_step/list', async (req, res) => {
         try {            
-            global.logger.write('conLog', req.body, {}, {});
+            //global.logger.write('conLog', req.body, {}, {});
+            util.logInfo(req.body,`bot/mapping/workflow_step/list : %j`,{body : req.body});
             let result = await botService.getBotworkflowSteps(req.body);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {
@@ -213,7 +214,8 @@ function BotController(objCollection) {
             let result = await botService.initBotEngine(req.body);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {            
-            global.logger.write('conLog', err, {}, {});
+            //global.logger.write('conLog', err, {}, {});
+            util.logError(req.body,`engine/bot/init Error %j`, { err });
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
@@ -234,7 +236,8 @@ function BotController(objCollection) {
             let result = await botService.alterWFCompletionPercentageMethod(req.body);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {            
-            global.logger.write('conLog', err, {}, {});
+            //global.logger.write('conLog', err, {}, {});
+            util.logError(req.body,`alterWFCompletionPercentageMethod Error %j`, { err });
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
@@ -244,7 +247,8 @@ function BotController(objCollection) {
             let result = await botService.alterStatus(req.body);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {            
-            global.logger.write('conLog', err, {}, {});
+            //global.logger.write('conLog', err, {}, {});
+            util.logError(req.body,`bot_step/status/alter Error %j`, { err });
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
@@ -254,7 +258,8 @@ function BotController(objCollection) {
             let result = await rmbotService.alterWorkflowLead(req.body, req.body.lead_asset_id);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {            
-            global.logger.write('conLog', err, {}, {});
+            //global.logger.write('conLog', err, {}, {});
+            util.logError(req.body,`/activity/lead/alter Error %j`, { err });
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
@@ -285,7 +290,8 @@ function BotController(objCollection) {
             let result = await rmbotService.getWorkflowStatusDueDateBasedOnAssetBusinessHours(req.body);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {            
-            global.logger.write('/activity/set/status/due_date', err, {}, {});
+            //global.logger.write('/activity/set/status/due_date', err, {}, {});
+            util.logError(req.body,` /activity/set/status/due_date Error %j`, { err });
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });   
@@ -296,7 +302,8 @@ function BotController(objCollection) {
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
            }
            else{      
-            global.logger.write('/activity/set/status/due_date', err, {}, {});
+            //global.logger.write('/activity/set/status/due_date', err, {}, {});
+            util.logError(req.body,` /activity/set/status/due_date Error %j`, { err });
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
            }
         
@@ -307,7 +314,8 @@ function BotController(objCollection) {
             let result = await rmbotService.calculateAssetNewSummary(req.body,0);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {            
-            global.logger.write('/asset/lead/summary', err, {}, {});
+            //global.logger.write('/asset/lead/summary', err, {}, {});
+            util.logError(req.body,` /asset/lead/summary Error %j`, { err });
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });   
@@ -317,7 +325,8 @@ function BotController(objCollection) {
             let [err, result] = await rmbotService.getUnallocatedWorkflowsOfAssetType(req.body,0);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {            
-            global.logger.write('/asset_type/unallocated/workflows', err, {}, {});
+            //global.logger.write('/asset_type/unallocated/workflows', err, {}, {});
+            util.logError(req.body,` /asset_type/unallocated/workflows Error %j`, { err });
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
@@ -327,7 +336,8 @@ function BotController(objCollection) {
             let [err, result] = await botService.copyFieldBot(req.body,0);
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } catch(err) {            
-            global.logger.write('/bot_step/copy/field', err, {}, {});
+            //global.logger.write('/bot_step/copy/field', err, {}, {});
+            util.logError(req.body,` /bot_step/copy/field Error %j`, { err });
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });

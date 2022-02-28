@@ -3,13 +3,13 @@
  * 
  */
 
-var PamListingService = require("../services/pamListingService");
+let PamListingService = require("../services/pamListingService");
 
 function PamListingController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
-    var pamListingService = new PamListingService(objCollection);
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
+    let pamListingService = new PamListingService(objCollection);
            
     app.post('/' + global.config.version + '/pam/orders/access/list', function (req, res) {
         pamListingService.getOrdersUnderAReservation(req.body, function (err, data, statusCode) {
@@ -123,7 +123,8 @@ function PamListingController(objCollection) {
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 console.log('did not get proper response');
-                global.logger.write('response', 'did not get proper response', err, req.body);
+                //global.logger.write('response', 'did not get proper response', err, req.body);
+                util.logError(req.body,`getActivityAssetCategoryDifferential response did not get proper response Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
