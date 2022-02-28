@@ -1,4 +1,4 @@
-var CommnElasticService = require("../services/elasticSearchService.js");
+let CommnElasticService = require("../services/elasticSearchService.js");
 
 function elasticSearchController(objCollection) {
     let responseWrapper = objCollection.responseWrapper;

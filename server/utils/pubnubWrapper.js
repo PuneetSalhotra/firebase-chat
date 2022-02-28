@@ -2,9 +2,9 @@
  * author: Nani Kalyan V
  */
 const logger = require("../logger/winstonLogger");
-var PubNub = require('pubnub');
+let PubNub = require('pubnub');
 
-var pubnub = new PubNub({
+let pubnub = new PubNub({
     publishKey: 'pub-c-2df152ea-248e-493d-8271-a21463a0c1b4',
     subscribeKey: 'sub-c-d5a2bff8-2c13-11e3-9343-02ee2ddab7fe'
 });
@@ -20,7 +20,7 @@ var pubnub = new PubNub({
 
 function PubnubPush() {
 
-    var publishConfig;
+    let publishConfig;
 
     this.push = function (channelId, message, io, isRateLimitExceeded = false) {
 

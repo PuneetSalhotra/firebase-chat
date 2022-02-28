@@ -37,7 +37,7 @@ function CacheWrapper(client) {
                 logger.verbose(`HGET asset_map ${JSON.stringify(assetId)}`, { type: 'redis', cache_response: reply, error: err });
                 // global.logger.write('cacheResponse', `HGET asset_map ${JSON.stringify(assetId)}`, reply, reqBodyObject);
                 if (typeof reply === 'string') {
-                    var collection = JSON.parse(reply);
+                    let collection = JSON.parse(reply);
 
                     callback(false, collection.asset_auth_token);
                 } else {
@@ -84,7 +84,7 @@ function CacheWrapper(client) {
             } else {
                 logger.verbose(`HGET asset_map ${JSON.stringify(assetId)}`, { type: 'redis', cache_response: reply, error: err });
                 // global.logger.write('cacheResponse', `HGET asset_map ${JSON.stringify(assetId)}`, reply, reqBodyObject);
-                var collection = {};
+                let collection = {};
                 if (typeof reply === 'string') {
                     collection = JSON.parse(reply);
                     callback(false, collection);
@@ -104,7 +104,7 @@ function CacheWrapper(client) {
                     reject(0);
                 } else {
                     logger.verbose(`HGET asset_map ${JSON.stringify(assetID)}`, { type: 'redis', cache_response: reply, error: err });
-                    var collection = {};
+                    let collection = {};
                     if (typeof reply === 'string') {
                         collection = JSON.parse(reply);
                         resolve(collection);
@@ -528,7 +528,7 @@ function CacheWrapper(client) {
                 } else {
                     logger.verbose(`HGET asset_map ${JSON.stringify(assetId)}`, { type: 'redis', cache_response: reply, error: err });                    
                     if (typeof reply === 'string') {
-                        var collection = JSON.parse(reply);    
+                        let collection = JSON.parse(reply);    
                         resolve([false, collection.asset_auth_token]);
                     } else {
                         resolve([false, false]);

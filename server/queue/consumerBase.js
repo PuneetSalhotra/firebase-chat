@@ -4,7 +4,7 @@
 const globalConfig = require('../utils/globalConfigV1');
 let Logger = require('../utils/logger.js');
 const kafka = require('kafka-node');
-var QueueWrapper = require('./queueWrapper');
+let QueueWrapper = require('./queueWrapper');
 const db = require("../utils/dbWrapper");
 const util = new (require('../utils/util'))();
 const redis = require('redis');   //using elasticache as redis
@@ -13,7 +13,7 @@ const _ = require('lodash');
 
 const KafkaConsumer = kafka.Consumer;
 const KafkaConsumerGroup = kafka.ConsumerGroup;
-var KafkaProducer = kafka.Producer;
+let KafkaProducer = kafka.Producer;
 const kafkaClient =
         new kafka.KafkaClient({
             kafkaHost: global.config.BROKER_HOST,
@@ -27,8 +27,8 @@ const cacheWrapper = new (require('../utils/cacheWrapper'))(redisClient);
 const sns = new AwsSns(); 
 const pubnubWrapper = new (require('../utils/pubnubWrapper'))(); //BETA
 
-var kafkaProducer = new KafkaProducer(kafkaClient);
-var queueWrapper = new QueueWrapper(kafkaProducer);
+let kafkaProducer = new KafkaProducer(kafkaClient);
+let queueWrapper = new QueueWrapper(kafkaProducer);
 global.logger = new Logger(queueWrapper);
 
 class ConsumerBase {

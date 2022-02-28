@@ -3,20 +3,20 @@
  * 
  */
 
-var FormConfigService = require("../services/formConfigService");
+let FormConfigService = require("../services/formConfigService");
 const moment = require('moment');
 const logger = require("../logger/winstonLogger");
 const { serializeError } = require('serialize-error');
 
 function FormConfigController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
-    var util = objCollection.util;
-    var queueWrapper = objCollection.queueWrapper;
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
+    let util = objCollection.util;
+    let queueWrapper = objCollection.queueWrapper;
     const cacheWrapper = objCollection.cacheWrapper;
 
-    var formConfigService = new FormConfigService(objCollection);
+    let formConfigService = new FormConfigService(objCollection);
 
     app.post('/' + global.config.version + '/form/access/organisation/list', function (req, res) {
 
@@ -26,7 +26,8 @@ function FormConfigController(objCollection) {
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('debug', 'did not get proper response', err, req.body);
+                //global.logger.write('debug', 'did not get proper response', err, req.body);
+                util.logError(req.body,`getOrganizationalLevelForms debug did not get proper response Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -41,7 +42,8 @@ function FormConfigController(objCollection) {
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('debug', 'did not get proper response', err, req.body);
+                //global.logger.write('debug', 'did not get proper response', err, req.body);
+                util.logError(req.body,`getAccountLevelForms debug did not get proper response Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -56,7 +58,8 @@ function FormConfigController(objCollection) {
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('debug', 'did not get proper response', err, req.body);
+                //global.logger.write('debug', 'did not get proper response', err, req.body);
+                util.logError(req.body,`getWorkforceLevelForms debug did not get proper response Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -71,7 +74,8 @@ function FormConfigController(objCollection) {
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('debug', 'did not get proper response', err, req.body);
+                //global.logger.write('debug', 'did not get proper response', err, req.body);
+                util.logError(req.body,`getActivityLevelForms debug did not get proper response Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -86,7 +90,8 @@ function FormConfigController(objCollection) {
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('debug', 'did not get proper response', err, req.body);
+                //global.logger.write('debug', 'did not get proper response', err, req.body);
+                util.logError(req.body,`getSpecifiedForm debug did not get proper response Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode, req.body));
             }
@@ -170,7 +175,7 @@ function FormConfigController(objCollection) {
 
     app.post('/' + global.config.version + '/form/activity/alter', function (req, res) {
 
-        var deviceOsId = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
         
@@ -178,8 +183,8 @@ function FormConfigController(objCollection) {
             req.body.asset_id = req.body.auth_asset_id;
         }
 
-        var proceedInlineUpdate = function () {
-            var event = {
+        let proceedInlineUpdate = function () {
+            let event = {
                 name: "alterFormActivity",
                 service: "formConfigService",
                 method: "alterFormActivity",
@@ -248,12 +253,12 @@ function FormConfigController(objCollection) {
 
     app.post('/' + global.config.version + '/form/activity/alter/bulk', function (req, res) {
 
-        var deviceOsId = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
 
-        var proceedInlineUpdate = function () {
-            var event = {
+        let proceedInlineUpdate = function () {
+            let event = {
                 name: "alterFormActivity",
                 service: "formConfigService",
                 method: "alterFormActivityBulk",

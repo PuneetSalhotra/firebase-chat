@@ -4,14 +4,14 @@
  * 
  */
 
-var ActivityConfigService = require("../services/activityConfigService");
+let ActivityConfigService = require("../services/activityConfigService");
 
 function ActivityConfigController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
 
-    var activityConfigService = new ActivityConfigService(objCollection.db, objCollection.util, objCollection);
+    let activityConfigService = new ActivityConfigService(objCollection.db, objCollection.util, objCollection);
 
     app.post('/' + global.config.version + '/activity_type/access/workforce/list', function (req, res) {//Fetch activity types
         activityConfigService.getWorkforceActivityTypesList(req.body, function (err, data, statusCode) {
@@ -23,7 +23,8 @@ function ActivityConfigController(objCollection) {
 
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('conLog', err, {}, req.body);
+                //global.logger.write('conLog', err, {}, req.body);
+                util.logError(req.body,`getWorkforceActivityTypesList Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode,req.body));
             }
@@ -42,7 +43,8 @@ function ActivityConfigController(objCollection) {
 
             } else {
                 //console.log('did not get proper rseponse');
-                global.logger.write('conLog', err, {}, req.body);
+                //global.logger.write('conLog', err, {}, req.body);
+                util.logError(req.body,`getWorkforceActivityStatusList Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode,req.body));
             }
@@ -61,7 +63,8 @@ function ActivityConfigController(objCollection) {
 
             } else {
                 //console.log('did not get proper respone');
-                global.logger.write('conLog', err, {}, req.body);
+                //global.logger.write('conLog', err, {}, req.body);
+                util.logError(req.body,`getActivityParticipantAccess Error %j`, { err,body : req.body });
                 data = {};
                 res.json(responseWrapper.getResponse(err, data, statusCode,req.body));
             }

@@ -4,7 +4,7 @@
 const WidgetBase = require('./base');
 const CONST = require('../../constants');
 const _ = require('lodash');
-var forEachAsync = require('forEachAsync').forEachAsync;
+let forEachAsync = require('forEachAsync').forEachAsync;
 
 
 class SingleDimensionalStatusAggrWidget extends WidgetBase {
@@ -29,8 +29,8 @@ class SingleDimensionalStatusAggrWidget extends WidgetBase {
             };
 
             activityQueryData = _.merge(activityQueryData, data);
-            var array = [];
-            var array2 = [];
+            let array = [];
+            let array2 = [];
 
             if (data.source_id == 2) {
 
@@ -78,7 +78,8 @@ class SingleDimensionalStatusAggrWidget extends WidgetBase {
 
                                             });
                                     } else {
-                                        global.logger.write('debug', 'NO DATA FOR : ' + this.rule.widget_id + ' Done', {}, data);
+                                        //global.logger.write('debug', 'NO DATA FOR : ' + this.rule.widget_id + ' Done', {}, data);
+                                        util.logInfo({},`getWorkflowActivityId debug NO DATA FOR: %j`,{WidgetId : this.rule.widget_id,Done : ' Done', data});
                                     }
                                 })
                             }else{

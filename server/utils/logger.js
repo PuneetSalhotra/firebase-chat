@@ -3,7 +3,7 @@
  */
 
 //var SQS = require("../queue/sqsProducer");
-var Util = require('./util');
+let Util = require('./util');
 const logger = require("../logger/winstonLogger");
 
 function Logger(queueWrapper) {
@@ -26,7 +26,7 @@ function Logger(queueWrapper) {
     };
 
     this.write = function (level, message, object, request) {
-        var isTargeted = false;
+        let isTargeted = false;
 
         let loggerCollection = {
             message: message,
@@ -89,7 +89,7 @@ function Logger(queueWrapper) {
     };
 
     this.writeSession = function (request) {
-        var loggerCollection = {
+        let loggerCollection = {
             message: request,
             request: request,
             environment: global.mode, //'prod'

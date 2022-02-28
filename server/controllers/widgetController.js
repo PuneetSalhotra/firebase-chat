@@ -3,16 +3,16 @@
  * 
  */
 
-var WidgetService = require("../services/widgetService");
+let WidgetService = require("../services/widgetService");
 
 function WidgetController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
     //const vodafoneCustomerServiceFlow = require('../utils/vodafoneCustomerServiceFlow');
 
 
-    var widgetService = new WidgetService(objCollection);
+    let widgetService = new WidgetService(objCollection);
 
     app.post('/' + global.config.version + '/widget/static/timecard/collection', function (req, res) {
         widgetService.getTimecardWidgetCollection(req.body, function (err, data, statusCode) {

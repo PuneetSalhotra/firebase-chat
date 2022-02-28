@@ -1,24 +1,24 @@
-var aws = require('aws-sdk');
-var Util = require('./util');
-var forEachAsync = require('forEachAsync').forEachAsync;
+let aws = require('aws-sdk');
+let Util = require('./util');
+let forEachAsync = require('forEachAsync').forEachAsync;
 
-var AwsSss = function () {
+let AwsSss = function () {
     //aws.config.loadFromPath('/var/node/Bharat/server/utils/configS3.json');
     aws.config.loadFromPath(`${__dirname}/configS3.json`);
     
-    var s3 = new aws.S3();
-    var util = new Util();
+    let s3 = new aws.S3();
+    let util = new Util();
     
     this.createAssetBucket = function (request, callback) {
 
         // Create the parameters for calling createBucket
-        var bucketParams = {
+        let bucketParams = {
             Bucket: 'desker-' + request.bucket_asset_id + '-' + util.getcurrentTimeInMilliSecs()
             //Bucket : 'ds-8674'
         };
 
         //Setting Tags for S3 Buckets
-        var params = {
+        let params = {
             Bucket: 'desker-' + request.bucket_asset_id + '-' + util.getcurrentTimeInMilliSecs(),
             Tagging: {
                 TagSet: [{
@@ -126,7 +126,7 @@ var AwsSss = function () {
     //get Bucket Taggings
     function getBucketTaggings(bucketParams){ //false Tags are not assigned
         return new Promise((resolve, reject)=>{
-            var taggings = new Array('workforce_id', 'account_id', 'asset_id', 'organization_id');
+            let taggings = new Array('workforce_id', 'account_id', 'asset_id', 'organization_id');
              
             s3.getBucketTagging(bucketParams, function(err, data) {
                 if (err) {
@@ -168,7 +168,7 @@ var AwsSss = function () {
     }
 
     this.uploadObject = async (request) => {
-        var params = {
+        let params = {
             Bucket: request.bucket_name, 
             Key: request.key_name
            };
