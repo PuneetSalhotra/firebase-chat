@@ -15,6 +15,7 @@ let io;
 function ActivityPushService(objectCollection) {
     const cacheWrapper = objectCollection.cacheWrapper;
     const activityCommonService = objectCollection.activityCommonService;
+    const util = objectCollection.util;
 
     const AwsSns = require('../utils/snsWrapper');
     const sns = new AwsSns();    

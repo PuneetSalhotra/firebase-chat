@@ -913,8 +913,9 @@ function ActivityTimelineService(objectCollection) {
         let responseData = [],
             error = true;
 
+        let formDataJson = null;
         try {
-            let formDataJson = JSON.parse(request.activity_timeline_collection);
+            formDataJson = JSON.parse(request.activity_timeline_collection);
         } catch (exception) {
             util.logError(request,`exception`, { type: 'timeline_stanadard', error: serializeError(exception) });
         }
