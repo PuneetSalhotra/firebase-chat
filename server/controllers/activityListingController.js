@@ -13,6 +13,7 @@ function ActivityListingController(objCollection) {
     const activityCommonService = objCollection.activityCommonService;
     let app = objCollection.app;
     let queueWrapper = objCollection.queueWrapper;
+    let util = objCollection.util;
 
     let activityListingService = new ActivityListingService(objCollection);
 

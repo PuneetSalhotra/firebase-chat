@@ -7,7 +7,6 @@
 //var ActivityCommonService = require("../services/activityCommonService");
 let AssetService = require("../services/assetService");
 let fs = require('fs');
-const logger = require("../logger/winstonLogger");
 const { serializeError } = require('serialize-error');
 
 function ActivityController(objCollection) {

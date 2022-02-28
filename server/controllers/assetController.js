@@ -10,6 +10,7 @@ function AssetController(objCollection) {
     let responseWrapper = objCollection.responseWrapper;
     let app = objCollection.app;
     let activityCommonService = objCollection.activityCommonService;
+    let util = objCollection.util;
     let assetService = new AssetService(objCollection);
     app.post('/' + global.config.version + '/asset/passcode/alter', function (req, res) {
 
