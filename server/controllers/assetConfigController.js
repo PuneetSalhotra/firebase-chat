@@ -9,6 +9,7 @@ let AssetConfigService = require("../services/assetConfigService");
 function AssetConfigController(objCollection) {
 
     let responseWrapper = objCollection.responseWrapper;
+    let util = objCollection.util;
     let app = objCollection.app;
 
     const assetConfigService = new AssetConfigService();
