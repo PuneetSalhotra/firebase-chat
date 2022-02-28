@@ -2909,9 +2909,10 @@ function ActivityUpdateService(objectCollection) {
         let responseData = [],
             error = true;
 
-        try{
-            let coverJson = JSON.parse(request.activity_cover_data);
-        } catch(err) {
+        let coverJson = null;
+        try {
+            coverJson = JSON.parse(request.activity_cover_data);
+        } catch (err) {
             return [error, err];
         }            
 

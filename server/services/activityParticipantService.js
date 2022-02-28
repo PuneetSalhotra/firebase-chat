@@ -101,7 +101,7 @@ function ActivityParticipantService(objectCollection) {
         
         request.flag_retry = request.flag_retry || 0;
         request.flag_offline = request.flag_offline || 0;
-
+        let activityTypeCategroyId = 0;
         let activityTitle = '';
         try {
             await activityCommonService
@@ -214,7 +214,7 @@ function ActivityParticipantService(objectCollection) {
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         let activityStreamTypeId = 2; //Older 2:added participant
         if (request.hasOwnProperty('activity_type_category_id')) {
-            let activityTypeCategroyId = Number(request.activity_type_category_id);
+            activityTypeCategroyId = Number(request.activity_type_category_id);
             switch (activityTypeCategroyId) {
                 case 2: // notepad 
                     activityStreamTypeId = 501;

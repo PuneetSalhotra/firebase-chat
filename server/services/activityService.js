@@ -2297,11 +2297,11 @@ function ActivityService(objectCollection) {
         let activityStatusTypeId = Number(request.activity_status_type_id);
         let activityTypeCategoryId = Number(request.activity_type_category_id);
         let assetParticipantAccessId = Number(request.asset_participant_access_id);
+        let activityTypeCategroyId = Number(request.activity_type_category_id) || 0;
         const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
 
         console.log('In alterActivityStatus ', activityTypeCategoryId);
         if (request.hasOwnProperty('activity_type_category_id')) {
-            let activityTypeCategroyId = Number(request.activity_type_category_id);
             switch (activityTypeCategroyId) {
                 case 1: // to-do 
                     activityStreamTypeId = 404;
