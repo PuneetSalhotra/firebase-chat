@@ -324,8 +324,9 @@ function ActivityUpdateController(objCollection) {
     app.post('/' + global.config.version + '/activity/unread/count/reset/v1', function (req, res) {
         let cnt = 0;
         let deviceOsId = 0;
+        let activityArray = [];
         try {
-            let activityArray = JSON.parse(req.body.activity_id_array);
+            activityArray = JSON.parse(req.body.activity_id_array);
         } catch (exception) {
             res.json(responseWrapper.getResponse(false, { data: "Invalid Json format" }, -3308, req.body));
             return;
