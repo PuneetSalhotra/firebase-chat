@@ -1108,6 +1108,18 @@ function TasiController(objCollection) {
             res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/tasi/widget/type/master/parent/select', async function (req, res) {
+        const [err, resData] = await tasiService.getParentListWidgetTypeMaster(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/widget/type/master/parent/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+
 }
 
 module.exports = TasiController;
