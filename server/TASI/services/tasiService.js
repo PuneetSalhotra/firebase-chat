@@ -643,7 +643,8 @@ function TasiService(objectCollection) {
             error = true;
         const paramsArr = new Array(
             request.organization_id,
-            request.widget_type_category_id,
+            request.widget_type_category_id, 
+            request.widget_type_id,
             request.asset_type_id,
             request.flag,
             request.device_os_id,
@@ -657,7 +658,7 @@ function TasiService(objectCollection) {
             request.payout_type_id,
             request.workforce_tag_id,
             request.product_id,
-            request.start_from,
+            request.start_from, 
             request.limit_value
         );
         const queryString = util.getQueryString('ds_p1_1_widget_type_master_select_sip', paramsArr);
@@ -3813,35 +3814,6 @@ function TasiService(objectCollection) {
         return [error, responseData];
     }
 
-    this.entityTargetMappingArchive = async function (request) {
-        console.log("entityTargetMappingArchive");
-        let responseData = [],
-            error = true;
-        const paramsArr = new Array(
-            request.organization_id,
-            request.asset_id,
-            request.widget_type_id,
-            request.period_start_datetime,
-            request.period_end_datetime,
-            request.log_asset_id,
-            util.getCurrentUTCTime()
-        );
-        const queryString = util.getQueryString('ds_p1_entity_target_mapping_archive', paramsArr);
-
-        if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
-                    console.log("response : ");
-                    console.log(data);
-                    responseData = data;
-                    error = false;
-                })
-                .catch((err) => {
-                    error = err;
-                })
-        }
-        return [error, responseData];
-    }
 }
 
 module.exports = TasiService;
