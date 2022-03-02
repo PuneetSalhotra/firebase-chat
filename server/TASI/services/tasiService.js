@@ -647,6 +647,7 @@ function TasiService(objectCollection) {
             request.widget_type_id,
             request.asset_type_id,
             request.flag,
+            request.search_flag,
             request.device_os_id,
             request.customer_account_type_id,
             request.widget_type_level_id,
