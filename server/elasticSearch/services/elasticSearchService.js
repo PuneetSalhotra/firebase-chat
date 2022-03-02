@@ -1,29 +1,29 @@
-var path = require('path');
-var extract = require('pdf-text-extract');
+let path = require('path');
+let extract = require('pdf-text-extract');
 
 function CommnElasticService(objectCollection) {
     const util = objectCollection.util;
     const db = objectCollection.db;
-    var responseWrapper = objectCollection.responseWrapper;
-    var elasticsearch = require('elasticsearch');
-    var client = new elasticsearch.Client({
+    let responseWrapper = objectCollection.responseWrapper;
+    let elasticsearch = require('elasticsearch');
+    let client = new elasticsearch.Client({
         hosts: [global.config.elastiSearchNode]
     });
 
     this.updateFile =
         async (request,res) => {
             try {
-                var pdfUrl = request.url_path;
+                let pdfUrl = request.url_path;
                 util.downloadS3Object(request,pdfUrl).then(filename => {
-                    var fileFullPath = global.config.efsPath + filename;
-                    var filePath = path.join(fileFullPath);
+                    let fileFullPath = global.config.efsPath + filename;
+                    let filePath = path.join(fileFullPath);
                     setTimeout(() => {
                         extract(filePath,function (err,documentcontent) {
                             if(err) {
                                 console.dir(err);
                                 return err;
                             }
-                            var result = updateDocumetInformation(request,documentcontent,pdfUrl,client,res)
+                            let result = updateDocumetInformation(request,documentcontent,pdfUrl,client,res)
                             return result;
                         });
                     },1000);
@@ -36,17 +36,17 @@ function CommnElasticService(objectCollection) {
     this.addFile =
         async (request,res) => {
             try {
-                var pdfUrl = request.url_path;
-                var temp = await util.downloadS3Object(request,pdfUrl).then(filename => {
-                    var fileFullPath = global.config.efsPath + filename;
-                    var filePath = path.join(fileFullPath);
+                let pdfUrl = request.url_path;
+                let temp = await util.downloadS3Object(request,pdfUrl).then(filename => {
+                    let fileFullPath = global.config.efsPath + filename;
+                    let filePath = path.join(fileFullPath);
                     setTimeout(() => {
                         extract(filePath,function (err,documentcontent) {
                             if(err) {
                                 console.dir(err);
                                 return err;
                             }
-                            var result = addDocumetInformation(request,documentcontent,pdfUrl,client,res);
+                            let result = addDocumetInformation(request,documentcontent,pdfUrl,client,res);
                             return result;
                         });
                     },1000);
@@ -58,11 +58,11 @@ function CommnElasticService(objectCollection) {
 
     async function addDocumetInformation(request,documentcontent,url,client,res) {
         let results = new Array();
-        var resultObj = {}
-        var document_version = 1;
+        let resultObj = {}
+        let document_version = 1;
         let date = new Date().toISOString().slice(0,19).replace('T',' ');
 
-        var filename = url.substring(url.lastIndexOf("/") + 1,url.length);
+        let filename = url.substring(url.lastIndexOf("/") + 1,url.length);
         let paramsArray;
         paramsArray =
             new Array(
@@ -114,10 +114,10 @@ function CommnElasticService(objectCollection) {
 
     async function updateDocumetInformation(request,documentcontent,url,client,res) {
         let results = new Array();
-        var resultObj = {}
+        let resultObj = {}
         let paramsArray;
         let version_id = 1;
-        var filename = url.substring(url.lastIndexOf("/") + 1,url.length);
+        let filename = url.substring(url.lastIndexOf("/") + 1,url.length);
         let date = new Date().toISOString().slice(0,19).replace('T',' ');
         paramsArray = new Array(
             parseInt(request.organization_id),
@@ -203,7 +203,7 @@ function CommnElasticService(objectCollection) {
             resultObj['document_id'] = request.document_id || request.id
             res.json(responseWrapper.getResponse(false,resultObj,200,request));
         } else {
-            var err = 'data not found'
+            let err = 'data not found'
             res.json(responseWrapper.getResponse(err,{},-9998,request));
         }
     }
@@ -213,7 +213,7 @@ function CommnElasticService(objectCollection) {
         async (request) => {
             try {
                 let date = new Date().toISOString().slice(0,19).replace('T',' ');
-                var resultObj = {}
+                let resultObj = {}
                 paramsArray = new Array(
                     parseInt(request.organization_id),
                     parseInt(request.activity_id),
@@ -276,7 +276,7 @@ function CommnElasticService(objectCollection) {
                     }
                     return resultObj;
                 } else {
-                    var err = {};
+                    let err = {};
                     err = 'data not found';
                     res.json(responseWrapper.getResponse(err,{},-9998,request));
                 }
@@ -291,16 +291,16 @@ function CommnElasticService(objectCollection) {
             responseData = [];
 
         try {
-            var flag = true;
-            var responseObj = {};
-            var responseArray = [];
-            var dynamicQuery = {};
-            var dynamicQueryArray = [];
-            var queryType = "cross_fields";
+            let flag = true;
+            let responseObj = {};
+            let responseArray = [];
+            let dynamicQuery = {};
+            let dynamicQueryArray = [];
+            let queryType = "cross_fields";
             const validSearchFields = ["product","content","documentdesc","documenttitle","filetitle","filename"];
-            var operator = 'and';
-            var page_size = 50;
-            var page_no = 0;
+            let operator = 'and';
+            let page_size = 50;
+            let page_no = 0;
 
             if(request.hasOwnProperty('page_size')) {
                 page_size = request.page_size;
@@ -310,14 +310,14 @@ function CommnElasticService(objectCollection) {
                 page_no = request.page_no;
             }
 
-            var pagination = {};
+            let pagination = {};
             pagination['size'] = page_size,
                 pagination['from'] = page_no;
 
-            var searchFields = [];
+                let searchFields = [];
 
             if(request.hasOwnProperty('fields') && request.fields.length > 0) {
-                for(var i = 0; i < request.fields.length; i++) {
+                for(let i = 0; i < request.fields.length; i++) {
                     if(validSearchFields.includes(request.fields[i])) {
                         searchFields.push(request.fields[i]);
                     } else {
@@ -339,14 +339,14 @@ function CommnElasticService(objectCollection) {
             }
             if(flag) {
                 const orgid = request.organization_id;
-                var orgFilter = {
+                let orgFilter = {
                     "match": {
                         "orgid": orgid
                     }
                 };
 
                 dynamicQueryArray.push(orgFilter);
-                var idFilter = '';
+                let idFilter = '';
 
                 if(request.hasOwnProperty('id') && request.id != null && request.id != '') {
                     idFilter = {
@@ -407,9 +407,9 @@ function CommnElasticService(objectCollection) {
                     }
                 }
 
-                var query = {};
-                var mainQueryObj = {};
-                var quertObjArray = {};
+                let query = {};
+                let mainQueryObj = {};
+                let quertObjArray = {};
                 quertObjArray['must'] = dynamicQueryArray;
 
                 mainQueryObj['bool'] = quertObjArray;
@@ -432,7 +432,7 @@ function CommnElasticService(objectCollection) {
                 });
 
                 for(let j = 0; j < result.hits['hits'].length; j++) {
-                    var obj = {};
+                    let obj = {};
                     obj['id'] = result.hits['hits'][j]['_source']['id'];
                     obj['orgid'] = result.hits['hits'][j]['_source']['orgid'];
                     obj['product'] = result.hits['hits'][j]['_source']['product'];

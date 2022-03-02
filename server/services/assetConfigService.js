@@ -2,14 +2,14 @@
  * author: Sri Sai Venkatesh
  */
 
-var db = require("../utils/dbWrapper");
-var Util = require('../utils/util');
-var util = new Util();
+let db = require("../utils/dbWrapper");
+let Util = require('../utils/util');
+let util = new Util();
 
 function AssetConfigService() {
 
     this.getAssetTypesList = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -17,7 +17,7 @@ function AssetConfigService() {
             request.page_start,
             util.replaceQueryLimit(request.page_limit)
         );
-        var queryString = util.getQueryString('ds_v1_workforce_asset_type_mapping_select', paramsArr);
+        let queryString = util.getQueryString('ds_v1_workforce_asset_type_mapping_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, (err, data) => {
                 let newData;
@@ -174,7 +174,7 @@ function AssetConfigService() {
             // IN p_log_asset_id BIGINT(20),
             // IN p_log_datetime DATETIME)
             
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.input_type_name,
             request.input_type_description,
             request.input_type_category_id,
@@ -204,7 +204,7 @@ function AssetConfigService() {
 
         let responseData = [],
             error = true;
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.start_from || 0,
             request.page_limit || 10
@@ -230,7 +230,7 @@ function AssetConfigService() {
         let responseData = [],
             error = true;
             // IN p_organization_id BIGINT(20), IN p_input_type_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.input_type_id,
             request.asset_id,
@@ -268,7 +268,7 @@ function AssetConfigService() {
             // IN p_log_asset_id BIGINT(20),
             // IN p_log_datetime DATETIME
             
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.input_name,
             request.input_type_id,
             request.input_url,
@@ -360,7 +360,7 @@ function AssetConfigService() {
             // IN p_log_asset_id BIGINT(20),
             // IN p_log_datetime DATETIME
             
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.input_id,
             request.flag_is_processed,
@@ -393,7 +393,7 @@ function AssetConfigService() {
             
             // IN p_organization_id BIGINT(20), IN p_input_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.input_id,
             request.asset_id,
@@ -423,7 +423,7 @@ function AssetConfigService() {
             error = true;
             
             // IN p_organization_id BIGINT(20), IN p_input_id BIGINT(20), IN p_update_type_id INT(11), IN p_update_datetime DATETIME)
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.input_id,
             request.update_type_id,
@@ -450,7 +450,7 @@ function AssetConfigService() {
             error = true;
             
             // IN p_organization_id BIGINT(20), IN p_input_type_id SMALLINT(6), IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.input_type_id,           
                 request.start_from || 0,

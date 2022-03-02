@@ -7,10 +7,10 @@ const fs = require('fs');
 const { serializeError } = require('serialize-error');
 
 const RMBotService = require('../../botEngine/services/rmbotService');
-var ActivityTimelineService = require('../../services/activityTimelineService.js');
-var ActivityService = require('../../services/activityService.js');
-var ActivityParticipantService = require('../../services/activityParticipantService.js');
-var AnalyticsService = require('../../analytics/services/analyticsService');
+let ActivityTimelineService = require('../../services/activityTimelineService.js');
+let ActivityService = require('../../services/activityService.js');
+let ActivityParticipantService = require('../../services/activityParticipantService.js');
+let AnalyticsService = require('../../analytics/services/analyticsService');
 
 
 const AWS_Cognito = require('aws-sdk');
@@ -760,7 +760,7 @@ function AdminOpsService(objectCollection) {
             util.getCurrentUTCTime()
         );
 
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner_flag',paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_owner_flag',paramsArr);
         if(queryString !== '') {
             try {
                 const data = await db.executeQueryPromise(0,queryString,request);
@@ -1739,7 +1739,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                 newActivity_id
             );
     
-            var queryStringLead = util.getQueryString('ds_p1_asset_list_update_flag_asset_approval',paramsArrLead);
+            let queryStringLead = util.getQueryString('ds_p1_asset_list_update_flag_asset_approval',paramsArrLead);
             if(queryString !== '') {
                 try {
                     const data = await db.executeQueryPromise(0,queryStringLead,request);
@@ -1763,7 +1763,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                     0
                 );
         
-                var queryString = util.getQueryString('ds_p1_asset_list_update_flag_asset_approval',paramsArr);
+                let queryString = util.getQueryString('ds_p1_asset_list_update_flag_asset_approval',paramsArr);
                 if(queryString !== '') {
                     try {
                         const data = await db.executeQueryPromise(0,queryString,request);
@@ -1952,7 +1952,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             util.replaceQueryLimit(request.page_limit)
         );
 
-        var queryString = util.getQueryString('ds_p1_workforce_list_select', paramsArr);
+        let queryString = util.getQueryString('ds_p1_workforce_list_select', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -2924,7 +2924,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
     }
 
     async function archiveAsset (request,type){
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.desk_asset_id,
             request.organization_id,
             type,
@@ -2932,7 +2932,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.asset_id,
             util.getCurrentUTCTime()
         );
-        var queryString = util.getQueryString('ds_v1_asset_archived_list_insert', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_archived_list_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, assetData) {
                 if (err === false) {
@@ -9214,7 +9214,7 @@ if (queryString !== '') {
     }
 
     async function removeUser(username, pool_id) {
-        var params = {
+        let params = {
             UserPoolId: pool_id, //global.config.user_pool_id,
             Username: username /* required */
           };
@@ -9322,7 +9322,7 @@ if (queryString !== '') {
     };
 
     async function getUser(username, pool_id) {
-        var params = {
+        let params = {
             UserPoolId: pool_id, //global.config.user_pool_id,
             Username: username
           };
@@ -11701,13 +11701,14 @@ if (queryString !== '') {
         const paramsArr = new Array(
             request.organization_id,
             request.header_id,
+            request.conversion_format || "",
             request.tag_type_id,
             request.sequence_id,
             request.header_name,
             request.log_asset_id,
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_v1_widget_drilldown_header_mapping_update', paramsArr);
+        const queryString = util.getQueryString('ds_v1_1_widget_drilldown_header_mapping_update', paramsArr);
 
 
         if (queryString !== '') {
@@ -12259,7 +12260,8 @@ if (queryString !== '') {
           request.organization_id,
           request.form_id,
           request.flag_disable_rollback_refill,
-          request.asset_id
+          request.asset_id,
+          util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_workforce_form_mapping_update_flag_disable_rollback_refill', paramsArr);
 

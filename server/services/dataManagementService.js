@@ -124,7 +124,7 @@ module.exports = function DataManagementService(params) {
         const currentDate = new Date();
         const currentDateInDateTimeFormat = moment(currentDate).format("YYYY-MM-DD HH:mm:ss");
         const epoch = moment().valueOf();
-        var payload = {
+        let payload = {
             content: pdfUrl,
             subject: 'Data has been exported to PDF',
             mail_body: pdfUrl,

@@ -1,7 +1,7 @@
 const WidgetBase = require('./base');
 const CONST = require('../../constants');
 const _ = require('lodash');
-
+const logger = require('../../../server/logger/winstonLogger');
 
 
 class FormFileStatusTransitionWidget extends WidgetBase {
@@ -28,33 +28,37 @@ class FormFileStatusTransitionWidget extends WidgetBase {
 
 			this.services.activityStatusChangeTxnService.activityStatusChangeTxnActivityStatus(activityQueryData).then((min_result) => {
 
-				var min_datetime = this.objCollection.util.replaceDefaultDatetime(min_result[0].min_from_status_datetime);
+				let min_datetime = this.objCollection.util.replaceDefaultDatetime(min_result[0].min_from_status_datetime);
 
 				activityQueryData.flag = 1;
 				activityQueryData.to_status_id = this.rule.widget_entity3_id;
 
 				this.services.activityStatusChangeTxnService.activityStatusChangeTxnActivityStatus(activityQueryData).then((max_result) => {
 
-					var max_datetime = this.objCollection.util.replaceDefaultDatetime(max_result[0].max_to_status_datetime);
+					let max_datetime = this.objCollection.util.replaceDefaultDatetime(max_result[0].max_to_status_datetime);
 
-					var aggregate = 0;
+					let aggregate = 0;
 
 					if (max_datetime != '1970-01-01 00:00:00' && min_datetime != '1970-01-01 00:00:00')
 						aggregate = this.objCollection.util.differenceDatetimes(max_datetime, min_datetime) / 1000;
 
-					global.logger.write('conLog', 'Transition: WidgetId' + this.rule.widget_id + ' MAX DATETIME: ' + max_datetime, {}, data);
-					global.logger.write('conLog', 'Transition: WidgetId' + this.rule.widget_id + ' MIN DATETIME: ' + min_datetime, {}, data);
+					//global.logger.write('conLog', 'Transition: WidgetId' + this.rule.widget_id + ' MAX DATETIME: ' + max_datetime, {}, data);
+					logger.info(`activityStatusChangeTxnActivityStatus Transition: %j`,{WidgetId : this.rule.widget_id,MAX_DATETIME : max_datetime, data});
+					//global.logger.write('conLog', 'Transition: WidgetId' + this.rule.widget_id + ' MIN DATETIME: ' + min_datetime, {}, data);
+					logger.info(`activityStatusChangeTxnActivityStatus Transition: %j`,{WidgetId : this.rule.widget_id,MIN_DATETIME : min_datetime, data});
 
 					activityQueryData.from_status_datetime = min_datetime;
 					activityQueryData.to_status_datetime = max_datetime;
 					activityQueryData.status_changed_flag = 2;
 
 					this.services.activityStatusChangeTxnService.activityStatusChangeTxnInsert(activityQueryData, aggregate).then(() => {
-						global.logger.write('conLog', 'Transition: WidgetId ' + this.rule.widget_id + ' WAIT FOR 2 SECS START: ' + this.objCollection.util.getCurrentUTCTime(), {}, data);
+						//global.logger.write('conLog', 'Transition: WidgetId ' + this.rule.widget_id + ' WAIT FOR 2 SECS START: ' + this.objCollection.util.getCurrentUTCTime(), {}, data);
+						logger.info(`activityStatusChangeTxnInsert Transition: %j`,{WidgetId : this.rule.widget_id,WAIT_FOR_2_SECS_START : this.objCollection.util.getCurrentUTCTime(), data});
 						this.services.activityListService.wait(2000).then(() => {
 
 							this.services.activityStatusChangeTxnService.activityStatusChangeTxnIntermediateAggr(activityQueryData).then((result) => {
-								global.logger.write('conLog', 'Transition: WidgetId ' + this.rule.widget_id + ' WAIT FOR 2 SECS END: ' + this.objCollection.util.getCurrentUTCTime(), {}, data);
+								//global.logger.write('conLog', 'Transition: WidgetId ' + this.rule.widget_id + ' WAIT FOR 2 SECS END: ' + this.objCollection.util.getCurrentUTCTime(), {}, data);
+								logger.info(`activityStatusChangeTxnIntermediateAggr Transition: %j`,{WidgetId : this.rule.widget_id,WAIT_FOR_2_SECS_END : this.objCollection.util.getCurrentUTCTime(), data});
 								aggregate = result[0].duration;
 
 								let widgetData = {
@@ -70,12 +74,13 @@ class FormFileStatusTransitionWidget extends WidgetBase {
 									activity_id: data.activity_id
 								};
 
-								var msg = {};
+								let msg = {};
 								msg.type = "file_status_transition_widget_aggregate";
 								msg.form_id = data.form_id;
 								msg.widget_id = widgetData.widget_id;
 
-								global.logger.write('conLog', 'Transition: WidgetId : ' + this.rule.widget_id + ' AGGR TO WIDGET : ' + result[0].duration, {}, data);
+								//global.logger.write('conLog', 'Transition: WidgetId : ' + this.rule.widget_id + ' AGGR TO WIDGET : ' + result[0].duration, {}, data);
+								logger.info(`activityStatusChangeTxnIntermediateAggr Transition: %j`,{WidgetId : this.rule.widget_id,AGGR_TO_WIDGET : result[0].duration, data});
 
 								if (aggregate > 0) {
 									return this.createOrUpdateWidgetTransaction(widgetData, msg, data.organization_id).then(() => {});
@@ -87,7 +92,8 @@ class FormFileStatusTransitionWidget extends WidgetBase {
 				})
 			})
 		} else {
-			global.logger.write('conLog', 'Transition: WidgetId : ' + this.rule.widget_id + ' : ' + data.req_activity_status_id + ' NOT EQUALS TO RULE STATUS ' + this.rule.widget_entity3_id, {}, data);
+			//global.logger.write('conLog', 'Transition: WidgetId : ' + this.rule.widget_id + ' : ' + data.req_activity_status_id + ' NOT EQUALS TO RULE STATUS ' + this.rule.widget_entity3_id, {}, data);
+			logger.info(`aggregateAndSaveTransaction Transition: %j`,{WidgetId : this.rule.widget_id,req_activity_status_id : data.req_activity_status_id, NOT_EQUALS_TO_RULE_STATUS : this.rule.widget_entity3_id, data});
 		}
 	}
 

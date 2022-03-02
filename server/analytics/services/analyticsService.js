@@ -159,12 +159,14 @@ function AnalyticsService(objectCollection)
         //*******************************************************/
         let [err1, staticValues] = await self.getwidgetStaticValueDetails(request);
         if(err1) {
-            global.logger.write('conLog', "get Widget Chart Id | based on widget_type_id | Error: ", err, {});
+            //global.logger.write('conLog', "get Widget Chart Id | based on widget_type_id | Error: ", err, {});
+            util.logError(request,`getwidgetStaticValueDetails get Widget Chart Id | based on widget_type_id | Error %j`, { err1 });
             return [true, {message: "Error creating Widget"}];
         }
         
-        global.logger.write('conLog', 'staticValues : ', {}, {});
-        global.logger.write('conLog', staticValues, {}, {});
+        //global.logger.write('conLog', 'staticValues : ', {}, {});
+        //global.logger.write('conLog', staticValues, {}, {});
+        util.logInfo(request,`getwidgetStaticValueDetails  %j`,{staticValues : staticValues, request});
 
         request.widget_chart_id = staticValues[0].widget_type_chart_id;
         request.flag_app = staticValues[0].flag_mobile_enabled;
@@ -186,7 +188,8 @@ function AnalyticsService(objectCollection)
         //Add Activity - you will get ActivityID
         const [err, activityData] = await createActivity(request);
         if (err) {
-            global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
+            //global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
+            util.logError(request,`createActivity createAssetBundle | createActivity | Error : %j`, { err });
             return [true, {message: "Error creating activity"}];
         }
         //global.logger.write('conLog', "createAssetBundle | createActivity | activityData: " + activityData, {}, {});
@@ -195,7 +198,8 @@ function AnalyticsService(objectCollection)
 
         let [widgetErr, widgetResponse] = await this.widgetListInsert(request);
         if(widgetErr) {
-            global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
+            //global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
+            util.logError(request,`widgetListInsert createAssetBundle | createActivity | Error: %j`, { err });
             return [true, {message: "Error creating Widget"}];
         }            
         //console.log('widgetResponse : ', widgetResponse);
@@ -261,12 +265,14 @@ function AnalyticsService(objectCollection)
         let [err1, staticValues] = await self.getwidgetStaticValueDetails(request);
         
         if(err1) {
-            global.logger.write('conLog', "get Widget Chart Id | based on widget_type_id | Error: ", err, {});
+            //global.logger.write('conLog', "get Widget Chart Id | based on widget_type_id | Error: ", err, {});
+            util.logError(request,`getwidgetStaticValueDetails get Widget Chart Id | based on widget_type_id | Error %j`, { err1 });
             return [true, {message: "Error creating Widget"}];
         }
         
-        global.logger.write('conLog', 'staticValues : ', {}, {});
-        global.logger.write('conLog', staticValues, {}, {});
+        //global.logger.write('conLog', 'staticValues : ', {}, {});
+        //global.logger.write('conLog', staticValues, {}, {});
+        util.logInfo(request,`getwidgetStaticValueDetails  %j`,{staticValues : staticValues, request});
 
         request.widget_chart_id = staticValues[0].widget_type_chart_id;
         request.flag_app = staticValues[0].flag_mobile_enabled;
@@ -289,7 +295,8 @@ function AnalyticsService(objectCollection)
         //Add Activity - you will get ActivityID
         const [err, activityData] = await createActivity(request);
         if (err) {
-            global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
+            //global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
+            util.logError(request,`createActivity createAssetBundle | createActivity | Error: %j`, { err });
             return [true, {message: "Error creating activity"}];
         }
         
@@ -307,7 +314,8 @@ function AnalyticsService(objectCollection)
             request.field_id = request.field_id || request.filter_field_id;
             let [widgetErr, widgetResponse] = await this.widgetListInsert(request);
             if(widgetErr) {
-                global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
+                //global.logger.write('conLog', "createAssetBundle | createActivity | Error: ", err, {});
+                util.logError(request,`widgetListInsert createAssetBundle | createActivity | Error: %j`, { err });
                 return [true, {message: "Error creating Widget"}];
             }            
 
@@ -604,13 +612,13 @@ function AnalyticsService(objectCollection)
 
     this.updateWidgetInline = async (request)=>{
 
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.activity_id,
                 request.organization_id,
                 request.activity_inline_data
             );
     
-            var queryString = util.getQueryString('ds_v1_activity_list_update_inline_data', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_list_update_inline_data', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
@@ -2296,8 +2304,8 @@ function AnalyticsService(objectCollection)
                 request.filter_hierarchy = 0;
             }
 
-            if(request.tag_type_id == 130)
-                request.filter_asset_id = request.asset_id;
+            //if(request.tag_type_id == 130)
+            //    request.filter_asset_id = request.asset_id;
 
             //if([131,132,133,134].includes(request.widget_type_id))
              //   request.filter_asset_id = request.asset_id;
@@ -2371,6 +2379,7 @@ function AnalyticsService(objectCollection)
                         request.filter_asset_tag_type_1 || 0,
                         request.filter_asset_tag_type_2 || 0,
                         request.filter_asset_tag_type_3 || 0,
+                        request.asset_id,
                         parseInt(request.page_start) || 0,
                         parseInt(request.page_limit) || 50
                     );
@@ -3140,8 +3149,8 @@ function AnalyticsService(objectCollection)
             console.log('request.filter_search_string :: '+ request.filter_search_string);
             console.log('request.filter_mapping_activity_id :: '+ request.filter_mapping_activity_id);
 
-            if(request.tag_type_id == 130)
-            request.filter_asset_id = request.asset_id;
+            //if(request.tag_type_id == 130)
+            //request.filter_asset_id = request.asset_id;
             
             //if([131,132,133,134].includes(request.widget_type_id))
             //    request.filter_asset_id = request.asset_id;
@@ -3215,7 +3224,8 @@ function AnalyticsService(objectCollection)
                      request.filter_asset_tag_3 || 0,
                      request.filter_asset_tag_type_1 || 0,
                      request.filter_asset_tag_type_2 || 0,
-                     request.filter_asset_tag_type_3 || 0
+                     request.filter_asset_tag_type_3 || 0,
+                     request.asset_id
                  );
             
             let queryString = util.getQueryString('ds_v2_3_activity_search_list_select_widget_drilldown_search', paramsArray);
@@ -3324,8 +3334,8 @@ function AnalyticsService(objectCollection)
             console.log('request.filter_search_string :: '+ request.filter_search_string);
             console.log('request.filter_mapping_activity_id :: '+ request.filter_mapping_activity_id);
 
-            if(request.tag_type_id == 130)
-            request.filter_asset_id = request.asset_id;
+            //if(request.tag_type_id == 130)
+            //request.filter_asset_id = request.asset_id;
             
             //if([131,132,133,134].includes(request.widget_type_id))
             //    request.filter_asset_id = request.asset_id;
@@ -3397,7 +3407,8 @@ function AnalyticsService(objectCollection)
                      request.filter_asset_tag_3 || 0,
                      request.filter_asset_tag_type_1 || 0,
                      request.filter_asset_tag_type_2 || 0,
-                     request.filter_asset_tag_type_3 || 0
+                     request.filter_asset_tag_type_3 || 0,
+                     request.asset_id
                     );
             
             let queryString = util.getQueryString('ds_v2_3_activity_search_list_select_widget_drilldown_oppty', paramsArray);
@@ -5203,8 +5214,8 @@ function AnalyticsService(objectCollection)
                 request.filter_hierarchy = 0;
             }
 
-            if (request.tag_type_id == 130)
-                request.filter_asset_id = request.asset_id;
+            //if (request.tag_type_id == 130)
+            //    request.filter_asset_id = request.asset_id;
 
             console.log('request.filter_is_datetime_considered :: ' + request.filter_is_datetime_considered);
 
@@ -6116,8 +6127,8 @@ function AnalyticsService(objectCollection)
                 request.filter_hierarchy = 0;
             }
 
-            if (request.tag_type_id == 130)
-                request.filter_asset_id = request.asset_id;
+            //if (request.tag_type_id == 130)
+            //    request.filter_asset_id = request.asset_id;
 
             console.log('request.filter_is_datetime_considered :: ' + request.filter_is_datetime_considered);
 
@@ -8219,7 +8230,33 @@ function AnalyticsService(objectCollection)
         }
 
         return [false, finalresponse];
-    }       
+    }
+    
+    this.reportTransactionUpdateDownloadCount = async function (request){
+
+        let error= true, responseData = [];
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.report_transaction_id,
+            request.report_id,
+            request.asset_id,
+            request.log_datetime || util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_report_transaction_update_download_count', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;                    
+                })
+        }               
+        return [error,responseData];
+    } 
     
 }
 

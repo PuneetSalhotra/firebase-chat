@@ -3,8 +3,8 @@
  * 
  */
 
-var CassandraWrapper = require('../utils/cassandraWrapper');
-var cassandraWrapper = new CassandraWrapper();
+let CassandraWrapper = require('../utils/cassandraWrapper');
+let cassandraWrapper = new CassandraWrapper();
 
 function LogService(objectCollection) {
 
@@ -17,11 +17,11 @@ function LogService(objectCollection) {
     
     this.getTransactionsByDevice = function (request, callback) {
         
-        var deviceCtyCode;
-        var devicePhoneNumber;
-        var date;
-        var serviceId;
-        var query;
+        let deviceCtyCode;
+        let devicePhoneNumber;
+        let date;
+        let serviceId;
+        let query;
         
         query = "SELECT devcntrycd, devphnnmbr, date, srvcid, bndlid, recid,actvtyid,actvtyttle,asstid,asstname,crtd, \n\
                     lvlid,lvlnm,msg,req,reqtime,res,rescode,ressts,restat,restime,srcid,srcnm,srvcname,stktrc,url FROM transactionsbydevice";
@@ -47,11 +47,11 @@ function LogService(objectCollection) {
 
     this.getTransactionsByActivity = function (request, callback) {
         
-        var activityId;
-        var date;
-        var serviceId;
+        let activityId;
+        let date;
+        let serviceId;
         
-       var query = "SELECT actvtyid, date, srvcid, bndlid, recId, actvtyttle, asstid, asstnm, toDate(crtd), devCntryCd, \n\
+        let query = "SELECT actvtyid, date, srvcid, bndlid, recId, actvtyttle, asstid, asstnm, toDate(crtd), devCntryCd, \n\
                     devPhnNmbr, lvlId, lvlnm, msg, req, toDate(reqtime), res, rescode,res,ressts,restat,\n\
                     toDate(restime), srcid, srcnm, srvcname, stktrc, url FROM transactionsbyactivity";
                         
@@ -74,11 +74,11 @@ function LogService(objectCollection) {
     
     this.getTransactionsByAsset = function (request, callback) {
         
-        var assetId;
-        var date;
-        var serviceId;
+        let assetId;
+        let date;
+        let serviceId;
         
-        var query = "SELECT actvtyid, date, srvcid, bndlid, recId, actvtyttle, asstid, asstnm, toDate(crtd), devCntryCd, \n\
+        let query = "SELECT actvtyid, date, srvcid, bndlid, recId, actvtyttle, asstid, asstnm, toDate(crtd), devCntryCd, \n\
                     devPhnNmbr, lvlId, lvlnm, msg, req, toDate(reqtime), res, rescode,res,ressts,restat,\n\
                     toDate(restime), srcid, srcnm, srvcname, stktrc, url FROM transactionsbyasset";
                    
@@ -100,10 +100,10 @@ function LogService(objectCollection) {
     };
     
     this.getSessionByAsset = function (request, callback) {
-        var assetId;
-        var date;
+        let assetId;
+        let date;
                 
-        var query = "SELECT * FROM sessions_by_asset";
+        let query = "SELECT * FROM sessions_by_asset";
                    
         if(request.clause == 1) { 
                 assetId = request.search_asset_id || 0;
@@ -121,11 +121,11 @@ function LogService(objectCollection) {
     };
     
     this.getSessionByWorkforce = function (request, callback) {
-        var workforceId;
-        var devOs;
-        var year;
+        let workforceId;
+        let devOs;
+        let year;
                 
-        var query = "SELECT * FROM sessions_by_workforce";
+        let query = "SELECT * FROM sessions_by_workforce";
                    
         if(request.clause == 1) { 
                 workforceId = request.search_workforce_id || 0;
@@ -145,11 +145,11 @@ function LogService(objectCollection) {
     };
     
     this.getSessionByAccount = function (request, callback) {
-        var accountId;
-        var devOs;
-        var year;
+        let accountId;
+        let devOs;
+        let year;
                 
-        var query = "SELECT * FROM sessions_by_account";
+        let query = "SELECT * FROM sessions_by_account";
                    
         if(request.clause == 1) { 
                 accountId = request.search_account_id || 0;
@@ -169,11 +169,11 @@ function LogService(objectCollection) {
     };
     
     this.getSessionByOrganization = function (request, callback) {
-        var organizationId;
-        var devOs;
-        var year;
+        let organizationId;
+        let devOs;
+        let year;
                 
-        var query = "SELECT * FROM sessions_by_organization";
+        let query = "SELECT * FROM sessions_by_organization";
                    
         if(request.clause == 1) { 
                 organizationId = request.search_organization_id || 0;
@@ -193,11 +193,11 @@ function LogService(objectCollection) {
     };
     
     this.getSessionByDeviceType = function (request, callback) {
-        var deviceType;
-        var month;
-        var year;
+        let deviceType;
+        let month;
+        let year;
                 
-        var query = "SELECT * FROM sessions_by_device_type";
+        let query = "SELECT * FROM sessions_by_device_type";
                    
         if(request.clause == 1) { 
                 deviceType = request.device_type || 0;
@@ -217,10 +217,10 @@ function LogService(objectCollection) {
     };
     
     this.getAssetLocation = function (request, callback) {
-        var assetId;
-        var year;
+        let assetId;
+        let year;
                 
-        var query = "SELECT * FROM location_by_asset";
+        let query = "SELECT * FROM location_by_asset";
                    
         if(request.clause == 1) { 
                 assetId = request.search_asset_id  || 0;
@@ -239,10 +239,10 @@ function LogService(objectCollection) {
     }
     
     this.getAssetWorkhours = function (request, callback) {
-        var assetId;
-        var year;
+        let assetId;
+        let year;
                 
-        var query = "SELECT * FROM workhrs_by_asset";
+        let query = "SELECT * FROM workhrs_by_asset";
                    
         if(request.clause == 1) { 
                 assetId = request.search_asset_id  || 0;
@@ -261,10 +261,10 @@ function LogService(objectCollection) {
     };
     
     this.getWorkforceWorkhours = function (request, callback) {
-        var workforceId;
-        var year;
+        let workforceId;
+        let year;
                 
-        var query = "SELECT * FROM workhrs_by_workforce";
+        let query = "SELECT * FROM workhrs_by_workforce";
                    
         if(request.clause == 1) { 
                 workforceId = request.search_workforce_id || 0;
@@ -282,10 +282,10 @@ function LogService(objectCollection) {
     };
     
     this.getAccountWorkhours = function (request, callback) {
-        var accountId;
-        var year;
+        let accountId;
+        let year;
                 
-        var query = "SELECT * FROM workhrs_by_account";
+        let query = "SELECT * FROM workhrs_by_account";
                    
         if(request.clause == 1) { 
                 accountId = request.search_account_id || 0;
@@ -303,10 +303,10 @@ function LogService(objectCollection) {
     };
     
     this.getOrganizationWorkhours = function (request, callback) {
-        var organizationId;
-        var year;
+        let organizationId;
+        let year;
                 
-        var query = "SELECT * FROM workhrs_by_organization";
+        let query = "SELECT * FROM workhrs_by_organization";
                    
         if(request.clause == 1) { 
                 organizationId = request.search_organization_id || 0;
@@ -324,8 +324,8 @@ function LogService(objectCollection) {
     };
     
     
-    var executeQuery = function(log, query, callback) {
-        var messageCollection ={};
+    let executeQuery = function(log, query, callback) {
+        let messageCollection ={};
         messageCollection.environment = global.mode;
         (log === '') ?  messageCollection.log = 'session' : messageCollection.log = 'log';
         //console.log('MessageCollection: ', messageCollection)

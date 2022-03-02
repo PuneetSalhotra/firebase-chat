@@ -2,13 +2,13 @@
     author: bharat krishna masimukku
 */
 
-var CommnTemplateService = require("../services/commnTemplateService.js");
+let CommnTemplateService = require("../services/commnTemplateService.js");
 
 function CommnTemplateController(objCollection) 
 {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
     //const util = objCollection.util;
     //const cacheWrapper = objCollection.cacheWrapper;
     //const queueWrapper = objCollection.queueWrapper;

@@ -1,7 +1,8 @@
 const WidgetBase = require('./base');
 const CONST = require('../../constants');
 const _ = require('lodash');
-var forEachAsync = require('forEachAsync').forEachAsync;
+let forEachAsync = require('forEachAsync').forEachAsync;
+const logger = require('../../../server/logger/winstonLogger');
 
 
 class FormFileStatusDistributionWidget extends WidgetBase {
@@ -24,8 +25,8 @@ class FormFileStatusDistributionWidget extends WidgetBase {
 		};
 
 		activityQueryData = _.merge(activityQueryData, data);
-		var array = [];
-		var array2 = [];
+		let array = [];
+		let array2 = [];
 		const widgetTransactionSvc1 = this.services.widgetTransaction;
 		widgetTransactionSvc1.getWidgetTxnsOfAWidget(activityQueryData).then((txns) => {
 
@@ -40,17 +41,18 @@ class FormFileStatusDistributionWidget extends WidgetBase {
 			}).then(() => {
 
 				this.services.activityListService.getStatusCounts(activityQueryData).then((result) => {
-					var myArr = [];
+					let myArr = [];
 					forEachAsync(result, (next2, rowData2) => {
 						array2.push(rowData2.activity_status_id);
 						next2();
 					}).then(() => {
-						var diffArray = [];
+						let diffArray = [];
 						forEachAsync(array, (n, x) => {
-							global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + " : " + x + " includes" + array2.includes(x), {}, data);
+							//global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + " : " + x + " includes" + array2.includes(x), {}, data);
+							logger.info(`activityListService.getStatusCounts debug  Distribution: %j`,{WidgetId : this.rule.widget_id,x : x,includes : array2.includes(x),data});
 							if (array2.includes(x) == false) {
 								diffArray.push(x);
-								var obj = {};
+								let obj = {};
 								obj.status_count = 0;
 								obj.activity_status_id = x;
 								obj.activity_status_name = '';
@@ -61,7 +63,8 @@ class FormFileStatusDistributionWidget extends WidgetBase {
 							}
 
 						}).then(() => {
-							global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + " StatusJsonData: " + JSON.stringify(result), {}, data);
+							//global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + " StatusJsonData: " + JSON.stringify(result), {}, data);
+							logger.info(`activityListService.getStatusCounts debug Distribution: %j`,{WidgetId : this.rule.widget_id,StatusJsonData : JSON.stringify(result), data});
 							forEachAsync(result, (next, rowData) => {
 								console.log(rowData)
 								const count = rowData ? rowData.status_count : undefined;
@@ -80,7 +83,7 @@ class FormFileStatusDistributionWidget extends WidgetBase {
 
 								widgetData = _.merge(widgetData, data);
 
-								var msg = {};
+								let msg = {};
 								msg.type = "file_status_show_widget_count";
 								msg.form_id = data.form_id;
 								msg.widget_id = widgetData.widget_id;
@@ -94,7 +97,8 @@ class FormFileStatusDistributionWidget extends WidgetBase {
 								}
 							}).then(() => {
 
-								global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + ' Done', {}, data);
+								//global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + ' Done', {}, data);
+								logger.info(`activityListService.getStatusCounts debug Distribution: %j`,{WidgetId : this.rule.widget_id,Done : ' Done', data});
 							});
 						})
 					});

@@ -22,7 +22,7 @@ class MultiDimensionalAggrWidget extends WidgetBase {
     }
 
     getChoiceSumField() {
-        var field;
+        let field;
         switch (this.rule.widget_entity3_data_type_id) {
             case 5:
                 field = 'data_entity_bigint_1';
@@ -78,7 +78,7 @@ class MultiDimensionalAggrWidget extends WidgetBase {
         activityQueryData = _.merge(activityQueryData, data);
         this.services.activityFormTransactionAnalytics.getFormTransactionsByChoice(activityQueryData)
             .then((rows) => {
-                var promises = [];
+                let promises = [];
                 rows.forEach((row) => promises.push(this.services.activityFormTransactionAnalytics.getByTransactionField({
                     organization_id: data.organization_id,
                     form_id: this.form.id,
@@ -175,7 +175,7 @@ class MultiDimensionalAggrWidget extends WidgetBase {
                 widgetData.widget_transaction_id = widgetTransId;
                 if (widgetTransId) {
                     //Pubnub PUSH
-                    var msg = {};
+                    let msg = {};
                     msg.type = "form_submited_show_widget_count";
                     msg.form_id = widgetData[0].form_id;
                     msg.widget_id = widgetData[0].widget_id;
@@ -184,7 +184,7 @@ class MultiDimensionalAggrWidget extends WidgetBase {
                     return widgetTransactionSvc.updateMultiValueVisualization(widgetData);
                 } else {
                     //Pubnub PUSH
-                    var msg = {};
+                    let msg = {};
                     msg.type = "form_submited_show_widget_count";
                     msg.form_id = widgetData[0].form_id;
                     msg.widget_id = widgetData[0].widget_id;

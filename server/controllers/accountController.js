@@ -3,17 +3,17 @@
  * 
  */
 
-var AccountService = require("../services/accountService");
-var fs = require('fs');
+let AccountService = require("../services/accountService");
+let fs = require('fs');
 //const smsEngine = require('../utils/smsEngine');
 
 function AccountController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
-    var util = objCollection.util;
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
+    let util = objCollection.util;
     const db = objCollection.db;
-    var accountService = new AccountService(objCollection);
+    let accountService = new AccountService(objCollection);
 
     app.post('/' + global.config.version + '/account/access/admin-asset/list', function (req, res) {
         accountService.getAdminAssets(req.body, function (err, data, statusCode) {
@@ -194,15 +194,18 @@ function AccountController(objCollection) {
     //Voice XML for TWILIO
     app.post('/' + global.config.version + '/account/voice*', function (req, res) {
         // console.log('VNK : ' , req.body);
-        global.logger.write('conLog', 'VNK : ' + JSON.stringify(req.body, null, 2), {}, req);
-        var x = req.body.url;
+        //global.logger.write('conLog', 'VNK : ' + JSON.stringify(req.body, null, 2), {}, req);
+        util.logInfo(req.body,`/account/voice* VNK: %j`,{VNK : JSON.stringify(req.body, null, 2),body : req.body});
+        let x = req.body.url;
         x = x.split("/");
         // console.log('x[3] : ' + x[3]);
-        global.logger.write('conLog', 'x[3] : ' + x[3], {}, req);
+        //global.logger.write('conLog', 'x[3] : ' + x[3], {}, req);
+        util.logInfo(req.body,`/account/voice* x[3]: %j`,{x3 : x[3], body : req.body});
 
-        var file = global.config.efsPath + 'twiliovoicesxmlfiles/' + x[3] + '.xml';
+        let file = global.config.efsPath + 'twiliovoicesxmlfiles/' + x[3] + '.xml';
         // console.log(file);               
-        global.logger.write('conLog', 'Voice XML for TWILIO: ' + file, {}, req);
+        //global.logger.write('conLog', 'Voice XML for TWILIO: ' + file, {}, req);
+        util.logInfo(req.body,`/account/voice* Voice XML for TWILIO: %j`,{Voice_XML_for_TWILIO : file, body : req.body});
 
         fs.readFile(file, function (err, data) {
             if (err) {
@@ -223,7 +226,7 @@ function AccountController(objCollection) {
         // console.log('Request.query : ' , req.body);
         //global.logger.write('debug', 'Request.query : ' + JSON.stringify(req.body, null, 2), {}, req);
 
-        var file = global.config.efsPath + 'nexmovoicesjsonfiles/' + req.query.file;
+        let file = global.config.efsPath + 'nexmovoicesjsonfiles/' + req.query.file;
         // console.log(file);       
         //global.logger.write('debug', 'Voice JSON file for NEXMO: ' + file, {}, req);
 
@@ -273,7 +276,8 @@ function AccountController(objCollection) {
     app.post('/' + global.config.version + '/account/send/sms', async (req, res) => {
         let request = req.body;
         
-        global.logger.write('debug', 'Request params: ' + JSON.stringify(request, null, 2), {}, request);         
+        //global.logger.write('debug', 'Request params: ' + JSON.stringify(request, null, 2), {}, request);
+        util.logInfo(request,`/account/send/sms debug Request params: %j`,{Request_params : JSON.stringify(request, null, 2), request});         
         
         let paramsArr = new Array(request.organization_id);        
         let queryString = util.getQueryString('ds_p1_organization_list_select', paramsArr);
@@ -287,8 +291,11 @@ function AccountController(objCollection) {
         
         util.sendSmsSinfiniV1(request.message, request.country_code, request.phone_number, senderId, function (err, response) {
             // console.log(err,'\n',res);
-            global.logger.write('debug', 'Sinfini Error: ' + JSON.stringify(err, null, 2), {}, request);
-            global.logger.write('debug', 'Sinfini Response: ' + JSON.stringify(response, null, 2), {}, request);
+            //global.logger.write('debug', 'Sinfini Error: ' + JSON.stringify(err, null, 2), {}, request);
+            util.logInfo(request,`debug Sinfini Error: %j`,{Sinfini_Error : JSON.stringify(err, null, 2), request});
+            util.logError(request,`conLog Sinfini Error: %j`, { err });
+            //global.logger.write('debug', 'Sinfini Response: ' + JSON.stringify(response, null, 2), {}, request);
+            util.logInfo(request,`debug Sinfini Response: %j`,{Sinfini_Response : JSON.stringify(response, null, 2), request});
             res.json(responseWrapper.getResponse(false, {}, 200, req.body));
         });       
 

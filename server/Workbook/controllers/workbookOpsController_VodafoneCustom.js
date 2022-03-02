@@ -15,8 +15,8 @@ const WorkbookOpsService_VodafoneCustom = require("../services/workbookOpsServic
 
 function WorkbookOpsController_VodafoneCustom(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
     //const util = objCollection.util;
     //const cacheWrapper = objCollection.cacheWrapper;
     //const queueWrapper = objCollection.queueWrapper;

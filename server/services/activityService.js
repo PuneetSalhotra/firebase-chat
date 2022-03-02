@@ -5,14 +5,14 @@
 
 function ActivityService(objectCollection) {
 
-    var db = objectCollection.db;
-    var cacheWrapper = objectCollection.cacheWrapper;
-    var activityCommonService = objectCollection.activityCommonService;
-    var util = objectCollection.util;
-    var forEachAsync = objectCollection.forEachAsync;
-    var queueWrapper = objectCollection.queueWrapper;
+    let db = objectCollection.db;
+    let cacheWrapper = objectCollection.cacheWrapper;
+    let activityCommonService = objectCollection.activityCommonService;
+    let util = objectCollection.util;
+    let forEachAsync = objectCollection.forEachAsync;
+    let queueWrapper = objectCollection.queueWrapper;
     // var activityPushService = objectCollection.activityPushService;
-    var responseactivityData = {};
+    let responseactivityData = {};
     const suzukiPdfEngine = require('../utils/suzukiPdfGenerationEngine');
     const moment = require('moment');
 
@@ -47,12 +47,12 @@ function ActivityService(objectCollection) {
         request.flag_retry = request.flag_retry || 0;
         request.flag_offline = request.flag_offline || 0;
 
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         responseactivityData = {
             activity_id: request.activity_id
         };
         request['datetime_log'] = logDatetime;
-        var activityTypeCategroyId = Number(request.activity_type_category_id);
+        let activityTypeCategroyId = Number(request.activity_type_category_id);
         new Promise((resolve, reject) => {
             if (activityTypeCategroyId !== 8)
                 return resolve();
@@ -71,9 +71,9 @@ function ActivityService(objectCollection) {
                 activityCommonService.updateAssetLocation(request, (err, data) =>{});
                 if (err === false) {
 
-                    var activityStreamTypeId = 1;
-                    var activityAssetMappingAsset = Number(request.asset_id);
-                    var updateTypeId = 0;
+                    let activityStreamTypeId = 1;
+                    let activityAssetMappingAsset = Number(request.asset_id);
+                    let updateTypeId = 0;
                     switch (activityTypeCategroyId) {
                         case 1: // to-do
                             activityStreamTypeId = 401;
@@ -85,7 +85,7 @@ function ActivityService(objectCollection) {
                             break;
                         case 4: //employee id card
                             activityStreamTypeId = 101;
-                            var employeeJson = JSON.parse(request.activity_inline_data);
+                            let employeeJson = JSON.parse(request.activity_inline_data);
                             activityAssetMappingAsset = employeeJson.employee_asset_id;
                             break;
                         case 5: //Co-worker Contact Card
@@ -172,7 +172,7 @@ function ActivityService(objectCollection) {
                             break;
                         case 42: //PAM Enquiry
                             activityStreamTypeId = 1801;
-                            var inlineJson = JSON.parse(request.activity_inline_data);
+                            let inlineJson = JSON.parse(request.activity_inline_data);
                             util.pamSendSmsMvaayoo('Dear Sir/Madam, Our executive will contact you soon.', inlineJson.country_code, inlineJson.phone_number, function (err, res) {});
                             break;
                         case 52: activityStreamTypeId = 26001;
@@ -717,7 +717,7 @@ function ActivityService(objectCollection) {
                                                     //Updating the due date of the project                                                    
                                                     activityCommonService.updateProjectEndDateTime(request, (err, oldDateTime, newDateTime) => {
                                                         if (err === false) {
-                                                            var coverAlterJson = {};
+                                                            let coverAlterJson = {};
                                                             coverAlterJson.title = {
                                                                 old: activityData[0]['activity_title'],
                                                                 new: activityData[0]['activity_title']
@@ -739,7 +739,7 @@ function ActivityService(objectCollection) {
                                                 case 43:
                                                 case 44:
                                                     //update the p_parent_activity_id's end estimated datetime
-                                                    var coverAlterJson = {};
+                                                    let coverAlterJson = {};
                                                     coverAlterJson.title = {
                                                         old: activityData[0]['activity_title'],
                                                         new: activityData[0]['activity_title']
@@ -749,18 +749,18 @@ function ActivityService(objectCollection) {
                                                         new: activityData[0]['activity_title']
                                                     };
                                                     // get the updated estimated datetime of project.
-                                                    var newParamsArr = new Array(
+                                                    let newParamsArr = new Array(
                                                         request.activity_parent_id,
                                                         request.workforce_id,
                                                         request.account_id,
                                                         request.organization_id,
                                                         0, 1
                                                     );
-                                                    var queryString = util.getQueryString('ds_p1_activity_list_select_project_tasks', newParamsArr);
+                                                    let queryString = util.getQueryString('ds_p1_activity_list_select_project_tasks', newParamsArr);
                                                     if (queryString != '') {
                                                         db.executeQuery(1, queryString, request, function (err, result) {
                                                             if (err === false) {
-                                                                var newEndEstimatedDatetime = result[0]['activity_datetime_end_estimated'];
+                                                                let newEndEstimatedDatetime = result[0]['activity_datetime_end_estimated'];
                                                                 // console.log('setting new datetime for contact as ' + newEndEstimatedDatetime);
                                                                 util.logInfo(request,`setting new datetime for contact as %j`, newEndEstimatedDatetime);
                                                                 coverAlterJson.description = {
@@ -893,7 +893,7 @@ function ActivityService(objectCollection) {
                         activityCommonService.getActivityDetails(request, request.activity_parent_id, (err, data) => {
                             if (!err) {
 
-                                var contactCardInlineData = JSON.parse(data[0].activity_inline_data);
+                                let contactCardInlineData = JSON.parse(data[0].activity_inline_data);
 
                                 request.contact_reference_name = data[0].activity_title;
                                 request.contact_reference_address = contactCardInlineData.contact_location;
@@ -923,7 +923,7 @@ function ActivityService(objectCollection) {
                                         contactCardInlineData.contact_report_url = reportURL;
 
                                         // Fire the Inline Alter service
-                                        var newRequest = Object.assign(request);
+                                        let newRequest = Object.assign(request);
                                         newRequest.activity_id = request.activity_parent_id;
                                         newRequest.activity_inline_data = JSON.stringify(contactCardInlineData);
                                         newRequest.activity_type_category_id = 6;
@@ -1099,7 +1099,7 @@ function ActivityService(objectCollection) {
         return new Promise((resolve, reject) => {
             // console.log('coverAlterJson : ', coverAlterJson);
             util.logInfo(request,`callAlterActivityCover start`);
-            var event = {
+            let event = {
                 name: "alterActivityCover",
                 service: "activityUpdateService",
                 method: "alterActivityCover",
@@ -1143,13 +1143,13 @@ function ActivityService(objectCollection) {
         });
     }
 
-    var updateMailInlineJson = function (request, callback) {
-        var mailJson = JSON.parse(request.activity_inline_data);
-        var finalJson = {};
+    let updateMailInlineJson = function (request, callback) {
+        let mailJson = JSON.parse(request.activity_inline_data);
+        let finalJson = {};
         forEachAsync(Object.keys(mailJson), function (next, mailData, index) {
             if (index === 'activity_reference') {
                 //if (mailJson[mailData] !== null && typeof mailJson[mailData] === 'object') {
-                var tempRefernceArr = new Array();
+                let tempRefernceArr = new Array();
                 forEachAsync(mailJson[mailData], function (next, referenceData) {
                     activityCommonService.getActivityDetails(request, Number(referenceData.activity_id), function (err, activityData) {
                         if (err === false) {
@@ -1173,10 +1173,10 @@ function ActivityService(objectCollection) {
             callback(false, JSON.stringify(finalJson));
         });
     };
-    var activityListInsert = function (request, callback) {
+    let activityListInsert = function (request, callback) {
         // console.log("Request | activityListInsert: ", request);
-        var paramsArr = new Array();
-        var activityInlineData;
+        let paramsArr = new Array();
+        let activityInlineData;
 
         try {
             activityInlineData = JSON.parse(request.activity_inline_data);
@@ -1184,11 +1184,11 @@ function ActivityService(objectCollection) {
             console.log(err);
         }
 
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
-        var activityChannelId = 0;
-        var activityChannelCategoryId = 0;
-        var activityStatusId = 0;
-        var activityFormId = 0;
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
+        let activityChannelId = 0;
+        let activityChannelCategoryId = 0;
+        let activityStatusId = 0;
+        let activityFormId = 0;
 
         if (request.hasOwnProperty('activity_channel_id'))
             activityChannelId = request.activity_channel_id;
@@ -1201,15 +1201,16 @@ function ActivityService(objectCollection) {
         if (request.hasOwnProperty('workflow_activity_id') && activityTypeCategoryId === 9)
             activityChannelId = request.workflow_activity_id;
         //BETA
-        var activitySubTypeId = (request.hasOwnProperty('activity_sub_type_id')) ? request.activity_sub_type_id : 0;
+        let activitySubTypeId = (request.hasOwnProperty('activity_sub_type_id')) ? request.activity_sub_type_id : 0;
         //PAM
-        var activitySubTypeName = (request.hasOwnProperty('activity_sub_type_name')) ? request.activity_sub_type_name : '';
-        var expiryDateTime = (request.hasOwnProperty('expiry_datetime')) ? request.expiry_datetime : '';
-        var itemOrderCount = (request.hasOwnProperty('item_order_count')) ? request.item_order_count : '0';
+        let activitySubTypeName = (request.hasOwnProperty('activity_sub_type_name')) ? request.activity_sub_type_name : '';
+        let expiryDateTime = (request.hasOwnProperty('expiry_datetime')) ? request.expiry_datetime : '';
+        let itemOrderCount = (request.hasOwnProperty('item_order_count')) ? request.item_order_count : '0';
 
         if (activityTypeCategoryId === 38) {
             // console.log('Inside sendPush');
-            global.logger.write('conLog', 'Inside sendPush', {}, request);
+            //global.logger.write('conLog', 'Inside sendPush', {}, request);
+            util.logInfo(request,`activityListInsert Inside sendPush %j`,{request});
 
             sendPushPam(request).then(() => {});
         }
@@ -1218,7 +1219,7 @@ function ActivityService(objectCollection) {
             if(request.hasOwnProperty("is_cash_and_carry") && request.is_cash_and_carry == 1)
                 request.member_code = '';
             if (activityTypeCategoryId === 37 && !request.hasOwnProperty('member_code')) { //PAM
-                var reserveCode;
+                let reserveCode;
                 console.log(activityTypeCategoryId)
                 function generateUniqueCode() {
                     reserveCode = util.randomInt(50001, 99999).toString();
@@ -1232,7 +1233,7 @@ function ActivityService(objectCollection) {
                             responseactivityData.reservation_code = data;
                             activityCommonService.getActivityDetails(request, request.activity_parent_id, function (err, resp) {
                                 if (err === false) {
-                                    var eventStartDateTime = util.replaceDefaultDatetime(resp[0].activity_datetime_start_expected);
+                                    let eventStartDateTime = util.replaceDefaultDatetime(resp[0].activity_datetime_start_expected);
                                     (Math.sign(util.differenceDatetimes(eventStartDateTime, request.datetime_log)) === 1) ?
                                     expiryDateTime = util.addUnitsToDateTime(eventStartDateTime, 6.5, 'hours'):
                                         expiryDateTime = util.addUnitsToDateTime(request.datetime_log, 6.5, 'hours');
@@ -1252,7 +1253,7 @@ function ActivityService(objectCollection) {
                 responseactivityData.reservation_code = request.member_code;
                 activityCommonService.getActivityDetails(request, request.activity_parent_id, function (err, resp) {
                     if (err === false) {
-                        var eventStartDateTime = util.replaceDefaultDatetime(resp[0].activity_datetime_start_expected);
+                        let eventStartDateTime = util.replaceDefaultDatetime(resp[0].activity_datetime_start_expected);
                         (Math.sign(util.differenceDatetimes(eventStartDateTime, request.datetime_log)) === 1) ?
                         expiryDateTime = util.addUnitsToDateTime(eventStartDateTime, 6.5, 'hours'):
                             expiryDateTime = util.addUnitsToDateTime(request.datetime_log, 6.5, 'hours');
@@ -1266,6 +1267,7 @@ function ActivityService(objectCollection) {
             }
 
         }).then(() => {
+            let ownerAssetID = 0;
             switch (activityTypeCategoryId) {
                 case 2: // notepad
                     /*
@@ -1482,7 +1484,6 @@ function ActivityService(objectCollection) {
                     break;
                 case 10:
                 case 11:
-                    var ownerAssetID;
                     if (request.hasOwnProperty('owner_asset_id')) {
                         (request.owner_asset_id == 0) ? ownerAssetID = request.asset_id: ownerAssetID = request.owner_asset_id;
                     } else {
@@ -1517,7 +1518,7 @@ function ActivityService(objectCollection) {
                     );
                     break;
                 case 16: // Chat
-                    var ownerAssetID = request.owner_asset_id;
+                    ownerAssetID = request.owner_asset_id;
 
                     paramsArr = new Array(
                         request.activity_id,
@@ -1622,7 +1623,7 @@ function ActivityService(objectCollection) {
                 paramsArr[2]="test";
             }
 
-            var queryString = util.getQueryString('ds_v1_1_activity_list_insert', paramsArr);
+            let queryString = util.getQueryString('ds_v1_1_activity_list_insert', paramsArr);
             if (queryString !== '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
@@ -1633,7 +1634,7 @@ function ActivityService(objectCollection) {
                         
                         //BETA                            
                         if ((activityTypeCategoryId === 10 || activityTypeCategoryId === 11) && (request.asset_id !== ownerAssetID)) {
-                            var paramsArr1 = new Array(
+                            let paramsArr1 = new Array(
                                 request.activity_id,
                                 request.asset_id,
                                 request.workforce_id,
@@ -1650,7 +1651,7 @@ function ActivityService(objectCollection) {
                                 //-1
                             );
                             //var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr_ingre', paramsArr1);
-                            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr', paramsArr1);
+                            let queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert_asset_assign_appr', paramsArr1);
                             if (queryString !== '') {
                                 db.executeQuery(0, queryString, request, function (err, data) {
                                     if (err === false) {
@@ -1708,7 +1709,7 @@ function ActivityService(objectCollection) {
                         }*/ else {
 
                             // TimeCard Form Submission for Swipe In
-                            var isTimeCardFormSubmission = (Number(request.activity_form_id) === 800) || (Number(request.activity_form_id) === 801) || (Number(request.activity_form_id) === 325);
+                            let isTimeCardFormSubmission = (Number(request.activity_form_id) === 800) || (Number(request.activity_form_id) === 801) || (Number(request.activity_form_id) === 325);
                             if (activityTypeCategoryId === 9 && Number(request.swipe_flag) === 0 && isTimeCardFormSubmission) {
                                 submitFormActivityForOfficePresenceSwipeIn(request);
                             }
@@ -1733,8 +1734,8 @@ function ActivityService(objectCollection) {
         // 800 => Timecard - Automated - Mobile 
         // 801 => Timecard - Automated - Web
         // Calculate field IDs
-        var clientSignInTime;
-        var serverSignInTime;
+        let clientSignInTime;
+        let serverSignInTime;
         // On the other hand, if the form_id is either 800 or 801,
         // calculate the field_ids
         if (Number(request.activity_form_id) === 800) {
@@ -1750,7 +1751,7 @@ function ActivityService(objectCollection) {
             serverSignInTime = 2550;
         }
 
-        var activityTimelineCollectionJSON = JSON.stringify([{
+        let activityTimelineCollectionJSON = JSON.stringify([{
                 "form_id": Number(request.activity_form_id),
                 "field_id": clientSignInTime,
                 "field_data_type_id": 4,
@@ -1771,7 +1772,7 @@ function ActivityService(objectCollection) {
                 "message_unique_id": util.getMessageUniqueId(request.asset_id)
             }
         ]);
-        var event = {
+        let event = {
             name: "addTimelineTransaction",
             service: "activityTimelineService",
             method: "addTimelineTransaction",
@@ -1809,23 +1810,26 @@ function ActivityService(objectCollection) {
         queueWrapper.raiseActivityEvent(event, request.activity_id, (err, resp) => {
             if (err) {
                 // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                global.logger.write('debug', err, err, request);
-                global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent : ' + JSON.stringify(resp, null, 2), err, request);
+                //global.logger.write('debug', err, err, request);
+                util.logError(request,`raiseActivityEvent debug Error %j`, { err,request });
+                //global.logger.write('conLog', 'Error in queueWrapper raiseActivityEvent : ' + JSON.stringify(resp, null, 2), err, request);
+                util.logError(request,`raiseActivityEvent debug Error in queueWrapper raiseActivityEvent : Error %j`, {error: JSON.stringify(resp, null, 2), err,request });
 
                 throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
             } else {
                 // console.log('\x1b[36m%s\x1b[0m', 'Successfullly raised SWIPE IN activity event.');
-                global.logger.write('conLog', 'Successfullly raised SWIPE IN activity event.', {}, request);
+                //global.logger.write('conLog', 'Successfullly raised SWIPE IN activity event.', {}, request);
+                util.logInfo(request,`raiseActivityEvent Successfullly raised SWIPE IN activity event. %j`,{request});
             }
         });
     }
 
     function alterActivityFlagFileEnabled(request) {
         return new Promise((resolve, reject) => {
-            var activityFlagFileEnabled;
+            let activityFlagFileEnabled;
             (request.url.includes('v1')) ? activityFlagFileEnabled = request.activity_flag_file_enabled: activityFlagFileEnabled = 1;
 
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.activity_id,
                 request.asset_id,
                 request.organization_id,
@@ -1833,7 +1837,7 @@ function ActivityService(objectCollection) {
                 request.datetime_log
             );
 
-            var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_flag_file_enabled', paramsArr);
+            let queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_flag_file_enabled', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? resolve(): reject(err);
@@ -1845,7 +1849,7 @@ function ActivityService(objectCollection) {
 
     function sendPushPam(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 0,
@@ -1853,11 +1857,11 @@ function ActivityService(objectCollection) {
                 0,
                 50
             );
-            var queryString = util.getQueryString('ds_v1_asset_list_select_category', paramsArr);
+            let queryString = util.getQueryString('ds_v1_asset_list_select_category', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, pushArns) {
                     if (err === false) {
-                        var data = new Array();
+                        let data = new Array();
                         forEachAsync(pushArns, function (next, rowData) {
                             if (rowData.asset_push_arn != null) {
                                 data.push(rowData.asset_push_arn);
@@ -1865,12 +1869,14 @@ function ActivityService(objectCollection) {
                             next();
                         }).then(() => {
                             // console.log('ARNS : ', data);
-                            global.logger.write('debug', 'ARNS: ' + JSON.stringify(data, null, 2), {}, request);
+                            //global.logger.write('debug', 'ARNS: ' + JSON.stringify(data, null, 2), {}, request);
+                            util.logInfo(request,`sendPushPam debug ARNS: %j`,{ARNS : JSON.stringify(data, null, 2),request});
 
                             if (data.length > 0) {
                                 activityPushService.pamSendPush(request, data, objectCollection, function (err, resp) {});
                             } else {
-                                global.logger.write('conLog', 'No arns', {}, request);
+                                //global.logger.write('conLog', 'No arns', {}, request);
+                                util.logInfo(request,`sendPushPam No arns %j`,{request});
                             }
 
                             resolve();
@@ -1880,12 +1886,12 @@ function ActivityService(objectCollection) {
             }
         });
     }
-    var assetActivityListInsertAddActivity = function (request, callback) {
+    let assetActivityListInsertAddActivity = function (request, callback) {
 
         logger.info(`[${request.log_uuid}] assetActivityListInsertAddActivity`);
-        var activityInlineData = JSON.parse(request.activity_inline_data);
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
-        var organisationId = 0;
+        let activityInlineData = JSON.parse(request.activity_inline_data);
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
+        let organisationId = 0;
         switch (activityTypeCategoryId) {
             case 2: // notepad
                 organisationId = activityInlineData.organization_id;
@@ -1907,13 +1913,13 @@ function ActivityService(objectCollection) {
                 organisationId = request.organization_id;
                 break;
         }
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             organisationId,
             request.activity_access_role_id,
             request.datetime_log // server log date time
         );
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_insert', paramsArr);
         if (queryString != '') {
 
             db.executeQuery(0, queryString, request, function (err, data) {
@@ -1976,9 +1982,9 @@ function ActivityService(objectCollection) {
      };
      */
 
-    var activityListUpdateStatus = function (request, callback) {
+    let activityListUpdateStatus = function (request, callback) {
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -1988,7 +1994,7 @@ function ActivityService(objectCollection) {
             request.datetime_log,
             request.asset_id
         );
-        var queryString = util.getQueryString("ds_v1_1_activity_list_update_status", paramsArr);
+        let queryString = util.getQueryString("ds_v1_1_activity_list_update_status", paramsArr);
         //var queryString = util.getQueryString("ds_v1_activity_list_update_status", paramsArr);
         if (queryString != '') {
 
@@ -1999,13 +2005,14 @@ function ActivityService(objectCollection) {
                 } else {
                     callback(err, data);
                     //console.log(err);
-                    global.logger.write('serverError', err, err, request);
+                    //global.logger.write('serverError', err, err, request);
+                    util.logError(request,`activityListUpdateStatus serverError Error %j`, { err,request });
                     return;
                 }
             });
         }
     };
-    var activityListUpdateStatusDuration = async function (request) {
+    let activityListUpdateStatusDuration = async function (request) {
         let responseData = [],
         error = true;
         if(!(request.hasOwnProperty('activity_status_duration') && Number(request.activity_status_duration)>=0)){
@@ -2038,8 +2045,8 @@ function ActivityService(objectCollection) {
     };
 
     
-    var assetActivityListUpdateStatus = function (request, activityStatusId, activityStatusTypeId, callback) {
-        var paramsArr = new Array();
+    let assetActivityListUpdateStatus = function (request, activityStatusId, activityStatusTypeId, callback) {
+        let paramsArr = new Array();
         activityCommonService.getAllParticipants(request, function (err, participantsData) {
             if (err === false) {
                 participantsData.forEach(function (rowData, index) {
@@ -2077,8 +2084,8 @@ function ActivityService(objectCollection) {
             }
         });
     };
-    var getFormTransactionRecords = function (request, formTransactionId, formId, callback) {
-        var paramsArr = new Array(
+    let getFormTransactionRecords = function (request, formTransactionId, formId, callback) {
+        let paramsArr = new Array(
             formTransactionId,
             formId,
             request.organization_id
@@ -2090,22 +2097,22 @@ function ActivityService(objectCollection) {
             }
         });
     };
-    var duplicateFormTransactionData = function (request, callback) {
+    let duplicateFormTransactionData = function (request, callback) {
 
         activityCommonService.getActivityDetails(request, 0, function (err, activityData) { // get activity form_id and form_transaction id
-            var formTransactionId = activityData[0].form_transaction_id;
-            var formId = activityData[0].form_id;
+            let formTransactionId = activityData[0].form_transaction_id;
+            let formId = activityData[0].form_id;
             getFormTransactionRecords(request, formTransactionId, formId, function (err, formTransactionData) { // get all form transaction data
                 if (err === false) {
-                    var finalFormTransactionData = {};
+                    let finalFormTransactionData = {};
                     forEachAsync(formTransactionData, function (next, rowData) {
-                        var objectKey = rowData['field_id'] + '' + rowData['data_type_combo_id'];
+                        let objectKey = rowData['field_id'] + '' + rowData['data_type_combo_id'];
                         finalFormTransactionData[objectKey] = rowData;
                         next();
                     }).then(function () {
-                        var finalFormTransactionKeys = (Object.keys(finalFormTransactionData));
+                        let finalFormTransactionKeys = (Object.keys(finalFormTransactionData));
                         forEachAsync(finalFormTransactionKeys, function (next, keyValue) {
-                            var paramsArr = new Array(
+                            let paramsArr = new Array(
                                 finalFormTransactionData[keyValue].form_transaction_id,
                                 finalFormTransactionData[keyValue].form_id,
                                 finalFormTransactionData[keyValue].field_id,
@@ -2148,7 +2155,7 @@ function ActivityService(objectCollection) {
                                 request.datetime_log
                             );
                             //var queryString = util.getQueryString('ds_v1_activity_form_transaction_analytics_insert', paramsArr);
-                            var queryString = util.getQueryString('ds_v1_1_activity_form_transaction_analytics_insert', paramsArr); //BETA
+                            let queryString = util.getQueryString('ds_v1_1_activity_form_transaction_analytics_insert', paramsArr); //BETA
                             if (queryString != '') {
                                 db.executeQuery(0, queryString, request, function (err, data) {
                                     next();
@@ -2171,7 +2178,8 @@ function ActivityService(objectCollection) {
                     });
                 } else {
                     //console.log('error while fetching from transaction data');
-                    global.logger.write('conLog', 'error while fetching from transaction data', {}, request);
+                    //global.logger.write('conLog', 'error while fetching from transaction data', {}, request);
+                    util.logInfo(request,`getFormTransactionRecords error while fetching from transaction data %j`,{request});
                 }
             });
         });
@@ -2281,19 +2289,19 @@ function ActivityService(objectCollection) {
     };
 
     this.alterActivityStatus = async function (request, callback) {
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        var activityStreamTypeId = 11;
+        let activityStreamTypeId = 11;
         //var activityStatusTypeCategoryId = Number(request.activity_status_type_category_id);
-        var activityStatusId = Number(request.activity_status_id);
-        var activityStatusTypeId = Number(request.activity_status_type_id);
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
-        var assetParticipantAccessId = Number(request.asset_participant_access_id);
+        let activityStatusId = Number(request.activity_status_id);
+        let activityStatusTypeId = Number(request.activity_status_type_id);
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
+        let assetParticipantAccessId = Number(request.asset_participant_access_id);
+        let activityTypeCategroyId = Number(request.activity_type_category_id) || 0;
         const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
 
         console.log('In alterActivityStatus ', activityTypeCategoryId);
         if (request.hasOwnProperty('activity_type_category_id')) {
-            var activityTypeCategroyId = Number(request.activity_type_category_id);
             switch (activityTypeCategroyId) {
                 case 1: // to-do 
                     activityStreamTypeId = 404;
@@ -2398,7 +2406,8 @@ function ActivityService(objectCollection) {
                 default:
                     activityStreamTypeId = 11; //by default so that we know
                     //console.log('adding streamtype id 11');
-                    global.logger.write('conLog', 'adding streamtype id 11', {}, request);
+                    //global.logger.write('conLog', 'adding streamtype id 11', {}, request);
+                    util.logInfo(request,`alterActivityStatus adding streamtype id 11 %j`,{request});
                     break;
             }
             request.activity_stream_type_id = activityStreamTypeId;
@@ -2463,12 +2472,15 @@ function ActivityService(objectCollection) {
                     order_caf_approval_statuses = widgetFieldsStatusesData.ORDER_CAF_APPROVAL_STATUSES; //new Array(282556, 282586, 282640, 282622, 282669); //
                     order_logged_statuses = widgetFieldsStatusesData.ORDER_LOGGED_STATUSES;//new Array(282624, 282642, 282671, 282557, 282588);//
 
-                    global.logger.write('conLog', '*****order_caf_approval_statuses*******'+Object.keys(order_caf_approval_statuses)+' '+String(request.activity_status_id), {}, request);
-                    global.logger.write('conLog', '*****order_logged_statuses*******'+Object.keys(order_logged_statuses)+' '+String(request.activity_status_id), {}, request);
+                    //global.logger.write('conLog', '*****order_caf_approval_statuses*******'+Object.keys(order_caf_approval_statuses)+' '+String(request.activity_status_id), {}, request);
+                    util.logInfo(request,`activityListUpdateStatus *****order_caf_approval_statuses******* %j`,{Object_keys_order_caf_approval_statuses : Object.keys(order_caf_approval_statuses),request_activity_status_id : String(request.activity_status_id),request});
+                    //global.logger.write('conLog', '*****order_logged_statuses*******'+Object.keys(order_logged_statuses)+' '+String(request.activity_status_id), {}, request);
+                    util.logInfo(request,`activityListUpdateStatus *****order_logged_statuses******* %j`,{Object_keys_order_logged_statuses : Object.keys(order_logged_statuses), request_activity_status_id : String(request.activity_status_id), request});
 
                     if(Object.keys(order_caf_approval_statuses).includes(String(request.activity_status_id))) {
 
-                        global.logger.write('conLog', '*****ALTER CAF APPROVAL STATUS DATETIME*******', {}, request);
+                        //global.logger.write('conLog', '*****ALTER CAF APPROVAL STATUS DATETIME*******', {}, request);
+                        util.logInfo(request,`activityListUpdateStatus *****ALTER CAF APPROVAL STATUS DATETIME******* %j`,{request});
                         request['workflow_activity_id'] = request.activity_id;
                         request['order_caf_approval_datetime'] = util.addUnitsToDateTime(util.replaceDefaultDatetime(util.getCurrentUTCTime()), 5.5, 'hours');
                         request['order_caf_approval_log_diff'] = 0;
@@ -2478,7 +2490,8 @@ function ActivityService(objectCollection) {
 
                     }else if(Object.keys(order_logged_statuses).includes(String(request.activity_status_id))){
 
-                        global.logger.write('conLog', '*****ALTER ORDER LOGGED STATUS DATETIME*******', {}, request);
+                        //global.logger.write('conLog', '*****ALTER ORDER LOGGED STATUS DATETIME*******', {}, request);
+                        util.logInfo(request,`activityListUpdateStatus *****ALTER ORDER LOGGED STATUS DATETIME******* %j`,{request});
                         request['workflow_activity_id'] = request.activity_id;
                         request['order_logged_datetime'] = util.addUnitsToDateTime(util.replaceDefaultDatetime(util.getCurrentUTCTime()), 5.5, 'hours');
                         request['order_trigger_log_diff'] = 0;
@@ -2521,7 +2534,8 @@ function ActivityService(objectCollection) {
                  }
                 
                 if (Number(request.device_os_id) === 9) {
-                    global.logger.write('conLog', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
+                    //global.logger.write('conLog', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
+                    util.logInfo(request,`activityListUpdateStatus *****ALTER STATUS : HITTING WIDGET ENGINE******* %j`,{request});
                     request['source_id'] = 3;
                     //sendRequesttoWidgetEngine(request);
                 }
@@ -2530,7 +2544,8 @@ function ActivityService(objectCollection) {
                 // if (activityTypeCategroyId === 9 || activityTypeCategroyId === 48 || activityTypeCategroyId === 53 || activityTypeCategroyId === 31 || activityTypeCategroyId == 63) {
                 if([9,48,53,31,63].indexOf(activityTypeCategroyId) > -1){
 
-                    global.logger.write('conLog', '*****ALTER STATUS : STATUS CHANGE TXN INSERT*******', {}, request);
+                    //global.logger.write('conLog', '*****ALTER STATUS : STATUS CHANGE TXN INSERT*******', {}, request);
+                    util.logInfo(request,`activityListUpdateStatus *****ALTER STATUS : STATUS CHANGE TXN INSERT******* %j`,{request});
 
                     if (Number(request.activity_status_id) === Number(data[0].idExistingActivityStatus)) {
                         request.status_changed_flag = 0;
@@ -2568,7 +2583,8 @@ function ActivityService(objectCollection) {
                                         botEngineRequest.message_id = messageID;
                                         await activityCommonService.makeRequest(botEngineRequest, "engine/bot/init", 1)
                                             .then((resp) => {
-                                                global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                                //global.logger.write('debug', "Bot Engine Trigger Response: " + JSON.stringify(resp), {}, request);
+                                                util.logInfo(request,`activityListUpdateStatus debug Bot Engine Trigger Response: %j`,{Response : JSON.stringify(resp),request});
                                             });
 
                                         break;
@@ -2588,12 +2604,14 @@ function ActivityService(objectCollection) {
                             }
                         }
                     } catch (botInitError) {
-                        global.logger.write('error', botInitError, botInitError, request);
+                        //global.logger.write('error', botInitError, botInitError, request);
+                        util.logError(request,`activityListUpdateStatus Error %j`, { botInitError,request });
                     }
 
-                    global.logger.write('conLog', '*****STATUS CHANGE FLAG : ' + request.status_changed_flag, {}, request);
+                    //global.logger.write('conLog', '*****STATUS CHANGE FLAG : ' + request.status_changed_flag, {}, request);
+                    util.logInfo(request,`activityListUpdateStatus *****STATUS CHANGE FLAG :  %j`,{request_status_changed_flag : request.status_changed_flag,request});
                     
-                    var timeDuration = util.differenceDatetimes(util.getCurrentUTCTime(), util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated));
+                    let timeDuration = util.differenceDatetimes(util.getCurrentUTCTime(), util.replaceDefaultDatetime(data[0].datetimeExistingActivityStatusUpdated));
                     if (Number(data[0].idExistingActivityStatus) > 0 && Number(request.activity_status_id) > 0) {
 
                         await activityCommonService.activityStatusChangeTxnInsertV2(request, Number(timeDuration) / 1000, {
@@ -2620,11 +2638,13 @@ function ActivityService(objectCollection) {
 
                                 rmbotService.triggerAIOnStatusChange(request); */
                             }
-                            global.logger.write('conLog', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
+                            //global.logger.write('conLog', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
+                            util.logInfo(request,`activityStatusChangeTxnInsertV2 *****ALTER STATUS : HITTING WIDGET ENGINE******* %j`,{request});
                             request['source_id'] = 3;
                             //sendRequesttoWidgetEngine(request);
                         }).catch((err)=>{
-                            global.logger.write('conLog', '*****ERROR INSERT : activityStatusChangeTxnInsertV2 '+err, {}, request);
+                            //global.logger.write('conLog', '*****ERROR INSERT : activityStatusChangeTxnInsertV2 '+err, {}, request);
+                            util.logError(request,`activityStatusChangeTxnInsertV2 *****ERROR INSERT : activityStatusChangeTxnInsertV2 Error %j`, { err,request });
                         })
                         //Capture workflow, customer and industry exposure for a desk asset
                         //await captureWorkExperienceForDeskAsset(request);
@@ -2663,7 +2683,7 @@ function ActivityService(objectCollection) {
 
                                 activityCommonService.getActivityDetails(request, 0, function (err, resultData) {
                                     if (err === false) {
-                                        var newRequest = Object.assign({}, request);
+                                        let newRequest = Object.assign({}, request);
                                         newRequest.asset_id = resultData[0].activity_owner_asset_id;
 
                                         getTaskAcceptanceStats(newRequest, 2).then((acceptanceStats) => { // weekly and monthly stats here    
@@ -2693,7 +2713,7 @@ function ActivityService(objectCollection) {
                                                     //Updating the due date of the project                                                    
                                                     activityCommonService.updateProjectEndDateTime(request, (err, oldDateTime, newDateTime) => {
                                                         if (err === false) {
-                                                            var coverAlterJson = {};
+                                                            let coverAlterJson = {};
                                                             coverAlterJson.title = {
                                                                 old: activityData[0]['activity_title'],
                                                                 new: activityData[0]['activity_title']
@@ -2859,16 +2879,19 @@ function ActivityService(objectCollection) {
 
                 // });
                 // 
-                global.logger.write('conLog', "Calling updateActivityLogLastUpdatedDatetime", {}, request);
+                //global.logger.write('conLog', "Calling updateActivityLogLastUpdatedDatetime", {}, request);
+                util.logInfo(request,`activityListUpdateStatus Calling updateActivityLogLastUpdatedDatetime %j`,{request});
                 try {
                     activityCommonService.updateActivityLogLastUpdatedDatetime(request, Number(request.creator_asset_id || request.asset_id), function (err, data) {
 
                     });
 
                 } catch (error) {
-                    global.logger.write('debug', error, {}, request);
+                    //global.logger.write('debug', error, {}, request);
+                    util.logError(request,`activityListUpdateStatus debug Error %j`, { error,request });
                 }
-                global.logger.write('conLog', "DONE with updateActivityLogLastUpdatedDatetime", {}, request);
+                //global.logger.write('conLog', "DONE with updateActivityLogLastUpdatedDatetime", {}, request);
+                util.logInfo(request,`activityListUpdateStatus DONE with updateActivityLogLastUpdatedDatetime %j`,{request});
                 // 
                 // 
                 // 
@@ -2897,17 +2920,21 @@ function ActivityService(objectCollection) {
                     //     console.log('\x1b[36mCalling the vodafoneStatusUpdate file.\x1b[0m');
                     //     vodafoneStatusUpdate(request, activityCommonService, objectCollection);
                     // });
-                    global.logger.write('debug', 'Calling vodafoneStatusUpdate...', {}, request);
+                    //global.logger.write('debug', 'Calling vodafoneStatusUpdate...', {}, request);
+                    util.logInfo(request,`activityListUpdateStatus debug Calling vodafoneStatusUpdate... %j`,{request});
                     //vodafoneStatusUpdate(request, activityCommonService, objectCollection);
 
                     //makeRequest to /vodafone/feasibility_checker/update BOT4
                     request.worflow_trigger_url = util.getWorkFlowUrl(request.url);
-                    global.logger.write('debug', 'worflow_trigger_url: ' + request.worflow_trigger_url, {}, request);
+                    //global.logger.write('debug', 'worflow_trigger_url: ' + request.worflow_trigger_url, {}, request);
+                    util.logInfo(request,`activityListUpdateStatus debug worflow_trigger_url: %j`,{request_worflow_trigger_url : request.worflow_trigger_url,request});
 
                     activityCommonService.getWorkflowForAGivenUrl(request).then((data) => {
-                        global.logger.write('debug', 'workflow_execution_url: ' + data[0].workflow_execution_url, {}, request);
+                        //global.logger.write('debug', 'workflow_execution_url: ' + data[0].workflow_execution_url, {}, request);
+                        util.logInfo(request,`getWorkflowForAGivenUrldebug workflow_execution_url: %j`,{data_workflow_execution_url : duradata[0].workflow_execution_urltion,request});
                         activityCommonService.makeRequest(request, data[0].workflow_execution_url, 1).then((resp) => {
-                            global.logger.write('debug', resp, {}, request);
+                            //global.logger.write('debug', resp, {}, request);
+                            util.logInfo(request,`getWorkflowForAGivenUrl debug %j`,{resp,request});
                         });
                     });
                 }
@@ -3142,7 +3169,7 @@ function ActivityService(objectCollection) {
     // To calculate productivity scores for Post-Its
     function updatePostItProductivityScore(request) {
         return new Promise((resolve, reject) => {
-            var creationDate;
+            let creationDate;
 
             //Get activity Details
             activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
@@ -3152,10 +3179,10 @@ function ActivityService(objectCollection) {
                     //Get the Config Value
                     activityCommonService.retrieveAccountList(request, (err, data) => {
                         if (err === false) {
-                            var configRespHours = data[0].account_config_response_hours;
+                            let configRespHours = data[0].account_config_response_hours;
 
                             //diff will be in milli seconds
-                            var diff = util.differenceDatetimes(request.datetime_log, util.replaceDefaultDatetime(creationDate));
+                            let diff = util.differenceDatetimes(request.datetime_log, util.replaceDefaultDatetime(creationDate));
                             diff = diff / 3600000;
                             diff = Number(diff);
                             (diff <= configRespHours) ? onTimeFlag = 1: onTimeFlag = 0;
@@ -3175,12 +3202,15 @@ function ActivityService(objectCollection) {
                                                 percentage = (noOfRespondedPostits / noOfReceivedPostits) * 100;
                                             }
 
-                                            global.logger.write('conLog', 'Number Of ReceivedPostits : ' + noOfReceivedPostits, {}, request);
-                                            global.logger.write('conLog', 'Number Of RespondedPostits : ' + noOfRespondedPostits, {}, request);
-                                            global.logger.write('conLog', 'Percentage : ' + percentage, {}, request);
+                                            //global.logger.write('conLog', 'Number Of ReceivedPostits : ' + noOfReceivedPostits, {}, request);
+                                            util.logInfo(request,`getPostItCounts Number Of ReceivedPostits : %j`,{Number_Of_ReceivedPostits : noOfReceivedPostits,request});
+                                            //global.logger.write('conLog', 'Number Of RespondedPostits : ' + noOfRespondedPostits, {}, request);
+                                            util.logInfo(request,`getPostItCounts Number Of RespondedPostits : %j`,{Number_Of_RespondedPostits : noOfRespondedPostits,request});
+                                            //global.logger.write('conLog', 'Percentage : ' + percentage, {}, request);
+                                            util.logInfo(request,`getPostItCounts Percentage : %j`,{Percentage : percentage,request});
 
                                             //Insert into monthly summary table
-                                            var monthlyCollection = {};
+                                            let monthlyCollection = {};
                                             monthlyCollection.summary_id = 29;
                                             monthlyCollection.asset_id = request.asset_id;
                                             monthlyCollection.entity_bigint_1 = noOfReceivedPostits; //denominator
@@ -3205,12 +3235,15 @@ function ActivityService(objectCollection) {
                                                 percentage = (noOfRespondedPostits / noOfReceivedPostits) * 100;
                                             }
 
-                                            global.logger.write('conLog', 'Number Of ReceivedPostits : ' + noOfReceivedPostits, {}, request);
-                                            global.logger.write('conLog', 'Number Of RespondedPostits : ' + noOfRespondedPostits, {}, request);
-                                            global.logger.write('conLog', 'Percentage : ' + percentage, {}, request);
+                                            //global.logger.write('conLog', 'Number Of ReceivedPostits : ' + noOfReceivedPostits, {}, request);
+                                            util.logInfo(request,`getPostItCounts Number Of ReceivedPostits : %j`,{Number_Of_ReceivedPostits : noOfReceivedPostits,request});
+                                            //global.logger.write('conLog', 'Number Of RespondedPostits : ' + noOfRespondedPostits, {}, request);
+                                            util.logInfo(request,`getPostItCounts Number Of RespondedPostits : %j`,{Number_Of_RespondedPostits : noOfRespondedPostits,request});
+                                            //global.logger.write('conLog', 'Percentage : ' + percentage, {}, request);
+                                            util.logInfo(request,`getPostItCounts Percentage : %j`,{Percentage : percentage,request});
 
                                             //Insert into weekly summary table
-                                            var weeklyCollection = {};
+                                            let weeklyCollection = {};
                                             weeklyCollection.summary_id = 16;
                                             weeklyCollection.asset_id = request.asset_id;
                                             weeklyCollection.entity_bigint_1 = noOfReceivedPostits;
@@ -3233,9 +3266,9 @@ function ActivityService(objectCollection) {
 
     function createTimelineEntry(request) {
         return new Promise((resolve, reject) => {
-            var newRequest = Object.assign({}, request);
+            let newRequest = Object.assign({}, request);
 
-            var mailBody = "Title: " + request.activity_title + "<br>";
+            let mailBody = "Title: " + request.activity_title + "<br>";
             //mailBody += "Description: <br>";
             mailBody += "Organization Name : " + request.signedup_asset_organization_name + "<br>";
             mailBody += "Workfore Name : " + request.signedup_asset_workforce_name + "<br>";
@@ -3245,7 +3278,7 @@ function ActivityService(objectCollection) {
             mailBody += "Asset Phone Number : " + request.signedup_asset_phone_number + "<br>";
             mailBody += "Asset Email Id : " + request.signedup_asset_email_id;
 
-            var activityTimelineCollection = {};
+            let activityTimelineCollection = {};
             activityTimelineCollection.content = mailBody;
             activityTimelineCollection.subject = "Added : " + util.getCurrentDate();
             activityTimelineCollection.mail_body = mailBody;
@@ -3260,7 +3293,7 @@ function ActivityService(objectCollection) {
             newRequest.track_gps_datetime = util.getCurrentUTCTime();
             newRequest.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
 
-            var event = {
+            let event = {
                 name: "addTimelineTransaction",
                 service: "activityTimelineService",
                 method: "addTimelineTransaction",
@@ -3270,7 +3303,8 @@ function ActivityService(objectCollection) {
             queueWrapper.raiseActivityEvent(event, newRequest.activity_id, (err, resp) => {
                 if (err) {
                     // console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                    global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                    //global.logger.write('debug', 'Error in queueWrapper raiseActivityEvent: ' + JSON.stringify(err), err, request);
+                    util.logError(request,`debug Error in queueWrapper raiseActivityEvent: Error %j`, {error: JSON.stringify(err), err,request });
 
                     //res.json(responseWrapper.getResponse(false, {}, -5999,req.body));
                     throw new Error('Crashing the Server to get notified from the kafka broker cluster about the new Leader');
@@ -3285,7 +3319,7 @@ function ActivityService(objectCollection) {
         return new Promise((resolve, reject) => {
             activityCommonService.getActivityDetails(request, 0, function (err, resp) { //If parent Id > 0 then only he is calling these calls
                 if (err === false) {
-                    var parentActivityId;
+                    let parentActivityId;
 
                     if (resp.length > 0) {
                         parentActivityId = (Number(resp[0].parent_activity_id) > 0) ? resp[0].parent_activity_id : 0;
@@ -3294,12 +3328,12 @@ function ActivityService(objectCollection) {
                     }
 
                     if (parentActivityId > 0) {
-                        var paramsArr = new Array(
+                        let paramsArr = new Array(
                             request.organization_id,
                             parentActivityId,
                             request.datetime_log
                         );
-                        var queryString = util.getQueryString('ds_p1_activity_list_select_project_status_counts', paramsArr);
+                        let queryString = util.getQueryString('ds_p1_activity_list_select_project_status_counts', paramsArr);
                         if (queryString != '') {
                             db.executeQuery(1, queryString, request, function (err, countsData) {
                                 if (err === false) {
@@ -3345,8 +3379,8 @@ function ActivityService(objectCollection) {
 
     function respReqinMail(request) {
         return new Promise((resolve, reject) => {
-            var activityFlagResponseRequired;
-            var diff;
+            let activityFlagResponseRequired;
+            let diff;
             activityCommonService.getActivityDetails(request, 0, function (err, resp) {
                 if (err === false) {
 
@@ -3361,7 +3395,7 @@ function ActivityService(objectCollection) {
                     //console.log('DIFF : ', typeof diff);
                     //console.log('activityFlagResponseRequired : ', activityFlagResponseRequired);
 
-                    var paramsArr = new Array(
+                    let paramsArr = new Array(
                         request.organization_id,
                         request.account_id,
                         request.workforce_id,
@@ -3370,7 +3404,7 @@ function ActivityService(objectCollection) {
                         activityFlagResponseRequired,
                         request.datetime_log
                     );
-                    var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_inmail_response', paramsArr);
+                    let queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_inmail_response', paramsArr);
                     if (queryString !== '') {
                         db.executeQuery(0, queryString, request, function (err, data) {
                             if (err === false) {
@@ -3392,7 +3426,7 @@ function ActivityService(objectCollection) {
         return new Promise((resolve, reject) => {
             activityCommonService.getInmailCounts(request, function (err, data) {
                 if (err === false) {
-                    var percent = 0;
+                    let percent = 0;
                     if (Number(data[0].countToBeRespondedInmails) !== 0) {
                         percent = (data[0].countOntimeRespondedInmails / data[0].countToBeRespondedInmails) * 100;
                     }
@@ -3405,7 +3439,7 @@ function ActivityService(objectCollection) {
                     request.entity_text_1 = data[0].totalHours; //entity_text_1, 
 
                     //insert
-                    var paramsArr = new Array(
+                    let paramsArr = new Array(
                         10, //request.monthly_summary_id,
                         request.asset_id,
                         request.workforce_id,
@@ -3441,7 +3475,7 @@ function ActivityService(objectCollection) {
                         request.track_gps_datetime,
                         request.datetime_log
                     );
-                    var queryString = util.getQueryString('ds_v1_asset_monthly_summary_transaction_insert', paramsArr);
+                    let queryString = util.getQueryString('ds_v1_asset_monthly_summary_transaction_insert', paramsArr);
                     if (queryString != '') {
                         db.executeQuery(0, queryString, request, function (err, data) {
                             if (err === false) {
@@ -3462,24 +3496,26 @@ function ActivityService(objectCollection) {
         return new Promise((resolve, reject) => {
             activityCommonService.getActivityDetails(request, 0, function (err, data) {
                 if (err === false) {
-                    var dueDate = util.replaceDefaultDatetime(data[0].activity_datetime_end_deferred);
+                    let dueDate = util.replaceDefaultDatetime(data[0].activity_datetime_end_deferred);
 
                     // console.log('util.getCurrentUTCTime() : ', util.getCurrentUTCTime());
                     // console.log('dueDate : ', dueDate);
 
-                    global.logger.write('debug', 'util.getCurrentUTCTime(): ' + util.getCurrentUTCTime(), {}, request);
-                    global.logger.write('debug', 'dueDate: ' + dueDate, {}, request);
+                    //global.logger.write('debug', 'util.getCurrentUTCTime(): ' + util.getCurrentUTCTime(), {}, request);
+                    util.logInfo(request,`getActivityDetails debug util.getCurrentUTCTime(): %j`,{util_getCurrentUTCTime : util.getCurrentUTCTime(),request});
+                    //global.logger.write('debug', 'dueDate: ' + dueDate, {}, request);
+                    util.logInfo(request,`getActivityDetails debug dueDate : %j`,{dueDate : dueDate,request});
 
                     if (request.hasOwnProperty('set_flag')) {
                         if (request.set_flag == 0) {
-                            var paramsArr = new Array(
+                            let paramsArr = new Array(
                                 request.activity_id,
                                 request.organization_id,
                                 0, //activity_flag_delivery_ontime,
                                 request.asset_id,
                                 request.datetime_log
                             );
-                            var queryString = util.getQueryString('ds_v1_activity_list_update_flag_ontime', paramsArr);
+                            let queryString = util.getQueryString('ds_v1_activity_list_update_flag_ontime', paramsArr);
                             if (queryString != '') {
                                 db.executeQuery(0, queryString, request, function (err, data) {
                                     (err === false) ? resolve(data): reject(err);
@@ -3488,14 +3524,14 @@ function ActivityService(objectCollection) {
                         }
                     } else {
                         if (util.getCurrentUTCTime() <= dueDate) {
-                            var paramsArr = new Array(
+                            let paramsArr = new Array(
                                 request.activity_id,
                                 request.organization_id,
                                 1, //activity_flag_delivery_ontime,
                                 request.asset_id,
                                 request.datetime_log
                             );
-                            var queryString = util.getQueryString('ds_v1_activity_list_update_flag_ontime', paramsArr);
+                            let queryString = util.getQueryString('ds_v1_activity_list_update_flag_ontime', paramsArr);
                             if (queryString != '') {
                                 db.executeQuery(0, queryString, request, function (err, data) {
                                     (err === false) ? resolve(data): reject(err);
@@ -3516,16 +3552,16 @@ function ActivityService(objectCollection) {
         return new Promise((resolve, reject) => {
             activityCommonService.getActivityDetails(request, 0, function (err, data) {
                 if (err === false) {
-                    var dueDate = util.replaceDefaultDatetime(data[0].activity_datetime_end_expected);
+                    let dueDate = util.replaceDefaultDatetime(data[0].activity_datetime_end_expected);
                     if (util.getCurrentDate() <= dueDate) {
-                        var paramsArr = new Array(
+                        let paramsArr = new Array(
                             request.activity_id,
                             request.organization_id,
                             1, //activity_flag_delivery_quality,
                             request.asset_id,
                             request.datetime_log
                         );
-                        var queryString = util.getQueryString('ds_p1_activity_list_update_flag_quality', paramsArr);
+                        let queryString = util.getQueryString('ds_p1_activity_list_update_flag_quality', paramsArr);
                         if (queryString != '') {
                             db.executeQuery(0, queryString, request, function (err, data) {
                                 (err === false) ? resolve(data): reject(err);
@@ -3540,7 +3576,7 @@ function ActivityService(objectCollection) {
     //Remote Analytics    Weekly
     function avgTotRespTimePostItsInmailsSummaryInsert(request) {
         return new Promise((resolve, reject) => {
-            var creationDate;
+            let creationDate;
             request.weekly_summary_id = (request.activity_type_category_id == 28) ? 1 : 2;
             activityCommonService.getActivityDetails(request, 0, function (err, data) {
                 if (err === false) {
@@ -3570,14 +3606,14 @@ function ActivityService(objectCollection) {
     //get the current total number of hours to respond and current number of post its / inmails
     function assetWeeklySummaryTrans(request, creationDatetime) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.asset_id,
                 request.operating_asset_id,
                 request.organization_id,
                 request.weekly_summary_id,
                 util.getFormatedLogDate(creationDatetime)
             );
-            var queryString = util.getQueryString('ds_p1_asset_weekly_summary_transaction_select', paramsArr);
+            let queryString = util.getQueryString('ds_p1_asset_weekly_summary_transaction_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log('assetWeeklySummaryTrans : \n', data, "\n");
@@ -3589,7 +3625,7 @@ function ActivityService(objectCollection) {
 
     function avgTotRespTimeSummaryInsert(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.weekly_summary_id,
                 request.asset_id,
                 request.workforce_id,
@@ -3625,7 +3661,7 @@ function ActivityService(objectCollection) {
                 request.transaction_datetime,
                 request.datetime_log
             );
-            var queryString = util.getQueryString('ds_v1_asset_weekly_summary_transaction_insert', paramsArr);
+            let queryString = util.getQueryString('ds_v1_asset_weekly_summary_transaction_insert', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? resolve(data): reject(err);
@@ -3635,7 +3671,7 @@ function ActivityService(objectCollection) {
     }
 
     this.inmailResReqSet = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -3644,7 +3680,7 @@ function ActivityService(objectCollection) {
             request.activity_flag_response_required,
             util.getCurrentUTCTime()
         );
-        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_inmail_response_req_flag', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_inmail_response_req_flag', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -3659,13 +3695,13 @@ function ActivityService(objectCollection) {
     };
 
     this.updateOwnerRating = function (request, callback) {
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        var flag = 1;
+        let flag = 1;
         if (Number(request.owner_specification_rating) === -1 || Number(request.owner_decision_rating) === -1 || Number(request.owner_planning_rating) === -1) {
             flag = 2;
         }
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             request.owner_asset_id,
             request.organization_id,
@@ -3676,7 +3712,7 @@ function ActivityService(objectCollection) {
             request.asset_id,
             util.getCurrentUTCTime()
         );
-        var queryString = util.getQueryString('ds_p1_activity_list_update_creator_rating', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_list_update_creator_rating', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -3685,7 +3721,7 @@ function ActivityService(objectCollection) {
                         db.executeQuery(0, queryString, request, function (err, data) {
                             if (err === false) {
                                 callback(false, {}, 200);
-                                var collection = {};
+                                let collection = {};
                                 collection.flag_filter = 1;
                                 collection.asset_id = request.owner_asset_id;
                                 collection.operating_asset_id = request.owner_operating_asset_id;
@@ -3700,7 +3736,7 @@ function ActivityService(objectCollection) {
                                          10	Creator Rating - Decision
                                          11	Creator Rating - Planning
                                          */
-                                        var weeklySummaryCollection = {};
+                                        let weeklySummaryCollection = {};
                                         weeklySummaryCollection.summary_id = 9;
                                         weeklySummaryCollection.asset_id = request.owner_asset_id;
                                         weeklySummaryCollection.entity_decimal_1 = assetAverageRating[0].activity_rating_creator_specification;
@@ -3724,7 +3760,7 @@ function ActivityService(objectCollection) {
                                         collection.datetime_start = util.getStartDateTimeOfMonth();
                                         collection.datetime_end = util.getEndDateTimeOfMonth(); // getting monthly data
                                         activityCommonService.getAssetAverageRating(request, collection).then((monthlyAssetAverageRating) => {
-                                            var monthlySummaryCollection = {};
+                                            let monthlySummaryCollection = {};
                                             monthlySummaryCollection.summary_id = 16;
                                             monthlySummaryCollection.asset_id = request.owner_asset_id;
                                             monthlySummaryCollection.entity_decimal_1 = monthlyAssetAverageRating[0].activity_rating_creator_specification;
@@ -3760,13 +3796,13 @@ function ActivityService(objectCollection) {
     };
 
     this.updateLeadRating = function (request, callback) {
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
-        var flag = 1;
+        let flag = 1;
         if (Number(request.lead_ownership_rating) === -1 || Number(request.lead_completion_rating) === -1 || Number(request.lead_timeliness_rating) === -1) {
             flag = 2;
         }
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.activity_id,
             request.lead_asset_id,
             request.organization_id,
@@ -3777,7 +3813,7 @@ function ActivityService(objectCollection) {
             request.asset_id,
             util.getCurrentUTCTime()
         );
-        var queryString = util.getQueryString('ds_p1_activity_list_update_lead_rating', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_list_update_lead_rating', paramsArr);
         if (queryString !== '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -3786,7 +3822,7 @@ function ActivityService(objectCollection) {
                         db.executeQuery(0, queryString, request, function (err, data) {
                             if (err === false) {
                                 callback(false, {}, 200);
-                                var collection = {};
+                                let collection = {};
                                 collection.flag_filter = 0;
                                 collection.asset_id = request.lead_asset_id;
                                 collection.operating_asset_id = request.lead_operating_asset_id;
@@ -3800,7 +3836,7 @@ function ActivityService(objectCollection) {
                                          13	Lead Rating - Ownership
                                          14	Lead Rating - Timeliness
                                          */
-                                        var weeklySummaryCollection = {};
+                                        let weeklySummaryCollection = {};
                                         weeklySummaryCollection.summary_id = 12;
                                         weeklySummaryCollection.asset_id = request.lead_asset_id;
                                         weeklySummaryCollection.entity_decimal_1 = assetAverageRating[0].activity_rating_lead_completion;
@@ -3824,9 +3860,10 @@ function ActivityService(objectCollection) {
                                         collection.datetime_end = util.getEndDateTimeOfMonth(); // getting monthly data
                                         activityCommonService.getAssetAverageRating(request, collection).then((assetAverageRating) => {
                                             console.log(assetAverageRating);
-                                            global.logger.write('debug', 'assetAverageRating' + assetAverageRating, {}, request);
+                                            //global.logger.write('debug', 'assetAverageRating' + assetAverageRating, {}, request);
+                                            util.logInfo(request,`getAssetAverageRating debug assetAverageRating %j`,{assetAverageRating : assetAverageRating,request});
 
-                                            var monthlySummaryCollection = {};
+                                            let monthlySummaryCollection = {};
                                             monthlySummaryCollection.summary_id = 19;
                                             monthlySummaryCollection.asset_id = request.lead_asset_id;
                                             monthlySummaryCollection.entity_decimal_1 = assetAverageRating[0].activity_rating_lead_completion;
@@ -3865,8 +3902,8 @@ function ActivityService(objectCollection) {
 
     function getTaskAcceptanceStats(request, flag) {
         return new Promise((resolve, reject) => {
-            var response = {};
-            var paramsArr = new Array(
+            let response = {};
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -3876,7 +3913,7 @@ function ActivityService(objectCollection) {
                 util.getStartDayOfWeek(),
                 util.getEndDayOfWeek()
             );
-            var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_task_acceptance_stats', paramsArr);
+            let queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_task_acceptance_stats', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, weeklyAcceptanceStats) { // weekly stats
                     if (err === false) {
@@ -3891,7 +3928,7 @@ function ActivityService(objectCollection) {
                             util.getStartDateTimeOfMonth(),
                             util.getEndDateTimeOfMonth()
                         );
-                        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_task_acceptance_stats', paramsArr);
+                        let queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_task_acceptance_stats', paramsArr);
                         db.executeQuery(1, queryString, request, function (err, monthlyAcceptanceStats) { //monthly stats
                             if (err === false) {
                                 response.monthly_acceptance_stats = monthlyAcceptanceStats;
@@ -3908,19 +3945,22 @@ function ActivityService(objectCollection) {
         });
     }
 
-    var acceptanceStatsSummaryInsert = function (request, acceptanceStats, summaryIds, callback) {
-        var collection = {};
-        var totalCount = Number(acceptanceStats.weekly_acceptance_stats[0].total_count);
-        var count = Number(acceptanceStats.weekly_acceptance_stats[0].count);
-        var percentage = (totalCount > 0) ? (count / totalCount) * 100 : 0;
+    let acceptanceStatsSummaryInsert = function (request, acceptanceStats, summaryIds, callback) {
+        let collection = {};
+        let totalCount = Number(acceptanceStats.weekly_acceptance_stats[0].total_count);
+        let count = Number(acceptanceStats.weekly_acceptance_stats[0].count);
+        let percentage = (totalCount > 0) ? (count / totalCount) * 100 : 0;
 
         // console.log('weekly Count : ', count);
         // console.log('weekly Total Count : ', totalCount);
         // console.log('weekly Percentage : ', percentage);
 
-        global.logger.write('debug', 'weekly Count: ' + count, {}, request);
-        global.logger.write('debug', 'weekly Total Count: ' + totalCount, {}, request);
-        global.logger.write('debug', 'weekly Percentage: ' + percentage, {}, request);
+        //global.logger.write('debug', 'weekly Count: ' + count, {}, request);
+        util.logInfo(request,`acceptanceStatsSummaryInsert debug weekly Count:  %j`,{weekly_Count : count,request});
+        //global.logger.write('debug', 'weekly Total Count: ' + totalCount, {}, request);
+        util.logInfo(request,`acceptanceStatsSummaryInsert debug weekly Total Count: %j`,{weekly_Total_Count : totalCount,request});
+        //global.logger.write('debug', 'weekly Percentage: ' + percentage, {}, request);
+        util.logInfo(request,`acceptanceStatsSummaryInsert debug weekly Percentage: %j`,{weekly_Percentage : percentage,request});
 
         collection.summary_id = summaryIds.weekly;
         collection.asset_id = request.asset_id;
@@ -3939,9 +3979,12 @@ function ActivityService(objectCollection) {
             // console.log('monthly Total Count : ', totalCount);
             // console.log('monthly Percentage : ', percentage);
 
-            global.logger.write('debug', 'monthly Count: ' + count, {}, request);
-            global.logger.write('debug', 'monthly Total Count: ' + totalCount, {}, request);
-            global.logger.write('debug', 'monthly Percentage: ' + percentage, {}, request);
+            //global.logger.write('debug', 'monthly Count: ' + count, {}, request);
+            util.logInfo(request,`weeklySummaryInsert debug monthly Count: %j`,{monthly_Count : count,request});
+            //global.logger.write('debug', 'monthly Total Count: ' + totalCount, {}, request);
+            util.logInfo(request,`weeklySummaryInsert debug monthly Total Count: %j`,{monthly_Total_Count : totalCount,request});
+            //global.logger.write('debug', 'monthly Percentage: ' + percentage, {}, request);
+            util.logInfo(request,`weeklySummaryInsert debug monthly Percentage: %j`,{monthly_Percentage : percentage,request});
 
             collection.summary_id = summaryIds.monthly;
             collection.entity_bigint_1 = totalCount;
@@ -3968,14 +4011,14 @@ function ActivityService(objectCollection) {
 
     function updateTaskCreatedCntFn(request, assetId) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
                 assetId
             );
 
-            var queryString = util.getQueryString('ds_v1_asset_list_update_task_created_count', paramsArr);
+            let queryString = util.getQueryString('ds_v1_asset_list_update_task_created_count', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     //global.logger.write(queryString, request, 'asset', 'trace');
@@ -3991,7 +4034,7 @@ function ActivityService(objectCollection) {
         //activityCommonService.getActivityDetails(request, 0, function (err, activityData) {
         // console.log('data ' + request.activity_inline_data);
 
-        var option_id = JSON.parse(request.activity_inline_data).option_id;
+        let option_id = JSON.parse(request.activity_inline_data).option_id;
 
         activityCommonService.getAllParticipantsforField(request, request.activity_channel_id, option_id).then((participantData) => {
 
@@ -4007,11 +4050,11 @@ function ActivityService(objectCollection) {
                 // console.log("IN THEN");
 
                 if (JSON.parse(request.activity_inline_data).hasOwnProperty('item_choice_price_tax')) {
-                    var arr = JSON.parse(request.activity_inline_data).item_choice_price_tax;
+                    let arr = JSON.parse(request.activity_inline_data).item_choice_price_tax;
 
                     // console.log('arr' + arr[0].activity_id);
 
-                    var choice_option = 2;
+                    let choice_option = 2;
                     forEachAsync(arr, function (next, x1) {
 
                         // console.log('arr[key1].activity_id ' + x1.activity_id);
@@ -4052,12 +4095,12 @@ function ActivityService(objectCollection) {
 
 
 
-    var activityAssetMappingInsertParticipantAssign = function (request, participantData, callback) {
+    let activityAssetMappingInsertParticipantAssign = function (request, participantData, callback) {
 
         //console.log('In function activityAssetMappingInsertParticipantAssign - participantData : ', participantData);
 
-        var fieldId = 0;
-        var paramsArr = new Array(
+        let fieldId = 0;
+        let paramsArr = new Array(
             request.activity_id,
             participantData.asset_id,
             participantData.workforce_id,
@@ -4075,7 +4118,7 @@ function ActivityService(objectCollection) {
             participantData.option_id,
             participantData.parent_activity_title
         );
-        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_pam", paramsArr);
+        let queryString = util.getQueryString("ds_v1_activity_asset_mapping_insert_asset_assign_pam", paramsArr);
 
         if (queryString !== '') {
 
@@ -4084,7 +4127,8 @@ function ActivityService(objectCollection) {
                     //  console.log(data);
                 } else {
                     // console.log(err);
-                    global.logger.write('serverError', err, err, request);
+                    //global.logger.write('serverError', err, err, request);
+                    util.logError(request,`activityAssetMappingInsertParticipantAssign serverError Error %j`, { err,request });
 
                 }
             });
@@ -4095,7 +4139,8 @@ function ActivityService(objectCollection) {
 
     function sendRequesttoWidgetEngine(request) {
 
-        global.logger.write('conLog', '********IN HITTING WIDGET *********************************************: ', {}, request);
+        //global.logger.write('conLog', '********IN HITTING WIDGET *********************************************: ', {}, request);
+        util.logInfo(request,`sendRequesttoWidgetEngine ********IN HITTING WIDGET *********************************************:  %j`,{request});
         if (request.activity_type_category_id == 48) { //form and submitted state  
 
             activityCommonService.getActivityCollection(request).then((activityData) => { // get activity form_id and form_transaction id
@@ -4103,7 +4148,7 @@ function ActivityService(objectCollection) {
                 console.log('activityData[0].form_transaction_id :: '+activityData[0].form_transaction_id);
                 //activityCommonService.getWorkflowOfForm(request, activityData[0].form_id)
                 //.then((formData)=>{            
-                var widgetEngineQueueMessage = {
+                let widgetEngineQueueMessage = {
                     form_id: activityData[0].form_id,
                     form_transaction_id: activityData[0].form_transaction_id,
                     organization_id: request.organization_id,
@@ -4126,11 +4171,12 @@ function ActivityService(objectCollection) {
                     widget_type_category_id: 2,
                     source_id: request.source_id
                 };
-                var event = {
+                let event = {
                     name: "File Based Widget Engine",
                     payload: widgetEngineQueueMessage
                 };
-                global.logger.write('conLog', 'Hitting Widget Engine with request:' + event, {}, request);
+                //global.logger.write('conLog', 'Hitting Widget Engine with request:' + event, {}, request);
+                util.logInfo(request,`sendRequesttoWidgetEngine Hitting Widget Engine with request: %j`,{event,request});
 
                 queueWrapper.raiseFormWidgetEvent(event, request.activity_id);
             //});
@@ -4177,7 +4223,7 @@ function ActivityService(objectCollection) {
 
     function processFormInlineData(request, data) {
         return new Promise((resolve, reject) => {
-            var array = [];
+            let array = [];
             forEachAsync(JSON.parse(data[0].activity_inline_data), function (next, fieldData) {
                 //console.log('fieldData : '+JSON.stringify(fieldData));
                 if (parseInt(Number(fieldData.field_id)) === parseInt(Number(request.field_id))) {
@@ -4202,7 +4248,7 @@ function ActivityService(objectCollection) {
 
     this.activityListUpdateFieldValidated = function (request, inlineData) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -4213,7 +4259,7 @@ function ActivityService(objectCollection) {
                 request.asset_id,
                 util.getCurrentUTCTime()
             );
-            var queryString = util.getQueryString("ds_v1_activity_list_update_form_field_validated", paramsArr);
+            let queryString = util.getQueryString("ds_v1_activity_list_update_form_field_validated", paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     if (err === false) {
@@ -4231,7 +4277,7 @@ function ActivityService(objectCollection) {
             activityCommonService.getAllParticipants(request, function (err, participantsData) {
                 if (err === false) {
                     forEachAsync(participantsData, function (next, rowData) {
-                        var paramsArr = new Array(
+                        let paramsArr = new Array(
                             request.organization_id,
                             request.account_id,
                             request.workforce_id,
@@ -4242,7 +4288,7 @@ function ActivityService(objectCollection) {
                             request.asset_id,
                             util.getCurrentUTCTime()
                         );
-                        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_form_field_validated", paramsArr);
+                        let queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_form_field_validated", paramsArr);
                         if (queryString != '') {
                             db.executeQuery(0, queryString, request, function (err, data) {
                                 if (err === false) {
@@ -4572,7 +4618,8 @@ function ActivityService(objectCollection) {
 
     function updateWidgetAggrStatus(request) {
         return new Promise((resolve, reject) => {
-            global.logger.write('DEBUG', '::: UPDATING WIDGET AGGR STATUS :::', {}, request);
+            //global.logger.write('DEBUG', '::: UPDATING WIDGET AGGR STATUS :::', {}, request);
+            util.logInfo(request,`updateWidgetAggrStatus DEBUG ::: UPDATING WIDGET AGGR STATUS ::: %j`,{request});
             let paramsArr = new Array(
                 request.activity_id,
                 request.workforce_id,
@@ -4687,7 +4734,7 @@ function ActivityService(objectCollection) {
             request.datetime_log //log_datetime
         );
 
-        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_closed_datetime', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_asset_mapping_update_closed_datetime', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
@@ -4699,7 +4746,7 @@ function ActivityService(objectCollection) {
                 });
         }
 
-        var queryString1 = util.getQueryString('ds_p1_activity_list_update_closed_datetime', paramsArr);
+        let queryString1 = util.getQueryString('ds_p1_activity_list_update_closed_datetime', paramsArr);
         if (queryString1 !== '') {
             await db.executeQueryPromise(0, queryString1, request)
                 .then((data) => {
@@ -4722,7 +4769,7 @@ function ActivityService(objectCollection) {
             request.datetime_log //log_datetime
         );
 
-        var queryString2 = util.getQueryString('ds_p1_activity_status_change_transaction_update_closed', paramsArr2);
+        let queryString2 = util.getQueryString('ds_p1_activity_status_change_transaction_update_closed', paramsArr2);
         if (queryString2 !== '') {
             await db.executeQueryPromise(0, queryString2, request)
                 .then((data) => {
@@ -5767,7 +5814,8 @@ function ActivityService(objectCollection) {
 
     function activtyWidgetListInsert(request) {
         return new Promise((resolve, reject) => {
-            global.logger.write('DEBUG', '::: activtyWidgetListInsert  :::', {}, request);
+            //global.logger.write('DEBUG', '::: activtyWidgetListInsert  :::', {}, request);
+            util.logInfo(request,`activtyWidgetListInsert DEBUG ::: activtyWidgetListInsert  ::: %j`,{request});
             let paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,
@@ -5947,7 +5995,7 @@ function ActivityService(objectCollection) {
                     activityInlineData = JSON.parse(request.activity_inline_data)
                 }
             }
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.activity_id,
                 JSON.stringify(activityInlineData),
@@ -5961,7 +6009,7 @@ function ActivityService(objectCollection) {
                 request.datetime_log
             );
             //console.log(paramsArr);            
-            var queryString = util.getQueryString( "ds_v1_activity_form_list_insert",paramsArr);
+            let queryString = util.getQueryString( "ds_v1_activity_form_list_insert",paramsArr);
             if (queryString !== '') {
                 await db.executeQueryPromise(0, queryString, request)
                     .then(async (data) => {
@@ -5976,7 +6024,7 @@ function ActivityService(objectCollection) {
         };
         
         function activityInlineDataConversion(data) {
-            var convertedData = {};
+            let convertedData = {};
             let fieldId ="";
             data.forEach((item) => {
                 //fieldId = "_" + item.field_id;
@@ -6011,14 +6059,14 @@ function ActivityService(objectCollection) {
         util.logInfo(request, "updateWorkflowValues :: ActivityTypeId :: "+request.workflow_activity_type_id);
         let responseData=[];
         let error = false; 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
             request.workflow_activity_type_id,
         );
         //console.log(paramsArr);            
-        var queryString = util.getQueryString( "ds_p1_workforce_activity_type_mapping_select_id",paramsArr);
+        let queryString = util.getQueryString( "ds_p1_workforce_activity_type_mapping_select_id",paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then(async (data) => {

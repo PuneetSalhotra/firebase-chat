@@ -49,7 +49,7 @@ class SingleDimensionalAggrWidget extends WidgetBase {
                 widgetData.widget_transaction_id = widgetTransId;
                 if (widgetTransId) {
                     //Pubnub PUSH
-                    var msg = {};
+                    let msg = {};
                     msg.type = "form_submited_show_widget_count";
                     msg.form_id = widgetData.form_id;
                     msg.widget_id = widgetData.widget_id;
@@ -58,7 +58,7 @@ class SingleDimensionalAggrWidget extends WidgetBase {
                     return widgetTransactionSvc.update(widgetData);
                 } else {
                     //Pubnub PUSH
-                    var msg = {};
+                    let msg = {};
                     msg.type = "form_submited_show_widget_count";
                     msg.form_id = widgetData.form_id;
                     msg.widget_id = widgetData.widget_id;

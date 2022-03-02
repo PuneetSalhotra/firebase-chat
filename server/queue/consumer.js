@@ -12,25 +12,25 @@ const tracerFormats = require('dd-trace/ext/formats')
 require('../utils/globalConfigV1');
 require('../vodafone/utils/vodafoneConfig');
 let Logger = require('../utils/logger.js');
-var kafka = require('kafka-node');
-var kafkaConsumer = kafka.Consumer;
-var KafkaProducer = kafka.Producer;
-var kafkaConsumerGroup = kafka.ConsumerGroup;
-var Util = require('../utils/util');
-var db = require("../utils/dbWrapper");
-var redis = require('redis'); //using elasticache as redis
-var CacheWrapper = require('../utils/cacheWrapper');
-var QueueWrapper = require('./queueWrapper');
-var AwsSns = require('../utils/snsWrapper');
-var forEachAsync = require('forEachAsync').forEachAsync;
-var ActivityCommonService = require("../services/activityCommonService");
-var ActivityPushService = require("../services/activityPushService");
+let kafka = require('kafka-node');
+let kafkaConsumer = kafka.Consumer;
+let KafkaProducer = kafka.Producer;
+let kafkaConsumerGroup = kafka.ConsumerGroup;
+let Util = require('../utils/util');
+let db = require("../utils/dbWrapper");
+let redis = require('redis'); //using elasticache as redis
+let CacheWrapper = require('../utils/cacheWrapper');
+let QueueWrapper = require('./queueWrapper');
+let AwsSns = require('../utils/snsWrapper');
+let forEachAsync = require('forEachAsync').forEachAsync;
+let ActivityCommonService = require("../services/activityCommonService");
+let ActivityPushService = require("../services/activityPushService");
 const pubnubWrapper = new(require('../utils/pubnubWrapper'))();
 const logger = require('../logger/winstonLogger');
 
-var Consumer = function () {
+let Consumer = function () {
 
-    var serviceObjectCollection = {};
+    let serviceObjectCollection = {};
     let redisClient;
     if(global.mode === 'local') {
         redisClient = redis.createClient(global.config.redisConfig);
@@ -38,17 +38,17 @@ var Consumer = function () {
         redisClient = redis.createClient(global.config.redisPort, global.config.redisIp);
     }
     
-    var cacheWrapper = new CacheWrapper(redisClient);
-    var util = new Util({
+    let cacheWrapper = new CacheWrapper(redisClient);
+    let util = new Util({
         cacheWrapper
     });
-    var sns = new AwsSns();
-    var activityCommonService = new ActivityCommonService(db, util, forEachAsync);
-    var activityPushService = new ActivityPushService({
+    let sns = new AwsSns();
+    let activityCommonService = new ActivityCommonService(db, util, forEachAsync);
+    let activityPushService = new ActivityPushService({
         cacheWrapper,
     });
 
-    var kfkClient =
+    let kfkClient =
         new kafka.KafkaClient({
             kafkaHost: global.config.BROKER_HOST,
             connectTimeout: global.config.BROKER_CONNECT_TIMEOUT,
@@ -56,10 +56,10 @@ var Consumer = function () {
             autoConnect: global.config.BROKER_AUTO_CONNECT,
             maxAsyncRequests: global.config.BROKER_MAX_ASYNC_REQUESTS
         });
-    var kafkaProducer = new KafkaProducer(kfkClient);
+    let kafkaProducer = new KafkaProducer(kfkClient);
 
     // /*
-    var consumer =
+    let consumer =
         new kafkaConsumer(
             kfkClient,
             [{
@@ -134,14 +134,17 @@ var Consumer = function () {
         kafkaProducer.on('ready', resolve);
     }).then(() => {       
 
-        var queueWrapper = new QueueWrapper(kafkaProducer, cacheWrapper);
+        let queueWrapper = new QueueWrapper(kafkaProducer, cacheWrapper);
         global.logger = new Logger(queueWrapper);
         
-        global.logger.write('conLog', 'global.config.BROKER_HOST : ' + global.config.BROKER_HOST, {}, {});
-        global.logger.write('conLog', global.config.TOPIC_NAME, {}, {});
-        global.logger.write('conLog', 'Kafka Producer ready!!', {}, {});
+        //global.logger.write('conLog', 'global.config.BROKER_HOST : ' + global.config.BROKER_HOST, {}, {});
+        util.logInfo({},`conLog global.config.BROKER_HOST %j`,{global_config_BROKER_HOST : global.config.BROKER_HOST});
+        //global.logger.write('conLog', global.config.TOPIC_NAME, {}, {});
+        util.logInfo({},`conLog global.config.TOPIC_NAME %j`,{global_config_TOPIC_NAME : global.config.TOPIC_NAME});
+        //global.logger.write('conLog', 'Kafka Producer ready!!', {}, {});
+        util.logInfo({},`conLog Kafka Producer ready!!`,{});
         
-        var objCollection = {
+        let objCollection = {
             util: util,
             db: db,
             cacheWrapper: cacheWrapper,
@@ -157,18 +160,21 @@ var Consumer = function () {
 
             try {
 
-                global.logger.write('conLog', `topic ${message.topic} partition ${message.partition} offset ${message.offset}`, {}, {});
-                var kafkaMsgId = message.topic + '_' + message.partition + '_' + message.offset;
-                global.logger.write('conLog', 'kafkaMsgId : ' + kafkaMsgId, {}, {});
-                global.logger.write('conLog', 'getting this key from Redis : ' + message.topic + '_' + message.partition, {}, {});
+                //global.logger.write('conLog', `topic ${message.topic} partition ${message.partition} offset ${message.offset}`, {}, {});
+                util.logInfo({},`consumer.on message conLog `,{topic : message.topic, partition : message.partition, offset : message.offset});
+                let kafkaMsgId = message.topic + '_' + message.partition + '_' + message.offset;
+                //global.logger.write('conLog', 'kafkaMsgId : ' + kafkaMsgId, {}, {});
+                util.logInfo({},`consumer.on message conLog `,{kafkaMsgId : kafkaMsgId});
+                //global.logger.write('conLog', 'getting this key from Redis : ' + message.topic + '_' + message.partition, {}, {});
+                util.logInfo({},`consumer.on message conLog getting this key from Redis`,{topic : message.topic, partition : message.partition});
 
-                var messageJson = JSON.parse(message.value || '{}');
+                let messageJson = JSON.parse(message.value || '{}');
 
                 if (!messageJson.hasOwnProperty("payload")) {
                     return;
                 }
 
-                var request = messageJson['payload'];
+                let request = messageJson['payload'];
                 request.partition = message.partition;
                 request.offset = message.offset;
 
@@ -191,9 +197,11 @@ var Consumer = function () {
                 tracerScope.activate(span, () => {
 
                     activityCommonService.checkingPartitionOffset(request, (err, data) => {
-                        global.logger.write('conLog', 'err from checkingPartitionOffset : ' + err, {}, request);
+                        //global.logger.write('conLog', 'err from checkingPartitionOffset : ' + err, {}, request);
+                        util.logError(request,`checkingPartitionOffset err from checkingPartitionOffset Error %j`, { err,request });
                         if (err === false) {
-                            global.logger.write('conLog', 'Consuming the message', {}, request);
+                            //global.logger.write('conLog', 'Consuming the message', {}, request);
+                            util.logInfo(request,`checkingPartitionOffset Consuming the message %j`,{request});
                             activityCommonService.partitionOffsetInsert(request, (err, data) => {});                        
                             consumingMsg(message, kafkaMsgId, objCollection).then(async () => {
                                 if (Number(request.pubnub_push) === 1) {
@@ -208,7 +216,8 @@ var Consumer = function () {
                             });
 
                         } else {
-                            global.logger.write('conLog', 'Before calling this duplicateMsgUniqueIdInsert', {}, request);
+                            //global.logger.write('conLog', 'Before calling this duplicateMsgUniqueIdInsert', {}, request);
+                            util.logInfo(request,`checkingPartitionOffset Before calling this duplicateMsgUniqueIdInsert %j`,{request});
                             activityCommonService.duplicateMsgUniqueIdInsert(request, (err, data) => { });
                         }
                     });
@@ -329,10 +338,12 @@ var Consumer = function () {
                 metadata: 'm', //default 'm'
             }], (err, data) => {
                 if (err) {
-                    global.logger.write('conLog', "err:" + JSON.stringify(err), {}, {});
+                    //global.logger.write('conLog', "err:" + JSON.stringify(err), {}, {});
+                    util.logError({},`sendOffsetCommitRequest  Error %j`, { err: JSON.stringify(err)});
                     reject(err);
                 } else {
-                    global.logger.write('conLog', 'successfully offset ' + message.offset + ' is committed', {}, {});
+                    //global.logger.write('conLog', 'successfully offset ' + message.offset + ' is committed', {}, {});
+                    util.logInfo({},`sendOffsetCommitRequest successfully offset is committed %j`,{message_offset : message.offset});
                     resolve();
                 }
             });
@@ -344,10 +355,12 @@ var Consumer = function () {
             //Setting the processed KafkaMessageUniqueId in the Redis
             cacheWrapper.setKafkaMessageUniqueId(message.topic + '_' + message.partition, message.offset, (err, data) => {
                 if (err === false) {
-                    global.logger.write('conLog', 'Successfully set the Kafka message Unique Id in Redis', {}, {});
+                    //global.logger.write('conLog', 'Successfully set the Kafka message Unique Id in Redis', {}, {});
+                    util.logInfo({},`setKafkaMessageUniqueId Successfully set the Kafka message Unique Id in Redis`,{});
                     resolve();
                 } else {
-                    global.logger.write('conLog', 'Unable to set the Kafka message Unique Id in the Redis : ' + JSON.stringify(err), {}, {});
+                    //global.logger.write('conLog', 'Unable to set the Kafka message Unique Id in the Redis : ' + JSON.stringify(err), {}, {});
+                    util.logError({},`setKafkaMessageUniqueId Unable to set the Kafka message Unique Id in the Redis %j`, { err : JSON.stringify(err)});
                     reject(err);
                 }
             });
@@ -362,8 +375,10 @@ var Consumer = function () {
             //console.log('kafkaMsgId : ' + kafkaMsgId);
             //console.log('Received message.offset : ' + message.offset);
             //global.logger.write('debug', 'data : ' + JSON.stringify(data), {}, {});
-            global.logger.write('conLog', 'kafkaMsgId : ' + kafkaMsgId, {}, {});
-            global.logger.write('conLog', 'Received message.offset : ' + message.offset, {}, {});
+            //global.logger.write('conLog', 'kafkaMsgId : ' + kafkaMsgId, {}, {});
+            util.logInfo({},`consumingMsg kafkaMsgId %j`,{kafkaMsgId : kafkaMsgId});
+            //global.logger.write('conLog', 'Received message.offset : ' + message.offset, {}, {});
+            util.logInfo({},`consumingMsg Received message.offset %j`,{message_offset : message.offset});
 
             //if(data < message.offset) { //I think this should be greater than to current offset                                
             // global.logger.write('debug', message.value, {}, JSON.parse(message.value)['payload']);
@@ -374,10 +389,10 @@ var Consumer = function () {
                 logger.info(`${message.topic} ${message.key} | Setting last_consumed_datetime in cache`, { type: 'kafka', ...message });
                 cacheWrapper.setLastConsumedDateTime(util.getCurrentUTCTime());
 
-                var messageJson = JSON.parse(message.value);
-                var serviceFile = messageJson.service;
-                var serviceName = messageJson.service;
-                var method = messageJson['method'];
+                let messageJson = JSON.parse(message.value);
+                let serviceFile = messageJson.service;
+                let serviceName = messageJson.service;
+                let method = messageJson['method'];
 
                 let asyncFlag = 0;
                 //console.log('METHOD : ', method);
@@ -389,10 +404,11 @@ var Consumer = function () {
                 }
 
                 if (!serviceObjectCollection.hasOwnProperty(messageJson['service'])) {
-                    var jsFile = "../services/" + serviceFile;
-                    var newClass;
+                    let jsFile = "../services/" + serviceFile;
+                    let newClass;
 
-                    global.logger.write('conLog', 'jsFile : ' + jsFile, {}, {});
+                    //global.logger.write('conLog', 'jsFile : ' + jsFile, {}, {});
+                    util.logInfo({},`consumingMsg jsFile %j`,{jsFile : jsFile});
                     try {
                         newClass = require(jsFile);
                     } catch (e) {
@@ -403,8 +419,9 @@ var Consumer = function () {
                         }
                     }
 
-                    var serviceObj = eval("new " + newClass + "(objCollection)");
-                    global.logger.write('conLog', 'serviceObj : ', serviceObj, {}, {});
+                    let serviceObj = eval("new " + newClass + "(objCollection)");
+                    //global.logger.write('conLog', 'serviceObj : ', serviceObj, {}, {});
+                    util.logInfo({},`consumingMsg serviceObj %j`,{serviceObj : serviceObj});
                     serviceObjectCollection[serviceFile] = serviceObj;
 
                     if(asyncFlag === 1) {
@@ -415,10 +432,12 @@ var Consumer = function () {
                         //Function with Callback
                         serviceObj[method](messageJson['payload'], function (err, data) {
                             if (err) {
-                                global.logger.write('debug', err, {}, messageJson['payload']);
+                                //global.logger.write('debug', err, {}, messageJson['payload']);
+                                util.logError({},`consumingMsg debug Error %j`, {payload : messageJson['payload'], err : err});
                                 resolve();
                             } else {
-                                global.logger.write('debug', data, {}, messageJson['payload']);
+                                //global.logger.write('debug', data, {}, messageJson['payload']);
+                                util.logInfo({},`consumingMsg debug data %j`,{payload : messageJson['payload'], data });
     
                                 //Commit the offset
                                 //commitingOffset(message).then(()=>{}).catch((err)=>{ console.log(err);});
@@ -440,10 +459,12 @@ var Consumer = function () {
                     } else {
                         serviceObjectCollection[serviceName][method](messageJson['payload'], function (err, data) {
                             if (err) {
-                                global.logger.write('debug', err, {}, messageJson['payload']);
+                                //global.logger.write('debug', err, {}, messageJson['payload']);
+                                util.logError({},`consumingMsg debug Error %j`, {payload : messageJson['payload'], err : err});
                                 resolve();
                             } else {
-                                global.logger.write('debug', data, {}, messageJson['payload']);
+                                //global.logger.write('debug', data, {}, messageJson['payload']);
+                                util.logInfo({},`consumingMsg debug data %j`,{payload : messageJson['payload'], data });
     
                                 //Commit the offset
                                 //commitingOffset(message).then(()=>{}).catch((err)=>{ console.log(err);});

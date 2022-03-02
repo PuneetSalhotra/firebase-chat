@@ -2,12 +2,12 @@
     author: bharat krishna masimukku
 */
 
-var WorkflowQueueService = require("../services/workflowQueueService.js");
+let WorkflowQueueService = require("../services/workflowQueueService.js");
 
 function WorkflowQueueController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
     //const util = objCollection.util;
     //const cacheWrapper = objCollection.cacheWrapper;
     //const queueWrapper = objCollection.queueWrapper;

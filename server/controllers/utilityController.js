@@ -3,31 +3,31 @@
  *author: Sri Sai Venkatesh 
  * 
  */
-var AwsSss = require('../utils/s3Wrapper');
+let AwsSss = require('../utils/s3Wrapper');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const FileType = require('file-type');
 
 function UtilityController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
-    var util = objCollection.util;
-    var sss = new AwsSss();
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
+    let util = objCollection.util;
+    let sss = new AwsSss();
     const db = objCollection.db;
     const activityCommonService = objCollection.activityCommonService;
     const privateKey = global.config.privateKey;
 
     app.post('/' + global.config.version + '/time/access/global/entry/collection', function (req, res) {
 
-        var statusCode = 200;
+        let statusCode = 200;
         res.json(responseWrapper.getResponse(false, {}, statusCode, req.body));
 
     });
 
     //Bharat Requirement
     app.post('/' + global.config.version + '/send/email', function (req, res) {
-        var otp = util.randomInt(1111, 9999);
+        let otp = util.randomInt(1111, 9999);
         otp = otp.toString();
         util.sendEmail('bharat@desker.co', otp, JSON.stringify(req.body), '', function (err, data) {
             if (err === false) {
@@ -40,7 +40,7 @@ function UtilityController(objCollection) {
 
     //Bharat Requirement
     app.get('/' + global.config.version + '/send/email', function (req, res) {
-        var otp = util.randomInt(1111, 9999);
+        let otp = util.randomInt(1111, 9999);
         otp = otp.toString();
         util.sendEmail('bharat@desker.co', otp, JSON.stringify(req.query), '', function (err, data) {
             if (err === false) {
@@ -129,7 +129,8 @@ function UtilityController(objCollection) {
     //VNK webhook
     app.post('/' + global.config.version + '/vnk', function (req, res) {
         //console.log('Request : ', req.body);
-        global.logger.write('debug', 'Request : ' + JSON.stringify(req.body), {}, req.body);
+        //global.logger.write('debug', 'Request : ' + JSON.stringify(req.body), {}, req.body);
+        util.logInfo(req.body,`/vnk debug %j`,{Request : JSON.stringify(req.body),body : req.body});
         req.body.country_code = '91';
         req.body.to_phone_number = '9966626954';
         req.body.from_phone_number = '+15107094638';
@@ -147,7 +148,8 @@ function UtilityController(objCollection) {
     //VNK webhook
     app.get('/' + global.config.version + '/vnk', function (req, res) {
         //console.log('Request : ', req.body);
-        global.logger.write('debug', 'Request : ' + JSON.stringify(req.body), {}, req.body);
+        //global.logger.write('debug', 'Request : ' + JSON.stringify(req.body), {}, req.body);
+        util.logInfo(req.body,`/vnk debug %j`,{Request : JSON.stringify(req.body),body : req.body});
         req.body.country_code = '91';
         req.body.to_phone_number = '9966626954';
         req.body.from_phone_number = '+15107094638';
@@ -174,13 +176,14 @@ function UtilityController(objCollection) {
 
     //Send SMS Invite
     app.post('/' + global.config.version + '/invite/send/sms', function (req, res) {
-        var request = req.body;
-        var domesticSmsMode = global.config.domestic_sms_mode;
-        var internationalSmsMode = global.config.international_sms_mode;
+        let request = req.body;
+        let domesticSmsMode = global.config.domestic_sms_mode;
+        let internationalSmsMode = global.config.international_sms_mode;
 
         //console.log('Request params : ', request);
-        global.logger.write('debug', 'Request params : ' + JSON.stringify(request), {}, request);
-        var text;
+        //global.logger.write('debug', 'Request params : ' + JSON.stringify(request), {}, request);
+        util.logInfo(request,`/invite/send/sms debug %j`,{Request_params : JSON.stringify(request),request});
+        let text;
 
         if (!request.hasOwnProperty("task_title")) {
             text = "Hi " + request.receiver_name + " , " + request.sender_name + " has requested your participation in a task, ";
@@ -196,7 +199,8 @@ function UtilityController(objCollection) {
         }
 
         //console.log("sms Text : " + text);
-        global.logger.write('debug', 'sms Text : ' + text, {}, request);
+        //global.logger.write('debug', 'sms Text : ' + text, {}, request);
+        util.logInfo(request,`/invite/send/sms debug %j`,{sms_Text : text, request});
 
         /*if (request.country_code == 91) {
             //console.log('Sending Domestic SMS');
@@ -260,12 +264,13 @@ function UtilityController(objCollection) {
     });
     
     app.post('/' + global.config.version + '/send/smshorizon/sms', function (req, res) {
-       var smapleSMS = "Hi This is a sample Test";
+       let smapleSMS = "Hi This is a sample Test";
        smapleSMS = smapleSMS + req.body.counter;
        
         util.sendSmsHorizon(smapleSMS, req.body.country_code, req.body.phone_number, function (err, data) {
             if (err === false) {
-            	global.logger.write('debug', 'SMS HORIZON RESPONSE: ' + JSON.stringify(data), {}, req);
+            	//global.logger.write('debug', 'SMS HORIZON RESPONSE: ' + JSON.stringify(data), {}, req);
+                util.logInfo(req.body,`sendSmsHorizon debug SMS HORIZON RESPONSE %j`,{SMS_HORIZON_RESPONSE : JSON.stringify(data),body : req.body});
                 res.json(responseWrapper.getResponse(err, data.response, 200, req.body));
             } else {
                 res.json(responseWrapper.getResponse(err, data.code, 200, req.body));
@@ -274,12 +279,13 @@ function UtilityController(objCollection) {
     });
     
     app.post('/' + global.config.version + '/send/smshorizon/sms', function (req, res) {
-        var smapleSMS = "Hi This is a sample Test";
+        let smapleSMS = "Hi This is a sample Test";
         smapleSMS = smapleSMS + req.body.counter;
         
          util.sendSmsHorizon(smapleSMS, req.body.country_code, req.body.phone_number, function (err, data) {
              if (err === false) {
-             	global.logger.write('debug', 'SMS HORIZON RESPONSE: ' + JSON.stringify(data), {}, req);
+                 //global.logger.write('debug', 'SMS HORIZON RESPONSE: ' + JSON.stringify(data), {}, req);
+                 util.logInfo(req.body, `sendSmsHorizon debug SMS HORIZON RESPONSE %j`, { SMS_HORIZON_RESPONSE: JSON.stringify(data), body : req.body });
                  res.json(responseWrapper.getResponse(err, data.response, 200, req.body));
              } else {
                  res.json(responseWrapper.getResponse(err, data.code, 200, req.body));

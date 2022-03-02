@@ -39,7 +39,7 @@ class FormFileStatusDurationWidget extends WidgetBase {
             console.log("CALCULATED STATUS DURATION AGGREGATE : " + aggregate);
             widgetData = _.merge(widgetData, data);
 
-            var msg = {};
+            let msg = {};
             msg.type = "file_status_show_widget_aggregate";
             msg.form_id = data.form_id;
             msg.widget_id = widgetData.widget_id;

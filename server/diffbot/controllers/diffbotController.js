@@ -1,4 +1,4 @@
-var DiffbotService = require("../services/diffbotService.js");
+let DiffbotService = require("../services/diffbotService.js");
 
 function DiffbotController(objCollection) 
 {

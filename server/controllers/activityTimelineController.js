@@ -3,31 +3,31 @@
  * 
  */
 
-var ActivityTimelineService = require("../services/activityTimelineService");
+let ActivityTimelineService = require("../services/activityTimelineService");
 const logger = require("../logger/winstonLogger");
 const { serializeError } = require('serialize-error');
 
 function ActivityTimelineController(objCollection) {
 
-    var responseWrapper = objCollection.responseWrapper;
-    var cacheWrapper = objCollection.cacheWrapper;
-    var queueWrapper = objCollection.queueWrapper;
-    var app = objCollection.app;
-    var util = objCollection.util;
+    let responseWrapper = objCollection.responseWrapper;
+    let cacheWrapper = objCollection.cacheWrapper;
+    let queueWrapper = objCollection.queueWrapper;
+    let app = objCollection.app;
+    let util = objCollection.util;
 
-    var activityTimelineService = new ActivityTimelineService(objCollection);
+    let activityTimelineService = new ActivityTimelineService(objCollection);
     
     app.post('/' + global.config.version + '/activity/timeline/entry/add',async function (req, res) {
         util.logInfo(req.body,`::START:: activity_id-${req.body.activity_id || ""}`);
         util.logInfo(req.body,`Request Params %j`,JSON.stringify(req.body,null, 4));
         
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
-        var streamTypeId = Number(req.body.activity_stream_type_id);
+        let streamTypeId = Number(req.body.activity_stream_type_id);
 
         if(req.body.hasOwnProperty('activity_timeline_collection')) {
             try {
@@ -38,9 +38,9 @@ function ActivityTimelineController(objCollection) {
             }
         }
 
-        var proceedActivityTimelineAdd = function (formTransactionId) {
+        let proceedActivityTimelineAdd = function (formTransactionId) {
 
-            var event = {
+            let event = {
                 name: "addTimelineTransaction",
                 service: "activityTimelineService",
                 //method: "addTimelineTransaction",
@@ -178,13 +178,13 @@ function ActivityTimelineController(objCollection) {
         util.logInfo(req.body,`::START:: activity_id-${req.body.activity_id || ""}`);
         util.logInfo(req.body,`Request Params %j`,JSON.stringify(req.body,null, 4));
         
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
-        var streamTypeId = Number(req.body.activity_stream_type_id);
+        let streamTypeId = Number(req.body.activity_stream_type_id);
 
         if(req.body.hasOwnProperty('activity_timeline_collection')) {
             try {
@@ -195,7 +195,7 @@ function ActivityTimelineController(objCollection) {
             }
         }
 
-        var proceedActivityTimelineAdd = function (formTransactionId) {
+        let proceedActivityTimelineAdd = function (formTransactionId) {
 
             let firstRequest = Object.assign({}, req.body);
             firstRequest.log_asset_id = req.body.asset_id;
@@ -206,9 +206,9 @@ function ActivityTimelineController(objCollection) {
             proceedActivityTimelineAddV1(formTransactionId, firstRequest2);
         };
 
-        var proceedActivityTimelineAddV1 = function (formTransactionId, mainRequest) {
+        let proceedActivityTimelineAddV1 = function (formTransactionId, mainRequest) {
 
-            var event = {
+            let event = {
                 name: "addTimelineTransaction",
                 service: "activityTimelineService",
                 //method: "addTimelineTransaction",
@@ -344,17 +344,17 @@ function ActivityTimelineController(objCollection) {
 
     //This is to support the feature - Not to increase unread count during timeline entry
     app.post('/' + global.config.version + '/activity/timeline/entry/add/v1', function (req, res) {
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
-        var streamTypeId = Number(req.body.activity_stream_type_id);
+            let streamTypeId = Number(req.body.activity_stream_type_id);
 
-        var proceedActivityTimelineAdd = function (formTransactionId) {
+        let proceedActivityTimelineAdd = function (formTransactionId) {
 
-            var event = {
+            let event = {
                 name: "addTimelineTransaction",
                 service: "activityTimelineService",
                 method: "addTimelineTransactionV1",
@@ -373,10 +373,12 @@ function ActivityTimelineController(objCollection) {
                             cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                 if (err) {
                                     //console.log("error in setting in asset parity");
-                                    global.logger.write('serverError', "error in setting in asset parity", err, req.body);
+                                    //global.logger.write('serverError', "error in setting in asset parity", err, req.body);
+                                    util.logError(req.body,`setAssetParity serverError error in setting in asset parity Error %j`, { err,body : req.body });
                                 } else
                                     //console.log("asset parity is set successfully")
-                                    global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                    //global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                    util.logInfo(req.body,`setAssetParity Asset parity is set successfully %j`,{body : req.body});
 
                             });
                         }
@@ -562,17 +564,17 @@ function ActivityTimelineController(objCollection) {
 
 
     app.post('/' + global.config.version + '/activity/timeline/entry/comment/add', function (req, res) {
-        var assetMessageCounter = 0;
-        var deviceOsId = 0;
+        let assetMessageCounter = 0;
+        let deviceOsId = 0;
         if (req.body.hasOwnProperty('asset_message_counter'))
             assetMessageCounter = Number(req.body.asset_message_counter);
         if (req.body.hasOwnProperty('device_os_id'))
             deviceOsId = Number(req.body.device_os_id);
-        var streamTypeId = Number(req.body.activity_stream_type_id);
+        let streamTypeId = Number(req.body.activity_stream_type_id);
 
-        var proceedActivityTimelineCommentAdd = function () {
+        let proceedActivityTimelineCommentAdd = function () {
 
-            var event = {
+            let event = {
                 name: "addTimelineTransaction",
                 service: "activityTimelineService",
                 method: "addTimelineComment",
@@ -591,10 +593,12 @@ function ActivityTimelineController(objCollection) {
                             cacheWrapper.setAssetParity(req.asset_id, req.asset_message_counter, function (err, status) {
                                 if (err) {
                                     //console.log("error in setting in asset parity");
-                                    global.logger.write('serverError', "error in setting in asset parity", err, req.body);
+                                    //global.logger.write('serverError', "error in setting in asset parity", err, req.body);
+                                    util.logError(req.body,`setAssetParity serverError error in setting in asset parity Error %j`, { err,body : req.body });
                                 } else
                                     //console.log("asset parity is set successfully")
-                                    global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                    //global.logger.write('conLog', "asset parity is set successfully", {}, req.body);
+                                    util.logInfo(req.body,`setAssetParity Asset parity is set successfully %j`,{body : req.body});
 
                             });
                         }
