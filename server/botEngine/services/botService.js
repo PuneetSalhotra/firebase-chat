@@ -2446,8 +2446,9 @@ function BotService(objectCollection) {
                         logger.silly("Leave Aplication Bot params received from request: %j", request);
                         try {
                             i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                            let fieldValue = await getFormFieldValue(request, botOperationsJson.bot_operations.field_id);
-
+                            let leaveStartDatetime = await getFormFieldValue(request, botOperationsJson.bot_operations.leave_start_datetime_field_id);
+                            let leaveEndDatetime = await getFormFieldValue(request, botOperationsJson.bot_operations.leave_end_datetime_field_id);
+/*
                             if (!util.checkDateFormat(fieldValue, "yyyy-MM-dd hh:mm:ss")) {
                                 if (botOperationsJson.bot_operations.leave_flag == 2) {
                                     fieldValue = util.getFormatedLogDatetime(fieldValue);
@@ -2455,11 +2456,11 @@ function BotService(objectCollection) {
                                     fieldValue = util.subtractUnitsFromDateTime(fieldValue, 1, 'seconds');
                                 }
                             }
-
-                            await applyLeave(request, botOperationsJson.bot_operations.leave_flag, fieldValue);
+*/
+                            //await applyLeave(request, botOperationsJson.bot_operations.leave_flag, fieldValue);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
                             // await handleBotOperationMessageUpdate(request, i, 3);
-                            // await applyWorkflowLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
+                            await applyWorkflowLeave(request, leaveStartDatetime, leaveEndDatetime);
                         } catch (error) {
                             logger.error("[Leave Aplication Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                             i.bot_operation_status_id = 2;
@@ -2907,6 +2908,26 @@ function BotService(objectCollection) {
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
                             i.bot_operation_error_message = error;
                         }
+                        break;
+                    
+                    case 61: // Leave Approval 
+                        logger.silly("Leave Approval Bot params received from request: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            let approvalFlag = botOperationsJson.bot_operations.approval_flag;
+                            await updateLeaveApprovalStaus(request, approvalFlag);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[Leave Approval Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        }
+
                         break;
                 }
 
@@ -16076,21 +16097,36 @@ if(workflowActivityData.length==0){
         }
     }  
 
-    async function applyWorkflowLeave(request, leave_flag, leave_date) {
+    async function applyWorkflowLeave(request, leave_start_datetime, leave_end_datetime) {
         let paramsArr = [
             request.organization_id,
             request.workflow_activity_id,
             request.asset_id,
-            util.ISTtoUTC(leave_date),
-            leave_flag,
-            request.auth_asset_id,
+            util.ISTtoUTC(leave_start_datetime),
+            util.ISTtoUTC(leave_end_datetime),
+            request.asset_id || request.auth_asset_id,
             util.getCurrentUTCTime()
         ];
-        let queryString = util.getQueryString('ds_v1_asset_leave_mapping_insert', paramsArr);
+        let queryString = util.getQueryString('ds_v1_2_asset_leave_mapping_insert', paramsArr);
         if (queryString != '') {
         return await (db.executeQueryPromise(0, queryString, request));
         }
     }  
+
+    async function updateLeaveApprovalStaus(request, approval_flag) {
+        let paramsArr = [
+            request.organization_id,
+            request.workflow_activity_id,
+            request.asset_id,
+            approval_flag,
+            request.asset_id || request.auth_asset_id,
+            util.getCurrentUTCTime()
+        ];
+        let queryString = util.getQueryString('ds_v1_asset_leave_mapping_update_approval', paramsArr);
+        if (queryString != '') {
+        return await (db.executeQueryPromise(0, queryString, request));
+        }
+    }     
 
     async function removeCUIDs(request, inlineData) {
         await activityListRemoveCUIDs(request, inlineData.remove_cuids.remove_cuid_flag);
