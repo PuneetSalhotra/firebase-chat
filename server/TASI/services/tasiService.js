@@ -3840,6 +3840,100 @@ function TasiService(objectCollection) {
         return [error, responseData];
     }
 
+    this.insertWidgetTypeForSip = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.widget_type_name,
+            request.widget_type_description,
+            request.widget_type_category_id,
+            request.widget_type_chart_id,
+            request.flag_mobile_enabled,
+            request.widget_type_flag_target,
+            request.widget_type_flag_sip_enabled,
+            request.widget_type_flag_role_enabled,
+            request.widget_type_flag_prediction_enabled,
+            request.widget_type_sip_contribution_percentage,
+            request.widget_type_inline_data,
+            request.widget_type_measurement_id,
+            request.widget_type_measurement_unit,
+            request.widget_type_timeline_id,
+            request.asset_tag_id,
+            request.customer_account_type_id,
+            request.period_type_id,
+            request.widget_type_start_datetime,
+            request.widget_type_end_datetime,
+            request.payout_type_id,
+            request.asset_type_id,
+            request.asset_type_sequence_id,
+            request.activity_type_id,
+            request.tag_id,
+            request.level_id,
+            request.data_entity_id_1,
+            request.data_entity_name_1,
+            request.data_entity_id_2,
+            request.data_entity_name_2,
+            request.data_entity_id_3,
+            request.data_entity_name_3,
+            request.data_entity_id_4,
+            request.data_entity_name_4,
+            request.data_entity_id_5,
+            request.data_entity_name_5,
+            request.widget_type_code,
+            request.workforce_id,
+            request.workforce_tag_id,
+            request.workforce_type_id,
+            request.account_id,
+            request.organization_id,
+            request.asset_id,
+            util.getCurrentUTCTime(),
+            request.non_product_id,
+            request.gate_condition_id,
+            request.payment_type_id
+        );
+        const queryString = util.getQueryString('ds_p3_widget_type_master_insert_sip', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    console.log(data)
+                    responseData = data;
+                    error = false;
+                    const [err1, resData] = widgetTypeHistoryInsert({ ...request, ...data[0] }, 3101)
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [false, responseData];
+    }
+
+    async function widgetTypeHistoryInsert(request, id) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.widget_type_id,
+            id,
+            util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_p1_widget_type_master_history_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+
+        return [error, responseData]
+    } 
+
 }
 
 module.exports = TasiService;

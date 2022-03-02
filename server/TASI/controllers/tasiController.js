@@ -1119,6 +1119,15 @@ function TasiController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/tasi/analytics/widget-type/add', async (req, res) => {
+
+        let [err, result] = await tasiService.insertWidgetTypeForSip(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
 
 }
 
