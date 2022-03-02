@@ -8,7 +8,7 @@ function PaymentUtil(objectCollection) {
     
     this.sha256InHEX = function (data) {
         logger.info("sha256InHEX :- ");
-        var hexData = crypto.createHash('sha256').update(data, 'utf8').digest('hex').toLowerCase();
+        let hexData = crypto.createHash('sha256').update(data, 'utf8').digest('hex').toLowerCase();
         logger.info("hexData = " + hexData);
         return hexData;
     }
@@ -19,22 +19,22 @@ function PaymentUtil(objectCollection) {
 
     this.hmacSha256 = function(data, key) {
         logger.info("hmacSha256 :- ");
-        var hashValue = crypto.createHmac('sha256', key).update(data, "utf-8").digest('hex');
+        let hashValue = crypto.createHmac('sha256', key).update(data, "utf-8").digest('hex');
         return hashValue;
     }
 
     this.isValidHmacSha256 = function(data, hashValue, key) {
         logger.info("isValidHmacSha256 :- ");
-        var newHashValue = crypto.createHmac('sha256', key).update(data, "utf-8").digest('hex');
+        let newHashValue = crypto.createHmac('sha256', key).update(data, "utf-8").digest('hex');
         logger.info("hashValue    = " + hashValue);
         logger.info("newHashValue = " + newHashValue);
-        var isValid = (hashValue === newHashValue) ? true : false;
+        let isValid = (hashValue === newHashValue) ? true : false;
         logger.info("isValid = " + isValid);
         return isValid;    
     }
 
     this.sha512InHEX = function (data) {
-        var hexData = crypto.createHash('sha512').update(data, 'utf8').digest('hex').toLowerCase();
+        let hexData = crypto.createHash('sha512').update(data, 'utf8').digest('hex').toLowerCase();
         logger.info("hashValue = " + hexData);
         return hexData;
     }

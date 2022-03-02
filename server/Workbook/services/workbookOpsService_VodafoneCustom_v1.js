@@ -895,7 +895,7 @@ function WorkbookOpsService(objectCollection) {
             request.limit_value || 50
         );
 
-        var queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_id', paramsArr);
+        let queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_id', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -1872,7 +1872,7 @@ function WorkbookOpsService(objectCollection) {
     }
     
     async function downloadS3Object(request, url) {        
-        var s3 = new AWS.S3();
+        let s3 = new AWS.S3();
         console.log('\nURL : ', url);
 
         let BucketName = url.slice(8, 25);

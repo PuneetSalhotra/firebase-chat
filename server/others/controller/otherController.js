@@ -3,16 +3,16 @@
  * 
  */
 
- var OtherService = require("../service/otherService");
+ let OtherService = require("../service/otherService");
 
  function OtherController(objCollection) {
  
-     var responseWrapper = objCollection.responseWrapper;
-     var app = objCollection.app;
-     var otherService = new OtherService(objCollection);
-     var util = objCollection.util;
-     var cacheWrapper = objCollection.cacheWrapper;
-     var queueWrapper = objCollection.queueWrapper;
+     let responseWrapper = objCollection.responseWrapper;
+     let app = objCollection.app;
+     let otherService = new OtherService(objCollection);
+     let util = objCollection.util;
+     let cacheWrapper = objCollection.cacheWrapper;
+     let queueWrapper = objCollection.queueWrapper;
      
         
      
@@ -22,7 +22,8 @@
                  res.json(responseWrapper.getResponse(err, responseData, 200, req.body));
              } else {
                  //console.log('did not get proper response');
-                 global.logger.write('response', 'did not get proper response', err, {});
+                 //global.logger.write('response', 'did not get proper response', err, {});
+                 util.logError(req.body,`meetingDurationInsert response did not get proper response Error %j`, { err });
                  res.json(responseWrapper.getResponse(err, responseData, -9999, req.body));
              }
      });
@@ -33,7 +34,8 @@
                  res.json(responseWrapper.getResponse(err, responseData, 200, req.body));
              } else {
                  //console.log('did not get proper response');
-                 global.logger.write('response', 'did not get proper response', err, {});
+                 //global.logger.write('response', 'did not get proper response', err, {});
+                 util.logError(req.body,`meetingDurationDelete response did not get proper response Error %j`, { err });
                  res.json(responseWrapper.getResponse(err, responseData, -9999, req.body));
              }
      });
@@ -44,7 +46,8 @@
                  res.json(responseWrapper.getResponse(err, responseData, 200, req.body));
              } else {
                  //console.log('did not get proper response');
-                 global.logger.write('response', 'did not get proper response', err, {});
+                 //global.logger.write('response', 'did not get proper response', err, {});
+                 util.logError(req.body,`meetingDurationList response did not get proper response Error %j`, { err });
                  res.json(responseWrapper.getResponse(err, responseData, -9999, req.body));
              }
      });

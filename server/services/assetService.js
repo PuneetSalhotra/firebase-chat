@@ -2,10 +2,10 @@
  * author: Sri Sai Venkatesh
  */
 
-var uuid = require('uuid');
-var AwsSns = require('../utils/snsWrapper');
-var AwsSss = require('../utils/s3Wrapper');
-var fs = require('fs');
+let uuid = require('uuid');
+let AwsSns = require('../utils/snsWrapper');
+let AwsSss = require('../utils/s3Wrapper');
+let fs = require('fs');
 const moment = require('moment');
 const xlsx = require('xlsx');
 const CryptoJS = require("crypto-js");
@@ -27,48 +27,48 @@ const cognitoidentityserviceprovider = new AWS_Cognito.CognitoIdentityServicePro
 
 function AssetService(objectCollection) {
 
-    var db = objectCollection.db;
-    var util = objectCollection.util;
-    var cacheWrapper = objectCollection.cacheWrapper;
-    var activityCommonService = objectCollection.activityCommonService;
-    var queueWrapper = objectCollection.queueWrapper;
-    var sns = new AwsSns();
-    var sss = new AwsSss();
+    let db = objectCollection.db;
+    let util = objectCollection.util;
+    let cacheWrapper = objectCollection.cacheWrapper;
+    let activityCommonService = objectCollection.activityCommonService;
+    let queueWrapper = objectCollection.queueWrapper;
+    let sns = new AwsSns();
+    let sss = new AwsSss();
     const rmbotService = new RMBotService(objectCollection);
     // SMS
     const smsEngine = require('../utils/smsEngine');
     //PAM
-    var forEachAsync = objectCollection.forEachAsync;
+    let forEachAsync = objectCollection.forEachAsync;
 
     let self = this;
 
     this.getPhoneNumberAssets = function (request, callback) {
 
-        var phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
-        var countryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
-        var emailId = request.asset_email_id;
-        var verificationMethod = Number(request.verification_method);
-        var organizationId = request.organization_id;
+        let phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
+        let countryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
+        let emailId = request.asset_email_id;
+        let verificationMethod = Number(request.verification_method);
+        let organizationId = request.organization_id;
 
 
         //verification_method (0 - NA, 1 - SMS; 2 - Call; 3 - Email)
         //if (verificationMethod === 1 || verificationMethod === 2 || verificationMethod === 3) {
         if (verificationMethod === 1) {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 0, //organizationId,
                 phoneNumber,
                 countryCode
             );
 
             //var queryString = util.getQueryString('ds_v1_asset_list_select_phone_number', paramsArr);
-            var queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
+            let queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, selectData) {
                     if (err === false) {
-                        var verificationCode;
+                        let verificationCode;
                         (phoneNumber === 7032975769) ? verificationCode = 637979 : verificationCode = util.getVerificationCode();
 
-                        var pwdValidDatetime = util.addDays(util.getCurrentUTCTime(), 1);
+                        let pwdValidDatetime = util.addDays(util.getCurrentUTCTime(), 1);
                         if (selectData.length > 0) {
                             if (verificationMethod !== 0) {
 
@@ -86,7 +86,7 @@ function AssetService(objectCollection) {
                                         verificationCode,
                                         pwdValidDatetime
                                     );
-                                    var updateQueryString = util.getQueryString('ds_v1_asset_list_update_passcode', paramsArr);
+                                    let updateQueryString = util.getQueryString('ds_v1_asset_list_update_passcode', paramsArr);
                                     db.executeQuery(0, updateQueryString, request, function (err, data) {
                                         assetListHistoryInsert(request, rowData.asset_id, rowData.organization_id, 208, util.getCurrentUTCTime(), function (err, data) {
 
@@ -322,17 +322,17 @@ function AssetService(objectCollection) {
 
         //verification_method (0 - NA, 1 - SMS; 2 - Call; 3 - Email)
         if (verificationMethod === 1 || verificationMethod === 2 || verificationMethod == 3) {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 0, //organizationId,
                 phoneNumber,
                 countryCode
             );
 
-            var queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
+            let queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, async function (err, selectData) {
                     if (err === false) {
-                        var verificationCode;
+                        let verificationCode;
                         (phoneNumber === 7032975769) ? verificationCode = 637979 : verificationCode = util.getVerificationCode();
 
                         let response = {};
@@ -340,7 +340,7 @@ function AssetService(objectCollection) {
                             response.verification_code = verificationCode;
                         }
 
-                        var pwdValidDatetime = util.addDays(util.getCurrentUTCTime(), 1);
+                        let pwdValidDatetime = util.addDays(util.getCurrentUTCTime(), 1);
                         if (selectData.length > 0) {
                             if (verificationMethod !== 0 && verificationMethod === 1) {
 
@@ -352,7 +352,7 @@ function AssetService(objectCollection) {
                                         verificationCode,
                                         pwdValidDatetime
                                     );
-                                    var updateQueryString = util.getQueryString('ds_v1_asset_list_update_passcode', paramsArr);
+                                    let updateQueryString = util.getQueryString('ds_v1_asset_list_update_passcode', paramsArr);
                                     db.executeQuery(0, updateQueryString, request, function (err, data) {
                                         assetListHistoryInsert(request, rowData.asset_id, rowData.organization_id, 208, util.getCurrentUTCTime(), function (err, data) {
 
@@ -381,7 +381,7 @@ function AssetService(objectCollection) {
                                         verificationCode,
                                         pwdValidDatetime
                                     );
-                                    var updateQueryString = util.getQueryString('ds_v1_asset_list_update_passcode', paramsArr);
+                                    let updateQueryString = util.getQueryString('ds_v1_asset_list_update_passcode', paramsArr);
                                     db.executeQuery(0, updateQueryString, request, function (err, data) {
                                         assetListHistoryInsert(request, rowData.asset_id, rowData.organization_id, 208, util.getCurrentUTCTime(), function (err, data) {
 
@@ -534,7 +534,7 @@ function AssetService(objectCollection) {
             // IN p_phone_passcode_expiry_datetime DATETIME
 
             console.log(JSON.stringify(request, null, 2));
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 phoneNumber,
                 util.cleanPhoneNumber(request.asset_phone_country_code),  
                 verificationCode,
@@ -542,7 +542,7 @@ function AssetService(objectCollection) {
                 moment().utc().add(24, 'hours').format('YYYY-MM-DD HH:mm:ss'), // util.getCurrentUTCTime(),
                 util.getCurrentUTCTime()
             );
-            var queryString = util.getQueryString('ds_p1_phone_passcode_transaction_insert', paramsArr);
+            let queryString = util.getQueryString('ds_p1_phone_passcode_transaction_insert', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (!err) ? resolve() : reject(err);
@@ -557,13 +557,13 @@ function AssetService(objectCollection) {
     }
 
     this.getAssetDetails = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id || 0,
             request.workforce_id || 0,
             request.asset_id
         );
-        var queryString = util.getQueryString('ds_v1_1_asset_list_select', paramsArr);
+        let queryString = util.getQueryString('ds_v1_1_asset_list_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
@@ -583,15 +583,15 @@ function AssetService(objectCollection) {
     };
 
     this.getAssetWorkStatuses = function (request, callback) {
-        var productId = (request.hasOwnProperty('product_id')) ? request.product_id : 1;
-        var paramsArr = new Array(
+        let productId = (request.hasOwnProperty('product_id')) ? request.product_id : 1;
+        let paramsArr = new Array(
             request.page_start,
             util.replaceQueryLimit(request.page_limit),
             productId
         );
 
         //PAM
-        var queryString = util.getQueryString('ds_v1_1_asset_type_category_status_master_select', paramsArr);
+        let queryString = util.getQueryString('ds_v1_1_asset_type_category_status_master_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (data.length > 0) {
@@ -613,8 +613,8 @@ function AssetService(objectCollection) {
 
     //BETA
     this.getMeetingRoomAssets = function (request, callback) {
-        var paramsArr = new Array();
-        var queryString = '';
+        let paramsArr = new Array();
+        let queryString = '';
         paramsArr = new Array(
             request.organization_id,
             request.account_id,
@@ -646,13 +646,13 @@ function AssetService(objectCollection) {
     };
 
 
-    var formatPhoneNumberAssets = function (rows, callback) {
+    let formatPhoneNumberAssets = function (rows, callback) {
         //var responseData = new Array();
-        var data = new Array();
+        let data = new Array();
 
         rows.forEach(function (rowData, index) {
 
-            var rowDataArr = {
+            let rowDataArr = {
                 'asset_id': util.replaceDefaultNumber(rowData['asset_id']),
                 'operating_asset_id': util.replaceDefaultNumber(rowData['operating_asset_id']),
                 'asset_first_name': util.replaceDefaultString(rowData['asset_first_name']),
@@ -685,11 +685,11 @@ function AssetService(objectCollection) {
         callback(false, data);
     };
 
-    var formatAssetWorkStatuses = function (rows, callback) {
-        var data = new Array();
+    let formatAssetWorkStatuses = function (rows, callback) {
+        let data = new Array();
         rows.forEach(function (rowData, index) {
 
-            var rowDataArr = {
+            let rowDataArr = {
                 'asset_type_category_status_id': util.replaceZero(rowData['asset_type_category_status_id']),
                 'asset_type_category_id': util.replaceDefaultNumber(rowData['asset_type_category_id']),
                 'asset_type_category_status_name': util.replaceDefaultString(rowData['asset_type_category_status_name']),
@@ -711,10 +711,10 @@ function AssetService(objectCollection) {
     };
 
     //BETA
-    var formatMeetingRoomAssetData = function (data, callback) {
-        var responseArr = new Array();
+    let formatMeetingRoomAssetData = function (data, callback) {
+        let responseArr = new Array();
         forEachAsync(data, function (next, row) {
-            var rowData = {
+            let rowData = {
                 'asset_id': util.replaceDefaultNumber(row['asset_id']),
                 'asset_first_name': util.replaceDefaultString(row['asset_first_name']),
                 'asset_last_name': util.replaceDefaultString(row['asset_last_name']),
@@ -806,10 +806,10 @@ function AssetService(objectCollection) {
         });
     };
     //PAM
-    var formatAssetAccountDataLevel = function (data, callback) {
-        var responseArr = new Array();
+    let formatAssetAccountDataLevel = function (data, callback) {
+        let responseArr = new Array();
         forEachAsync(data, function (next, row) {
-            var rowData = {
+            let rowData = {
                 'user_mapping_id': util.replaceDefaultNumber(row['user_mapping_id']),
                 'user_asset_id': util.replaceDefaultNumber(row['user_asset_id']),
                 'user_asset_first_name': util.replaceDefaultString(row['user_asset_first_name']),
@@ -871,10 +871,10 @@ function AssetService(objectCollection) {
         });
     };
 
-    var formatAssetCoverData = function (rowArray, callback) {
-        var responseArr = new Array();
+    let formatAssetCoverData = function (rowArray, callback) {
+        let responseArr = new Array();
         objectCollection.forEachAsync(rowArray, function (next, row) {
-            var rowData = {
+            let rowData = {
                 'asset_id': util.replaceDefaultNumber(row['asset_id']),
                 'operating_asset_id': util.replaceDefaultNumber(row['operating_asset_id']),
                 'asset_first_name': util.replaceDefaultString(row['asset_first_name']),
@@ -919,7 +919,7 @@ function AssetService(objectCollection) {
         });
     };
 
-    var formatAssetData = function (rowArray, callback) {
+    let formatAssetData = function (rowArray, callback) {
         
         let is_password_set = 'No';
         for(const i of rowArray) {
@@ -932,7 +932,7 @@ function AssetService(objectCollection) {
             }
         }
 
-        var rowData = {
+        let rowData = {
             'asset_id': util.replaceDefaultNumber(rowArray[0]['asset_id']),
             'operating_asset_id': util.replaceDefaultNumber(rowArray[0]['operating_asset_id']),
             'asset_first_name': util.replaceDefaultString(rowArray[0]['asset_first_name']),
@@ -1063,8 +1063,6 @@ function AssetService(objectCollection) {
             "organization_flag_enable_timetracker" : util.replaceDefaultNumber(rowArray[0]['organization_flag_enable_timetracker']),
             "organization_flag_timeline_access_mgmt" : util.replaceDefaultNumber(rowArray[0]['organization_flag_timeline_access_mgmt']),
             "organization_flag_lead_mgmt" : util.replaceDefaultNumber(rowArray[0]['organization_flag_lead_mgmt']),
-            "asset_flag_line_manager" : util.replaceDefaultNumber(rowArray[0]['asset_flag_line_manager']),
-            "asset_flag_target_only" : util.replaceDefaultNumber(rowArray[0]['asset_flag_target_only']),
             "asset_password_expiry_datetime": util.replaceDefaultDatetime(rowArray[0]['asset_password_expiry_datetime']),
 
             "organization_flag_dashboard_onhold": util.replaceDefaultNumber(rowArray[0]['organization_flag_dashboard_onhold']),
@@ -1072,7 +1070,8 @@ function AssetService(objectCollection) {
             "asset_type_flag_enable_dashboard": util.replaceDefaultNumber(rowArray[0]['asset_type_flag_enable_dashboard']),
             "workforce_tag_id": util.replaceDefaultNumber(rowArray[0]['workforce_tag_id']),
             "workforce_tag_name": util.replaceDefaultString(rowArray[0]['workforce_tag_name']),
-            "asset_type_flag_enable_gamification": util.replaceDefaultNumber(rowArray[0]['asset_type_flag_enable_gamification'])
+            "asset_type_flag_enable_gamification": util.replaceDefaultNumber(rowArray[0]['asset_type_flag_enable_gamification']),
+            "organization_ai_bot_enabled": util.replaceDefaultNumber(rowArray[0]['organization_ai_bot_enabled'])
        };
 
         callback(false, rowData);
@@ -1093,14 +1092,14 @@ function AssetService(objectCollection) {
 
           if (decryptedPassword == request.old_password) {
               let newPasswordEncrypt =  CryptoJS.AES.encrypt(request.new_password, 'lp-n5^+8M@62').toString();
-            var paramsArr1 = new Array(
+            let paramsArr1 = new Array(
               request.asset_email,
               request.organization_id,
               newPasswordEncrypt,
               request.log_asset_id,
               util.getCurrentUTCTime()
             );
-            var queryString1 = util.getQueryString("ds_p1_asset_list_update_login_password",paramsArr1);
+            let queryString1 = util.getQueryString("ds_p1_asset_list_update_login_password",paramsArr1);
             db.executeQuery(0,queryString1,request,function (err1, updatedData) {
                 if (!err1) {
                 return [false,[]]
@@ -1120,15 +1119,15 @@ function AssetService(objectCollection) {
 
 
     this.checkAssetPasscode = function (request, callback) {
-        var phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
-        var phoneCountryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
-        var verificationCode = util.cleanPhoneNumber(request.verification_passcode);
-        var verificationType = Number(request.verification_method);
+        let phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
+        let phoneCountryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
+        let verificationCode = util.cleanPhoneNumber(request.verification_passcode);
+        let verificationType = Number(request.verification_method);
 
         if (verificationType === 1 || verificationType === 2 || verificationType === 3) {
-            var paramsArr = new Array();
-            var queryString = "";
-            var negResponseCode = 0;
+            let paramsArr = new Array();
+            let queryString = "";
+            let negResponseCode = 0;
             switch (verificationType) {
                 case 1:
                 case 2:
@@ -1158,8 +1157,9 @@ function AssetService(objectCollection) {
                         // got data now parse it..                          
                         if (data.length > 0) {
                             //console.log("data[0].asset_phone_passcode: ", data[0].asset_phone_passcode);
-                            global.logger.write('debug', "data[0].asset_phone_passcode: " + data[0].asset_phone_passcode, {}, request);
-                            var dbVerifyCode = 0;
+                            //global.logger.write('debug', "data[0].asset_phone_passcode: " + data[0].asset_phone_passcode, {}, request);
+                            util.logInfo(request,`checkAssetPasscode debug data[0].asset_phone_passcode:  %j`,{asset_phone_passcode : data[0].asset_phone_passcode,request});
+                            let dbVerifyCode = 0;
                             verificationType === 3 ? dbVerifyCode = util.replaceDefaultNumber(data[0].asset_email_password) : dbVerifyCode = util.replaceDefaultNumber(data[0].asset_phone_passcode);
                             //asset_password_expiry_datetime --> for email 
                             //asset_passcode_expiry_datetime --> for asset                            
@@ -1180,14 +1180,17 @@ function AssetService(objectCollection) {
                                     //console.log("data[0].phone_passcode: ", Number(data[0].phone_passcode));
                                     //console.log("verificationCode: ", Number(verificationCode));
 
-                                    global.logger.write('debug', "data[0].phone_passcode: " + Number(data[0].phone_passcode), {}, request);
-                                    global.logger.write('debug', "verificationCode: " + Number(verificationCode), {}, request);
+                                    //global.logger.write('debug', "data[0].phone_passcode: " + Number(data[0].phone_passcode), {}, request);
+                                    util.logInfo(request,`getPasscodeForNewPhonenumber debug data[0].phone_passcode:  %j`,{phone_passcode : Number(data[0].phone_passcode),request});
+                                    //global.logger.write('debug', "verificationCode: " + Number(verificationCode), {}, request);
+                                    util.logInfo(request,`getPasscodeForNewPhonenumber debug verificationCode: %j`,{verificationCode : Number(verificationCode),request});
 
                                     if (Number(data[0].phone_passcode) === Number(verificationCode)) {
                                         // Set verification status  to true
                                         setPasscodeVerificationStatusForNewPhonenumber(data[0].phone_passcode_transaction_id, true, request);
                                         console.log("******* PASSCODE VERIFIED *******");
-                                        global.logger.write('conLog', "******* PASSCODE VERIFIED *******", {}, request);
+                                        //global.logger.write('conLog', "******* PASSCODE VERIFIED *******", {}, request);
+                                        util.logInfo(request,`getPasscodeForNewPhonenumber ******* PASSCODE VERIFIED ******* %j`,{request});
                                         callback(false, {
                                             data: []
                                         }, 200)
@@ -1219,15 +1222,16 @@ function AssetService(objectCollection) {
             //console.log("Inside getPasscodeForNewPhonenumber");
             // IN p_phone_number VARCHAR(50), IN phone_country_code SMALLINT(6)
 
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 phoneNumber,
                 util.cleanPhoneNumber(request.asset_phone_country_code)
             );
-            var queryString = util.getQueryString('ds_p1_phone_passcode_transaction_select', paramsArr);
+            let queryString = util.getQueryString('ds_p1_phone_passcode_transaction_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     //console.log("ds_p1_phone_passcode_transaction_select data: ", data);
-                    global.logger.write('conLog', "ds_p1_phone_passcode_transaction_select data: " + JSON.stringify(data, null, 2), {}, request);
+                    //global.logger.write('conLog', "ds_p1_phone_passcode_transaction_select data: " + JSON.stringify(data, null, 2), {}, request);
+                    util.logInfo(request,`getPasscodeForNewPhonenumber ds_p1_phone_passcode_transaction_select data: %j`,{data : JSON.stringify(data, null, 2),request});
                     (!err) ? resolve(data) : reject(err);
                 });
             }
@@ -1240,29 +1244,30 @@ function AssetService(objectCollection) {
             // IN p_phone_passcode_transaction_id BIGINT(20), IN p_phone_passcode_is_verified TINYINT(4), 
             // IN p_phone_passcode_verification_datetime DATETIME
 
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 phonePasscodeTransactionID,
                 isPasscodeVerified,
                 util.getCurrentUTCTime()
             );
 
-            var queryString = util.getQueryString('ds_p1_phone_passcode_transaction_update_verified', paramsArr);
+            let queryString = util.getQueryString('ds_p1_phone_passcode_transaction_update_verified', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     //console.log("ds_p1_phone_passcode_transaction_update_verified data: ", data);
-                    global.logger.write('conLog', "ds_p1_phone_passcode_transaction_update_verified data: " + JSON.stringify(data, null, 2), {}, request);
+                    //global.logger.write('conLog', "ds_p1_phone_passcode_transaction_update_verified data: " + JSON.stringify(data, null, 2), {}, request);
+                    util.logInfo(request,`setPasscodeVerificationStatusForNewPhonenumber ds_p1_phone_passcode_transaction_update_verified data: %j`,{data : JSON.stringify(data, null, 2),request});
                     (!err) ? resolve(data) : reject(err);
                 });
             }
         });
     }
 
-    var sendCallOrSms = async (verificationMethod, countryCode, phoneNumber, verificationCode, request) =>{
+    let sendCallOrSms = async (verificationMethod, countryCode, phoneNumber, verificationCode, request) =>{
 
-        var smsString = util.getSMSString(verificationCode);
-        var domesticSmsMode = global.config.domestic_sms_mode;
-        var internationalSmsMode = global.config.international_sms_mode;
-        var phoneCall = global.config.phone_call;
+        let smsString = util.getSMSString(verificationCode);
+        let domesticSmsMode = global.config.domestic_sms_mode;
+        let internationalSmsMode = global.config.international_sms_mode;
+        let phoneCall = global.config.phone_call;
         let appID = Number(request.app_id) || 3;
 
         // SMS heart-beat logic
@@ -1399,52 +1404,59 @@ function AssetService(objectCollection) {
                 let redisPhoneCallMode = await cacheWrapper.getSmsMode('phone_call_mode');
                 redisPhoneCallMode = Number(redisPhoneCallMode);
 
+                let passcode= "", text = "";
                 switch (redisPhoneCallMode) {
                     case 2: //Nexmo
                         //console.log('Making Nexmo Call');
-                        global.logger.write('conLog', 'Making Nexmo Call', {}, request);
-                        var passcode = request.passcode;
+                        //global.logger.write('conLog', 'Making Nexmo Call', {}, request);
+                        util.logInfo(request,`sendCallOrSms Making Nexmo Call %j`,{request});
+                        passcode = request.passcode;
                         passcode = passcode.split("");
                         passcode = passcode.toString();
                         passcode = passcode.replace(/,/g, " ");
 
                         //var text = "Your passcode for Mytony App is, " + passcode + ". I repeat, your passcode for Mytony App is, " + passcode + ". Thank you.";
-                        var text = "Your passcode for " + appName + " App is, " + passcode;
+                        text = "Your passcode for " + appName + " App is, " + passcode;
                         text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
                         text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
                         text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
                         text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
                         //console.log('Text: ' + text);
-                        global.logger.write('debug', 'Text: ' + text, {}, request);
+                        //global.logger.write('debug', 'Text: ' + text, {}, request);
+                        util.logInfo(request,`sendCallOrSms debug Text:  %j`,{Text : text,request});
 
                         util.makeCallNexmoV1(text, request.passcode, countryCode, phoneNumber, function (error, data) {
                             if (error)
                                 console.log(error);
                             console.log(data);
-                            global.logger.write('trace', data, error, request)
+                            //global.logger.write('trace', data, error, request)
+                            util.logError(request,`sendCallOrSms trace Error %j`, { data, error, request });
                         });
                         break;
 
                     case 1: //Twilio
                         //console.log('Making Twilio Call');
-                        global.logger.write('conLog', 'Making Twilio Call', {}, request);
-                        var passcode = request.passcode;
+                        //global.logger.write('conLog', 'Making Twilio Call', {}, request);
+                        util.logInfo(request,`sendCallOrSms Making Twilio Call %j`,{request});
+                        passcode = request.passcode;
                         passcode = passcode.split("");
 
                         //var text = "Your passcode is " + passcode + " I repeat," + passcode + " Thank you.";
                         //var text = "Your passcode for Mytony App is, " + passcode + ". I repeat, your passcode for Mytony App is, " + passcode + ". Thank you.";
-                        var text = "Your passcode for " + appName + " App is, " + passcode;
+                        text = "Your passcode for " + appName + " App is, " + passcode;
                         text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
                         text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
                         text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
                         text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
                         //console.log('Text: ' + text);
-                        global.logger.write('debug', 'Text: ' + text, {}, request);
+                        //global.logger.write('debug', 'Text: ' + text, {}, request);
+                        util.logInfo(request,`sendCallOrSms debug Text: %j`,{Text : text,request});
                         util.MakeCallTwilio(text, request.passcode, countryCode, phoneNumber, function (error, data) {
                             if (error)
                                 console.log(error);
                             console.log(data);
-                            global.logger.write('trace', data, error, request)
+                            //global.logger.write('trace', data, error, request)
+                            util.logError(request,`sendCallOrSms trace Error %j`, { data, error, request });
                         });
                         break;
                 }
@@ -1467,23 +1479,23 @@ function AssetService(objectCollection) {
     };
 
     this.linkAsset = function (request, callback) {
-        var dateTimeLog = util.getCurrentUTCTime();
+        let dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
-        var encToken = uuid.v1();
-        var flag; //1 is prod and 0 is dev
-        var flagAppAccount; //1 is Grene Robotics and 0 is BlueFlock
+        let encToken = uuid.v1();
+        let flag; //1 is prod and 0 is dev
+        let flagAppAccount; //1 is Grene Robotics and 0 is BlueFlock
 
         (request.hasOwnProperty('flag_dev')) ? flag = request.flag_dev : flag = 1;
         (request.hasOwnProperty('flag_app_account')) ? flagAppAccount = request.flag_app_account : flagAppAccount = 0;
 
-        var proceedLinking = function (proceedLinkingCallback) {
+        let proceedLinking = function (proceedLinkingCallback) {
 
             updateAssetLinkStatus(request, request.asset_id, encToken, dateTimeLog, function (err, data) {
                 if (err === false) {
-                    var responseArr = {
+                    let responseArr = {
                         enc_token: encToken
                     };
-                    var authTokenCollection = {
+                    let authTokenCollection = {
                         "asset_id": request.asset_id,
                         "workforce_id": request.workforce_id,
                         "account_id": request.account_id,
@@ -1565,7 +1577,8 @@ function AssetService(objectCollection) {
             sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, flag, flagAppAccount, function (err, endPointArn) {
                 if (!err) {
                     //console.log('success in creating platform end point');
-                    global.logger.write('conLog', 'success in creating platform end point', {}, request)
+                    //global.logger.write('conLog', 'success in creating platform end point', {}, request)
+                    util.logInfo(request,`createPlatformEndPoint success in creating platform end point %j`,{request});
                     request.asset_push_arn = endPointArn;
                     proceedLinking(function (err, response, status) {
                         if (status == 200) {
@@ -1579,7 +1592,8 @@ function AssetService(objectCollection) {
                     });
                 } else {
                     //console.log('problem in creating platform end point');
-                    global.logger.write('serverError', 'problem in creating platform end point', err, request)
+                    //global.logger.write('serverError', 'problem in creating platform end point', err, request)
+                    util.logError(request,`createPlatformEndPoint serverError problem in creating platform end point Error %j`, { err,request });
                     callback(err, {}, -3108);
                 }
             });
@@ -1599,13 +1613,13 @@ function AssetService(objectCollection) {
     };
 
     this.unlinkAsset = function (request, callback) {
-        var dateTimeLog = util.getCurrentUTCTime();
+        let dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
 
         updateAssetUnlink(request, request.asset_id, '', dateTimeLog, function (err, data) {
             if (err === false) {
-                var responseArr = {};
-                var authTokenCollection = {
+                let responseArr = {};
+                let authTokenCollection = {
                     "asset_id": request.asset_id,
                     "workforce_id": request.workforce_id,
                     "account_id": request.account_id,
@@ -1655,9 +1669,10 @@ function AssetService(objectCollection) {
         });
     };
 
-    var updateAssetLinkStatus = function (request, assetId, encToken, dateTimeLog, callback) {
+    let updateAssetLinkStatus = function (request, assetId, encToken, dateTimeLog, callback) {
 
-        var paramsArr = new Array(
+        let queryString = "";
+        let paramsArr = new Array(
             assetId,
             request.organization_id,
             request.asset_hardware_imei,
@@ -1675,7 +1690,8 @@ function AssetService(objectCollection) {
 
         if (request.hasOwnProperty('timezone_offset')) {
             //console.log('\x1b[36m timezone_offset parameter found \x1b[0m');
-            global.logger.write('conLog', '\x1b[36m timezone_offset parameter found \x1b[0m', {}, request);
+            //global.logger.write('conLog', '\x1b[36m timezone_offset parameter found \x1b[0m', {}, request);
+            util.logInfo(request,`updateAssetLinkStatus \x1b[36m timezone_offset parameter found \x1b[0m %j`,{request});
             paramsArr.push(request.timezone_offset);
 
             // IN p_asset_id BIGINT(20), IN p_organization_id BIGINT(20), IN p_device_hardware_id VARCHAR(300), 
@@ -1683,11 +1699,11 @@ function AssetService(objectCollection) {
             // IN p_push_arn VARCHAR(600), IN p_model_name VARCHAR(50), IN p_manufacturer_name VARCHAR(50), 
             // IN p_app_version VARCHAR(50), IN p_device_os_version VARCHAR(50),  IN p_log_asset_id BIGINT(20), 
             // IN p_log_datetime DATETIME, IN p_timezone_offset BIGINT
-            var queryString = util.getQueryString('ds_v1_2_asset_list_update_link', paramsArr);
+            queryString = util.getQueryString('ds_v1_2_asset_list_update_link', paramsArr);
 
         } else {
             // The following is retained for the sake of backward compatibility
-            var queryString = util.getQueryString('ds_v1_asset_list_update_link', paramsArr);
+            queryString = util.getQueryString('ds_v1_asset_list_update_link', paramsArr);
 
         }
         if (queryString !== '') {
@@ -1711,7 +1727,8 @@ function AssetService(objectCollection) {
                 activityCommonService.getAssetDetails(request, (err, data, statusCode) => {
                     if (err === false) {
                         //console.log('\x1b[36mAsset Signup count:\x1b[0m ', data.asset_count_signup);
-                        global.logger.write('debug', '\x1b[36mAsset Signup count:\x1b[0m ' + data.asset_count_signup, {}, request);
+                        //global.logger.write('debug', '\x1b[36mAsset Signup count:\x1b[0m ' + data.asset_count_signup, {}, request);
+                        util.logInfo(request,`updateSignUpCnt debug \x1b[36mAsset Signup count:\x1b[0m  %j`,{asset_count_signup : data.asset_count_signup, request});
                         request.asset_count_signup = data.asset_count_signup;
 
                         if (data.asset_count_signup > 0) {
@@ -1722,8 +1739,9 @@ function AssetService(objectCollection) {
                             //Create a Task in a given Project and add an update
                             //Asset_id, operating_asset_name, organization_name, workforce_name
                             //console.log('Create a Task for Paramesh');
-                            global.logger.write('conLog', 'Create a Task for Paramesh', {}, request);
-                            var newRequest = {};
+                            //global.logger.write('conLog', 'Create a Task for Paramesh', {}, request);
+                            util.logInfo(request,`updateSignUpCnt Create a Task for Paramesh %j`,{request});
+                            let newRequest = {};
 
                             newRequest.organization_id = 336;
                             newRequest.account_id = 437;
@@ -1759,10 +1777,11 @@ function AssetService(objectCollection) {
                             cacheWrapper.getActivityId(function (err, activityId) {
                                 if (err) {
                                     //console.log(err);
-                                    global.logger.write('debug', err, err, request);
+                                    //global.logger.write('debug', err, err, request);
+                                    util.logError(request,`getActivityId debug Error %j`, { err,request });
                                 } else {
                                     newRequest.activity_id = activityId;
-                                    var event = {
+                                    let event = {
                                         name: "addActivity",
                                         service: "activityService",
                                         method: "addActivity",
@@ -1771,10 +1790,12 @@ function AssetService(objectCollection) {
                                     queueWrapper.raiseActivityEvent(event, activityId, (err, resp) => {
                                         if (err) {
                                             //console.log('Error in queueWrapper raiseActivityEvent : ' + resp)
-                                            global.logger.write('serverError', 'Error in queueWrapper raiseActivityEvent : ' + resp, resp, request);
+                                            //global.logger.write('serverError', 'Error in queueWrapper raiseActivityEvent : ' + resp, resp, request);
+                                            util.logError(request,`serverError Error in queueWrapper raiseActivityEvent : Error %j`, { err, resp, request });
                                         } else {
                                             //console.log("new activityId is : " + activityId);
-                                            global.logger.write('debug', "new activityId is :" + activityId, {}, newRequest);
+                                            //global.logger.write('debug', "new activityId is :" + activityId, {}, newRequest);
+                                            util.logInfo(request,`raiseActivityEvent debug new activityId is : %j`,{new_activityId : activityId,newRequest});
                                         }
                                     });
                                 }
@@ -1789,7 +1810,8 @@ function AssetService(objectCollection) {
 
                 activityCommonService.getAssetDetails(newRequest, (err, data, statusCode) => {
                     //console.log('\x1b[36mOperating Asset Signup count:\x1b[0m ', data.asset_count_signup);
-                    global.logger.write('debug', '\x1b[36mOperating Asset Signup count:\x1b[0m ' + data.asset_count_signup, {}, newRequest);
+                    //global.logger.write('debug', '\x1b[36mOperating Asset Signup count:\x1b[0m ' + data.asset_count_signup, {}, newRequest);
+                    util.logInfo(request,`getAssetDetails debug \x1b[36mOperating Asset Signup count:\x1b[0m %j`,{asset_count_signup : data.asset_count_signup, newRequest});
                     newRequest.asset_count_signup = data.asset_count_signup;
 
                     assetListUpdateSignupCnt(request, assetId).then(() => { });
@@ -1822,16 +1844,16 @@ function AssetService(objectCollection) {
     }
 
 
-    var updateAssetUnlink = function (request, assetId, encToken, dateTimeLog, callback) {
+    let updateAssetUnlink = function (request, assetId, encToken, dateTimeLog, callback) {
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             assetId,
             request.organization_id,
             request.asset_id,
             dateTimeLog
         );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_update_unlink', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_update_unlink', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 //global.logger.write(queryString, request, 'asset', 'trace');
@@ -1846,16 +1868,16 @@ function AssetService(objectCollection) {
     };
 
 
-    var assetListHistoryInsert = function (request, assetId, organizationId, updateTypeId, datetimeLog, callback) {
+    let assetListHistoryInsert = function (request, assetId, organizationId, updateTypeId, datetimeLog, callback) {
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             assetId,
             organizationId,
             updateTypeId,
             datetimeLog
         );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_history_insert', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_history_insert', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 //global.logger.write(queryString, request, 'asset', 'trace');
@@ -1870,8 +1892,8 @@ function AssetService(objectCollection) {
     };
 
     this.addAsset = function (request, callback) {
-        var responseDataCollection = {};
-        var contactActivityInlineData = JSON.parse(request.activity_inline_data);
+        let responseDataCollection = {};
+        let contactActivityInlineData = JSON.parse(request.activity_inline_data);
         request.workforce_id = contactActivityInlineData.contact_workforce_id || request.workforce_id;
 
         //check if phone number and cc of the new contact exist in the activity type id ...
@@ -1943,8 +1965,8 @@ function AssetService(objectCollection) {
                                 activityCommonService.workforceAssetTypeMappingSelectCategory(request, 45, function (err, assetTypeData, statusCode) {
                                     if (!err) {
                                         // Create the service desk
-                                        var newRequestObject = Object.assign(request);
-                                        var contactCardActivityInlineData = JSON.parse(request.activity_inline_data);
+                                        let newRequestObject = Object.assign(request);
+                                        let contactCardActivityInlineData = JSON.parse(request.activity_inline_data);
                                         contactCardActivityInlineData.contact_asset_type_id = assetTypeData[0].asset_type_id;
 
                                         newRequestObject.operating_asset_id = newAssetId;
@@ -1977,14 +1999,14 @@ function AssetService(objectCollection) {
         return;
     };
 
-    var getContactActivityid = function (request, contactAssetId, callback) {
+    let getContactActivityid = function (request, contactAssetId, callback) {
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             contactAssetId,
             request.organization_id,
             request.activity_type_category_id
         );
-        var queryString = util.getQueryString('ds_v1_activity_list_select_category_contact', paramsArr);
+        let queryString = util.getQueryString('ds_v1_activity_list_select_category_contact', paramsArr);
         if (queryString != '') {
             //global.logger.write(queryString, request, 'activity', 'trace');
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -2000,15 +2022,15 @@ function AssetService(objectCollection) {
     };
 
 
-    var createAsset = function (request, callback) {
-        var dateTimeLog = util.getCurrentUTCTime();
+    let createAsset = function (request, callback) {
+        let dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
 
         assetListInsertAddAsset(request, function (err, newAssetId) {
             if (err === false) {
                 assetListHistoryInsert(request, newAssetId, request.organization_id, 0, dateTimeLog, function (err, data) {
                     if (err === false) {
-                        var newAssetCollection = {
+                        let newAssetCollection = {
                             organization_id: request.organization_id,
                             account_id: request.account_id,
                             workforce_id: request.workforce_id,
@@ -2032,17 +2054,17 @@ function AssetService(objectCollection) {
     };
 
 
-    var checkIfContactAssetExist = function (request, callback) {
+    let checkIfContactAssetExist = function (request, callback) {
 
-        var activityInlineData = JSON.parse(request.activity_inline_data);
-        var paramsArr = new Array(
+        let activityInlineData = JSON.parse(request.activity_inline_data);
+        let paramsArr = new Array(
             request.organization_id,
             activityInlineData.contact_phone_number,
             activityInlineData.contact_phone_country_code,
             activityInlineData.contact_asset_type_id
         );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_select_category_phone_number', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_select_category_phone_number', paramsArr);
         if (queryString != '') {
             //global.logger.write(queryString, request, 'asset', 'trace');
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -2056,11 +2078,11 @@ function AssetService(objectCollection) {
         }
     };
 
-    var checkIfContactAssetExistV1 = function (request, contactAssetTypeId, callback) {
+    let checkIfContactAssetExistV1 = function (request, contactAssetTypeId, callback) {
 
        
 
-        var activityInlineData = JSON.parse(request.activity_inline_data);
+        let activityInlineData = JSON.parse(request.activity_inline_data);
         if(activityInlineData.contact_phone_number==""){
             callback(false, []);
             return 
@@ -2068,14 +2090,14 @@ function AssetService(objectCollection) {
         if (contactAssetTypeId === 0) {
             contactAssetTypeId = activityInlineData.contact_asset_type_id;
         }
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             activityInlineData.contact_phone_number,
             activityInlineData.contact_phone_country_code,
             contactAssetTypeId
         );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_select_asset_type_phone_number', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_select_asset_type_phone_number', paramsArr);
         if (queryString != '') {
             //global.logger.write(queryString, request, 'asset', 'trace');
             db.executeQuery(1, queryString, request, function (err, data) {
@@ -2089,12 +2111,12 @@ function AssetService(objectCollection) {
         }
     };
 
-    var archiveAsset = async function (request,type){
+    let archiveAsset = async function (request,type){
 
         let error= true,
          responseData = [];
 
-        var paramsArr = new Array(
+         let paramsArr = new Array(
             request.target_asset_id,
             request.organization_id,
             type,
@@ -2102,7 +2124,7 @@ function AssetService(objectCollection) {
             request.asset_id,
             request.datetime_log
         );
-        var queryString = util.getQueryString('ds_v1_asset_archived_list_insert', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_archived_list_insert', paramsArr);
         if (queryString != '') {
              await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
@@ -2118,15 +2140,15 @@ function AssetService(objectCollection) {
         return [error, responseData];
     }
 
-    var deleteAsset = function (request, callback) {
-        var paramsArr = new Array(
+    let deleteAsset = function (request, callback) {
+        let paramsArr = new Array(
             request.target_asset_id,
             request.organization_id,
             request.target_asset_id,
             request.datetime_log
         );
         console.log(paramsArr);
-        var queryString = util.getQueryString('ds_v1_asset_list_delete', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_delete', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, assetData) {
                 if (err === false) {
@@ -2139,7 +2161,7 @@ function AssetService(objectCollection) {
     }
 
 
-    var assetListInsertAddAsset = function (request, callback) {
+    let assetListInsertAddAsset = function (request, callback) {
         // IN p_asset_first_name VARCHAR(50), IN p_asset_last_name VARCHAR(50), 
         // IN p_asset_description VARCHAR(150), IN p_customer_unique_id VARCHAR(50), 
         // IN p_asset_image_path VARCHAR(300), IN p_asset_inline_data JSON, 
@@ -2149,12 +2171,12 @@ function AssetService(objectCollection) {
         // IN p_organization_id BIGINT(20), IN p_log_asset_id BIGINT(20), IN p_log_datetime DATETIME
 
 
-        var activityInlineData = JSON.parse(request.activity_inline_data);
+        let activityInlineData = JSON.parse(request.activity_inline_data);
 
         console.log('activityInlineData.contact_workforce_id - ', activityInlineData.contact_workforce_id);
         console.log('request.workforce_id - ', request.workforce_id);
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             activityInlineData.contact_first_name,
             activityInlineData.contact_last_name,
             request.asset_description || "",
@@ -2175,7 +2197,7 @@ function AssetService(objectCollection) {
             request.datetime_log
         );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_insert', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_insert', paramsArr);
         if (queryString != '') {
             //global.logger.write(queryString, request, 'asset', 'trace');
             db.executeQuery(0, queryString, request, function (err, assetData) {
@@ -2193,7 +2215,7 @@ function AssetService(objectCollection) {
 
     var assetListUpdateLampStatus = function (request, assetId, callback) {
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             assetId,
             request.organization_id,
             request.lamp_status,
@@ -2202,7 +2224,7 @@ function AssetService(objectCollection) {
             request.datetime_log
         );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_update_lamp_status', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_update_lamp_status', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, assetData) {
                 if (err === false) {
@@ -2217,7 +2239,7 @@ function AssetService(objectCollection) {
 
 
     this.alterLampStatus = function (request, callback) {
-        var dateTimeLog = util.getCurrentUTCTime();
+        let dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
 
         assetListUpdateLampStatus(request, request.asset_id, function (err, data) {
@@ -2240,15 +2262,15 @@ function AssetService(objectCollection) {
     };
 
     this.getPayrollCollection = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.account_id
         );
 
-        var queryString = util.getQueryString('ds_v1_account_list_select', paramsArr);
+        let queryString = util.getQueryString('ds_v1_account_list_select', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
-                    var rowData = {
+                    let rowData = {
                         'account_id': util.replaceDefaultNumber(data[0]['account_id']),
                         'account_name': util.replaceDefaultString(data[0]['account_name']),
                         'organization_id': util.replaceDefaultNumber(data[0]['organization_id']),
@@ -2269,7 +2291,7 @@ function AssetService(objectCollection) {
     };
 
     this.getAssetCoverCollection = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -2281,7 +2303,7 @@ function AssetService(objectCollection) {
             request.page_limit
         );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_select_list_level', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_select_list_level', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
@@ -2297,9 +2319,9 @@ function AssetService(objectCollection) {
         }
     };
 
-    var assetListUpdateStatus = function (request, assetId, callback) {
+    let assetListUpdateStatus = function (request, assetId, callback) {
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             assetId,
             request.organization_id,
             request.asset_clocked_status_id,
@@ -2317,7 +2339,7 @@ function AssetService(objectCollection) {
         );
 
         //var queryString = util.getQueryString('ds_v1_asset_list_update_status_all', paramsArr);
-        var queryString = util.getQueryString('ds_v1_1_asset_list_update_status_all', paramsArr);
+        let queryString = util.getQueryString('ds_v1_1_asset_list_update_status_all', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, assetData) {
                 if (err === false) {
@@ -2362,7 +2384,7 @@ function AssetService(objectCollection) {
 
     var assetListUpdateLampStatus = function (request, assetId, callback) {
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             assetId,
             request.organization_id,
             request.lamp_status_id,
@@ -2373,7 +2395,7 @@ function AssetService(objectCollection) {
             request.datetime_log
         );
 
-        var queryString = util.getQueryString('ds_v1_1_asset_list_update_lamp_status', paramsArr);
+        let queryString = util.getQueryString('ds_v1_1_asset_list_update_lamp_status', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, assetData) {
                 if (err === false) {
@@ -2388,7 +2410,7 @@ function AssetService(objectCollection) {
 
 
     this.alterAssetStatus = function (request, callback) {
-        var dateTimeLog = util.getCurrentUTCTime();
+        let dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
 
         if (request.asset_clocked_status_id > 0 || request.asset_session_status_id > 0) {
@@ -2396,14 +2418,14 @@ function AssetService(objectCollection) {
             //Session Status
             this.getAssetDetails(request, (err, data, statuscode) => {
 
-                var x = JSON.parse(JSON.stringify(data));
-                var retrievedAssetSessionStatusId = util.replaceDefaultNumber(x.data.asset_session_status_id);
-                var requestAssetSessionStatusId = util.replaceDefaultNumber(request.asset_session_status_id);
-                var retrievedAssetSessionStatusDateTime = util.replaceDefaultDatetime(x.data.asset_session_status_datetime);
+                let x = JSON.parse(JSON.stringify(data));
+                let retrievedAssetSessionStatusId = util.replaceDefaultNumber(x.data.asset_session_status_id);
+                let requestAssetSessionStatusId = util.replaceDefaultNumber(request.asset_session_status_id);
+                let retrievedAssetSessionStatusDateTime = util.replaceDefaultDatetime(x.data.asset_session_status_datetime);
 
-                var retrievedAssetStatusId = util.replaceDefaultNumber(x.data.asset_status_id);
-                var requestAssetStatusId = util.replaceDefaultNumber(request.asset_clocked_status_id);
-                var retrievedAssetStatusDateTime = util.replaceDefaultDatetime(x.data.asset_status_datetime);
+                let retrievedAssetStatusId = util.replaceDefaultNumber(x.data.asset_status_id);
+                let requestAssetStatusId = util.replaceDefaultNumber(request.asset_clocked_status_id);
+                let retrievedAssetStatusDateTime = util.replaceDefaultDatetime(x.data.asset_status_datetime);
 
                 //console.log('requestAssetSessionStatusId : ' + requestAssetSessionStatusId);
                 //console.log('retrievedAssetSessionStatusId : ' + retrievedAssetSessionStatusId);
@@ -2411,11 +2433,15 @@ function AssetService(objectCollection) {
                 //console.log('requestAssetStatusId Clocked : ' + requestAssetStatusId);
                 //console.log('retrievedAssetStatusId Clocked : ' + retrievedAssetStatusId);
 
-                global.logger.write('debug', 'requestAssetSessionStatusId : ' + requestAssetSessionStatusId, {}, request);
-                global.logger.write('debug', 'retrievedAssetSessionStatusId : ' + retrievedAssetSessionStatusId, {}, request);
+                //global.logger.write('debug', 'requestAssetSessionStatusId : ' + requestAssetSessionStatusId, {}, request);
+                util.logInfo(request,`getAssetDetails debug requestAssetSessionStatusId: %j`,{requestAssetSessionStatusId : requestAssetSessionStatusId, request});
+                //global.logger.write('debug', 'retrievedAssetSessionStatusId : ' + retrievedAssetSessionStatusId, {}, request);
+                util.logInfo(request,`getAssetDetails debug retrievedAssetSessionStatusId: %j`,{retrievedAssetSessionStatusId : retrievedAssetSessionStatusId, request});
 
-                global.logger.write('debug', 'requestAssetStatusId Clocked : ' + requestAssetStatusId, {}, request);
-                global.logger.write('debug', 'retrievedAssetStatusId Clocked : ' + retrievedAssetStatusId, {}, request);
+                //global.logger.write('debug', 'requestAssetStatusId Clocked : ' + requestAssetStatusId, {}, request);
+                util.logInfo(request,`getAssetDetails debug requestAssetStatusId Clocked : %j`,{requestAssetStatusId : requestAssetStatusId, request});
+                //global.logger.write('debug', 'retrievedAssetStatusId Clocked : ' + retrievedAssetStatusId, {}, request);
+                util.logInfo(request,`getAssetDetails debug retrievedAssetStatusId Clocked : %j`,{retrievedAssetStatusId : retrievedAssetStatusId, request});
 
                 request['first_name'] = x.data.asset_first_name;
                 request['last_name'] = x.data.asset_last_name;
@@ -2432,18 +2458,22 @@ function AssetService(objectCollection) {
                         } else {
                             if (requestAssetSessionStatusId !== retrievedAssetSessionStatusId) {
                                 //update log
-                                var ms = util.differenceDatetimes(dateTimeLog, retrievedAssetSessionStatusDateTime);
-                                var sec = ms * 0.001;
+                                let ms = util.differenceDatetimes(dateTimeLog, retrievedAssetSessionStatusDateTime);
+                                let sec = ms * 0.001;
                                 //console.log('Seconds : ' + sec);
                                 //console.log('requested DAteTime : ' + dateTimeLog);
                                 //console.log('retrievedAssetSessionStatusDateTime : ' + retrievedAssetSessionStatusDateTime);
 
-                                global.logger.write('debug', 'Seconds : ' + sec, {}, request);
-                                global.logger.write('debug', 'requested DAteTime : ' + dateTimeLog, {}, request);
-                                global.logger.write('debug', 'retrievedAssetSessionStatusDateTime : ' + retrievedAssetSessionStatusDateTime, {}, request);
+                                //global.logger.write('debug', 'Seconds : ' + sec, {}, request);
+                                util.logInfo(request,`getAssetDetails debug Seconds : %j`,{Seconds : sec, request});
+                                //global.logger.write('debug', 'requested DAteTime : ' + dateTimeLog, {}, request);
+                                util.logInfo(request,`getAssetDetails debug requested DAteTime : %j`,{DAteTime : dateTimeLog, request});
+                                //global.logger.write('debug', 'retrievedAssetSessionStatusDateTime : ' + retrievedAssetSessionStatusDateTime, {}, request);
+                                util.logInfo(request,`getAssetDetails debug retrievedAssetSessionStatusDateTime: %j`,{retrievedAssetSessionStatusDateTime : retrievedAssetSessionStatusDateTime, request});
 
                                 request['seconds'] = Math.round(sec);
-                                global.logger.writeSession(request);
+                                //global.logger.writeSession(request);
+                                util.logInfo(request,`getAssetDetails %j`,{request});
 
                                 //MySQL Insert
                                 //this.mySqlInsertForAlterAssetStatus(request, callback);
@@ -2451,18 +2481,22 @@ function AssetService(objectCollection) {
                         }
                     } else if (requestAssetSessionStatusId === 10) {
                         //Update the Log
-                        var ms = util.differenceDatetimes(dateTimeLog, retrievedAssetSessionStatusDateTime);
-                        var sec = ms * 0.001;
+                        let ms = util.differenceDatetimes(dateTimeLog, retrievedAssetSessionStatusDateTime);
+                        let sec = ms * 0.001;
                         //console.log('Seconds : ' + sec);
                         //console.log('requested DAteTime : ' + dateTimeLog);
                         //console.log('retrievedAssetSessionStatusDateTime : ' + retrievedAssetSessionStatusDateTime);
 
-                        global.logger.write('debug', 'Seconds : ' + sec, {}, request);
-                        global.logger.write('debug', 'requested DAteTime : ' + dateTimeLog, {}, request);
-                        global.logger.write('debug', 'retrievedAssetSessionStatusDateTime : ' + retrievedAssetSessionStatusDateTime, {}, request);
+                        //global.logger.write('debug', 'Seconds : ' + sec, {}, request);
+                        util.logInfo(request,`getAssetDetails debug Seconds :  %j`,{Seconds : sec, request});
+                        //global.logger.write('debug', 'requested DAteTime : ' + dateTimeLog, {}, request);
+                        util.logInfo(request,`getAssetDetails debug requested DAteTime :  %j`,{DAteTime : dateTimeLog, request});
+                        //global.logger.write('debug', 'retrievedAssetSessionStatusDateTime : ' + retrievedAssetSessionStatusDateTime, {}, request);
+                        util.logInfo(request,`getAssetDetails debug retrievedAssetSessionStatusDateTime : %j`,{retrievedAssetSessionStatusDateTime : retrievedAssetSessionStatusDateTime, request});
 
                         request['seconds'] = Math.round(sec);
-                        global.logger.writeSession(request);
+                        //global.logger.writeSession(request);
+                        util.logInfo(request,`getAssetDetails %j`,{request});
 
                         //MySQL Insert
                         //this.mySqlInsertForAlterAssetStatus(request, callback);
@@ -2481,26 +2515,28 @@ function AssetService(objectCollection) {
                         } else {
                             if (retrievedAssetStatusId !== requestAssetStatusId) {
                                 //console.log('In else');
-                                var ms = util.differenceDatetimes(dateTimeLog, retrievedAssetStatusDateTime);
-                                var hours = (ms * 0.001) / 3600;
+                                let ms = util.differenceDatetimes(dateTimeLog, retrievedAssetStatusDateTime);
+                                let hours = (ms * 0.001) / 3600;
                                 //console.log('dateTimeLog : ' + dateTimeLog)
                                 //console.log('retrievedAssetStatusDateTime : ' + retrievedAssetStatusDateTime)
                                 //console.log('Hours : ' + Math.round(hours));
                                 request['hours'] = Math.round(hours);
-                                global.logger.writeSession(request);
+                                //global.logger.writeSession(request);
+                                util.logInfo(request,`getAssetDetails  %j`,{request});
 
                                 //MySQL Insert
                                 //this.mySqlInsertForAlterAssetStatus(request, callback);
                             }
                         }
                     } else if (requestAssetStatusId === 2) {
-                        var ms = util.differenceDatetimes(dateTimeLog, retrievedAssetStatusDateTime);
-                        var hours = (ms * 0.001) / 3600;
+                        let ms = util.differenceDatetimes(dateTimeLog, retrievedAssetStatusDateTime);
+                        let hours = (ms * 0.001) / 3600;
                         //console.log('dateTimeLog : ' + dateTimeLog)
                         //console.log('retrievedAssetStatusDateTime : ' + retrievedAssetStatusDateTime)
                         //console.log('Hours : ' + Math.round(hours));
                         request['hours'] = Math.round(hours);
-                        global.logger.writeSession(request);
+                        //global.logger.writeSession(request);
+                        util.logInfo(request,`getAssetDetails %j`,{request});
 
                         //MySQL Insert
                         //this.mySqlInsertForAlterAssetStatus(request, callback);
@@ -2775,14 +2811,14 @@ function AssetService(objectCollection) {
 
     //PAM
     this.assetStatsOnDutyTotal = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             0, //request.workforce_id
             request.asset_type_category_id
         );
 
-        var queryString = util.getQueryString('ds_v1_1_asset_list_select_count', paramsArr);
+        let queryString = util.getQueryString('ds_v1_1_asset_list_select_count', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, totalCount) {
                 if (err === false) {
@@ -2790,9 +2826,9 @@ function AssetService(objectCollection) {
 
                     if (totalCount.length > 0) {
 
-                        var responseTotalData = new Array();
+                        let responseTotalData = new Array();
                         forEachAsync(totalCount, function (next, rowData) {
-                            var rowDataArr = {};
+                            let rowDataArr = {};
                             rowDataArr.total_count = util.replaceDefaultNumber(rowData['total_count']);
                             rowDataArr.asset_type_name = util.replaceDefaultString(rowData['asset_type_name']);
                             rowDataArr.asset_type_id = util.replaceDefaultString(rowData['asset_type_id']);
@@ -2800,7 +2836,7 @@ function AssetService(objectCollection) {
                             next();
                         }).then(function () {
 
-                            var paramsArr = new Array(
+                            let paramsArr = new Array(
                                 request.organization_id,
                                 request.account_id,
                                 request.asset_type_category_id,
@@ -2809,7 +2845,7 @@ function AssetService(objectCollection) {
                                 request.page_limit
                             );
 
-                            var queryString = util.getQueryString('ds_v1_asset_list_select_status_count', paramsArr);
+                            let queryString = util.getQueryString('ds_v1_asset_list_select_status_count', paramsArr);
                             if (queryString != '') {
                                 db.executeQuery(1, queryString, request, function (err, totalCount) {
                                     if (err === false) {
@@ -2817,9 +2853,9 @@ function AssetService(objectCollection) {
                                         console.log('totalCount.length : ' + totalCount.length);
                                         if (totalCount.length > 0) {
 
-                                            var responseData = new Array();
+                                            let responseData = new Array();
                                             forEachAsync(totalCount, function (next, rowData) {
-                                                var rowDataArr = {};
+                                                let rowDataArr = {};
                                                 rowDataArr.total_count = util.replaceDefaultNumber(rowData['total_count']);
                                                 rowDataArr.asset_type_name = util.replaceDefaultString(rowData['asset_type_name']);
                                                 rowDataArr.asset_type_id = util.replaceDefaultString(rowData['asset_type_id']);
@@ -2860,10 +2896,10 @@ function AssetService(objectCollection) {
 
     //PAM
     this.assetInlineAlter = function (request, callback) {
-        var dateTimeLog = util.getCurrentUTCTime();
+        let dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.target_asset_id,
             request.organization_id,
             request.asset_inline_data,
@@ -2871,7 +2907,7 @@ function AssetService(objectCollection) {
             request.datetime_log
         );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_update_inline_data', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_update_inline_data', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 if (err === false) {
@@ -2888,10 +2924,10 @@ function AssetService(objectCollection) {
 
 
     this.assetAddForPAM = function (request, callback) {
-        var dateTimeLog = util.getCurrentUTCTime();
+        let dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.asset_first_name,
             request.asset_last_name,
             request.asset_description,
@@ -2912,7 +2948,7 @@ function AssetService(objectCollection) {
             request.datetime_log
         );
 
-        var queryString = util.getQueryString('ds_v1_asset_list_insert', paramsArr);
+        let queryString = util.getQueryString('ds_v1_asset_list_insert', paramsArr);
         if (queryString != '') {
             //global.logger.write(queryString, request, 'asset', 'trace');
             db.executeQuery(0, queryString, request, function (err, assetData) {
@@ -2944,13 +2980,13 @@ function AssetService(objectCollection) {
 
     function retrieveAccountWorkforces(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 0,
                 50
             );
-            var queryString = util.getQueryString('ds_v1_workforce_list_select_account', paramsArr);
+            let queryString = util.getQueryString('ds_v1_workforce_list_select_account', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -2961,7 +2997,7 @@ function AssetService(objectCollection) {
 
     function createActivityTypeForAllWorkforces(request, workforceId) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.asset_first_name,
                 request.asset_description,
                 request.activity_type_category_id,
@@ -2973,7 +3009,7 @@ function AssetService(objectCollection) {
                 request.asset_id,
                 request.datetime_log
             );
-            var queryString = util.getQueryString('ds_v1_workforce_activity_type_mapping_insert', paramsArr);
+            let queryString = util.getQueryString('ds_v1_workforce_activity_type_mapping_insert', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -2984,13 +3020,13 @@ function AssetService(objectCollection) {
 
     function workForceActivityTypeHistoryInsert(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.activity_id,
                 request.organization_id,
                 0, //update type id
                 request.datetime_log
             );
-            var queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_history_insert', paramsArr);
+            let queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_history_insert', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -3000,7 +3036,7 @@ function AssetService(objectCollection) {
     }
 
     this.updateAssetCoverLocation = function (request, callback) {
-        var dateTimeLog = util.getCurrentUTCTime();
+        let dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
 
         activityCommonService.updateAssetLocation(request, function (err, resp) {
@@ -3023,17 +3059,17 @@ function AssetService(objectCollection) {
 
     this.assetRatingAccessCounts = function (request, callback) {
         if (request.flag == 1) {
-            var response = {};
-            var A1, A2, A3;
-            var X;
+            let response = {};
+            let A1, A2, A3;
+            let X;
 
-            var D1, D2;
-            var E1, E2;
-            var Y;
+            let D1, D2;
+            let E1, E2;
+            let Y;
 
-            var F1, F3;
-            var G1, G3;
-            var Z;
+            let F1, F3;
+            let G1, G3;
+            let Z;
 
             activityCommonService.getOccupiedDeskCounts(request, function (err, data) {
                 if (err === false) {
@@ -3049,15 +3085,19 @@ function AssetService(objectCollection) {
                             //console.log('A2 :', A2);
                             //console.log('A3 :', A3);
 
-                            global.logger.write('conLog', 'A1 :' + A1, {}, request);
-                            global.logger.write('conLog', 'A2 :' + A2, {}, request);
-                            global.logger.write('conLog', 'A3 :' + A3, {}, request);
+                            //global.logger.write('conLog', 'A1 :' + A1, {}, request);
+                            util.logInfo(request,`assetAccessCounts A1 : %j`,{A1 : A1, request});
+                            //global.logger.write('conLog', 'A2 :' + A2, {}, request);
+                            util.logInfo(request,`assetAccessCounts A2 : %j`,{A2 : A2, request});
+                            //global.logger.write('conLog', 'A3 :' + A3, {}, request);
+                            util.logInfo(request,`assetAccessCounts A3 : %j`,{A3 : A3, request});
 
 
                             (A1 == 0 || A2 == 0) ? X = -1 : X = ((A3 / (A2 / A1)) * 100);
 
                             console.log('Work Presence : ' + X);
-                            global.logger.write('conLog', 'Work Presence : ' + X, {}, request);
+                            //global.logger.write('conLog', 'Work Presence : ' + X, {}, request);
+                            util.logInfo(request,`assetAccessCounts Work Presence : %j`,{Work_Presence : X, request});
 
 
                             D1 = resp[0].countAllVoice;
@@ -3071,16 +3111,21 @@ function AssetService(objectCollection) {
                             //console.log('E1 :', E1);
                             //console.log('E2 :', E2);
 
-                            global.logger.write('conLog', 'D1 :' + D1, {}, request);
-                            global.logger.write('conLog', 'D2 :' + D2, {}, request);
-                            global.logger.write('conLog', 'E1 :' + E1, {}, request);
-                            global.logger.write('conLog', 'E2 :' + E2, {}, request);
+                            //global.logger.write('conLog', 'D1 :' + D1, {}, request);
+                            util.logInfo(request,`assetAccessCounts D1 : %j`,{D1 : D1, request});
+                            //global.logger.write('conLog', 'D2 :' + D2, {}, request);
+                            util.logInfo(request,`assetAccessCounts D2 : %j`,{D2 : D2, request});
+                            //global.logger.write('conLog', 'E1 :' + E1, {}, request);
+                            util.logInfo(request,`assetAccessCounts E1 : %j`,{E1 : E1, request});
+                            //global.logger.write('conLog', 'E2 :' + E2, {}, request);
+                            util.logInfo(request,`assetAccessCounts E2 : %j`,{E2 : E2, request});
 
 
                             ((D1 + E1) == 0) ? Y = -1 : Y = ((((D1 + E1) - (D2 + E2)) / (D1 + E1)) * 100);
 
                             console.log('Communication Aptitude : ' + Y);
-                            global.logger.write('conLog', 'Communication Aptitude : ' + Y, {}, request);
+                            //global.logger.write('conLog', 'Communication Aptitude : ' + Y, {}, request);
+                            util.logInfo(request,`assetAccessCounts Communication Aptitude :  %j`,{Communication_Aptitude : Y, request});
 
                             F1 = resp[0].countCreatedTasks;
                             F3 = resp[0].countCompletedTasks;
@@ -3093,21 +3138,27 @@ function AssetService(objectCollection) {
                             //console.log('G1 :', G1);
                             //console.log('G3 :', G3);
 
-                            global.logger.write('conLog', 'F1 :' + F1, {}, request);
-                            global.logger.write('conLog', 'F3 :' + F3, {}, request);
-                            global.logger.write('conLog', 'G1 :' + G1, {}, request);
-                            global.logger.write('conLog', 'G3 :' + G3, {}, request);
+                            //global.logger.write('conLog', 'F1 :' + F1, {}, request);
+                            util.logInfo(request,`assetAccessCounts F1 : %j`,{F1 : F1, request});
+                            //global.logger.write('conLog', 'F3 :' + F3, {}, request);
+                            util.logInfo(request,`assetAccessCounts F3 : %j`,{F3 : F3, request});
+                            //global.logger.write('conLog', 'G1 :' + G1, {}, request);
+                            util.logInfo(request,`assetAccessCounts G1 : %j`,{G1 : G1, request});
+                            //global.logger.write('conLog', 'G3 :' + G3, {}, request);
+                            util.logInfo(request,`assetAccessCounts G3 : %j`,{G3 : G3, request});
 
                             ((F1 + G1) == 0) ? Z = -1 : Z = (((F3 + G3) / (F1 + G1)) * 100);
 
                             console.log('Productivity : ' + Z);
-                            global.logger.write('conLog', 'Productivity : ' + Z, {}, request);
+                            //global.logger.write('conLog', 'Productivity : ' + Z, {}, request);
+                            util.logInfo(request,`assetAccessCounts Productivity :  %j`,{Productivity : Z, request});
 
-                            var rating;
+                            let rating;
                             (X == -1 || Y == -1 || Z == -1) ? rating = -1 : rating = (((12 / 70) * X) + ((34 / 70) * Y) + ((24 / 70) * Z));
 
                             console.log('Rating : ' + rating);
-                            global.logger.write('conLog', 'Rating : ' + rating, {}, request);
+                            //global.logger.write('conLog', 'Rating : ' + rating, {}, request);
+                            util.logInfo(request,`assetAccessCounts Rating : %j`,{Rating : rating,request});
                             response.asset_id = request.viewee_asset_id;
                             response.work_presence = X;
                             response.communication_aptitude = Y;
@@ -3157,8 +3208,8 @@ function AssetService(objectCollection) {
 
 
     this.getAverageAssetOwnerRating = function (request, callback) {
-        var response = {};
-        var collection = {};
+        let response = {};
+        let collection = {};
         collection.flag_filter = 1;
         collection.asset_id = request.asset_id;
         collection.operating_asset_id = request.operating_asset_id;
@@ -3185,8 +3236,8 @@ function AssetService(objectCollection) {
 
 
     this.getAverageAssetLeadRating = function (request, callback) {
-        var response = {};
-        var collection = {};
+        let response = {};
+        let collection = {};
         collection.flag_filter = 0;
         collection.asset_id = request.asset_id;
         collection.operating_asset_id = request.operating_asset_id;
@@ -3212,17 +3263,17 @@ function AssetService(objectCollection) {
     };
 
     this.updateAssetPushToken = function (request, callback) {
-        var dateTimeLog = util.getCurrentUTCTime();
+        let dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
 
-        var flag; //1 is prod and 0 is dev
-        var flagAppAccount; //1 is Grene Robotics and 0 is BlueFlock
+        let flag; //1 is prod and 0 is dev
+        let flagAppAccount; //1 is Grene Robotics and 0 is BlueFlock
 
         (request.hasOwnProperty('flag_dev')) ? flag = request.flag_dev : flag = 1;
         (request.hasOwnProperty('flag_app_account')) ? flagAppAccount = request.flag_app_account : flagAppAccount = 0;
 
-        var proceed = function (callback) {
-            var authTokenCollection = {
+        let proceed = function (callback) {
+            let authTokenCollection = {
                 "asset_id": request.asset_id,
                 "workforce_id": request.workforce_id,
                 "account_id": request.account_id,
@@ -3273,14 +3324,16 @@ function AssetService(objectCollection) {
             sns.createPlatformEndPoint(Number(request.device_os_id), request.asset_token_push, flag, flagAppAccount, function (err, endPointArn) { //flag 1 is prod and 0 is dev
                 if (!err) {
                     //console.log('success in creating platform end point');
-                    global.logger.write('conLog', 'success in creating platform end point', {}, request)
+                    //global.logger.write('conLog', 'success in creating platform end point', {}, request)
+                    util.logInfo(request,`createPlatformEndPoint success in creating platform end point %j`,{request});
                     request.asset_push_arn = endPointArn;
                     proceed(function (err, response, status) {
                         callback(err, response, status);
                     });
                 } else {
                     //console.log('problem in creating platform end point : ' , err);
-                    global.logger.write('serverError', 'problem in creating platform end point', err, request)
+                    //global.logger.write('serverError', 'problem in creating platform end point', err, request)
+                    util.logError(request,`createPlatformEndPoint serverError problem in creating platform end point Error %j`, { err, request });
                     callback(true, err, -3108);
                 }
             });
@@ -3304,13 +3357,13 @@ function AssetService(objectCollection) {
 
     function updateInviteCountFn(request, assetId) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
                 assetId
             );
-            var queryString = util.getQueryString('ds_v1_asset_list_update_invite_count', paramsArr);
+            let queryString = util.getQueryString('ds_v1_asset_list_update_invite_count', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
                     (err === false) ? resolve() : reject(err);
@@ -3320,12 +3373,12 @@ function AssetService(objectCollection) {
     };
 
     this.phoneNumberDelete = function (request, callback) {
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.asset_id,
             request.log_asset_id,
             util.getCurrentUTCTime()
         );
-        var queryString = util.getQueryString('ds_p1_asset_list_phone_number_delete', paramsArr);
+        let queryString = util.getQueryString('ds_p1_asset_list_phone_number_delete', paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (err === false) ? callback(false, {}, 200) : reject(true, err, -9999);
@@ -3335,14 +3388,14 @@ function AssetService(objectCollection) {
 
     //Retrieving the unread count based on mobile number
     this.unreadCntBasedOnMobileNumber = function (request, callback) {
-        var response = new Array;
-        var allAssetIds = new Array;
-        var finalAssetIds = new Array;
-        var finalResponse = new Array;
-        var dayPlanAssetIds = new Array;
-        var pastDueAssetIds = new Array;
+        let response = new Array;
+        let allAssetIds = new Array;
+        let finalAssetIds = new Array;
+        let finalResponse = new Array;
+        let dayPlanAssetIds = new Array;
+        let pastDueAssetIds = new Array;
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.operating_asset_phone_number,
             request.operating_asset_phone_country_code,
             request.sort_flag,
@@ -3350,12 +3403,13 @@ function AssetService(objectCollection) {
             50
         );
 
-        var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_unread_counts_phone_number', paramsArr);
+        let queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_unread_counts_phone_number', paramsArr);
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 if (err === false) {
                     //console.log('unread counts: ', data);
-                    global.logger.write('debug', 'unread counts: ' + JSON.stringify(data, null, 2), {}, request);
+                    //global.logger.write('debug', 'unread counts: ' + JSON.stringify(data, null, 2), {}, request);
+                    util.logInfo(request,`unreadCntBasedOnMobileNumber debug unread counts:  %j`,{unread_counts : JSON.stringify(data, null, 2), request});
                     forEachAsync(data, (next, row) => {
                         allAssetIds.push(row.asset_id);
                         row.unread_count = row.count; //Adding the unread_count parameter in the response                
@@ -3364,22 +3418,24 @@ function AssetService(objectCollection) {
                             next();
                         });
                     }).then(() => {
-                        var paramsArr = new Array(
+                        let paramsArr = new Array(
                             0, //organizationId,
                             request.operating_asset_phone_number,
                             request.operating_asset_phone_country_code
                         );
-                        var queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
+                        let queryString = util.getQueryString('ds_p1_asset_list_select_phone_number_all', paramsArr);
                         if (queryString != '') {
                             db.executeQuery(1, queryString, request, function (err, selectData) {
                                 if (err === false) {
                                     //console.log(selectData.length);
-                                    global.logger.write('debug', selectData.length, {}, request);
+                                    //global.logger.write('debug', selectData.length, {}, request);
+                                    util.logInfo(request,`unreadCntBasedOnMobileNumber debug %j`,{selectData_length : selectData.length, request});
                                     forEachAsync(selectData, (next, rowData) => {
                                         finalAssetIds.push(rowData.asset_id);
                                         if (allAssetIds.includes(rowData.asset_id)) {
                                             //console.log(rowData.asset_id + ' is there.');
-                                            global.logger.write('conLog', rowData.asset_id + ' is there.', {}, request);
+                                            //global.logger.write('conLog', rowData.asset_id + ' is there.', {}, request);
+                                            util.logInfo(request,`unreadCntBasedOnMobileNumber conLog ${rowData.asset_id} is there. %j`,{request});
                                             next();
                                         } else {
                                             formatActiveAccountsCountData(rowData, (err, formatedData) => {
@@ -3391,13 +3447,16 @@ function AssetService(objectCollection) {
                                         //console.log('All Asset Ids : ', allAssetIds);
                                         //console.log('final Asset Ids : ', finalAssetIds);
 
-                                        global.logger.write('debug', 'All Asset Ids : ' + JSON.stringify(allAssetIds), {}, request);
-                                        global.logger.write('debug', 'final Asset Ids : ' + JSON.stringify(finalAssetIds), {}, request);
+                                        //global.logger.write('debug', 'All Asset Ids : ' + JSON.stringify(allAssetIds), {}, request);
+                                        util.logInfo(request,`unreadCntBasedOnMobileNumber debug All Asset Ids : %j`,{All_Asset_Ids : JSON.stringify(allAssetIds), request});
+                                        //global.logger.write('debug', 'final Asset Ids : ' + JSON.stringify(finalAssetIds), {}, request);
+                                        util.logInfo(request,`unreadCntBasedOnMobileNumber debug final Asset Ids : %j`,{final_Asset_Ids : JSON.stringify(finalAssetIds), request});
 
                                         forEachAsync(response, (next, rowData) => {
                                             if (finalAssetIds.includes(rowData.asset_id)) {
                                                 //console.log(rowData.asset_id);
-                                                global.logger.write('conLog', rowData.asset_id, {}, request);
+                                                //global.logger.write('conLog', rowData.asset_id, {}, request);
+                                                util.logInfo(request,`unreadCntBasedOnMobileNumber conLog %j`,{asset_id : rowData.asset_id, request});
                                                 finalResponse.push(rowData);
                                             }
                                             next();
@@ -3405,7 +3464,8 @@ function AssetService(objectCollection) {
 
                                             dayPlanCnt(request).then((dayPlanCnt) => {
                                                 //console.log('DayPlanCnt : ', dayPlanCnt);
-                                                global.logger.write('debug', 'DayPlanCnt : ' + JSON.stringify(dayPlanCnt), {}, request);
+                                                //global.logger.write('debug', 'DayPlanCnt : ' + JSON.stringify(dayPlanCnt), {}, request);
+                                                util.logInfo(request,`unreadCntBasedOnMobileNumber debug DayPlanCnt : %j`,{DayPlanCnt : JSON.stringify(dayPlanCnt), request});
 
                                                 forEachAsync(dayPlanCnt, (next, dayPlanrowData) => {
                                                     dayPlanAssetIds.push(dayPlanrowData.asset_id);
@@ -3431,7 +3491,8 @@ function AssetService(objectCollection) {
                                                 }).then(() => {
                                                     pastDueCnt(request).then((pastDueCnt) => {
                                                         //console.log('pastDueCnt : ', pastDueCnt);
-                                                        global.logger.write('debug', 'pastDueCnt : ' + JSON.stringify(pastDueCnt), {}, request);
+                                                        //global.logger.write('debug', 'pastDueCnt : ' + JSON.stringify(pastDueCnt), {}, request);
+                                                        util.logInfo(request,`unreadCntBasedOnMobileNumber debug pastDueCnt :  %j`,{pastDueCnt : JSON.stringify(pastDueCnt), request});
 
                                                         forEachAsync(pastDueCnt, (next, pastDuerowData) => {
                                                             pastDueAssetIds.push(pastDuerowData.asset_id);
@@ -3479,7 +3540,7 @@ function AssetService(objectCollection) {
 
     function dayPlanCnt(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.operating_asset_phone_number,
                 request.operating_asset_phone_country_code,
                 util.getDayStartDatetimeTZ(request.timezone || ""), //start_datetime, TimeZone needs to be considered
@@ -3489,7 +3550,7 @@ function AssetService(objectCollection) {
                 50
             );
 
-            var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_dayplan_count_phone_number', paramsArr);
+            let queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_dayplan_count_phone_number', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -3500,7 +3561,7 @@ function AssetService(objectCollection) {
 
     function pastDueCnt(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.operating_asset_phone_number,
                 request.operating_asset_phone_country_code,
                 util.getCurrentUTCTime(),
@@ -3509,7 +3570,7 @@ function AssetService(objectCollection) {
                 50
             );
 
-            var queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_past_due_count_phone_number', paramsArr);
+            let queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_past_due_count_phone_number', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -3518,9 +3579,9 @@ function AssetService(objectCollection) {
         });
     };
 
-    var formatActiveAccountsCountData = function (rowArray, callback) {
+    let formatActiveAccountsCountData = function (rowArray, callback) {
 
-        var rowData = {
+        let rowData = {
             'count': rowArray['count'] || 0,
             'asset_id': util.replaceDefaultNumber(rowArray['asset_id']),
             'asset_first_name': util.replaceDefaultString(rowArray['asset_first_name']),
@@ -3723,7 +3784,8 @@ function AssetService(objectCollection) {
                 .then((data) => {
                     // Run through each of the summary entries returned
                     //console.log("data: ", data);
-                    global.logger.write('debug', "data: " + JSON.stringify(data, null, 2), {}, request);
+                    //global.logger.write('debug', "data: " + JSON.stringify(data, null, 2), {}, request);
+                    util.logInfo(request,`asyncRetrieveAssetWeeklySummaryParams debug data: %j`,{data : JSON.stringify(data, null, 2), request});
                     let responseRateTotalCount = 0;
                     let responseRateOnTimeCount = 0;
 
@@ -3780,7 +3842,8 @@ function AssetService(objectCollection) {
                     let numOfResponseRateEntries = 0;
                     // Run through each of the summary entries returned
                     //console.log("data: ", data);
-                    global.logger.write('debug', "data: " + JSON.stringify(data, null, 2), {}, request);
+                    //global.logger.write('debug', "data: " + JSON.stringify(data, null, 2), {}, request);
+                    util.logInfo(request,`asyncRetrieveAssetMonthlySummaryParams debug data: %j`,{data : JSON.stringify(data, null, 2),request});
                     data.forEach((summaryEntry) => {
                         // 
                         switch (Number(summaryEntry.monthly_summary_id)) {
@@ -3901,17 +3964,17 @@ function AssetService(objectCollection) {
 
     this.checkPamAssetPasscode = function (request, callback) {
 
-        var phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
-        var phoneCountryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
-        var verificationCode = util.cleanPhoneNumber(request.verification_passcode);
-        var verificationType = Number(request.verification_method);
+        let phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
+        let phoneCountryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
+        let verificationCode = util.cleanPhoneNumber(request.verification_passcode);
+        let verificationType = Number(request.verification_method);
 
-        var paramsArr = new Array();
-        var queryString = "";
+        let paramsArr = new Array();
+        let queryString = "";
 
         if (request.hasOwnProperty('member_code')) {
 
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.member_code
@@ -3919,7 +3982,7 @@ function AssetService(objectCollection) {
             queryString = util.getQueryString('ds_v1_asset_list_passcode_check_member', paramsArr);
 
         } else {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.asset_phone_number,
                 request.asset_phone_country_code
@@ -3951,17 +4014,17 @@ function AssetService(objectCollection) {
 
     this.getPamMemberPhoneNumberAsset = function (request, callback) {
 
-        var phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
-        var countryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
-        var emailId = request.asset_email_id;
-        var verificationMethod = Number(request.verification_method);
-        var organizationId = request.organization_id;
+        let phoneNumber = util.cleanPhoneNumber(request.asset_phone_number);
+        let countryCode = util.cleanPhoneNumber(request.asset_phone_country_code);
+        let emailId = request.asset_email_id;
+        let verificationMethod = Number(request.verification_method);
+        let organizationId = request.organization_id;
 
-        var queryString = '';
+        let queryString = '';
 
         if (request.hasOwnProperty('member_code')) {
 
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 organizationId,
                 request.account_id,
                 request.member_code
@@ -3971,7 +4034,7 @@ function AssetService(objectCollection) {
         } else {
             console.log('phoneNumber: ' + phoneNumber);
             console.log('countryCode: ' + countryCode);
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 organizationId,
                 phoneNumber,
                 countryCode
@@ -3983,7 +4046,7 @@ function AssetService(objectCollection) {
         if (queryString != '') {
             db.executeQuery(1, queryString, request, function (err, selectData) {
                 if (err === false) {
-                    var verificationCode;
+                    let verificationCode;
                     verificationCode = util.getVerificationCode();
                     if (selectData.length > 0) {
                         paramsArr = new Array(
@@ -3994,7 +4057,7 @@ function AssetService(objectCollection) {
                             11031,
                             util.getCurrentUTCTime()
                         );
-                        var updateQueryString = util.getQueryString('ds_v1_asset_list_update_pam_member_otp', paramsArr);
+                        let updateQueryString = util.getQueryString('ds_v1_asset_list_update_pam_member_otp', paramsArr);
                         db.executeQuery(0, updateQueryString, request, function (err, data) {
                             assetListHistoryInsert(request, selectData[0].asset_id, selectData[0].organization_id, 208, util.getCurrentUTCTime(), function (err, data) {
 
@@ -4495,13 +4558,13 @@ function AssetService(objectCollection) {
 
     function accountListSelect(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.page_start,
                 request.page_limit
             );
 
-            var queryString = util.getQueryString('ds_p1_account_list_select_organization', paramsArr);
+            let queryString = util.getQueryString('ds_p1_account_list_select_organization', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -4512,13 +4575,13 @@ function AssetService(objectCollection) {
 
     function workforceTypeMasterSelect(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.page_start,
                 request.page_limit
             );
 
-            var queryString = util.getQueryString('ds_p1_workforce_type_master_select_organization', paramsArr);
+            let queryString = util.getQueryString('ds_p1_workforce_type_master_select_organization', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -4529,7 +4592,7 @@ function AssetService(objectCollection) {
 
     function assetListSelect(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_type_id,
@@ -4540,7 +4603,7 @@ function AssetService(objectCollection) {
                 1000
             );
 
-            var queryString = util.getQueryString('ds_p1_asset_list_select_flag', paramsArr);
+            let queryString = util.getQueryString('ds_p1_asset_list_select_flag', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -4569,13 +4632,13 @@ function AssetService(objectCollection) {
 
     function tagListSelect(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.page_start,
                 request.page_limit
             );
 
-            var queryString = util.getQueryString('ds_p1_tag_list_select_organization', paramsArr);
+            let queryString = util.getQueryString('ds_p1_tag_list_select_organization', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -4586,7 +4649,7 @@ function AssetService(objectCollection) {
 
     async function activityTypeTagMappingSelect(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.tag_type_id,
                 request.tag_id,
@@ -4596,7 +4659,7 @@ function AssetService(objectCollection) {
                 request.page_limit
             );
 
-            var queryString = util.getQueryString('ds_p1_activity_type_tag_mapping_select_flag', paramsArr);
+            let queryString = util.getQueryString('ds_p1_activity_type_tag_mapping_select_flag', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -4618,7 +4681,7 @@ function AssetService(objectCollection) {
         }
 
         console.log('xlData :: ' + workbook.Sheets[sheet_name_list[0]]);
-        var xlData = xlsx.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
+        let xlData = xlsx.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
         console.log('xlData :: ' + xlData.length);
         //console.log('xlData :: ' + JSON.stringify(xlData));
 
@@ -5085,14 +5148,14 @@ this.getQrBarcodeFeeback = async(request) => {
 
         let verificationCode = util.getVerificationCode();
         //request.asset_full_name = request.asset_full_name?request.asset_full_name:"";
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.email_id,
             verificationCode,
             util.getCurrentUTCTime(),
             moment().utc().add(24, 'hours').format('YYYY-MM-DD HH:mm:ss'), // util.getCurrentUTCTime(),
             util.getCurrentUTCTime()
         );
-        var queryString = util.getQueryString('ds_v1_email_passcode_transaction_insert', paramsArr);
+        let queryString = util.getQueryString('ds_v1_email_passcode_transaction_insert', paramsArr);
         if (queryString != '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -5119,15 +5182,18 @@ this.getQrBarcodeFeeback = async(request) => {
 
     this.sendEmail = async function (request) {
         
-        global.logger.write('conLog', "\x1b[35m [Log] Inside SendEmail \x1b[0m", {}, {});
+        //global.logger.write('conLog', "\x1b[35m [Log] Inside SendEmail \x1b[0m", {}, {});
+        util.logInfo(request,`conLog \x1b[35m [Log] Inside SendEmail \x1b[0m `,{request});
         const emailSubject = request.subject;
         const Template = request.body;
 
         //request.email_sender = 'OMT.IN1@vodafoneidea.com'; 
         //request.email_sender_name = 'Vodafoneidea';
 
-        global.logger.write('conLog', emailSubject, {}, {});
-        global.logger.write('conLog', Template, {}, {});
+        //global.logger.write('conLog', emailSubject, {}, {});
+        util.logInfo(request,`sendEmail conLog  %j`,{emailSubject, request});
+        //global.logger.write('conLog', Template, {}, {});
+        util.logInfo(request,`sendEmail conLog  %j`,{Template, request});
 
         util.sendEmailV3(request,
             request.email_id,
@@ -5136,11 +5202,13 @@ this.getQrBarcodeFeeback = async(request) => {
             Template,
             (err, data) => {
                 if (err) {
-                    global.logger.write('conLog', "[Send Email On Form Submission | Error]: ", {}, {});
-                    global.logger.write('conLog', err, {}, {});
+                    //global.logger.write('conLog', "[Send Email On Form Submission | Error]: ", {}, {});
+                    util.logError(request,`sendEmailV3 conLog [Send Email On Form Submission | Error]: %j`, { err, request });
+                    //global.logger.write('conLog', err, {}, {});
                 } else {
-                    global.logger.write('conLog', "[Send Email On Form Submission | Response]: " + "Email Sent", {}, {});
-                    global.logger.write('conLog', data, {}, {});
+                    //global.logger.write('conLog', "[Send Email On Form Submission | Response]: " + "Email Sent", {}, {});
+                    util.logInfo(request,`sendEmailV3 conLog [Send Email On Form Submission | Response]: Email Sent %j`,{data, request});
+                    //global.logger.write('conLog', data, {}, {});
                 }
 
                return "Email Sent";
@@ -6803,14 +6871,14 @@ this.getQrBarcodeFeeback = async(request) => {
 
     function tagListOfTagTypeSelect(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.tag_type_category_id,
                 request.tag_type_id,
                 request.page_start,
                 request.page_limit
             );
-            var queryString = util.getQueryString('ds_p1_tag_list_select_tag_type', paramsArr);
+            let queryString = util.getQueryString('ds_p1_tag_list_select_tag_type', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -6821,13 +6889,13 @@ this.getQrBarcodeFeeback = async(request) => {
 
     function tagListOfTagTypeSelectV1(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.tag_type_id,
                 request.page_start || 0,
                 request.page_limit || 50
             );
-            var queryString = util.getQueryString('ds_v1_tag_list_select_tag_type', paramsArr);
+            let queryString = util.getQueryString('ds_v1_tag_list_select_tag_type', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -6934,7 +7002,7 @@ this.getQrBarcodeFeeback = async(request) => {
 
     function getCampaignSearchList(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.tag_type_id,
                 request.activity_type_id,   
@@ -6943,7 +7011,7 @@ this.getQrBarcodeFeeback = async(request) => {
                 request.page_start || 0,
                 request.page_limit || 10
             );
-            var queryString = util.getQueryString('ds_v1_activity_search_list_select_campaign_search', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_search_list_select_campaign_search', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -7303,11 +7371,11 @@ this.getQrBarcodeFeeback = async(request) => {
 
     function tagTypesforApplication(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.application_id,
                 request.organization_id
             );
-            var queryString = util.getQueryString('ds_v1_application_tag_type_mapping_select', paramsArr);
+            let queryString = util.getQueryString('ds_v1_application_tag_type_mapping_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -7318,10 +7386,10 @@ this.getQrBarcodeFeeback = async(request) => {
 
     function getOrganizationApplications(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id
             );
-            var queryString = util.getQueryString('ds_v1_application_master_select', paramsArr);
+            let queryString = util.getQueryString('ds_v1_application_master_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -7551,7 +7619,7 @@ this.getQrBarcodeFeeback = async(request) => {
     };
 
     this.assetLeaveMappingInsert = async function (request) {
-        var dateTimeLog = util.getCurrentUTCTime();
+        let dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
         let responseData = [],
             error = true;
@@ -7581,7 +7649,7 @@ this.getQrBarcodeFeeback = async(request) => {
     };
 
     this.assetLeaveMappingUpdate = async function (request) {
-        var dateTimeLog = util.getCurrentUTCTime();
+        let dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
         let responseData = [],
             error = true;
@@ -7612,7 +7680,7 @@ this.getQrBarcodeFeeback = async(request) => {
     };
 
     this.assetLeaveMappingDelete = async function (request) {
-        var dateTimeLog = util.getCurrentUTCTime();
+        let dateTimeLog = util.getCurrentUTCTime();
         request['datetime_log'] = dateTimeLog;
         let responseData = [],
             error = true;
@@ -8470,7 +8538,7 @@ this.getQrBarcodeFeeback = async(request) => {
      
 
      async function getUser(username, pool_id) {
-        var params = {
+        let params = {
             UserPoolId: pool_id, //global.config.user_pool_id,
             Username: username
           };

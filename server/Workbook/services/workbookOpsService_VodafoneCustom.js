@@ -267,7 +267,7 @@ function WorkbookOpsService(objectCollection) {
             console.log("workflowActivityTypeID: ", workflowActivityTypeID);
 
             const originFormID = outputFormMappings.getActivityTypeIDToFieldMapping(workflowActivityTypeID).OpportunityReferenceField.form_id || 0;
-            var isBCOriginForm = 0;
+            let isBCOriginForm = 0;
             if(Number(originFormID) === 4353) {
                 isBCOriginForm = 1;
             }
@@ -323,7 +323,7 @@ function WorkbookOpsService(objectCollection) {
                 formSubmitted = dataEntityInline.form_submitted;
                 formSubmitted = (typeof formSubmitted === 'string') ? JSON.parse(formSubmitted) : formSubmitted;
 
-                var ProductSelectionJSON = {
+                let ProductSelectionJSON = {
                     product_tag_type_id: 0, product_tag_type_name: '',
                     product_tag_id: 0, product_tag_name: '',
                     product_activity_type_id: 0, product_activity_type_name: '',
@@ -775,7 +775,7 @@ function WorkbookOpsService(objectCollection) {
             request.limit_value || 50
         );
 
-        var queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_id', paramsArr);
+        let queryString = util.getQueryString('ds_p1_bot_operation_mapping_select_id', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {

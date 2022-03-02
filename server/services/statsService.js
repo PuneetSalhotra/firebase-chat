@@ -1,8 +1,8 @@
 function StatsService(objCollection) {
-    var db = objCollection.db;
+    let db = objCollection.db;
     // var cacheWrapper = objCollection.cacheWrapper;
     // var activityCommonService = objCollection.activityCommonService;
-    var util = objCollection.util;
+    let util = objCollection.util;
     // var forEachAsync = objCollection.forEachAsync;
     // var queueWrapper = objCollection.queueWrapper;
     // var activityPushService = objCollection.activityPushService;
@@ -159,7 +159,7 @@ function StatsService(objCollection) {
 
             // IN p_flag TINYINT(4), IN p_sort_flag TINYINT(4), IN p_datetime_start DATETIME, 
             // IN p_datetime_end DATETIME, IN p_start_from SMALLINT(6), IN p_limit_value TINYINT(4)
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 flag,
                 sort_flag,
                 request.date_start,
@@ -167,7 +167,7 @@ function StatsService(objCollection) {
                 request.page_start || 0, // p_start_from
                 request.page_limit || 50 // p_limit_value
             );
-            var queryString = util.getQueryString('ds_p1_asset_list_select_worlddesk_stats', paramsArr);
+            let queryString = util.getQueryString('ds_p1_asset_list_select_worlddesk_stats', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (!err) ? resolve(data): reject(err);
@@ -183,7 +183,7 @@ function StatsService(objCollection) {
             // IN p_asset_id bigint(20), IN p_datetime_start DATETIME, IN p_datetime_end DATETIME, 
             // IN p_flag TINYINT(4), IN p_sort_flag TINYINT(4), IN p_start_from SMALLINT(6), 
             // IN p_limit_value TINYINT(4)
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.asset_id,
                 request.date_start,
                 request.date_end,
@@ -192,7 +192,7 @@ function StatsService(objCollection) {
                 request.page_start || 0, // p_start_from
                 request.page_limit || 50 // p_limit_value
             );
-            var queryString = util.getQueryString('ds_p1_asset_timeline_transaction_select_asset_dates', paramsArr);
+            let queryString = util.getQueryString('ds_p1_asset_timeline_transaction_select_asset_dates', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (!err) ? resolve(data): reject(err);
@@ -208,7 +208,7 @@ function StatsService(objCollection) {
             // IN p_asset_id bigint(20), IN p_datetime_start DATETIME, IN p_datetime_end DATETIME, 
             // IN p_flag TINYINT(4), IN p_sort_flag TINYINT(4), IN p_start_from SMALLINT(6), 
             // IN p_limit_value TINYINT(4)
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.asset_id,
                 request.date_start,
                 request.date_end,
@@ -217,7 +217,7 @@ function StatsService(objCollection) {
                 request.page_start || 0, // p_start_from
                 request.page_limit || 50 // p_limit_value
             );
-            var queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_asset_dates', paramsArr);
+            let queryString = util.getQueryString('ds_p1_activity_timeline_transaction_select_asset_dates', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (!err) ? resolve(data): reject(err);
@@ -231,7 +231,7 @@ function StatsService(objCollection) {
         // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
         // IN p_form_id BIGINT(20), IN p_start_datetime DATETIME, IN p_end_datetime DATETIME
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -239,7 +239,7 @@ function StatsService(objCollection) {
             request.date_start,
             request.date_end
         );
-        var queryString = util.getQueryString('ds_p1_1_activity_list_select_form_count_activity_status', paramsArr);
+        let queryString = util.getQueryString('ds_p1_1_activity_list_select_form_count_activity_status', paramsArr);
         if (queryString !== '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 (err === false) ? callback(false, data, 200): callback(true, {}, -9998);
@@ -252,7 +252,7 @@ function StatsService(objCollection) {
         // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
         // IN p_form_id BIGINT(20), IN p_start_datetime DATETIME, IN p_end_datetime DATETIME
         
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -260,7 +260,7 @@ function StatsService(objCollection) {
             request.date_start,
             request.date_end
         );
-        var queryString = util.getQueryString('ds_p1_1_activity_form_transaction_select_vodafone_form_value', paramsArr);
+        let queryString = util.getQueryString('ds_p1_1_activity_form_transaction_select_vodafone_form_value', paramsArr);
         if (queryString !== '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 (err === false) ? callback(false, data, 200): callback(true, {}, -9998);
@@ -274,7 +274,7 @@ function StatsService(objCollection) {
         // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
         // IN p_form_id BIGINT(20), IN p_start_datetime DATETIME, IN p_end_datetime DATETIME
         
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -282,7 +282,7 @@ function StatsService(objCollection) {
             request.date_start,
             request.date_end
         );
-        var queryString = util.getQueryString('ds_p1_1_activity_form_transaction_select_vodafone_form_value_day', paramsArr);
+        let queryString = util.getQueryString('ds_p1_1_activity_form_transaction_select_vodafone_form_value_day', paramsArr);
         if (queryString !== '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 (err === false) ? callback(false, data, 200): callback(true, {}, -9998);
@@ -296,7 +296,7 @@ function StatsService(objCollection) {
         // IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20), 
         // IN p_form_id BIGINT(20), IN p_start_datetime DATETIME, IN p_end_datetime DATETIME
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.organization_id,
             request.account_id,
             request.workforce_id,
@@ -304,7 +304,7 @@ function StatsService(objCollection) {
             request.date_start,
             request.date_end
         );
-        var queryString = util.getQueryString('ds_p1_1_activity_list_select_form_count_activity_status_day', paramsArr);
+        let queryString = util.getQueryString('ds_p1_1_activity_list_select_form_count_activity_status_day', paramsArr);
         if (queryString !== '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 (err === false) ? callback(false, data, 200): callback(true, {}, -9998);
@@ -317,14 +317,14 @@ function StatsService(objCollection) {
         // IN p_asset_id BIGINT(20), IN p_operating_asset_id BIGINT(20), IN p_organization_id 
         // BIGINT(20), IN p_flag SMALLINT(6), IN p_data_entity_date_1 DATETIME
 
-        var paramsArr = new Array(
+        let paramsArr = new Array(
             request.asset_id || 0,
             request.operating_asset_id || 0,
             request.organization_id,
             flag, // p_flag
             request.month_start_date // p_data_entity_date_1 => YYYY-MM-DD
         );
-        var queryString = util.getQueryString('ds_p1_asset_monthly_summary_transaction_select_flag', paramsArr);
+        let queryString = util.getQueryString('ds_p1_asset_monthly_summary_transaction_select_flag', paramsArr);
         if (queryString !== '') {
             db.executeQuery(1, queryString, request, function (err, data) {
                 (err === false) ? callback(false, data, 200): callback(true, {}, -9998);

@@ -13,7 +13,7 @@ class ActivityFormTransactionAnalytics {
          IN p_asset_id BIGINT(20), IN p_asset_type_id BIGINT(20), IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), 
          IN p_organization_id BIGINT(20)"*/
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.form_id,
                     data.entity_id,
                     data.entity_data_type_id,
@@ -29,7 +29,7 @@ class ActivityFormTransactionAnalytics {
                     data.account_id,
                     data.organization_id
                     );
-            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_field_aggr_dt', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_field_aggr_dt', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
@@ -43,7 +43,7 @@ class ActivityFormTransactionAnalytics {
 
     getCountForMonth(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.form_id,
                     data.widget_access_level_id,
                     data.start,
@@ -63,7 +63,7 @@ class ActivityFormTransactionAnalytics {
              IN p_workforce_id BIGINT(20), IN p_account_id BIGINT(20), IN p_organization_id BIGINT(20)
              "
              */
-            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_form_count_dt', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_form_count_dt', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
@@ -76,7 +76,7 @@ class ActivityFormTransactionAnalytics {
 
     getByTransactionField(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.organization_id,
                     data.form_transaction_id,
                     data.form_id,
@@ -85,7 +85,7 @@ class ActivityFormTransactionAnalytics {
             /*"ds_p1_activity_form_transaction_analytics_select_trans_field
              IN p_form_transaction_id BIGINT(20), IN p_form_id BIGINT(20), IN p_field_id1 BIGINT(20)
              "*/
-            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_trans_field', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_trans_field', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
@@ -100,9 +100,9 @@ class ActivityFormTransactionAnalytics {
         return new Promise((resolve, reject) => {
             const limit = 50;
             let rows = [];
-            var self = this;
+            let self = this;
             function loop(opts) {
-                var paramsArr = new Array(
+                let paramsArr = new Array(
                         data.form_id,
                         data.entity_id,
                         data.choice,
@@ -118,7 +118,7 @@ class ActivityFormTransactionAnalytics {
                         limit
                         );
 
-                var queryString = self.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_fld_choice', paramsArr);
+                let queryString = self.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_fld_choice', paramsArr);
                 if (queryString === '')
                     return reject();
                 self.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
@@ -143,7 +143,7 @@ class ActivityFormTransactionAnalytics {
 
     getCountByTransactionFieldChoice(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.organization_id,
                     data.account_id,
                     data.workforce_id,
@@ -164,7 +164,7 @@ class ActivityFormTransactionAnalytics {
              IN p_choice VARCHAR(300), IN p_start_datetime DATETIME, 
              IN p_end_datetime DATETIME
              "*/
-            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_fld_choice_cnt', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_fld_choice_cnt', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
@@ -177,7 +177,7 @@ class ActivityFormTransactionAnalytics {
 
     getWorkflowActivityId(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     data.organization_id,
                     data.account_id,
                     data.activity_id,
@@ -191,7 +191,7 @@ class ActivityFormTransactionAnalytics {
              IN p_form_id BIGINT(20), IN p_form_transaction_id BIGINT(20),
               IN p_start_from SMALLINT(6), IN p_limit_value smallint(6)
              "*/
-            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_timeline_transaction_select_refered_activity', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_activity_timeline_transaction_select_refered_activity', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {
@@ -204,7 +204,7 @@ class ActivityFormTransactionAnalytics {
 
     getFieldLatest(data) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     0,
                     data.organization_id,
                     data.form_transaction_id,
@@ -215,7 +215,7 @@ class ActivityFormTransactionAnalytics {
              IN p_flag SMALLINT(6), IN p_organization_id BIGINT(20), IN p_form_transaction_id BIGINT(20),
               IN p_form_id BIGINT(20), IN p_field_id BIGINT(20)
              "*/
-            var queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_latest_field_value', paramsArr);
+            let queryString = this.objCollection.util.getQueryString('ds_p1_activity_form_transaction_select_latest_field_value', paramsArr);
             if (queryString === '')
                 return reject();
             this.objCollection.db.executeQuery(1, queryString, {}, function (err, data) {

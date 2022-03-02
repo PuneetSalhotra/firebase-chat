@@ -1,7 +1,7 @@
-var makeRequest = require('request');
+let makeRequest = require('request');
 
 function callPasscodeAlter() {
-    var newRequest = {};
+    let newRequest = {};
     newRequest.organization_id =  336;
     newRequest.asset_phone_country_code = 91;
     newRequest.asset_phone_number = 9100112970;
@@ -9,7 +9,7 @@ function callPasscodeAlter() {
                         
     console.log('newRequest: ', newRequest);
                         
-    var options = { form : newRequest }
+    let options = { form : newRequest }
 
     makeRequest.put('https://api.desker.cloud/r1/asset/passcode/alter/v1', 
         options, 
@@ -17,7 +17,7 @@ function callPasscodeAlter() {
             console.log('body:', body);
             body = JSON.parse(body);
             console.log('error : ', error);
-            var resp = {
+            let resp = {
                 status: body.status,
                 service_id: body.service_id || 0,
                 gmt_time: body.gmt_time,

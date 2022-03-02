@@ -4,10 +4,10 @@
 
 function PamUpdateService(objectCollection) {
 
-    var db = objectCollection.db;
-    var activityCommonService = objectCollection.activityCommonService;
-    var util = objectCollection.util;
-    var forEachAsync = objectCollection.forEachAsync;
+    let db = objectCollection.db;
+    let activityCommonService = objectCollection.activityCommonService;
+    let util = objectCollection.util;
+    let forEachAsync = objectCollection.forEachAsync;
 
     const PamService = require('../services/pamService');
     const pamService = new PamService(objectCollection);    
@@ -15,8 +15,8 @@ function PamUpdateService(objectCollection) {
     //PAM
     function assetActivityListUpdateSubtypeSingleParticipant(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array();
-            var queryString = '';
+            let paramsArr = new Array();
+            let queryString = '';
             
             paramsArr = new Array(
                             request.organization_id,
@@ -41,7 +41,7 @@ function PamUpdateService(objectCollection) {
     };
     
     this.alterIngredientSubTypeActivity = function (request, callback) {
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         
         assetActivityListUpdateSubtypeSingleParticipant(request)
@@ -57,7 +57,7 @@ function PamUpdateService(objectCollection) {
     
     this.unassignParticicpant = function (request, callback) {
 
-        var loopUnassignParticipant = function (participantCollection, index, maxIndex) {
+        let loopUnassignParticipant = function (participantCollection, index, maxIndex) {
             iterateUnassignParticipant(participantCollection, index, maxIndex, function (err, data) {
                 if (err === false) {
                     if (index === maxIndex) {
@@ -66,33 +66,36 @@ function PamUpdateService(objectCollection) {
                     }
                 } else {
                     //console.log("something is not wright in unassign a participant");
-                    global.logger.write('conLog', 'something is not wright in unassign a participant', {}, request)
+                    //global.logger.write('conLog', 'something is not wright in unassign a participant', {}, request)
+                    util.logInfo(request,`iterateUnassignParticipant conLog something is not wright in unassign a participant %j`,{ request});
                 }
             });
         };
 
-        var iterateUnassignParticipant = function (participantCollection, index, maxIndex, callback) {
-            var participantData = participantCollection[index];
+        let iterateUnassignParticipant = function (participantCollection, index, maxIndex, callback) {
+            let participantData = participantCollection[index];
             unassignAssetFromActivity(request, participantData, function (err, data) {
                 if (err === false) {
                     //console.log("participant successfully un-assigned");
-                    global.logger.write('conLog', 'participant successfully un-assigned', {}, request)
-                    var nextIndex = index + 1;
+                    //global.logger.write('conLog', 'participant successfully un-assigned', {}, request)
+                    util.logInfo(request,`unassignAssetFromActivity conLog participant successfully un-assigned %j`,{ request});
+                    let nextIndex = index + 1;
                     if (nextIndex <= maxIndex) {
                         loopUnassignParticipant(participantCollection, nextIndex, maxIndex);
                     }
                     callback(false, true);
                 } else {
                     //console.log(err);
-                    global.logger.write('serverError', err, err, request)
+                    //global.logger.write('serverError', err, err, request)
+                    util.logError(request,`unassignAssetFromActivity serverError Error %j`, { err, request });
                     callback(true, false);
                 }
             }.bind(this));
         };
         activityCommonService.updateAssetLocation(request, function (err, data) {});
-        var activityStreamTypeId = 3;
+        let activityStreamTypeId = 3;
         if (request.hasOwnProperty('activity_type_category_id')) {
-            var activityTypeCategroyId = Number(request.activity_type_category_id);
+            let activityTypeCategroyId = Number(request.activity_type_category_id);
             switch (activityTypeCategroyId) {
                 case 36:    //Menu
                     activityStreamTypeId = 2000;
@@ -100,18 +103,19 @@ function PamUpdateService(objectCollection) {
                 default:
                     activityStreamTypeId = 2000;   //by default so that we know
                     //console.log('adding streamtype id 3');
-                    global.logger.write('conLog', 'adding streamtype id 3', {}, request)
+                    //global.logger.write('conLog', 'adding streamtype id 3', {}, request)
+                    util.logInfo(request,`unassignParticicpant conLog adding streamtype id 3 %j`,{ request});
                     break;
 
             }
             ;
         }
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
         request['activity_streamtype_id'] = activityStreamTypeId;
-        var index = 0;
-        var activityParticipantCollection = JSON.parse(request.activity_participant_collection);
-        var maxIndex = activityParticipantCollection.length - 1;
+        let index = 0;
+        let activityParticipantCollection = JSON.parse(request.activity_participant_collection);
+        let maxIndex = activityParticipantCollection.length - 1;
         //var maxIndex = request.activity_participant_collection.length - 1;        
         iterateUnassignParticipant(activityParticipantCollection, index, maxIndex, function (err, data) {
             if (err === false && data === true) {
@@ -122,18 +126,19 @@ function PamUpdateService(objectCollection) {
                 }
             } else {
                 //console.log("something is not wright in adding a participant");
-                global.logger.write('conLog', 'something is not wright in adding a participant', {}, request)
+                //global.logger.write('conLog', 'something is not wright in adding a participant', {}, request)
+                util.logInfo(request,`iterateUnassignParticipant conLog something is not wright in adding a participant %j`,{ request});
             }
         });
     };
     
     
-    var unassignAssetFromActivity = function (request, participantData, callback) {
-        var fieldId = 0;        
+    let unassignAssetFromActivity = function (request, participantData, callback) {
+        let fieldId = 0;        
         if (participantData.hasOwnProperty('field_id')) {
             fieldId = participantData.field_id;
         }
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
         activityAssetMappingInsertParticipantUnassign(request, participantData, function (err, data) {
             if (err === false) {
 
@@ -155,7 +160,7 @@ function PamUpdateService(objectCollection) {
         });
     };
     
-    var assignUnassignParticipantPam = function(request, participantData, status, callback) {
+    let assignUnassignParticipantPam = function(request, participantData, status, callback) {
         updateActivityListOwnerLeadPam(request, participantData, status, function(err, data){
                             if(err === false) { //You will get it from participant collection
                                 if(participantData.asset_category_id == 32 || 
@@ -202,8 +207,8 @@ function PamUpdateService(objectCollection) {
     };
     
     
-    var activityAssetMappingInsertParticipantUnassign = function (request, participantData, callback) {
-        var paramsArr = new Array(
+    let activityAssetMappingInsertParticipantUnassign = function (request, participantData, callback) {
+        let paramsArr = new Array(
                 request.activity_id,
                 participantData.asset_id,
                 request.organization_id,
@@ -212,7 +217,7 @@ function PamUpdateService(objectCollection) {
                 request.field_id || 0
                 );
         //var queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_asset_unassign", paramsArr);
-        var queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_asset_unassign_pam", paramsArr);
+        let queryString = util.getQueryString("ds_v1_activity_asset_mapping_update_asset_unassign_pam", paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (err === false) ? callback(false, true) : callback(err, false);
@@ -221,9 +226,9 @@ function PamUpdateService(objectCollection) {
     };
     
     
-    var updateActivityListOwnerLeadPam = function(request, participantCollection, status, callback) {
-        var flag = (status === 1) ? 1 : 0;
-        var paramsArr = new Array(
+    let updateActivityListOwnerLeadPam = function(request, participantCollection, status, callback) {
+        let flag = (status === 1) ? 1 : 0;
+        let paramsArr = new Array(
                 request.activity_id,
                 participantCollection.asset_id,
                 request.organization_id,
@@ -233,7 +238,7 @@ function PamUpdateService(objectCollection) {
                 request.asset_id,
                 request.datetime_log
                 );
-        var queryString = util.getQueryString("ds_v1_activity_list_update_owner_lead_pam", paramsArr);
+        let queryString = util.getQueryString("ds_v1_activity_list_update_owner_lead_pam", paramsArr);
         if (queryString != '') {
             db.executeQuery(0, queryString, request, function (err, data) {
                 (err === false) ? callback(false, true) : callback(err, false);
@@ -243,17 +248,17 @@ function PamUpdateService(objectCollection) {
     
     
     this.alterActivityStatus = function (request, callback) {
-        var logDatetime = util.getCurrentUTCTime();
+        let logDatetime = util.getCurrentUTCTime();
         request['datetime_log'] = logDatetime;
 
-        var activityStreamTypeId = 11;
-        var activityStatusTypeCategoryId = Number(request.activity_status_type_category_id);
-        var activityStatusId = Number(request.activity_status_id);
-        var activityStatusTypeId = Number(request.activity_status_type_id);
-        var activityTypeCategoryId = Number(request.activity_type_category_id);
-        var assetParticipantAccessId = Number(request.asset_participant_access_id);
+        let activityStreamTypeId = 11;
+        let activityStatusTypeCategoryId = Number(request.activity_status_type_category_id);
+        let activityStatusId = Number(request.activity_status_id);
+        let activityStatusTypeId = Number(request.activity_status_type_id);
+        let activityTypeCategoryId = Number(request.activity_type_category_id);
+        let assetParticipantAccessId = Number(request.asset_participant_access_id);
         if (request.hasOwnProperty('activity_type_category_id')) {
-            var activityTypeCategroyId = Number(request.activity_type_category_id);
+            let activityTypeCategroyId = Number(request.activity_type_category_id);
             switch (activityTypeCategroyId) {                
                 case 33: //Visitor Request 
                     activityStreamTypeId = 1302;
@@ -284,7 +289,8 @@ function PamUpdateService(objectCollection) {
                 default:
                     activityStreamTypeId = 11; //by default so that we know
                     //console.log('adding streamtype id 11');
-                    global.logger.write('conLog', 'adding streamtype id 11', {}, request)
+                    //global.logger.write('conLog', 'adding streamtype id 11', {}, request)
+                    util.logInfo(request,`alterActivityStatus conLog adding streamtype id 11 %j`,{ request});
                     break;
             }
             ;
@@ -360,7 +366,7 @@ function PamUpdateService(objectCollection) {
     
     function activityListUpdateStatus(request) {
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -370,7 +376,7 @@ function PamUpdateService(objectCollection) {
                 request.datetime_log,
                 request.asset_id
                 );        
-            var queryString = util.getQueryString("ds_v1_2_activity_list_update_status_pam", paramsArr);
+            let queryString = util.getQueryString("ds_v1_2_activity_list_update_status_pam", paramsArr);
             //var queryString = util.getQueryString("ds_v1_activity_list_update_status", paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {
@@ -417,8 +423,8 @@ function PamUpdateService(objectCollection) {
 
     function getAllIngrediants(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array();
-            var queryString = '';
+            let paramsArr = new Array();
+            let queryString = '';
             paramsArr = new Array(
                     request.organization_id,
                     request.account_id,
@@ -433,10 +439,10 @@ function PamUpdateService(objectCollection) {
                     if (err === false) {
                         //console.log('DAta in ingredients : ', data);
                         if (data.length > 0) {
-                            var ingredients = new Array();
+                            let ingredients = new Array();
                             forEachAsync(data, function (next, x) {
-                            	var requiredInventory=x.activity_sub_type_id*x.activity_priority_enabled;
-                                var items = {
+                            	let requiredInventory=x.activity_sub_type_id*x.activity_priority_enabled;
+                                let items = {
                                     'ingredient_asset_id': x.asset_id,
                                     'channel_activity_type_category_id': x.channel_activity_type_category_id,
                                     'activity_sub_type_id': requiredInventory
@@ -458,19 +464,19 @@ function PamUpdateService(objectCollection) {
 
     function getAllInventoriesOfIngre(request, ingredients) {
         return new Promise((resolve, reject) => {
-            var inventories = new Array();
-            var requiredQuantity;
-            var inventoryQuantity;
-            var result;
+            let inventories = new Array();
+            let requiredQuantity;
+            let inventoryQuantity;
+            let result;
             console.log('ingredients.ingredient_asset_id : ', ingredients.ingredient_asset_id);
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     request.organization_id,
                     request.account_id,
                     request.workforce_id,
                     request.station_id,
                     ingredients.ingredient_asset_id
                     );
-            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_inventory', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_inventory', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {
@@ -499,8 +505,8 @@ function PamUpdateService(objectCollection) {
 
     function updatingInventoryQtys(requiredQty, inventories) {
         return new Promise((resolve, reject) => {
-            var x;
-            var tempArray = new Array();
+            let x;
+            let tempArray = new Array();
             console.log('ingredients.activity_sub_type_id : ', requiredQty);
             forEachAsync(inventories, function (next, j) {
                 x = JSON.parse(j.activity_inline_data);
@@ -537,7 +543,7 @@ function PamUpdateService(objectCollection) {
     function updateIngrInvQty(request, updatedIngrInv) {
         return new Promise((resolve, reject) => {
             forEachAsync(updatedIngrInv, function (next, row) {
-                var paramsArr = new Array(
+                let paramsArr = new Array(
                         row.activity_id, //menu_activity_id??
                         request.organization_id,
                         row.activity_inline_data, //request.activity_inline_data,
@@ -545,7 +551,7 @@ function PamUpdateService(objectCollection) {
                         request.asset_id,
                         request.datetime_log
                         );
-                var queryString = util.getQueryString('ds_v1_activity_list_update_inventory', paramsArr);
+                let queryString = util.getQueryString('ds_v1_activity_list_update_inventory', paramsArr);
                 if (queryString != '') {
                     db.executeQuery(0, queryString, request, function (err, data) {
                         if (err === false) {
@@ -570,7 +576,7 @@ function PamUpdateService(objectCollection) {
     function updateIngrInvQtyAllParticipants(request, updatedIngrInv) {
         return new Promise((resolve, reject) => {
             forEachAsync(updatedIngrInv, function (nextR, row) {
-                var newRequest = {};
+                let newRequest = {};
                 newRequest.activity_id = row.activity_id;
                 newRequest.organization_id = request.organization_id;
                 activityCommonService.getAllParticipants(newRequest, function (err, participantData) {
@@ -578,7 +584,7 @@ function PamUpdateService(objectCollection) {
                         //console.log('participantData : ', participantData);
 
                         forEachAsync(participantData, function (nextX, x) {
-                            var paramsArr = new Array(
+                            let paramsArr = new Array(
                                     row.activity_id, //menu_activity_id?
                                     x.asset_id,
                                     request.organization_id,
@@ -587,7 +593,7 @@ function PamUpdateService(objectCollection) {
                                     request.asset_id,
                                     request.datetime_log
                                     );
-                            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_inventory', paramsArr);
+                            let queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_inventory', paramsArr);
                             if (queryString != '') {
                                 db.executeQuery(0, queryString, request, function (err, inventories) {
                                     if (err === false) {
@@ -611,12 +617,12 @@ function PamUpdateService(objectCollection) {
 
     function getItemOrderStation(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                     request.organization_id,
                     request.account_id,
                     request.activity_id
                     );
-            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_item_order_station', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_item_order_station', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     if (err === false) {
@@ -631,8 +637,8 @@ function PamUpdateService(objectCollection) {
     
     function updateStatusDateTimes(request) {
         return new Promise((resolve, reject)=>{
-            var servedAtBar = (request.hasOwnProperty('served_at_bar'))? request.served_at_bar : 0;            
-            var paramsArr = new Array(
+            let servedAtBar = (request.hasOwnProperty('served_at_bar'))? request.served_at_bar : 0;            
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.activity_id,
@@ -641,7 +647,7 @@ function PamUpdateService(objectCollection) {
                 request.asset_id,
                 request.datetime_log
                 );
-            var queryString = util.getQueryString('ds_v1_activity_list_update_order_status_datetime', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_list_update_order_status_datetime', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, resp) {
                     if (err === false) {
@@ -670,7 +676,7 @@ function PamUpdateService(objectCollection) {
     
     function updateStatusDttmsParticipants(request, assetId, servedAtBar){
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.activity_id,
@@ -680,7 +686,7 @@ function PamUpdateService(objectCollection) {
                 request.asset_id, //log_asset_id
                 request.datetime_log
                 );
-            var queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_order_status_datetime', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_asset_mapping_update_order_status_datetime', paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, resp) {
                     (err === false)? resolve() : reject(err);
@@ -689,8 +695,8 @@ function PamUpdateService(objectCollection) {
         });
     };
     
-    var assetActivityListUpdateStatus = function (request, activityStatusId, activityStatusTypeId, callback) {
-        var paramsArr = new Array();
+    let assetActivityListUpdateStatus = function (request, activityStatusId, activityStatusTypeId, callback) {
+        let paramsArr = new Array();
         activityCommonService.getAllParticipants(request, function (err, participantsData) {
             if (err === false) {
                 participantsData.forEach(function (rowData, index) {
@@ -719,7 +725,7 @@ function PamUpdateService(objectCollection) {
     
     this.activityListUpdateEventCovers = function (request) {
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id,
                 request.account_id,
                 request.workforce_id,
@@ -729,7 +735,7 @@ function PamUpdateService(objectCollection) {
                 request.datetime_log,
                 request.asset_id
                 );
-            var queryString = util.getQueryString("ds_v1_activity_list_update_event_covers", paramsArr);
+            let queryString = util.getQueryString("ds_v1_activity_list_update_event_covers", paramsArr);
             if (queryString != '') {
                 db.executeQuery(0, queryString, request, function (err, data) {                  
                    if(err === false){
@@ -745,7 +751,7 @@ function PamUpdateService(objectCollection) {
     
     this.activityAssetMappingUpdateEventCovers = function (request){
         return new Promise((resolve, reject)=>{
-            var paramsArr = new Array();
+            let paramsArr = new Array();
             activityCommonService.getAllParticipants(request, function (err, participantsData) {
                 if (err === false) {
                     participantsData.forEach(function (rowData, index) {
@@ -782,11 +788,11 @@ function PamUpdateService(objectCollection) {
     function sendRemovedFromBillingSMS(request) {
         return new Promise((resolve, reject) => {
             console.log("IN sendRemovedFromBillingSMS :: ");
-            var employeeName = "Sravan";
-            var removedTime = util.replaceDefaultDatetime(request.track_gps_datetime);
-            var text = "";
-            var phoneNumber = '7680000368';
-            var countryCode = '91';
+            let employeeName = "Sravan";
+            let removedTime = util.replaceDefaultDatetime(request.track_gps_datetime);
+            let text = "";
+            let phoneNumber = '7680000368';
+            let countryCode = '91';
             console.log("IN sendRemovedFromBillingSMS before getPamSMSConfig:: ");
             getPamSMSConfig("1").then((configData) => {
                 console.log("IN sendRemovedFromBillingSMS getPamSMSConfig:: ");
@@ -824,11 +830,11 @@ function PamUpdateService(objectCollection) {
     }
     function pamGetAssetDetails(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 request.organization_id || 351, //,
                 request.asset_id
             );
-            var queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
+            let queryString = util.getQueryString('ds_v1_asset_list_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -839,13 +845,13 @@ function PamUpdateService(objectCollection) {
 
     function getActivityDetails(request) {
         return new Promise((resolve, reject) => {
-            var paramsArr;
+            let paramsArr;
             paramsArr = new Array(
                 request.activity_id,
                 request.organization_id
             );
 
-            var queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
+            let queryString = util.getQueryString('ds_v1_activity_list_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, request, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);
@@ -856,14 +862,14 @@ function PamUpdateService(objectCollection) {
 
     function getReservationMemberDiscount(request, idReservation){
 		return new Promise((resolve, reject)=>{
-	        var paramsArr = new Array(
+	        let paramsArr = new Array(
 	        		request.organization_id,
 	        		request.account_id,
 	        		30,
 	        		idReservation
 	                );
 	
-	        var queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_reservation_member', paramsArr);
+	        let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_reservation_member', paramsArr);
 	        if (queryString != '') {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
@@ -879,10 +885,10 @@ function PamUpdateService(objectCollection) {
 
     function getPamSMSConfig(smsTypeId) {
         return new Promise((resolve, reject) => {
-            var paramsArr = new Array(
+            let paramsArr = new Array(
                 smsTypeId
             );
-            var queryString = util.getQueryString('pm_v1_pam_sms_type_config_master_select', paramsArr);
+            let queryString = util.getQueryString('pm_v1_pam_sms_type_config_master_select', paramsArr);
             if (queryString != '') {
                 db.executeQuery(1, queryString, {}, function (err, data) {
                     (err === false) ? resolve(data) : reject(err);

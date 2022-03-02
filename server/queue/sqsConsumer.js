@@ -1,19 +1,19 @@
 require('../utils/globalConfigV1');
-var aws = require('aws-sdk');
+let aws = require('aws-sdk');
 //aws.config.loadFromPath('/var/www/html/node/Bharat/server/utils/config.json');
 aws.config.loadFromPath(`${__dirname}/../utils/config.json`);
-var CassandraWrapper = require('../utils/cassandraWrapper');
-var CassandraInterceptor = require('../interceptors/cassandraInterceptor');
-var Util = require('../utils/util');
+let CassandraWrapper = require('../utils/cassandraWrapper');
+let CassandraInterceptor = require('../interceptors/cassandraInterceptor');
+let Util = require('../utils/util');
 
-var sqs = new aws.SQS();
-var util = new Util();
-var cassandraWrapper = new CassandraWrapper();
-var cassandraInterceptor = new CassandraInterceptor(util, cassandraWrapper);
+let sqs = new aws.SQS();
+let util = new Util();
+let cassandraWrapper = new CassandraWrapper();
+let cassandraInterceptor = new CassandraInterceptor(util, cassandraWrapper);
 
 
-var consume = function () {
-    var params = {
+let consume = function () {
+    let params = {
         QueueUrl: global.config.SQSqueueUrl,
         VisibilityTimeout: 60 // 10 min wait time for anyone else to process.
     };
@@ -27,11 +27,11 @@ var consume = function () {
 
                 console.log('Messages : ', data['Messages']);
                 
-                var deletMesageHandle = data['Messages'][0].ReceiptHandle;
+                let deletMesageHandle = data['Messages'][0].ReceiptHandle;
                 console.log("****** ****** messge body is: ****** ******: \n", data['Messages'][0].Body);
                 //try {
-                var body = data['Messages'][0].Body;
-                var messageCollection = JSON.parse(body);
+                let body = data['Messages'][0].Body;
+                let messageCollection = JSON.parse(body);
                 console.log('messageCollection.environment :', messageCollection.environment);
                 switch (messageCollection.log) {
                     case 'log':
@@ -97,7 +97,7 @@ process.on('error', (err) => {
 
 setInterval(checkingCassandraInstance, 25);
 
-var http = require('http')
+let http = require('http')
 http.createServer((req, res) => {
     res.write('I am Alive');
     res.end();

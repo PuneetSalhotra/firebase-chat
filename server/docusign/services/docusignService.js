@@ -33,8 +33,8 @@ const Encrypt = require('./Encrypt').Encrypt
 function commonDocusignService(objectCollection) {
   const util = objectCollection.util;
   const db = objectCollection.db;
-  var responseWrapper = objectCollection.responseWrapper;
-  var ActivityTimelineService = require("../../services/activityTimelineService.js");
+  let responseWrapper = objectCollection.responseWrapper;
+  let ActivityTimelineService = require("../../services/activityTimelineService.js");
   const activityTimelineService = new ActivityTimelineService(objectCollection);
 
   this.addFile = async (request, res,req) => {
@@ -71,7 +71,7 @@ function commonDocusignService(objectCollection) {
             recipientId: '1'
           });
 
-          var signHere;
+          let signHere;
           if (request.hasOwnProperty('document_type') && global.config.documentTypes.hasOwnProperty(request.document_type))
             signHere = global.config.documentTypes[request.document_type]['tabs'];
           else
@@ -84,7 +84,7 @@ function commonDocusignService(objectCollection) {
           envDef.status = 'sent';
           let envelopesApi = new docusign.EnvelopesApi(),
             results;
-          var eventNotification = {
+          let eventNotification = {
             "url": global.config.docusignHookBaseUrl + '/' + global.config.version + '/docusign/webhook',
             "loggingEnabled": "true",
             "requireAcknowledgment": "true",
@@ -167,7 +167,7 @@ function commonDocusignService(objectCollection) {
               date
             )
             results[1] = await db.callDBProcedure(request, 'ds_p1_activity_docusign_mapping_history_insert', paramsArray, 0);
-            var response = {
+            let response = {
               'document_id': results[0][0]['activity_docusign_id']
             }
             return res.json(responseWrapper.getResponse(false, response, 200, request));
@@ -180,7 +180,7 @@ function commonDocusignService(objectCollection) {
   }
 
   this.query = async (request, res) => {
-    var response = {}
+    let response = {}
     let results = []
     paramsArray =
       new Array(
@@ -191,9 +191,9 @@ function commonDocusignService(objectCollection) {
       await db
         .executeQueryPromise(1, queryString, request)
         .then(results => {
-          var obj = {}
-          var responseArray = []
-          var receiverDetails = {}
+          let obj = {}
+          let responseArray = []
+          let receiverDetails = {}
           receiverDetails = {
             "docusign_receiver_name": results[0]['docusign_receiver_name'] || '',
             "docusign_receiver_email": results[0]['docusign_receiver_email' || '']
@@ -227,12 +227,12 @@ function commonDocusignService(objectCollection) {
   }
 
   this.updateStatus = async (request, res,req) => {
-    var envelopeObj = request.docusignenvelopeinformation
-    var envelopeStatus = envelopeObj.envelopestatus[0]
-    var envelopeId = envelopeStatus.envelopeid[0]
-    var status = envelopeStatus.status[0]
-    var date = envelopeStatus.completed[0]
-    var organization_id,
+    let envelopeObj = request.docusignenvelopeinformation
+    let envelopeStatus = envelopeObj.envelopestatus[0]
+    let envelopeId = envelopeStatus.envelopeid[0]
+    let status = envelopeStatus.status[0]
+    let date = envelopeStatus.completed[0]
+    let organization_id,
       account_id,
       workforce_id,
       activity_id,
@@ -275,14 +275,14 @@ function commonDocusignService(objectCollection) {
               activity_docusign_id = results[0]['activity_docusign_id']
             })
         }
-        var base64 = ''
-        var pdfContents = envelopeObj.documentpdfs[0].documentpdf
-        for (var i = 0; i < pdfContents.length; i++) {
+        let base64 = ''
+        let pdfContents = envelopeObj.documentpdfs[0].documentpdf
+        for (let i = 0; i < pdfContents.length; i++) {
           if(pdfContents[i].documenttype[0]== 'CONTENT')
             base64 = pdfContents[i].pdfbytes[0]
         }
-        var stringBuffer = base64url.toBuffer(base64)
-        var requestData = {
+        let stringBuffer = base64url.toBuffer(base64)
+        let requestData = {
           'organization_id': organization_id,
           'account_id': account_id,
           'workforce_id': workforce_id,
@@ -307,7 +307,7 @@ function commonDocusignService(objectCollection) {
           latitude
         );
       }
-      var results = []
+      let results = []
       paramsArray =
         new Array(
           envelopeId,
@@ -331,7 +331,7 @@ function commonDocusignService(objectCollection) {
   }
 
   function getAuditEventsDetails(callback, envelopeId,req,res) {
-    var eventObj = {}
+    let eventObj = {}
 
      getAccessToken(async accessToken => {
       const headers = {
@@ -344,16 +344,16 @@ function commonDocusignService(objectCollection) {
         if (err) {
           return callback(err, authRes);
         } else {
-          var auditEvents = authRes.body.auditEvents
-          for (var i = 0; i < auditEvents.length; i++) {
-            for (var j = 0; j < auditEvents[i].eventFields.length; j++) {
+          let auditEvents = authRes.body.auditEvents
+          for (let i = 0; i < auditEvents.length; i++) {
+            for (let j = 0; j < auditEvents[i].eventFields.length; j++) {
               if (auditEvents[i].eventFields[j]['name'] == 'Action' && auditEvents[i].eventFields[j]['value'] == 'Signed') {
-                for (var k = 0; k < auditEvents[i].eventFields.length; k++) {
+                for (let k = 0; k < auditEvents[i].eventFields.length; k++) {
                   if (auditEvents[i].eventFields[k]['name'] == 'ClientIPAddress')
                     eventObj['clientIPAddress'] = auditEvents[i].eventFields[k]['value']
                   if (auditEvents[i].eventFields[k]['name'] == 'GeoLocation') {
-                    var geoLocation = auditEvents[i].eventFields[k]['value']
-                    var location = geoLocation.split('=').join().split('&').join().split(',');
+                    let geoLocation = auditEvents[i].eventFields[k]['value']
+                    let location = geoLocation.split('=').join().split('&').join().split(',');
                     eventObj['lt'] = location[1] || 0
                     eventObj['lg'] = location[3] || 0
                   }
@@ -369,8 +369,8 @@ function commonDocusignService(objectCollection) {
 
   async function getHtmlToBase64(request, res) {
     try {
-      var docusignWebApp = global.config.docusignWebApp
-      var formDataUrl = docusignWebApp + '/#/forms/view/' + request.form_data
+      let docusignWebApp = global.config.docusignWebApp
+      let formDataUrl = docusignWebApp + '/#/forms/view/' + request.form_data
       const pdfObj = {}
       const browser = await puppeteer.launch({args: ['--no-sandbox', '--disable-setuid-sandbox']});
       const page = await browser.newPage();
@@ -431,10 +431,10 @@ function commonDocusignService(objectCollection) {
     longitude,
     latitude
   ) {
-    var streamTypeId
-    var subjectTxt = " Received signed document from " + receiverName + "(" + receiverEmail + ") " + " User has signed from IP: " + clientIPAddress + " and location (lat=" + latitude + ",long=" + longitude + ")"
+    let streamTypeId
+    let subjectTxt = " Received signed document from " + receiverName + "(" + receiverEmail + ") " + " User has signed from IP: " + clientIPAddress + " and location (lat=" + latitude + ",long=" + longitude + ")"
     streamTypeId = 723
-    var collectionObj = {
+    let collectionObj = {
       content: page_url_val,
       subject: subjectTxt,
       mail_body: page_url_val,
@@ -447,11 +447,11 @@ function commonDocusignService(objectCollection) {
       form_approval_field_reference: []
     };
 
-    var currentDate = new Date();
-    var currentDateInDateTimeFormat = getTimeInDateTimeFormat(currentDate);
-    var epoch = moment().valueOf();
+    let currentDate = new Date();
+    let currentDateInDateTimeFormat = getTimeInDateTimeFormat(currentDate);
+    let epoch = moment().valueOf();
 
-    var requestParams = {
+    let requestParams = {
       organization_id: org_id_val,
       account_id: account_id_val,
       workforce_id: workforce_id_val,
@@ -469,7 +469,7 @@ function commonDocusignService(objectCollection) {
       message_unique_id: epoch,
       timeline_stream_type_id: streamTypeId
     };
-    var result = await activityTimelineService.addTimelineTransactionAsync(
+    let result = await activityTimelineService.addTimelineTransactionAsync(
       requestParams
     );
   }

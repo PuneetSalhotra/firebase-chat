@@ -2,14 +2,14 @@
  Author: V Nani Kalyan 
  */
 
-var LogService = require("../services/logService");
+let LogService = require("../services/logService");
 function logController(objCollection) {
     
-    var responseWrapper = objCollection.responseWrapper;
-    var app = objCollection.app;
-    var util = objCollection.util;
+    let responseWrapper = objCollection.responseWrapper;
+    let app = objCollection.app;
+    let util = objCollection.util;
     
-    var logService = new LogService(objCollection);
+    let logService = new LogService(objCollection);
     
     app.post('/' + global.config.version + '/log/transactions/device/list', function (req, res) {
         logService.getTransactionsByDevice(req.body, function (err, data, statusCode) {
