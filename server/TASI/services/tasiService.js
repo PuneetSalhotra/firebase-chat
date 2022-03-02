@@ -2517,13 +2517,14 @@ function TasiService(objectCollection) {
             request.period_start_datetime,
             request.period_end_datetime,
             request.input_period_type_id,
+            request.financial_year,
             request.data_entity_id,
             request.workforce_tag_id,
-            request.start_from || 0, 
+            request.start_from || 0,
             request.limit_value || 50
         );
 
-        const queryString = util.getQueryString('ds_p2_input_list_select', paramsArr);
+        const queryString = util.getQueryString('ds_p2_input_list_select_sip', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
