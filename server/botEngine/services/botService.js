@@ -2446,8 +2446,9 @@ function BotService(objectCollection) {
                         logger.silly("Leave Aplication Bot params received from request: %j", request);
                         try {
                             i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                            let fieldValue = await getFormFieldValue(request, botOperationsJson.bot_operations.field_id);
-
+                            let leaveStartDatetime = await getFormFieldValue(request, botOperationsJson.bot_operations.leave_start_datetime_field_id);
+                            let leaveEndDatetime = await getFormFieldValue(request, botOperationsJson.bot_operations.leave_end_datetime_field_id);
+/*
                             if (!util.checkDateFormat(fieldValue, "yyyy-MM-dd hh:mm:ss")) {
                                 if (botOperationsJson.bot_operations.leave_flag == 2) {
                                     fieldValue = util.getFormatedLogDatetime(fieldValue);
@@ -2455,11 +2456,11 @@ function BotService(objectCollection) {
                                     fieldValue = util.subtractUnitsFromDateTime(fieldValue, 1, 'seconds');
                                 }
                             }
-
-                            await applyLeave(request, botOperationsJson.bot_operations.leave_flag, fieldValue);
+*/
+                            //await applyLeave(request, botOperationsJson.bot_operations.leave_flag, fieldValue);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
                             // await handleBotOperationMessageUpdate(request, i, 3);
-                            // await applyWorkflowLeave(request, botOperationsJson.bot_operations.leave_flag,fieldValue);
+                            await applyWorkflowLeave(request, leaveStartDatetime, leaveEndDatetime);
                         } catch (error) {
                             logger.error("[Leave Aplication Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                             i.bot_operation_status_id = 2;
@@ -2907,6 +2908,26 @@ function BotService(objectCollection) {
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
                             i.bot_operation_error_message = error;
                         }
+                        break;
+                    
+                    case 61: // Leave Approval 
+                        logger.silly("Leave Approval Bot params received from request: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            let approvalFlag = botOperationsJson.bot_operations.approval_flag;
+                            await updateLeaveApprovalStaus(request, approvalFlag);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[Leave Approval Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = error;
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        }
+
                         break;
                 }
 
@@ -10139,8 +10160,10 @@ else{
             let [err2,gamificationScoreOverall] = await getFormGamificationScore(request,3);
             let previousScoreOverall = gamificationScoreOverall.length>0?Number(gamificationScoreOverall[0].field_gamification_score_value):0;
             let previousScoreMonthly = gamificationScoreMonthly.length>0?Number(gamificationScoreMonthly[0].field_gamification_score_value):0;
-            console.log("final overall",previousScoreOverall)
+            console.log("final overall prev",previousScoreOverall)
             console.log("final overall",previousScoreOverall+finalScore);
+            console.log("montly overall prev",previousScoreMonthly);
+            console.log("montly overall final",previousScoreMonthly + finalScore);
             await insertGamificationScore(request);
             await assetSummaryTransactionInsert(request,previousScoreOverall+finalScore);
             await assetMonthlySummaryTransactionInsert(request,previousScoreMonthly+finalScore);
@@ -10172,7 +10195,7 @@ else{
             request.workflow_activity_id,
             request.form_id,
             request.form_transaction_id,
-            request.asset_id,
+            request.asset_id == 100?request.auth_asset_id:request.asset_id,
             util.getStartDayOfMonth(),
             util.getEndDateOfMonth(),
             request.start_from || 0, 
@@ -10200,7 +10223,7 @@ else{
 
         const paramsArr = new Array(
         7, 
-		request.asset_id, 
+		request.asset_id == 100?request.auth_asset_id:request.asset_id, 
 		request.workforce_id, 
 		request.account_id, 
 		request.organization_id, 
@@ -10257,7 +10280,7 @@ else{
 
         const paramsArr = new Array(
           41,
-          request.asset_id || "",
+          request.asset_id == 100?request.auth_asset_id:request.asset_id,
           request.workforce_id || "",
           request.account_id || "",
           request.organization_id || "",
@@ -10319,7 +10342,7 @@ else{
         request.form_name || "",
         request.field_gamification_score,
         request.workflow_activity_id,
-        request.asset_id,
+        request.asset_id == 100?request.auth_asset_id:request.asset_id,
         request.asset_id,
         util.getCurrentUTCTime()
       );
@@ -10350,7 +10373,7 @@ else{
         request.workflow_activity_id,
         request.form_id,
         request.form_transaction_id,
-        request.asset_id,
+        request.asset_id == 100?request.auth_asset_id:request.asset_id,
         flag,
         request.field_gamification_score,
         util.getCurrentUTCTime()
@@ -16076,21 +16099,36 @@ if(workflowActivityData.length==0){
         }
     }  
 
-    async function applyWorkflowLeave(request, leave_flag, leave_date) {
+    async function applyWorkflowLeave(request, leave_start_datetime, leave_end_datetime) {
         let paramsArr = [
             request.organization_id,
             request.workflow_activity_id,
             request.asset_id,
-            util.ISTtoUTC(leave_date),
-            leave_flag,
-            request.auth_asset_id,
+            util.ISTtoUTC(leave_start_datetime),
+            util.ISTtoUTC(leave_end_datetime),
+            request.asset_id || request.auth_asset_id,
             util.getCurrentUTCTime()
         ];
-        let queryString = util.getQueryString('ds_v1_asset_leave_mapping_insert', paramsArr);
+        let queryString = util.getQueryString('ds_v1_2_asset_leave_mapping_insert', paramsArr);
         if (queryString != '') {
         return await (db.executeQueryPromise(0, queryString, request));
         }
     }  
+
+    async function updateLeaveApprovalStaus(request, approval_flag) {
+        let paramsArr = [
+            request.organization_id,
+            request.workflow_activity_id,
+            request.asset_id,
+            approval_flag,
+            request.asset_id || request.auth_asset_id,
+            util.getCurrentUTCTime()
+        ];
+        let queryString = util.getQueryString('ds_v1_asset_leave_mapping_update_approval', paramsArr);
+        if (queryString != '') {
+        return await (db.executeQueryPromise(0, queryString, request));
+        }
+    }     
 
     async function removeCUIDs(request, inlineData) {
         await activityListRemoveCUIDs(request, inlineData.remove_cuids.remove_cuid_flag);
