@@ -7605,6 +7605,11 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
                         await this.tagEntityMappingInsertDBCall(request);
                     }
                     break;
+            case 5: for(let i = 0; i < entityList.length; i++) {
+                        request.activity_type_id = entityList[i];
+                        await this.tagEntityMappingInsertDBCall(request);
+                    }
+                    break;
             case 8: for(let i = 0; i < entityList.length; i++) {
                         request.activity_type_id = entityList[i];
                         await this.tagEntityMappingInsertDBCall(request);

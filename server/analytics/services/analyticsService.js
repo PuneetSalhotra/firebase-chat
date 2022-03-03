@@ -6434,23 +6434,47 @@ function AnalyticsService(objectCollection)
                             manager_asset_id = asset_id;
                             console.log("iteratorM= " + iteratorM + " : asset_id == manager_asset_id [" + asset_id + " == " + manager_asset_id + "]");
                             console.log("count = " + opptydata[idx].count + " :: quantity = " + opptydata[idx].quantity + " :: value = " + opptydata[idx].value);
+                            let newMap = finalResourceMap.get(manager_asset_id) || new Map();
+                            let count = newMap.get("flag_" + (iteratorM + 1) + "_count") || 0;
+                            let quantity = newMap.get("flag_" + (iteratorM + 1) + "_quantity") || 0;
+                            let value = newMap.get("flag_" + (iteratorM + 1) + "_value") || 0;
+                            count = count + opptydata[idx].count;
+                            quantity = quantity + opptydata[idx].quantity;
+                            value = value + opptydata[idx].value;
+                            // newMap.set(asset_id, opptydata[idx].activity_creator_operating_asset_first_name);
+                            newMap.set("flag_" + (iteratorM + 1) + "_count", count);
+                            newMap.set("flag_" + (iteratorM + 1) + "_quantity", quantity);
+                            newMap.set("flag_" + (iteratorM + 1) + "_value", value);
+                            finalResourceMap.set(manager_asset_id, newMap);
                         } else {
                             manager_asset_id = resourceHierarchyReporteesMappingMap.get(asset_id);
                             console.log("iteratorM= " + iteratorM + " : asset_id != manager_asset_id [" + asset_id + " != " + manager_asset_id + "]");
                             console.log("count = " + opptydata[idx].count + " :: quantity = " + opptydata[idx].quantity + " :: value = " + opptydata[idx].value);
+                            let newMap = finalResourceMap.get(manager_asset_id) || new Map();
+                            let count = newMap.get("flag_" + (iteratorM + 1) + "_count") || 0;
+                            let quantity = newMap.get("flag_" + (iteratorM + 1) + "_quantity") || 0;
+                            let value = newMap.get("flag_" + (iteratorM + 1) + "_value") || 0;
+                            count = count + opptydata[idx].count;
+                            quantity = quantity + opptydata[idx].quantity;
+                            value = value + opptydata[idx].value;
+                            newMap.set(asset_id, opptydata[idx].activity_creator_operating_asset_first_name);
+                            newMap.set("flag_" + (iteratorM + 1) + "_count", count);
+                            newMap.set("flag_" + (iteratorM + 1) + "_quantity", quantity);
+                            newMap.set("flag_" + (iteratorM + 1) + "_value", value);
+                            finalResourceMap.set(asset_id, newMap);
                         }
-                        console.log("manager_asset_id "+manager_asset_id)
-                        let newMap = finalResourceMap.get(manager_asset_id) || new Map();
-                        let count = newMap.get("flag_" + (iteratorM + 1) + "_count") || 0;
-                        let quantity = newMap.get("flag_" + (iteratorM + 1) + "_quantity") || 0;
-                        let value = newMap.get("flag_" + (iteratorM + 1) + "_value") || 0;
-                        count = count + opptydata[idx].count;
-                        quantity = quantity + opptydata[idx].quantity;
-                        value = value + opptydata[idx].value;
-                        newMap.set("flag_" + (iteratorM + 1) + "_count", count);
-                        newMap.set("flag_" + (iteratorM + 1) + "_quantity", quantity);
-                        newMap.set("flag_" + (iteratorM + 1) + "_value", value);
-                        finalResourceMap.set(manager_asset_id, newMap);
+                        // console.log("manager_asset_id "+manager_asset_id)
+                        // let newMap = finalResourceMap.get(manager_asset_id) || new Map();
+                        // let count = newMap.get("flag_" + (iteratorM + 1) + "_count") || 0;
+                        // let quantity = newMap.get("flag_" + (iteratorM + 1) + "_quantity") || 0;
+                        // let value = newMap.get("flag_" + (iteratorM + 1) + "_value") || 0;
+                        // count = count + opptydata[idx].count;
+                        // quantity = quantity + opptydata[idx].quantity;
+                        // value = value + opptydata[idx].value;
+                        // newMap.set("flag_" + (iteratorM + 1) + "_count", count);
+                        // newMap.set("flag_" + (iteratorM + 1) + "_quantity", quantity);
+                        // newMap.set("flag_" + (iteratorM + 1) + "_value", value);
+                        // finalResourceMap.set(manager_asset_id, newMap);
                     } else if (assetMap.has(asset_id)) {
                         console.log("5.assetMap.has(asset_id)"+assetMap.has(asset_id));
                         let newMap = assetMap.get(asset_id);
@@ -6721,23 +6745,47 @@ function AnalyticsService(objectCollection)
                             manager_asset_id = asset_id;
                             console.log("iteratorM= " + iteratorM + " : asset_id == manager_asset_id [" + asset_id + " == " + manager_asset_id + "]");
                             console.log("count = " + opptydata[idx].count + " :: quantity = " + opptydata[idx].quantity + " :: value = " + opptydata[idx].value);
+                            let newMap = finalResourceMap.get(manager_asset_id) || new Map();
+                            let count = newMap.get("flag_" + (iteratorM + 1) + "_count") || 0;
+                            let quantity = newMap.get("flag_" + (iteratorM + 1) + "_quantity") || 0;
+                            let value = newMap.get("flag_" + (iteratorM + 1) + "_value") || 0;
+                            count = count + opptydata[idx].count;
+                            quantity = quantity + opptydata[idx].quantity;
+                            value = value + opptydata[idx].value;
+                            // newMap.set(asset_id, opptydata[idx].activity_creator_operating_asset_first_name);
+                            newMap.set("flag_" + (iteratorM + 1) + "_count", count);
+                            newMap.set("flag_" + (iteratorM + 1) + "_quantity", quantity);
+                            newMap.set("flag_" + (iteratorM + 1) + "_value", value);
+                            finalResourceMap.set(manager_asset_id, newMap);
                         } else {
                             manager_asset_id = resourceHierarchyReporteesMappingMap.get(asset_id);
                             console.log("iteratorM= " + iteratorM + " : asset_id != manager_asset_id [" + asset_id + " != " + manager_asset_id + "]");
                             console.log("count = " + opptydata[idx].count + " :: quantity = " + opptydata[idx].quantity + " :: value = " + opptydata[idx].value);
+                            let newMap = finalResourceMap.get(manager_asset_id) || new Map();
+                            let count = newMap.get("flag_" + (iteratorM + 1) + "_count") || 0;
+                            let quantity = newMap.get("flag_" + (iteratorM + 1) + "_quantity") || 0;
+                            let value = newMap.get("flag_" + (iteratorM + 1) + "_value") || 0;
+                            count = count + opptydata[idx].count;
+                            quantity = quantity + opptydata[idx].quantity;
+                            value = value + opptydata[idx].value;
+                            newMap.set(asset_id, opptydata[idx].activity_creator_operating_asset_first_name);
+                            newMap.set("flag_" + (iteratorM + 1) + "_count", count);
+                            newMap.set("flag_" + (iteratorM + 1) + "_quantity", quantity);
+                            newMap.set("flag_" + (iteratorM + 1) + "_value", value);
+                            finalResourceMap.set(asset_id, newMap);
                         }
-                        console.log("manager_asset_id "+manager_asset_id)
-                        let newMap = finalResourceMap.get(manager_asset_id) || new Map();
-                        let count = newMap.get("flag_" + (iteratorM + 1) + "_count") || 0;
-                        let quantity = newMap.get("flag_" + (iteratorM + 1) + "_quantity") || 0;
-                        let value = newMap.get("flag_" + (iteratorM + 1) + "_value") || 0;
-                        count = count + opptydata[idx].count;
-                        quantity = quantity + opptydata[idx].quantity;
-                        value = value + opptydata[idx].value;
-                        newMap.set("flag_" + (iteratorM + 1) + "_count", count);
-                        newMap.set("flag_" + (iteratorM + 1) + "_quantity", quantity);
-                        newMap.set("flag_" + (iteratorM + 1) + "_value", value);
-                        finalResourceMap.set(manager_asset_id, newMap);
+                        // console.log("manager_asset_id "+manager_asset_id)
+                        // let newMap = finalResourceMap.get(manager_asset_id) || new Map();
+                        // let count = newMap.get("flag_" + (iteratorM + 1) + "_count") || 0;
+                        // let quantity = newMap.get("flag_" + (iteratorM + 1) + "_quantity") || 0;
+                        // let value = newMap.get("flag_" + (iteratorM + 1) + "_value") || 0;
+                        // count = count + opptydata[idx].count;
+                        // quantity = quantity + opptydata[idx].quantity;
+                        // value = value + opptydata[idx].value;
+                        // newMap.set("flag_" + (iteratorM + 1) + "_count", count);
+                        // newMap.set("flag_" + (iteratorM + 1) + "_quantity", quantity);
+                        // newMap.set("flag_" + (iteratorM + 1) + "_value", value);
+                        // finalResourceMap.set(manager_asset_id, newMap);
                     } else if (assetMap.has(asset_id)) {
                         console.log("5.assetMap.has(asset_id)"+assetMap.has(asset_id));
                         let newMap = assetMap.get(asset_id);
@@ -7044,25 +7092,47 @@ function AnalyticsService(objectCollection)
                             manager_asset_id = asset_id;
                             console.log("iteratorM= " + iteratorM + " : asset_id == manager_asset_id [" + asset_id + " == " + manager_asset_id + "]");
                             console.log("count = " + opptydata[idx].count + " :: quantity = " + opptydata[idx].quantity + " :: value = " + opptydata[idx].value);
+                            let newMap = finalResourceMap.get(manager_asset_id) || new Map();
+                            let count = newMap.get("flag_" + (iteratorM + 1) + "_count") || 0;
+                            let quantity = newMap.get("flag_" + (iteratorM + 1) + "_quantity") || 0;
+                            let value = newMap.get("flag_" + (iteratorM + 1) + "_value") || 0;
+                            count = count + opptydata[idx].count;
+                            quantity = quantity + opptydata[idx].quantity;
+                            value = value + opptydata[idx].value;
+                            // newMap.set(asset_id, opptydata[idx].activity_creator_operating_asset_first_name);
+                            newMap.set("flag_" + (iteratorM + 1) + "_count", count);
+                            newMap.set("flag_" + (iteratorM + 1) + "_quantity", quantity);
+                            newMap.set("flag_" + (iteratorM + 1) + "_value", value);
+                            finalResourceMap.set(manager_asset_id, newMap);
                         } else {
                             manager_asset_id = resourceHierarchyReporteesMappingMap.get(asset_id);
                             console.log("iteratorM= " + iteratorM + " : asset_id != manager_asset_id [" + asset_id + " != " + manager_asset_id + "]");
                             console.log("count = " + opptydata[idx].count + " :: quantity = " + opptydata[idx].quantity + " :: value = " + opptydata[idx].value);
+                            let newMap = finalResourceMap.get(manager_asset_id) || new Map();
+                            let count = newMap.get("flag_" + (iteratorM + 1) + "_count") || 0;
+                            let quantity = newMap.get("flag_" + (iteratorM + 1) + "_quantity") || 0;
+                            let value = newMap.get("flag_" + (iteratorM + 1) + "_value") || 0;
+                            count = count + opptydata[idx].count;
+                            quantity = quantity + opptydata[idx].quantity;
+                            value = value + opptydata[idx].value;
+                            newMap.set(asset_id, opptydata[idx].activity_creator_operating_asset_first_name);
+                            newMap.set("flag_" + (iteratorM + 1) + "_count", count);
+                            newMap.set("flag_" + (iteratorM + 1) + "_quantity", quantity);
+                            newMap.set("flag_" + (iteratorM + 1) + "_value", value);
+                            finalResourceMap.set(asset_id, newMap);
                         }
-                        console.log("0.1 finalResourceMap ",JSON.stringify(finalResourceMap))
-                        console.log("manager_asset_id "+manager_asset_id)
-                        let newMap = finalResourceMap.get(manager_asset_id) || new Map();
-                        let count = newMap.get("flag_" + (iteratorM + 1) + "_count") || 0;
-                        let quantity = newMap.get("flag_" + (iteratorM + 1) + "_quantity") || 0;
-                        let value = newMap.get("flag_" + (iteratorM + 1) + "_value") || 0;
-                        count = count + opptydata[idx].count;
-                        quantity = quantity + opptydata[idx].quantity;
-                        value = value + opptydata[idx].value;
-                        newMap.set("flag_" + (iteratorM + 1) + "_count", count);
-                        newMap.set("flag_" + (iteratorM + 1) + "_quantity", quantity);
-                        newMap.set("flag_" + (iteratorM + 1) + "_value", value);
-                        finalResourceMap.set(manager_asset_id, newMap);
-                        console.log("1. finalResourceMap ",JSON.stringify(finalResourceMap))
+                        // console.log("manager_asset_id "+manager_asset_id)
+                        // let newMap = finalResourceMap.get(manager_asset_id) || new Map();
+                        // let count = newMap.get("flag_" + (iteratorM + 1) + "_count") || 0;
+                        // let quantity = newMap.get("flag_" + (iteratorM + 1) + "_quantity") || 0;
+                        // let value = newMap.get("flag_" + (iteratorM + 1) + "_value") || 0;
+                        // count = count + opptydata[idx].count;
+                        // quantity = quantity + opptydata[idx].quantity;
+                        // value = value + opptydata[idx].value;
+                        // newMap.set("flag_" + (iteratorM + 1) + "_count", count);
+                        // newMap.set("flag_" + (iteratorM + 1) + "_quantity", quantity);
+                        // newMap.set("flag_" + (iteratorM + 1) + "_value", value);
+                        // finalResourceMap.set(manager_asset_id, newMap);
                     } else if (assetMap.has(asset_id)) {
                         console.log("5.assetMap.has(asset_id)"+assetMap.has(asset_id));
                         let newMap = assetMap.get(asset_id);
