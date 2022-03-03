@@ -2,6 +2,7 @@ const WidgetBase = require('./base');
 const CONST = require('../../constants');
 const _ = require('lodash');
 let forEachAsync = require('forEachAsync').forEachAsync;
+const logger = require('../../../server/logger/winstonLogger');
 
 
 class FormFileStatusDistributionWidget extends WidgetBase {
@@ -48,7 +49,7 @@ class FormFileStatusDistributionWidget extends WidgetBase {
 						let diffArray = [];
 						forEachAsync(array, (n, x) => {
 							//global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + " : " + x + " includes" + array2.includes(x), {}, data);
-							util.logInfo({},`activityListService.getStatusCounts debug  Distribution: %j`,{WidgetId : this.rule.widget_id,x : x,includes : array2.includes(x),data});
+							logger.info(`activityListService.getStatusCounts debug  Distribution: %j`,{WidgetId : this.rule.widget_id,x : x,includes : array2.includes(x),data});
 							if (array2.includes(x) == false) {
 								diffArray.push(x);
 								let obj = {};
@@ -63,7 +64,7 @@ class FormFileStatusDistributionWidget extends WidgetBase {
 
 						}).then(() => {
 							//global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + " StatusJsonData: " + JSON.stringify(result), {}, data);
-							util.logInfo({},`activityListService.getStatusCounts debug Distribution: %j`,{WidgetId : this.rule.widget_id,StatusJsonData : JSON.stringify(result), data});
+							logger.info(`activityListService.getStatusCounts debug Distribution: %j`,{WidgetId : this.rule.widget_id,StatusJsonData : JSON.stringify(result), data});
 							forEachAsync(result, (next, rowData) => {
 								console.log(rowData)
 								const count = rowData ? rowData.status_count : undefined;
@@ -97,7 +98,7 @@ class FormFileStatusDistributionWidget extends WidgetBase {
 							}).then(() => {
 
 								//global.logger.write('debug', 'Distribution: WidgetId : ' + this.rule.widget_id + ' Done', {}, data);
-								util.logInfo({},`activityListService.getStatusCounts debug Distribution: %j`,{WidgetId : this.rule.widget_id,Done : ' Done', data});
+								logger.info(`activityListService.getStatusCounts debug Distribution: %j`,{WidgetId : this.rule.widget_id,Done : ' Done', data});
 							});
 						})
 					});

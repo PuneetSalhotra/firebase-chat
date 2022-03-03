@@ -10,7 +10,7 @@ function ActivityConfigController(objCollection) {
 
     let responseWrapper = objCollection.responseWrapper;
     let app = objCollection.app;
-
+    let util = objCollection.util;
     let activityConfigService = new ActivityConfigService(objCollection.db, objCollection.util, objCollection);
 
     app.post('/' + global.config.version + '/activity_type/access/workforce/list', function (req, res) {//Fetch activity types

@@ -7572,25 +7572,35 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         let error = true,
             responseData = [];
         try {
-            request.search_string = request.search_string || request.cuid || "";
+            request.search_string = request.search_string || request.cuid;
             let searchString = `activity_cuid_1 : ${request.search_string} OR activity_cuid_2 : ${request.search_string} OR activity_cuid_3 : ${request.search_string}`
             let query = `/${global.config.elasticActivitySearch48Table}/_search?q=${searchString}`;
 
             query = encodeURI(query);
 
-            query = query + "&from=" + 0 + "&size=" + 1000;
+            query = query + "&from=" + 0 + "&size=" + 10000;
 
+            logger.info(`Search cuid ${request.search_string} %j`, { query });
             const result = await client.transport.request({
                 method: "GET",
                 path: query,
             });
 
+            logger.info(`Search cuid ${request.search_string} length ${result.hits.hits.length}%j`);
             for (let i = 0; i < result.hits.hits.length; i++) {
 
-                if (result.hits.hits[i]._source.log_state < 3) {
-                    responseData.push(result.hits.hits[i]._source)
+                if (result.hits.hits[i]._source.log_state < 3 && (result.hits.hits[i]._source.activity_cuid_1 == request.search_string || result.hits.hits[i]._source.activity_cuid_2 == request.search_string || result.hits.hits[i]._source.activity_cuid_3 == request.search_string)) {
+                    logger.info(`Search cuid ${request.search_string} found %j`);
+                    let activityId = result.hits.hits[i]._source.activity_id;
+
+                    request.organization_id = 868;
+                    request.activity_id = activityId;
+                    const [errorZero, workflowActivityData] = await this.getActivityDetailsAsync(request);
+                    responseData = workflowActivityData;
+                    break;
                 }
             }
+
             error = false
         } catch (e) {
             error = e;

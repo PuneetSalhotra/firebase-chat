@@ -9,6 +9,7 @@ function PamListingController(objCollection) {
 
     let responseWrapper = objCollection.responseWrapper;
     let app = objCollection.app;
+    let util = objCollection.util;
     let pamListingService = new PamListingService(objCollection);
            
     app.post('/' + global.config.version + '/pam/orders/access/list', function (req, res) {

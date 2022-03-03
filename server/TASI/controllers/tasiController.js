@@ -1108,6 +1108,27 @@ function TasiController(objCollection) {
             res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/tasi/widget/type/master/parent/select', async function (req, res) {
+        const [err, resData] = await tasiService.getParentListWidgetTypeMaster(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/widget/type/master/parent/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/analytics/widget-type/add', async (req, res) => {
+
+        let [err, result] = await tasiService.insertWidgetTypeForSip(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
 }
 
 module.exports = TasiController;

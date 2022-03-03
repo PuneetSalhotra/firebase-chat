@@ -1,7 +1,7 @@
 const WidgetBase = require('./base');
 const CONST = require('../../constants');
 const _ = require('lodash');
-
+const logger = require('../../../server/logger/winstonLogger');
 
 
 class FormFileStatusTransitionWidget extends WidgetBase {
@@ -43,9 +43,9 @@ class FormFileStatusTransitionWidget extends WidgetBase {
 						aggregate = this.objCollection.util.differenceDatetimes(max_datetime, min_datetime) / 1000;
 
 					//global.logger.write('conLog', 'Transition: WidgetId' + this.rule.widget_id + ' MAX DATETIME: ' + max_datetime, {}, data);
-					util.logInfo({},`activityStatusChangeTxnActivityStatus Transition: %j`,{WidgetId : this.rule.widget_id,MAX_DATETIME : max_datetime, data});
+					logger.info(`activityStatusChangeTxnActivityStatus Transition: %j`,{WidgetId : this.rule.widget_id,MAX_DATETIME : max_datetime, data});
 					//global.logger.write('conLog', 'Transition: WidgetId' + this.rule.widget_id + ' MIN DATETIME: ' + min_datetime, {}, data);
-					util.logInfo({},`activityStatusChangeTxnActivityStatus Transition: %j`,{WidgetId : this.rule.widget_id,MIN_DATETIME : min_datetime, data});
+					logger.info(`activityStatusChangeTxnActivityStatus Transition: %j`,{WidgetId : this.rule.widget_id,MIN_DATETIME : min_datetime, data});
 
 					activityQueryData.from_status_datetime = min_datetime;
 					activityQueryData.to_status_datetime = max_datetime;
@@ -53,12 +53,12 @@ class FormFileStatusTransitionWidget extends WidgetBase {
 
 					this.services.activityStatusChangeTxnService.activityStatusChangeTxnInsert(activityQueryData, aggregate).then(() => {
 						//global.logger.write('conLog', 'Transition: WidgetId ' + this.rule.widget_id + ' WAIT FOR 2 SECS START: ' + this.objCollection.util.getCurrentUTCTime(), {}, data);
-						util.logInfo({},`activityStatusChangeTxnInsert Transition: %j`,{WidgetId : this.rule.widget_id,WAIT_FOR_2_SECS_START : this.objCollection.util.getCurrentUTCTime(), data});
+						logger.info(`activityStatusChangeTxnInsert Transition: %j`,{WidgetId : this.rule.widget_id,WAIT_FOR_2_SECS_START : this.objCollection.util.getCurrentUTCTime(), data});
 						this.services.activityListService.wait(2000).then(() => {
 
 							this.services.activityStatusChangeTxnService.activityStatusChangeTxnIntermediateAggr(activityQueryData).then((result) => {
 								//global.logger.write('conLog', 'Transition: WidgetId ' + this.rule.widget_id + ' WAIT FOR 2 SECS END: ' + this.objCollection.util.getCurrentUTCTime(), {}, data);
-								util.logInfo({},`activityStatusChangeTxnIntermediateAggr Transition: %j`,{WidgetId : this.rule.widget_id,WAIT_FOR_2_SECS_END : this.objCollection.util.getCurrentUTCTime(), data});
+								logger.info(`activityStatusChangeTxnIntermediateAggr Transition: %j`,{WidgetId : this.rule.widget_id,WAIT_FOR_2_SECS_END : this.objCollection.util.getCurrentUTCTime(), data});
 								aggregate = result[0].duration;
 
 								let widgetData = {
@@ -80,7 +80,7 @@ class FormFileStatusTransitionWidget extends WidgetBase {
 								msg.widget_id = widgetData.widget_id;
 
 								//global.logger.write('conLog', 'Transition: WidgetId : ' + this.rule.widget_id + ' AGGR TO WIDGET : ' + result[0].duration, {}, data);
-								util.logInfo({},`activityStatusChangeTxnIntermediateAggr Transition: %j`,{WidgetId : this.rule.widget_id,AGGR_TO_WIDGET : result[0].duration, data});
+								logger.info(`activityStatusChangeTxnIntermediateAggr Transition: %j`,{WidgetId : this.rule.widget_id,AGGR_TO_WIDGET : result[0].duration, data});
 
 								if (aggregate > 0) {
 									return this.createOrUpdateWidgetTransaction(widgetData, msg, data.organization_id).then(() => {});
@@ -93,7 +93,7 @@ class FormFileStatusTransitionWidget extends WidgetBase {
 			})
 		} else {
 			//global.logger.write('conLog', 'Transition: WidgetId : ' + this.rule.widget_id + ' : ' + data.req_activity_status_id + ' NOT EQUALS TO RULE STATUS ' + this.rule.widget_entity3_id, {}, data);
-			util.logInfo({},`aggregateAndSaveTransaction Transition: %j`,{WidgetId : this.rule.widget_id,req_activity_status_id : data.req_activity_status_id, NOT_EQUALS_TO_RULE_STATUS : this.rule.widget_entity3_id, data});
+			logger.info(`aggregateAndSaveTransaction Transition: %j`,{WidgetId : this.rule.widget_id,req_activity_status_id : data.req_activity_status_id, NOT_EQUALS_TO_RULE_STATUS : this.rule.widget_entity3_id, data});
 		}
 	}
 

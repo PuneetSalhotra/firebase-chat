@@ -1671,6 +1671,7 @@ function AssetService(objectCollection) {
 
     let updateAssetLinkStatus = function (request, assetId, encToken, dateTimeLog, callback) {
 
+        let queryString = "";
         let paramsArr = new Array(
             assetId,
             request.organization_id,
@@ -1698,11 +1699,11 @@ function AssetService(objectCollection) {
             // IN p_push_arn VARCHAR(600), IN p_model_name VARCHAR(50), IN p_manufacturer_name VARCHAR(50), 
             // IN p_app_version VARCHAR(50), IN p_device_os_version VARCHAR(50),  IN p_log_asset_id BIGINT(20), 
             // IN p_log_datetime DATETIME, IN p_timezone_offset BIGINT
-            let queryString = util.getQueryString('ds_v1_2_asset_list_update_link', paramsArr);
+            queryString = util.getQueryString('ds_v1_2_asset_list_update_link', paramsArr);
 
         } else {
             // The following is retained for the sake of backward compatibility
-            let queryString = util.getQueryString('ds_v1_asset_list_update_link', paramsArr);
+            queryString = util.getQueryString('ds_v1_asset_list_update_link', paramsArr);
 
         }
         if (queryString !== '') {
