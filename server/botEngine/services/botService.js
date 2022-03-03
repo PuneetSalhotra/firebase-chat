@@ -1993,7 +1993,11 @@ function BotService(objectCollection) {
                                 request.calendar_event_id_update = true;
                                 updateCuids = request.updateCuids;
                             }
-                        }
+                        } 
+                        
+                        if (Number(request.activity_type_category_id) === 48 && request.activity_type_id == 196190) {
+                            updateCuids = botOperationsJson.bot_operations.update_cuids;
+                        }           
 
                         try {
                             await updateCUIDBotOperation(request, formInlineDataMap, updateCuids);
