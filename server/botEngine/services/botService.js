@@ -10139,8 +10139,10 @@ else{
             let [err2,gamificationScoreOverall] = await getFormGamificationScore(request,3);
             let previousScoreOverall = gamificationScoreOverall.length>0?Number(gamificationScoreOverall[0].field_gamification_score_value):0;
             let previousScoreMonthly = gamificationScoreMonthly.length>0?Number(gamificationScoreMonthly[0].field_gamification_score_value):0;
-            console.log("final overall",previousScoreOverall)
+            console.log("final overall prev",previousScoreOverall)
             console.log("final overall",previousScoreOverall+finalScore);
+            console.log("montly overall prev",previousScoreMonthly);
+            console.log("montly overall final",previousScoreMonthly + finalScore);
             await insertGamificationScore(request);
             await assetSummaryTransactionInsert(request,previousScoreOverall+finalScore);
             await assetMonthlySummaryTransactionInsert(request,previousScoreMonthly+finalScore);
@@ -10172,7 +10174,7 @@ else{
             request.workflow_activity_id,
             request.form_id,
             request.form_transaction_id,
-            request.asset_id,
+            request.asset_id == 100?request.auth_asset_id:request.asset_id,
             util.getStartDayOfMonth(),
             util.getEndDateOfMonth(),
             request.start_from || 0, 
@@ -10200,7 +10202,7 @@ else{
 
         const paramsArr = new Array(
         7, 
-		request.asset_id, 
+		request.asset_id == 100?request.auth_asset_id:request.asset_id, 
 		request.workforce_id, 
 		request.account_id, 
 		request.organization_id, 
@@ -10257,7 +10259,7 @@ else{
 
         const paramsArr = new Array(
           41,
-          request.asset_id || "",
+          request.asset_id == 100?request.auth_asset_id:request.asset_id,
           request.workforce_id || "",
           request.account_id || "",
           request.organization_id || "",
@@ -10319,7 +10321,7 @@ else{
         request.form_name || "",
         request.field_gamification_score,
         request.workflow_activity_id,
-        request.asset_id,
+        request.asset_id == 100?request.auth_asset_id:request.asset_id,
         request.asset_id,
         util.getCurrentUTCTime()
       );
@@ -10350,7 +10352,7 @@ else{
         request.workflow_activity_id,
         request.form_id,
         request.form_transaction_id,
-        request.asset_id,
+        request.asset_id == 100?request.auth_asset_id:request.asset_id,
         flag,
         request.field_gamification_score,
         util.getCurrentUTCTime()
