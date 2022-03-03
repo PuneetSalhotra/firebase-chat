@@ -1074,9 +1074,10 @@ smsText+= " . Note that this reservation code is only valid till "+expiryDateTim
         };
         activityCommonService.updateAssetLocation(request, function (err, data) {});
         let activityStreamTypeId = 2; //Older 2:added participant
+        let activityTypeCategroyId = 0;
         console.log('request.activity_type_category_id : ', request.activity_type_category_id);
         if (request.hasOwnProperty('activity_type_category_id')) {
-            let activityTypeCategroyId = Number(request.activity_type_category_id);
+            activityTypeCategroyId = Number(request.activity_type_category_id);
             console.log('activityTypeCategroyId : ', activityTypeCategroyId);
             switch (activityTypeCategroyId) {
                 //PAM
