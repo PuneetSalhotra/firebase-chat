@@ -11,7 +11,7 @@ function BotController(objCollection) {
 
     let responseWrapper = objCollection.responseWrapper;
     let app = objCollection.app;
-    //const util = objCollection.util;
+    const util = objCollection.util;
     //const cacheWrapper = objCollection.cacheWrapper;
     //const queueWrapper = objCollection.queueWrapper;
     //const activityCommonService = objCollection.activityCommonService;
