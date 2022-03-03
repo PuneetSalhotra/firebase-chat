@@ -780,8 +780,9 @@ function ActivityTimelineService(objectCollection) {
     function timelineStandardCalls(request) {
         return new Promise((resolve, reject) => {
 
+            let formDataJson = null;
             try {
-                let formDataJson = JSON.parse(request.activity_timeline_collection);
+                formDataJson = JSON.parse(request.activity_timeline_collection);
             } catch (exception) {
                 util.logError(request,`exception`, { type: 'timelineStandardCalls', error: serializeError(exception) });
             }
