@@ -1993,7 +1993,11 @@ function BotService(objectCollection) {
                                 request.calendar_event_id_update = true;
                                 updateCuids = request.updateCuids;
                             }
-                        }
+                        } 
+                        
+                        if (Number(request.activity_type_category_id) === 48 && request.activity_type_id == 196190) {
+                            updateCuids = botOperationsJson.bot_operations.update_cuids;
+                        }           
 
                         try {
                             await updateCUIDBotOperation(request, formInlineDataMap, updateCuids);
@@ -10147,7 +10151,7 @@ else{
         }
         
       } //resubmit or refill case
-      else if (request.is_refill === 1 || request.is_resubmit === 1) {
+      else if (Number(request.is_refill) === 1 || Number(request.is_resubmit) === 1) {
         request.field_gamification_score = 0;
         await updateGamificationScore(request,request.is_refill === 1?1:2);
       } //new form submission case
