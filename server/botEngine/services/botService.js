@@ -10151,7 +10151,7 @@ else{
         }
         
       } //resubmit or refill case
-      else if (request.is_refill === 1 || request.is_resubmit === 1) {
+      else if (Number(request.is_refill) === 1 || Number(request.is_resubmit) === 1) {
         request.field_gamification_score = 0;
         await updateGamificationScore(request,request.is_refill === 1?1:2);
       } //new form submission case
