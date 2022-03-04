@@ -3396,6 +3396,8 @@ function TasiService(objectCollection) {
         const paramsArr = new Array(
             request.organization_id,
             request.payout_type_id,
+            request.payout_type_name,
+            request.payout_type_description,
             request.log_asset_id,
             util.getCurrentUTCTime()
         );
