@@ -1363,18 +1363,23 @@ function TasiService(objectCollection) {
     this.payoutTypeMasterInsert = async function (request) {
         let responseData = [],
             error = true;
-        const paramsArr = new Array(
+        const paramsArr = [
             request.payout_type_name,
             request.payout_type_description,
             request.payout_type_category_id,
             request.timeline_id,
             request.level_id,
-            request.organization_id, 
-            request.workforce_tag_id,
+            request.organization_id,
+            request.workforce_tag_id_1,
+            request.workforce_tag_name_1,
+            request.workforce_tag_id_2,
+            request.workforce_tag_name_2,
+            request.workforce_tag_id_3,
+            request.workforce_tag_name_3,
             request.log_asset_id,
             util.getCurrentUTCTime()
-        );
-        const queryString = util.getQueryString('ds_p1_1_payout_type_master_insert', paramsArr);
+        ];
+        const queryString = util.getQueryString('ds_p1_2_payout_type_master_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -3935,8 +3940,7 @@ function TasiService(objectCollection) {
         }
 
         return [error, responseData]
-    } 
-
+    }
 }
 
 module.exports = TasiService;
