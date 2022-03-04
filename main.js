@@ -254,7 +254,7 @@ async function handleImports() {
                     gmt_time: (new Util()).getCurrentUTCTime(),
                     response: 'Empty/No message_unique_id request parameter found.'
                 });
-                return;
+            return;
             }
         }
 

@@ -44,6 +44,11 @@ redisSubscriber.on("message", function (channel, message) {
         logger.warn(`[BOT_ENGINE_REQUEST_HANDLE_TYPE] updated`, { type: 'mysql', db_response: null, request_body: null, error: null });
         handleBotEngineRequestType();
     }
+
+    if(message === "CUID_SEARCH_FROM") {
+        logger.warn(`[CUID_SEARCH_FROM] updated`, { type: 'mysql', db_response: null, request_body: null, error: null });
+        handleCuidSearchType();
+    }
 });
 
 function initiateDB() {
@@ -118,6 +123,11 @@ function initiateDB() {
         }
     });
     handleBotEngineRequestType();
+    handleCuidSearchType();
+}
+
+async function handleCuidSearchType() {
+    global.config.cuid_search_from = await getKeyValueFromCache('CUID_SEARCH_FROM');
 }
 
 initiateDB();
