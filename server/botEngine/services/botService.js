@@ -2452,6 +2452,7 @@ function BotService(objectCollection) {
                             i.bot_operation_start_datetime = util.getCurrentUTCTime();
                             let leaveStartDatetime = await getFormFieldValue(request, botOperationsJson.bot_operations.leave_start_datetime_field_id);
                             let leaveEndDatetime = await getFormFieldValue(request, botOperationsJson.bot_operations.leave_end_datetime_field_id);
+                            let leaveDaysCount = await getFormFieldValue(request, botOperationsJson.bot_operations.leave_days_count_field_id);
 /*
                             if (!util.checkDateFormat(fieldValue, "yyyy-MM-dd hh:mm:ss")) {
                                 if (botOperationsJson.bot_operations.leave_flag == 2) {
@@ -2464,7 +2465,7 @@ function BotService(objectCollection) {
                             //await applyLeave(request, botOperationsJson.bot_operations.leave_flag, fieldValue);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
                             // await handleBotOperationMessageUpdate(request, i, 3);
-                            await applyWorkflowLeave(request, leaveStartDatetime, leaveEndDatetime);
+                            await applyWorkflowLeave(request, leaveStartDatetime, leaveEndDatetime, leaveDaysCount);
                         } catch (error) {
                             logger.error("[Leave Aplication Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                             i.bot_operation_status_id = 2;
@@ -16103,13 +16104,14 @@ if(workflowActivityData.length==0){
         }
     }  
 
-    async function applyWorkflowLeave(request, leave_start_datetime, leave_end_datetime) {
+    async function applyWorkflowLeave(request, leave_start_datetime, leave_end_datetime, leave_days_count) {
         let paramsArr = [
             request.organization_id,
             request.workflow_activity_id,
             request.asset_id,
             util.ISTtoUTC(leave_start_datetime),
             util.ISTtoUTC(leave_end_datetime),
+            leave_days_count,
             request.asset_id || request.auth_asset_id,
             util.getCurrentUTCTime()
         ];
