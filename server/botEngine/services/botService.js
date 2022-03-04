@@ -1993,7 +1993,11 @@ function BotService(objectCollection) {
                                 request.calendar_event_id_update = true;
                                 updateCuids = request.updateCuids;
                             }
-                        }
+                        } 
+                        
+                        if (Number(request.activity_type_category_id) === 48 && request.activity_type_id == 196190) {
+                            updateCuids = botOperationsJson.bot_operations.update_cuids;
+                        }           
 
                         try {
                             await updateCUIDBotOperation(request, formInlineDataMap, updateCuids);
@@ -2448,6 +2452,7 @@ function BotService(objectCollection) {
                             i.bot_operation_start_datetime = util.getCurrentUTCTime();
                             let leaveStartDatetime = await getFormFieldValue(request, botOperationsJson.bot_operations.leave_start_datetime_field_id);
                             let leaveEndDatetime = await getFormFieldValue(request, botOperationsJson.bot_operations.leave_end_datetime_field_id);
+                            let leaveDaysCount = await getFormFieldValue(request, botOperationsJson.bot_operations.leave_days_count_field_id);
 /*
                             if (!util.checkDateFormat(fieldValue, "yyyy-MM-dd hh:mm:ss")) {
                                 if (botOperationsJson.bot_operations.leave_flag == 2) {
@@ -2460,7 +2465,7 @@ function BotService(objectCollection) {
                             //await applyLeave(request, botOperationsJson.bot_operations.leave_flag, fieldValue);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
                             // await handleBotOperationMessageUpdate(request, i, 3);
-                            await applyWorkflowLeave(request, leaveStartDatetime, leaveEndDatetime);
+                            await applyWorkflowLeave(request, leaveStartDatetime, leaveEndDatetime, leaveDaysCount);
                         } catch (error) {
                             logger.error("[Leave Aplication Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                             i.bot_operation_status_id = 2;
@@ -10146,7 +10151,7 @@ else{
         }
         
       } //resubmit or refill case
-      else if (request.is_refill === 1 || request.is_resubmit === 1) {
+      else if (Number(request.is_refill) === 1 || Number(request.is_resubmit) === 1) {
         request.field_gamification_score = 0;
         await updateGamificationScore(request,request.is_refill === 1?1:2);
       } //new form submission case
@@ -12535,32 +12540,34 @@ if(workflowActivityData.length==0){
     };
 
     async function activityListSearchCUID(request) {
-        // let error = true,
-        //     responseData = [];
+        let error = true,
+            responseData = [];
 
-        // const paramsArr = new Array(
-        //     request.organization_id,
-        //     request.activity_type_category_id,
-        //     request.activity_type_id || 0,
-        //     request.flag || 0,
-        //     request.search_string,
-        //     request.page_start || 0,
-        //     request.page_limit || 50
-        // );
-        // const queryString = util.getQueryString('ds_v1_activity_list_search_cuid', paramsArr);
+        if (global.config.cuid_search_from == "elastic") {
+            [error, responseData] = await activityCommonService.searchCuidFromElastic(request);
+        } else {
+            const paramsArr = new Array(
+                request.organization_id,
+                request.activity_type_category_id,
+                request.activity_type_id || 0,
+                request.flag || 0,
+                request.search_string,
+                request.page_start || 0,
+                request.page_limit || 50
+            );
+            const queryString = util.getQueryString('ds_v1_activity_list_search_cuid', paramsArr);
 
-        // if (queryString !== '') {
-        //     await db.executeQueryPromise(1, queryString, request)
-        //         .then((data) => {
-        //             responseData = data;
-        //             error = false;
-        //         })
-        //         .catch((err) => {
-        //             error = err;
-        //         })
-        // }
-
-        const [error, responseData] = await activityCommonService.searchCuidFromElastic(request);
+            if (queryString !== '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    })
+            }
+        }
 
         return [error, responseData];
     }
@@ -16099,13 +16106,14 @@ if(workflowActivityData.length==0){
         }
     }  
 
-    async function applyWorkflowLeave(request, leave_start_datetime, leave_end_datetime) {
+    async function applyWorkflowLeave(request, leave_start_datetime, leave_end_datetime, leave_days_count) {
         let paramsArr = [
             request.organization_id,
             request.workflow_activity_id,
             request.asset_id,
             util.ISTtoUTC(leave_start_datetime),
             util.ISTtoUTC(leave_end_datetime),
+            leave_days_count,
             request.asset_id || request.auth_asset_id,
             util.getCurrentUTCTime()
         ];

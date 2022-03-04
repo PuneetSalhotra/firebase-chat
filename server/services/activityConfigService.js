@@ -839,7 +839,7 @@ function ActivityConfigService(db,util,objCollection) {
         let error = true,
             responseData = [];
 
-        if (request.activity_type_category_id == 48) {
+        if (request.activity_type_category_id == 48 && global.config.cuid_search_from == "elastic") {
             [error, responseData] = await activityCommonService.searchCuidFromElastic(request);
         } else {
             const paramsArr = new Array(
