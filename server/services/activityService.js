@@ -679,7 +679,7 @@ function ActivityService(objectCollection) {
                                 //addValueToWidgetForAnalyticsWF(request, request.activity_id, request.activity_type_id, 0); //0 - Non-Widget
                             }
 
-                            if (request.activity_type_category_id == 31 && request.activity_type_id == 190797) {
+                            if (request.activity_type_category_id == 31) {
 
                                 let calendarEventIDRequest = Object.assign({}, request);
                                 calendarEventIDRequest.workflow_activity_id = request.activity_id;
