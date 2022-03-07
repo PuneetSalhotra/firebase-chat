@@ -115,6 +115,16 @@ function AssetConfigController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/excel/upload/add/V2', async (req, res) => {
+        const [err, responseData] = await assetConfigService.inputListInsertV2(req.body);        
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/excel/upload/add | Error: ", err);
+            res.json(responseWrapper.getResponse(err, { message: err }, -9998, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/excel/upload/update', async (req, res) => {
         const [err, responseData] = await assetConfigService.inputListUpdate(req.body);        
         if (!err) {
