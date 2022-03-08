@@ -4119,7 +4119,7 @@ function ActivityListingService(objCollection) {
 		const [errorZero, childMOM] = await this.activityListSelectChildOrders({
 			organization_id: request.organization_id,
 			parent_activity_id: request.activity_id,
-			flag: 3
+			flag: 5
 		});
 
 		if (errorZero || childMOM.length === 0) {
