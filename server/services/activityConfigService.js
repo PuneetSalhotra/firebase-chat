@@ -1311,6 +1311,80 @@ function ActivityConfigService(db,util,objCollection) {
         return [error,responseData];
     }
 
+
+
+    this.checkTitleDedupe = async (request) => {
+        let error = false,
+            responseData = [];
+
+        request.bot_operation_type_id = 22;
+        request.start_from = 0;
+        request.limit_value = 1;
+        [botError, botData] = await self.botOperationMappingSelectOperationType(request);
+
+        let accountTitle = request.activity_title
+
+        //console.log('botData', botData);
+        accountTitle = accountTitle.toLowerCase().replace(/pvt/gi, 'private').replace(/ltd/gi, 'limited').replace(/\s+/gi, '').replace(/[^a-zA-Z0-9]/g, '');
+        accountTitle = accountTitle.split(' ').join('')
+
+        let botInlineData;
+
+        if (botData.length > 0) {
+            botInlineData = JSON.parse(botData[0].bot_operation_inline_data).bot_operations.account_code_dependent_fields;
+            console.log('Account Code Dependent Fields: ', botInlineData);
+        } else {
+            error = true;
+            responseData.push({ 'message': 'Bot not defined on the field ID' });
+            return [error, responseData];
+        }
+
+        let checkAccountTitleDedupeData;
+        try {
+            checkAccountTitleDedupeData = await checkAccountTitleDedupe(request, botInlineData);
+        } catch (err) {
+            responseData.push({ 'message': 'Error generating Account Code' });
+            return [true, responseData];
+        }
+
+        console.log('Check Title Dedupe Data: ', checkAccountTitleDedupeData);
+
+        let isNameDedupeRequired = checkAccountTitleDedupeData.is_name_dedupe_required;
+
+        let activityData = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
+        console.log('activityData.length : ', activityData.length);
+
+        //check the account enlistment
+        if (activityData.length > 0) {
+            if (activityData[0].activity_status_type_id === 162) {
+                console.log("Account enlistment already completed!")
+                error = true
+                responseData.push({ 'message': 'Account name change is not allowed.Account is already enlisted' });
+                return [error, responseData];
+            }
+        }
+
+
+        //Check the uniqueness of the account title
+        if (isNameDedupeRequired) {
+            let isAccountPresent = await duplicateAccountNameElasticSearch(request, accountTitle);
+            if (isAccountPresent) {
+                console.log("Account name already exists!")
+                error = true
+                responseData.push({ 'message': 'Account Name already exists!' });
+                return [error, responseData];
+            } else {
+                console.log("No issues you can procced")
+                error = false
+                responseData.push({ 'message': 'No issues you can procced' });
+                return [error, responseData];
+            }
+        }
+
+        return [error, responseData];
+    }
+
+
     this.checkAccountNameForDuplicate = async (request) => {
         let error = false,
             responseData = [];
@@ -1950,6 +2024,44 @@ function ActivityConfigService(db,util,objCollection) {
 
         return responseData;
     }
+
+
+    async function checkAccountTitleDedupe(request, botInlineData) {
+        let responseData = {};
+
+        let activityTypeID = Number(request.activity_type_id);
+        let isNameDedupeRequired = false;
+
+        switch (activityTypeID) {
+            case 149277://LA - Large Account                     
+            case 150442://GE - VGE Segment
+            case 150443: //Regular Govt/Govt SI Segment
+            case 150254: //VICS - Carrier partner addition
+
+                if (botInlineData.hasOwnProperty("is_name_dedupe_required") && Number(botInlineData.is_name_dedupe_required) === 1) {
+                    isNameDedupeRequired = true;
+                }
+                break;
+
+
+            case 149809: //SME
+            case 150444: //SOHO                         
+
+                for (const i of botInlineData) {
+                    if (i.hasOwnProperty("is_name_dedupe_required") && Number(i.is_name_dedupe_required) === 1) {
+                        isNameDedupeRequired = true;
+                    }
+
+                }
+                break;
+
+        }
+
+        responseData.is_name_dedupe_required = isNameDedupeRequired;
+
+        return responseData;
+    }
+
 
     async function getFieldValueUsingFieldIdV1(request,formID,fieldID) {
         console.log(' ');
