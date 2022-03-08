@@ -12315,6 +12315,30 @@ if (queryString !== '') {
         return [error, responseData];
     };
 
+    this.workforceListDelete = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.workforce_id,
+            request.organization_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_workforce_list_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 }
 
 module.exports = AdminOpsService;
