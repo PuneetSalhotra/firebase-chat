@@ -3941,6 +3941,41 @@ function TasiService(objectCollection) {
 
         return [error, responseData]
     }
+
+    this.getSipList = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.input_type_id,
+            request.flag,
+            request.input_flag_is_processed,
+            request.asset_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.input_period_type_id,
+            request.financial_year,
+            request.data_entity_id,
+            request.workforce_tag_id,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+
+        const queryString = util.getQueryString('ds_p3_input_list_select_sip', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = TasiService;
