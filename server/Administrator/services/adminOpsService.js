@@ -5848,13 +5848,15 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.asset_type_flag_enable_send_sms || 0,
             request.asset_type_flag_form_access || 0,
             request.asset_type_flag_email_login || 0,
+            request.asset_type_flag_enable_dashboard || 0,
+            request.asset_type_flag_enable_gamification || 0,
             workforceID,
             accountID,
             organizationID,
             request.asset_id,
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_3_workforce_asset_type_mapping_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_4_workforce_asset_type_mapping_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)

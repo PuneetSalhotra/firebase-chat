@@ -159,12 +159,13 @@ function TasiService(objectCollection) {
             request.asset_type_flag_sip_admin_access,
             request.asset_type_flag_enable_dashboard || 0,
             request.asset_type_flag_enable_gamification || 0,
+            request.asset_type_flag_enable_gantt_chart || 0,
             request.organization_id,
             request.flag,
             util.getCurrentUTCTime(),
             request.asset_id
         );
-        const queryString = util.getQueryString('ds_p8_workforce_asset_type_mapping_update', paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_workforce_asset_type_mapping_update', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -3940,6 +3941,41 @@ function TasiService(objectCollection) {
         }
 
         return [error, responseData]
+    }
+
+    this.getSipList = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.input_type_id,
+            request.flag,
+            request.input_flag_is_processed,
+            request.asset_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.input_period_type_id,
+            request.financial_year,
+            request.data_entity_id,
+            request.workforce_tag_id,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+
+        const queryString = util.getQueryString('ds_p3_input_list_select_sip', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
     }
 }
 
