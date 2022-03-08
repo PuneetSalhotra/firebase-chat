@@ -193,6 +193,16 @@ function ActivityConfigController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/activity/title/edit/dedupe', async (req, res) => {
+        const [err, data] = await activityConfigService.checkTitleDedupe(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log('Error - /activity/title/edit/dedupe:', err);
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/activity/owner/flag/set', async (req, res) => {
         const [err, data] = await activityConfigService.setAtivityOwnerFlag(req.body);
         if (!err) {
