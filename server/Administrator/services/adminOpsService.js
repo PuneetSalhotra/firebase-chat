@@ -5850,6 +5850,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.asset_type_flag_email_login || 0,
             request.asset_type_flag_enable_dashboard || 0,
             request.asset_type_flag_enable_gamification || 0,
+            request.asset_type_flag_enable_gantt_chart || 0,
             workforceID,
             accountID,
             organizationID,
