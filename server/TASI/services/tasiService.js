@@ -3633,6 +3633,7 @@ function TasiService(objectCollection) {
             request.flag,
             request.flag_type,
             request.asset_tag_id_1,
+            request.asset_tag_type_id_1,
             request.level_id,
             request.timeline_id,
             request.period_type_id,
@@ -3649,7 +3650,7 @@ function TasiService(objectCollection) {
             request.limit_value
         );
 
-        const queryString = util.getQueryString('ds_p3_3_entity_target_mapping_select', paramsArr);
+        const queryString = util.getQueryString('ds_p3_4_entity_target_mapping_select', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
