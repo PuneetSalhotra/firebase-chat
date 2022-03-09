@@ -1159,7 +1159,7 @@ function ActivityConfigService(db,util,objCollection) {
                 return [true, responseData];
             }
             if (panresponse.length > 0) {
-                responseData.push({ 'message': 'Pan already exists!' });
+                responseData.push({ 'message': 'The entered Pan already exists in the account '+panresponse[0].account_code });
                 return [true, responseData];
             }
         }
@@ -1477,7 +1477,7 @@ function ActivityConfigService(db,util,objCollection) {
                 // console.log(Number(i_iterator._source.activity_id) !== Number(request.workflow_activity_id))
                 if((Number(i_iterator._source.log_state) != 3 && i_iterator._source.activity_cuid_1.toUpperCase() === panNumber.toUpperCase()) && (Number(i_iterator._source.activity_id) !== Number(request.workflow_activity_id))) {
                     
-                    responseData.push({'message': 'Found a Match!'});
+                    responseData.push({'message': 'Found a Match!', "account_code" : i_iterator._source.activity_cuid_3});
                     console.log('found a Match!');
                 }
             }
