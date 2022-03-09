@@ -3688,6 +3688,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
+                    entityTargetMappingHistoryInsert({ ...request }, 3003)
                 })
                 .catch((err) => {
                     error = err;
