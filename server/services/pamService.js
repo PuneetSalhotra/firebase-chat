@@ -1869,11 +1869,12 @@ this.sendSms = async (countryCode, phoneNumber, smsMessage) =>{
                 request.datetime_log,
                 request.is_member || 0,
                 request.invite_sent || 0,
-                request.discount_percent || 0
+                request.discount_percent || 0,
+                request.asset_type_id
                 );
 
         //var queryString = util.getQueryString('ds_v1_asset_list_update_pam', paramsArr);
-        let queryString = util.getQueryString('ds_v1_1_asset_list_update_pam', paramsArr);
+        let queryString = util.getQueryString('ds_v1_2_asset_list_update_pam', paramsArr);
         if (queryString != '') {
             //global.logger.write(queryString, request, 'asset', 'trace');
             db.executeQuery(0, queryString, request, function (err, assetData) {
