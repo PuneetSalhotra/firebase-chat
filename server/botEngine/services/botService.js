@@ -1994,7 +1994,7 @@ function BotService(objectCollection) {
                             request.opportunity_update = true;
                             updateCuids = botOperationsJson.bot_operations.update_cuids;
 
-                        } else if (Number(request.activity_type_category_id) === 63 && Number(request.activity_type_id) === 190798) {
+                        } else if (Number(request.activity_type_category_id) === 63) {
 
                             let formID = request.form_id;
                             let activityId = request.workflow_activity_id || request.activity_id;
