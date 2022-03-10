@@ -4116,21 +4116,32 @@ function ActivityListingService(objCollection) {
 
 		let htmlString = "";
 		let attachmentPath = "";
+		let activityTypeId = Number(request.activity_type_id) || 0;
 		const [errorZero, childMOM] = await this.activityListSelectChildOrders({
 			organization_id: request.organization_id,
 			parent_activity_id: request.activity_id,
-			flag: 3
+			flag: 5
 		});
 
 		if (errorZero || childMOM.length === 0) {
 			return [htmlString, attachmentPath];
 		}
 
+		let meetingRequestFormId = 50816;
+		let scheduledTimeFieldId = 312542;
+		let nsr1FieldId = 316536;
+		let nsr2FieldId = 316535;
+		if(activityTypeId === 197905) {
+			meetingRequestFormId = 51493;
+			scheduledTimeFieldId = 318525;
+			nsr1FieldId = 318631;
+		}
+
 		const formTimelineDataOfMeeting = await activityCommonService.getActivityTimelineTransactionByFormId713({
 			organization_id: request.organization_id,
 			account_id: request.account_id
-		}, request.activity_id, 50816);
-		//312542
+		}, request.activity_id, meetingRequestFormId);
+
 		let meetingDate = "";
 
 		let formTransactionID = 0, formActivityID = 0;
@@ -4143,15 +4154,15 @@ function ActivityListingService(objCollection) {
 
 			const fieldData = await getFieldValue({
 				form_transaction_id: formTransactionID,
-				form_id: 50816,
-				field_id: 312542,
+				form_id: meetingRequestFormId,
+				field_id: scheduledTimeFieldId,
 				organization_id: request.organization_id
 			});
 
 			let fieldDataOfAttachment = await getFieldValue({
 				form_transaction_id: formTransactionID,
-				form_id: 50816,
-				field_id: 316536,
+				form_id: meetingRequestFormId,
+				field_id: nsr1FieldId,
 				organization_id: request.organization_id
 			});
 
@@ -4162,8 +4173,8 @@ function ActivityListingService(objCollection) {
 			if (attachmentPath == null || attachmentPath == "") {
 				fieldDataOfAttachment = await getFieldValue({
 					form_transaction_id: formTransactionID,
-					form_id: 50816,
-					field_id: 316535,
+					form_id: meetingRequestFormId,
+					field_id: nsr2FieldId,
 					organization_id: request.organization_id
 				});
 
@@ -4178,13 +4189,13 @@ function ActivityListingService(objCollection) {
 				if (entityInlineJSON.hasOwnProperty("start_date_time")) {
 					meetingDate = entityInlineJSON.start_date_time;
 					if (meetingDate) {
+						console.log(meetingDate);
 						meetingDate = moment(meetingDate);
 						meetingDate = `${meetingDate.format('DD')}-${meetingDate.format("MMMM")}`;
 					}
 				}
 			}
 		}
-
 
 		let finalSummaryData = [];
 		let momFieldMappingsForSummary = {
@@ -4228,26 +4239,74 @@ function ActivityListingService(objCollection) {
 					"Comments": 313566
 				}
 			},
-			"field_order": [
-				"SL_NO",
-				"Meeting_ID",
-				"MOM_Point_ID",
-				"Discussion_Point",
-				"Description",
-				"Responsible_Person_Email_ID",
-				"Responsibility_Holder",
-				"Category_ID",
-				"Assigned_To",
-				"Assigned_Date",
-				"Due_Date",
-				"Comments",
-				"Status"
-			],
+			"197905": {
+				"form_id": 51501,
+				"fields": {
+					"Discussion_Point": 318645,
+					"Description": 318646,
+					"Responsible_Person_Email_ID": 318607,
+					"Responsibility_Holder": 318608,
+					"Category_ID": 318616,
+					"Assigned_To": 318609,
+					"Assigned_Date": 318610,
+					"Target_Closure_Date": 318611,
+					"Comments": 318612
+				}
+			},
+			"field_order": {
+				"190797": [
+					"SL_NO",
+					"Meeting_ID",
+					"MOM_Point_ID",
+					"Discussion_Point",
+					"Description",
+					"Responsible_Person_Email_ID",
+					"Responsibility_Holder",
+					"Category_ID",
+					"Assigned_To",
+					"Assigned_Date",
+					"Due_Date",
+					"Comments",
+					"Status"
+				],
+				"191879": [
+					"SL_NO",
+					"Meeting_ID",
+					"MOM_Point_ID",
+					"Discussion_Point",
+					"Description",
+					"Responsible_Person_Email_ID",
+					"Responsibility_Holder",
+					"Category_ID",
+					"Assigned_To",
+					"Assigned_Date",
+					"Due_Date",
+					"Comments",
+					"Status"
+				],
+				"197905": [
+					"SL_NO",
+					"Meeting_ID",
+					"MOM_Point_ID",
+					"Discussion_Point",
+					"Description",
+					"Responsible_Person_Email_ID",
+					"Responsibility_Holder",
+					"Category_ID",
+					"Assigned_To",
+					"Assigned_Date",
+					"Target_Closure_Date",
+					"Comments",
+					"Status"
+				]
+			},
 			"date_fields": [
 				312767,
 				312432,
 				313563,
-				313562
+				313562,
+				318610,
+				318611
 			]
 		};
 
@@ -4274,7 +4333,6 @@ function ActivityListingService(objCollection) {
 			for (let fieldData of inlineJSON) {
 				fieldIDValue[String(fieldData.field_id)] = fieldData.field_value;
 			}
-
 
 			let data = {};
 			data["SL_NO"] = i + 1;
@@ -4314,14 +4372,14 @@ function ActivityListingService(objCollection) {
 
 		htmlString = `<p>Hi,</p><p>Greetings from Vi&trade;</p><p>The mail is to inform you that Based on Meeting Id:${wfActivityDetails[0].activity_cuid_3} on ${meetingDate} with ${wfActivityDetails[0].activity_title}, the updated discussion points are the following point(s).</p><br><table width="100%" border="1" cellspacing="0"><thead><tr>`;
 
-		for (const key of momFieldMappingsForSummary["field_order"]) {
+		for (const key of momFieldMappingsForSummary["field_order"][String(request.activity_type_id)]) {
 			htmlString += '<th>' + key + '</th>';
 		}
 		htmlString += '</tr></thead><tbody>';
 
 		for (let child of finalSummaryData) {
 			htmlString += '<tr>';
-			for (const key of momFieldMappingsForSummary["field_order"]) {
+			for (const key of momFieldMappingsForSummary["field_order"][String(request.activity_type_id)]) {
 				htmlString += '<td>' + child[key] + '</td>';
 			}
 			htmlString += '</tr>';

@@ -1129,6 +1129,50 @@ function TasiController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/tasi/sip/input/list/select', async (req, res) => {
+
+        let [err, result] = await tasiService.getSipList(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            console.log("/tasi/sip/input/list/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/report/list/history/select', async (req, res) => {
+
+        let [err, result] = await tasiService.selectReportListHistory(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            console.log("/tasi/report/list/history/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/account/target/setting/history/select', async (req, res) => {
+
+        let [err, result] = await tasiService.selectAccountTargetSettingHistory(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            console.log("/tasi/account/target/setting/history/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/parameter/mapping/history/select', async (req, res) => {
+
+        let [err, result] = await tasiService.selectParameterMappingHistory(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            console.log("/tasi/parameter/mapping/history/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
 }
 
 module.exports = TasiController;

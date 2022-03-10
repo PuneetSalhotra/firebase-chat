@@ -5848,13 +5848,16 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             request.asset_type_flag_enable_send_sms || 0,
             request.asset_type_flag_form_access || 0,
             request.asset_type_flag_email_login || 0,
+            request.asset_type_flag_enable_dashboard || 0,
+            request.asset_type_flag_enable_gamification || 0,
+            request.asset_type_flag_enable_gantt_chart || 0,
             workforceID,
             accountID,
             organizationID,
             request.asset_id,
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_3_workforce_asset_type_mapping_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_4_workforce_asset_type_mapping_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -11811,13 +11814,14 @@ if (queryString !== '') {
 
         const paramsArr = new Array(
           request.asset_type_id,
+          request.target_asset_id,
           request.access_level_id,
           request.activity_type_id,
           request.organization_id,
           request.asset_id,
           util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p2_asset_type_access_mapping_delete', paramsArr);
+        const queryString = util.getQueryString('ds_p2_1_asset_type_access_mapping_delete', paramsArr);
 
 
         if (queryString !== '') {
@@ -12284,6 +12288,60 @@ if (queryString !== '') {
         return [error, responseData];
     };
 
+    this.workforceActivityTypeMappingTagCategorySelect = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.level_id,
+          request.organization_id,
+          request.account_id,
+          request.workforce_id,
+          request.activity_type_category_id,
+          request.tag_type_category_id,
+          request.start_from,
+          request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_select_tag_category', paramsArr);
+
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+
+    this.workforceListDelete = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.workforce_id,
+            request.organization_id,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_v1_workforce_list_delete', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 }
 
 module.exports = AdminOpsService;

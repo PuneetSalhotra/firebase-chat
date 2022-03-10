@@ -1780,6 +1780,7 @@ function BotService(objectCollection) {
                         let flag = 0;
                         let activityInlineData;
                         let product_variant_activity_title = ""
+                        let cartItems = [];
                         try {
                             i.bot_operation_start_datetime = util.getCurrentUTCTime();
                             if (!request.hasOwnProperty('activity_inline_data')) {
@@ -1811,7 +1812,7 @@ function BotService(objectCollection) {
                                 activityProductSelection = i.field_value;
 
                                 let fieldValue = JSON.parse(i.field_value);
-                                let cartItems = fieldValue.cart_items;
+                                 cartItems = fieldValue.cart_items;
                                 util.logInfo(request, `typeof Cart Items : %j`, typeof cartItems);
                                 util.logInfo(request, `Cart Items :  %j`, cartItems);
                                 request.debug_info.push('typeof Cart Items: ' + typeof cartItems);
@@ -1955,7 +1956,21 @@ function BotService(objectCollection) {
                             request.debug_info.push('Its not a custom Variant. Hence not triggering the Bot!');
                             request.debug_info.push('OR It has non-zero parent activity ID: ' + Number(request.parent_activity_id));
 
-                            await addTimelineEntry({ ...request, content: `BC excel mapping is not configured for this opportunity as it is a standard plan`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                            let timelineEntryDone = false;
+                            for (let cartItem of cartItems) {
+                                let productVariantActivityId = cartItem.product_variant_activity_id
+                                let message = botOperationsJson.bot_operations.standard_product_cart_message[String(productVariantActivityId)];
+
+                                if (message) {
+                                    await addTimelineEntry({ ...request, content: message, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                                    timelineEntryDone = true;
+                                }
+                            }
+
+                            if (!timelineEntryDone) {
+                                await addTimelineEntry({ ...request, content: `BC excel mapping is not configured for this opportunity as it is a standard plan`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                            }
+
                         }
                         //await handleBotOperationMessageUpdate(request, i, 3);
                         i.bot_operation_end_datetime = util.getCurrentUTCTime();
@@ -1979,7 +1994,7 @@ function BotService(objectCollection) {
                             request.opportunity_update = true;
                             updateCuids = botOperationsJson.bot_operations.update_cuids;
 
-                        } else if (Number(request.activity_type_category_id) === 63 && Number(request.activity_type_id) === 190798) {
+                        } else if (Number(request.activity_type_category_id) === 63) {
 
                             let formID = request.form_id;
                             let activityId = request.workflow_activity_id || request.activity_id;
@@ -2732,8 +2747,7 @@ function BotService(objectCollection) {
                                 MessageBody: JSON.stringify({
                                     request,
                                     requestType: "mom_child_orders",
-                                    form_field_copy: botOperationsJson.bot_operations.form_field_copy,
-                                    condition: botOperationsJson.bot_operations.condition
+                                    ...botOperationsJson.bot_operations
                                 }),
                                 QueueUrl: global.config.ChildOrdersSQSqueueUrl,
                                 MessageGroupId: `mom-creation-queue-v1`,

@@ -347,6 +347,56 @@ function AssetConfigService() {
         return [error, responseData];
     }
 
+    this.inputListInsertV2 = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+          request.input_name,
+          request.input_type_id,
+          request.input_url1,
+          request.input_url2,
+          request.input_url3,
+          request.input_url4,
+          request.input_url5,
+          request.input_text,
+          request.input_inline_data,
+          request.input_upload_datetime,
+          request.period_type_id,
+          request.data_entity_id,
+          request.data_entity_name,
+          request.data_entity_type_id,
+          request.data_entity_type_name,
+          request.period_start_datetime,
+          request.period_end_datetime,
+          request.financial_year,
+          request.workforce_tag_id,
+          request.level_id,
+          request.product_id,
+          request.widget_type_id,
+          request.asset_id,
+          request.asset_type_id,
+          request.organization_id,
+          request.asset_id,
+          util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p3_input_list_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then(async (data) => {
+                    responseData = data;
+                    error = false;
+                    request.input_id = data[0].input_id 
+                  request.update_type_id = 2801;
+                await this.inputListHistoryInsert(request)
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     this.inputListUpdate = async (request) => {
 
         let responseData = [],
