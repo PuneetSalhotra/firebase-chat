@@ -2732,8 +2732,7 @@ function BotService(objectCollection) {
                                 MessageBody: JSON.stringify({
                                     request,
                                     requestType: "mom_child_orders",
-                                    form_field_copy: botOperationsJson.bot_operations.form_field_copy,
-                                    condition: botOperationsJson.bot_operations.condition
+                                    ...botOperationsJson.bot_operations
                                 }),
                                 QueueUrl: global.config.ChildOrdersSQSqueueUrl,
                                 MessageGroupId: `mom-creation-queue-v1`,
