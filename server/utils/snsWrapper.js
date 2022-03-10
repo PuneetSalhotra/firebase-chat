@@ -51,6 +51,10 @@ let AwsSns = function () {
             'content-available': 1,
         };
 
+        if(Number(message.activity_type_category_id) === 16 || Number(message.activity_type_category_id) === 27 || Number(message.activity_type_category_id) === 48 || Number(message.activity_type_category_id) === 53) {
+            aps.category = "QuickReply";
+        }
+
         if (isSilentPush) {
             aps = {
                 'badge': badgeCount,

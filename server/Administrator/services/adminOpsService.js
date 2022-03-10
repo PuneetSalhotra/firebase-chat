@@ -1740,7 +1740,7 @@ if (errZero_7 || Number(checkAadhar.length) > 0) {
             );
     
             let queryStringLead = util.getQueryString('ds_p1_asset_list_update_flag_asset_approval',paramsArrLead);
-            if(queryString !== '') {
+            if(queryStringLead !== '') {
                 try {
                     const data = await db.executeQueryPromise(0,queryStringLead,request);
                     // await callAddTimelineEntry(request);
