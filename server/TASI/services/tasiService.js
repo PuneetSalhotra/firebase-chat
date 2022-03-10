@@ -2796,6 +2796,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
+                    this.insertAccountTargetSettingHistory({ ...request, target_setting_id: data[0].target_setting_id, update_type_id: 3901 });
                 })
                 .catch((err) => {
                     error = err;
@@ -2822,6 +2823,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
+                    this.insertAccountTargetSettingHistory({ ...request, target_setting_id: request.account_target_setting_id, update_type_id: 3903 });
                 })
                 .catch((err) => {
                     error = err;
@@ -3130,6 +3132,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
+                    this.insertParameterMappingHistory({ ...request, parameter_mapping_id: data[0].parameter_mapping_id, update_type_id: 4001 });
                 })
                 .catch((err) => {
                     error = err;
@@ -3157,6 +3160,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
+                    this.insertParameterMappingHistory({ ...request, update_type_id: 4003 });
                 })
                 .catch((err) => {
                     error = err;
@@ -3979,6 +3983,133 @@ function TasiService(objectCollection) {
         }
         return [error, responseData];
     }
+
+    this.selectReportListHistory = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.report_id,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+
+        const queryString = util.getQueryString('ds_p1_report_list_history_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.insertAccountTargetSettingHistory = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.organization_id,
+            request.target_setting_id,
+            request.update_type_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_account_target_setting_history_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [false, responseData];
+    }
+
+    this.selectAccountTargetSettingHistory = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.target_setting_id,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+
+        const queryString = util.getQueryString('ds_p1_account_target_setting_history_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.insertParameterMappingHistory = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.organization_id,
+            request.parameter_mapping_id,
+            request.update_type_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_parameter_mapping_history_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [false, responseData];
+    }
+
+    this.selectParameterMappingHistory = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.parameter_mapping_id,
+            request.start_from || 0,
+            request.limit_value || 50
+        );
+
+        const queryString = util.getQueryString('ds_p1_parameter_mapping_history_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 }
 
 module.exports = TasiService;
