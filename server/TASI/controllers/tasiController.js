@@ -251,6 +251,17 @@ function TasiController(objCollection) {
             res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/tasi/entity/target/mapping/insert/v1', async function (req, res) {
+        const [err, resData] = await tasiService.addEntityTargetMappingV1(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/tasi/entity/target/mapping/insert/v1 | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
     app.post('/' + global.config.version + '/tasi/entity/target/mapping/delete', async function (req, res) {
         const [err, resData] = await tasiService.removeEntityTargetMapping(req.body);
         if (!err) {
@@ -1169,6 +1180,17 @@ function TasiController(objCollection) {
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
             console.log("/tasi/parameter/mapping/history/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/tasi/entity/traget/mapping/archive', async (req, res) => {
+
+        let [err, result] = await tasiService.entityTargetMappingArchiveV1(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            console.log("/tasi/entity/traget/mapping/archive | Error: ", err);
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });
