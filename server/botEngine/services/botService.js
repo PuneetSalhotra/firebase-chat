@@ -429,7 +429,7 @@ function BotService(objectCollection) {
                         let statusDetails = await getStatusName(request, activityStatusId);
 
                         for(let status of statusDetails) {
-                            console.log("status", JSON.stringify(status));
+                            util.logInfo("status", JSON.stringify(status));
                             let [err,assetList] = await assetService.getAssetTypeList({
                                 organization_id : request.organization_id,
                                 asset_type_id : status.asset_type_id,
@@ -442,7 +442,7 @@ function BotService(objectCollection) {
                                 console.error("Got Error");
                                 return [err, []];
                             }
-                            console.log("assetList", JSON.stringify(assetList));
+                            util.logInfo("assetList", JSON.stringify(assetList));
                             let sequence_id = 1;
                             for(let row of assetList) {
                                 await updateAssetSequenceId({
