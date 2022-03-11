@@ -1405,7 +1405,7 @@ function BotService(objectCollection) {
                             i.bot_operation_inline_data = JSON.stringify({
                                 "err": err
                             });
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //return Promise.reject(err);
                         }
                         util.logInfo(request, `****************************************************************`);
@@ -1438,7 +1438,7 @@ function BotService(objectCollection) {
                             });
                             //return Promise.reject(err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                         }
                         util.logInfo(request, `****************************************************************`);
@@ -1464,7 +1464,7 @@ function BotService(objectCollection) {
                             });
                             //return Promise.reject(err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                         }
                         util.logInfo(request, `****************************************************************`);
@@ -1499,7 +1499,7 @@ function BotService(objectCollection) {
                             });
                             //return Promise.reject(err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                         }
                         util.logInfo(request, '****************************************************************');
@@ -1523,7 +1523,7 @@ function BotService(objectCollection) {
                             });
                             //return Promise.reject(err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                         }
                         util.logInfo(request, '****************************************************************');
@@ -1561,7 +1561,7 @@ function BotService(objectCollection) {
                             });
                             //return Promise.reject(err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                         }
                         util.logInfo(request, '****************************************************************');
@@ -1598,7 +1598,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //return Promise.reject(err);
                         }
                         util.logInfo(request, '****************************************************************');
@@ -1622,7 +1622,7 @@ function BotService(objectCollection) {
                                 "err": err
                             });
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             // await handleBotOperationMessageUpdate(request, i, 4, err);
                         }
                         util.logInfo(request, `****************************************************************`);
@@ -1665,7 +1665,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                         }
                         util.logInfo(request, `****************************************************************`);
                         break;
@@ -1705,7 +1705,7 @@ function BotService(objectCollection) {
                                 "err": err
                             });
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                         }
                         util.logInfo(request, `****************************************************************`);
@@ -1725,7 +1725,7 @@ function BotService(objectCollection) {
                             util.logError(request, `LEDGER TRANSACTION Error: `, { type: 'bot_engine', error });
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -1750,7 +1750,7 @@ function BotService(objectCollection) {
                         } catch (error) {
                             util.logError(request, `CREATE CUSTOMER Error: `, { type: 'bot_engine', error });
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                         }
                         break;
@@ -1765,7 +1765,7 @@ function BotService(objectCollection) {
                         } catch (error) {
                             util.logError(request, `Workflow Reference Bot: `, { type: 'bot_engine', error });
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                         }
                         break;
@@ -1799,7 +1799,7 @@ function BotService(objectCollection) {
                             logger.error("Error parsing inline JSON for workbook bot", { type: 'bot_engine', error, request_body: request });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
 
                         util.logInfo(request, ` `);
@@ -1921,7 +1921,7 @@ function BotService(objectCollection) {
                                             logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
                                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                                            i.bot_operation_error_message = error;
+                                            i.bot_operation_error_message = serializeError(error);
                                             activityCommonService.workbookTrxUpdate({
                                                 activity_workbook_transaction_id: workbookTxnID,
                                                 flag_generated: -1, //Error pushing to SQS Queue
@@ -1947,7 +1947,7 @@ function BotService(objectCollection) {
                                 logger.error("Error running the Workbook Mapping Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                                 //await handleBotOperationMessageUpdate(request, i, 4, error);
                                 i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                                i.bot_operation_error_message = error;
+                                i.bot_operation_error_message = serializeError(error);
                             }
                         } else {
                             util.logInfo(request, `Its not a custom Variant. Hence not triggering the Bot!`);
@@ -2022,7 +2022,7 @@ function BotService(objectCollection) {
                             logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2038,7 +2038,7 @@ function BotService(objectCollection) {
                             logger.error("Error running the setDueDateOfWorkflow", { type: 'bot_engine', error: serializeError(error), request_body: request });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2057,7 +2057,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2085,7 +2085,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2106,7 +2106,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2124,7 +2124,7 @@ function BotService(objectCollection) {
                                 "error": error
                             });
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                         }
                         break;
@@ -2151,7 +2151,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2175,7 +2175,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //return Promise.reject(err);
                         }
                         util.logInfo(request, '****************************************************************');
@@ -2199,7 +2199,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //return Promise.reject(err);
                         }
                         util.logInfo(request, '****************************************************************');
@@ -2224,7 +2224,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                         }
                         util.logInfo(request, '****************************************************************');
 
@@ -2282,7 +2282,7 @@ function BotService(objectCollection) {
                                     });
                                     //await handleBotOperationMessageUpdate(request, i, 4, error);
                                     i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                                    i.bot_operation_error_message = error;
+                                    i.bot_operation_error_message = serializeError(error);
                                 } else {
                                     logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
                                 }
@@ -2307,7 +2307,7 @@ function BotService(objectCollection) {
                             //return Promise.reject(err);
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                         }
                         util.logInfo(request, '****************************************************************');
                         break;
@@ -2330,7 +2330,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //return Promise.reject(err);
                         }
                         util.logInfo(request, '****************************************************************');
@@ -2418,7 +2418,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                         }
                         util.logInfo(request, '****************************************************************');
                         break;
@@ -2436,7 +2436,7 @@ function BotService(objectCollection) {
                             //await handleBotOperationMessageUpdate(request, i, 3);
                         } catch (error) {
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                         }
 
@@ -2457,7 +2457,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2488,7 +2488,7 @@ function BotService(objectCollection) {
                                 "error": error
                             });
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                         }
                         break;
@@ -2550,7 +2550,7 @@ function BotService(objectCollection) {
                                 "error_stack": error.stack
                             });
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                         }
                         break;
@@ -2580,7 +2580,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2603,7 +2603,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                         }
                         util.logInfo(request, `****************************************************************`);
                         break;
@@ -2622,7 +2622,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2644,7 +2644,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                         }
                         util.logInfo(request, `****************************************************************`);
                         break;
@@ -2668,7 +2668,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                         }
                         util.logInfo(request, `****************************************************************`);
                         break;
@@ -2691,7 +2691,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                         }
                         util.logInfo(request, `****************************************************************`);
                         break;
@@ -2764,7 +2764,7 @@ function BotService(objectCollection) {
                                     util.logError(request, request.workflow_activity_id + `: Error sending excel job to SQS queue`, { type: 'bot_engine', error });
                                     //await handleBotOperationMessageUpdate(request, i, 4, error);
                                     i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                                    i.bot_operation_error_message = error;
+                                    i.bot_operation_error_message = serializeError(error);
                                 } else {
                                     logger.info(request.workflow_activity_id + ": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
                                     util.logInfo(request, `${request.workflow_activity_id} : Successfully sent excel job to SQS queue:  %j`, data);
@@ -2809,7 +2809,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //return Promise.reject(err);
                         }
                         util.logInfo(request, '****************************************************************');
@@ -2836,7 +2836,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2855,7 +2855,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2874,7 +2874,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2893,7 +2893,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2909,7 +2909,7 @@ function BotService(objectCollection) {
                             logger.error("Error running the removeDueDateOfWorkflow", { type: 'bot_engine', error: serializeError(error), request_body: request });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2925,7 +2925,7 @@ function BotService(objectCollection) {
                             logger.error("Error running the smeGemification", { type: 'bot_engine', error: serializeError(error), request_body: request });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
                     
@@ -2943,7 +2943,7 @@ function BotService(objectCollection) {
                                 "error": error
                             });
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                         }
 
