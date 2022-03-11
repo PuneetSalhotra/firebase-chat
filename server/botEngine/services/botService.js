@@ -438,6 +438,13 @@ function BotService(objectCollection) {
                                 limit_value : 1000
                             });
     
+                            await updateArpRRFlag({
+                                organization_id : request.organization_id,
+                                asset_type_id : status.asset_type_id,
+                                asset_type_arp_round_robin_enabled : 1,
+                                log_asset_id : request.asset_id
+                            });
+
                             if(err) {
                                 console.error("Got Error");
                                 return [err, []];
@@ -17972,7 +17979,35 @@ if(workflowActivityData.length==0){
                         });
                 }
         } catch(e) {
+            util.logError(request,`[Error] bot data update `, { type: 'bot_config', e });
+            return [true, []];
+        }
+    }
 
+    async function updateArpRRFlag(request){
+        try {
+            let error = true;
+            let paramsArray =
+                new Array(
+                    request.organization_id,
+                    request.asset_type_id,
+                    request.asset_type_arp_round_robin_enabled || 0,
+                    request.log_asset_id,
+                    util.getCurrentUTCTime()
+                );
+                const queryString = util.getQueryString('ds_v1_workforce_asset_type_mapping_update_arp_rr', paramsArray);
+                if (queryString != '') {
+                    await db.executeQueryPromise(0, queryString, request)
+                       .then((data)=>{
+                            error = false;
+                        }).catch((err)=>{
+                            util.logError(request,`[Error] bot data update `, { type: 'bot_config', err });
+                            error = err;
+                        });
+                }
+        } catch(e) {
+            util.logError(request,`[Error] bot data update `, { type: 'bot_config', e });
+            return [true, []];
         }
     }
 }
