@@ -778,6 +778,46 @@ function PamController(objCollection) {
             console.log("/pam/menu/recommend/set | Error: ", err);
             res.json(responseWrapper.getResponse(true, result, -9999, req.body));
         }
+    });
+    app.post('/' + global.config.version + '/pam/asset/update/user/profile', async function (req, res) {
+
+        let [err, result] = await pamService.pamEditProfileWithPhoneNumber(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            console.log("/pam/asset/update/user/profile | Error: ", err);
+            res.json(responseWrapper.getResponse(true, result, -9999, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/pam/get/asset/user/profile', async function (req, res) {
+
+        let [err, result] = await pamService.pamGetProfileWithPhoneNumber(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            console.log("/pam/get/asset/user/profile | Error: ", err);
+            res.json(responseWrapper.getResponse(true, result, -9999, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/pam/add/menu/rating/comment', async function (req, res) {
+
+        let [err, result] = await pamService.assetAddRatingAndCommentToMenu(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            console.log("/pam/add/menu/rating/comment | Error: ", err);
+            res.json(responseWrapper.getResponse(true, result, -9999, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/pam/get/menu/select/detailes', async function (req, res) {
+
+        let [err, result] = await pamService.pamOrderListGetSelectDetailes(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            console.log("/pam/get/menu/select/detailes | Error: ", err);
+            res.json(responseWrapper.getResponse(true, result, -9999, req.body));
+        }
     });    
 };
 

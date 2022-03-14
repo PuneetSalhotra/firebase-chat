@@ -6952,6 +6952,154 @@ this.getChildOfAParent = async (request) => {
                 })
         }
         return [error, responseData];
+    };
+    this.pamEditProfileWithPhoneNumber = async (request) => {
+        let err = true, response = [];
+        try {
+            let asset = await self.assetListSelectPhoneNumber(request);
+            if (asset.length !== 0) {
+                let [error, responseData] = await self.assetInlineDataUpdateUserProfile(request, asset[0].asset_id);
+                err = false;
+                return [error, responseData];
+            }
+            else {
+                return [err, -9995];
+            }
+        } catch (error) {
+
+            return [err, -9999];
+        }
+    };
+    this.pamGetProfileWithPhoneNumber = async (request) => {
+        let err = true, response = [];
+        try {
+            let asset = await self.assetListSelectPhoneNumber(request);
+            if (asset.length !== 0) {
+                let [error, responseData] = await self.assetInlineDataGetUserprofile(request, asset[0].asset_id);
+                err = false;
+                return [error, responseData];
+            }
+            else {
+                return [err, -9995];
+            }
+        } catch (error) {
+            return [err, -9999];
+        }
+    };
+    this.assetInlineDataUpdateUserProfile = async function (request, asset_id) {
+        let responseData = [],
+            error = true;
+        let inline_data = typeof request.update_value == 'string' ? JSON.parse(request.update_value) : request.update_value;
+        for (let i = 1; i <= 4; i++) {
+            let paramsArr = new Array(
+                request.organization_id,
+                asset_id,
+                util.getCurrentUTCTime(),
+                flag = i,
+                inline_data[i - 1]
+            );
+            const queryString = util.getQueryString('pm_asset_inline_data_update_user_profile', paramsArr);
+            if (queryString !== '') {
+                await db.executeQueryPromise(0, queryString, request)
+                    .then((data) => {
+                        responseData = data;
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+        }
+        return [error, responseData];
+    };
+    this.assetInlineDataGetUserprofile = async function (request, asset_id) {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.organization_id,
+            asset_id,
+        );
+        const queryString = util.getQueryString('pm_asset_inline_data_select_user_profile', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+    this.assetAddRatingAndCommentToMenu = async function (request) {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.activity_id,
+            request.activity_type_category_id,
+            request.comments,
+            request.rating,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('pm_activity_asset_mapping_update_ratings_comment', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then(async (data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+    this.pamOrderListGetSelectDetailes = async function (request) {
+        /* flag = 1 => Rating based on each menu item
+         flag = 2 => My orders history
+         flag = 3 => filter by status: all, in process, completed, cancelled
+         flag = 4 => search in orders */
+        let responseData = [],
+            error = true;
+        try {
+            let asset = await self.assetListSelectPhoneNumber(request);
+            if (asset.length !== 0) {
+                let paramsArr = new Array(
+                    request.organization_id,
+                    request.account_id,
+                    asset[0].asset_id,
+                    request.start_date,
+                    request.end_date,
+                    request.name,
+                    request.flag || 1,
+                    request.type || 0,
+                    request.activity_status_type_id,
+                    request.start_from || 0,
+                    request.limit_value
+                );
+                const queryString = util.getQueryString('pm_pam_order_list_get_select_details', paramsArr);
+                if (queryString !== '') {
+                    await db.executeQueryPromise(1, queryString, request)
+                        .then(async (data) => {
+                            responseData = data;
+                            error = false;
+                        })
+                        .catch((err) => {
+                            error = err;
+                        });
+                }
+                return [error, responseData];
+            }
+            else {
+                return [err, -9995];
+            }
+        } catch (error) {
+            return [err, -9999];
+        }
     };    
 };
 
