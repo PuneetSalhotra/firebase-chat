@@ -2628,15 +2628,24 @@ function ActivityService(objectCollection) {
                                 logger.info("activityService insufficient_data CALLING callAddParticipant");
                                 //rmbotService.callAddParticipant(request);
                             }else{
-                                /*
-                                request.global_array = [];
-                                request.ai_bot_trigger_key = "status_change_"+request.activity_id+"_"+request.activity_status_id;
-                                request.ai_bot_trigger_asset_id = 0;
-                                request.ai_bot_trigger_activity_id = request.activity_id;
-                                request.ai_bot_trigger_activity_status_id = request.activity_status_id;
-                                request.global_array.push({"status_change_":"NonMobile triggering ai in after status change "+JSON.stringify(request)});
+                                let [e, response] = await getArpLeadFlag({
+                                    organization_id : request.organization_id,
+                                    activity_id : request.activity_id,
+                                    activity_type_id : request.activity_type_id
+                                })
+    
+                                let arpLeadFlag = response[0].activity_type_arp_lead_setting_enabled || 0;
 
-                                rmbotService.triggerAIOnStatusChange(request); */
+                                if(arpLeadFlag) {
+                                    request.global_array = [];
+                                    request.ai_bot_trigger_key = "status_change_"+request.activity_id+"_"+request.activity_status_id;
+                                    request.ai_bot_trigger_asset_id = 0;
+                                    request.ai_bot_trigger_activity_id = request.activity_id;
+                                    request.ai_bot_trigger_activity_status_id = request.activity_status_id;
+                                    request.global_array.push({"status_change_":"NonMobile triggering ai in after status change "+JSON.stringify(request)});
+    
+                                    rmbotService.triggerAIOnStatusChange(request);
+                                }
                             }
                             //global.logger.write('conLog', '*****ALTER STATUS : HITTING WIDGET ENGINE*******', {}, request);
                             util.logInfo(request,`activityStatusChangeTxnInsertV2 *****ALTER STATUS : HITTING WIDGET ENGINE******* %j`,{request});
@@ -2656,14 +2665,22 @@ function ActivityService(objectCollection) {
                             //request.global_array = [];
                             //rmbotService.callAddParticipant(request);
                         }else{
-                            /*
-                            request.global_array = [];
-                            request.ai_bot_trigger_key = "status_change_"+request.activity_id+"_"+request.activity_status_id;
-                            request.ai_bot_trigger_asset_id = 0;
-                            request.ai_bot_trigger_activity_id = request.activity_id;
-                            request.ai_bot_trigger_activity_status_id = request.activity_status_id;                            
-                            request.global_array.push({"status_change_":"Mobile: triggering ai in after status change with no existing status "+JSON.stringify(request)});                            request.global_array.push({"0.0": request.activity_id+" triggering ai in after status change with no existing status"});
-                            rmbotService.triggerAIOnStatusChange(request); */
+                            let [e, response] = await getArpLeadFlag({
+                                organization_id : request.organization_id,
+                                activity_id : request.activity_id,
+                                activity_type_id : request.activity_type_id
+                            })
+
+                            let arpLeadFlag = response[0].activity_type_arp_lead_setting_enabled || 0;
+                            if(arpLeadFlag) {
+                                request.global_array = [];
+                                request.ai_bot_trigger_key = "status_change_"+request.activity_id+"_"+request.activity_status_id;
+                                request.ai_bot_trigger_asset_id = 0;
+                                request.ai_bot_trigger_activity_id = request.activity_id;
+                                request.ai_bot_trigger_activity_status_id = request.activity_status_id;                            
+                                request.global_array.push({"status_change_":"Mobile: triggering ai in after status change with no existing status "+JSON.stringify(request)});                            request.global_array.push({"0.0": request.activity_id+" triggering ai in after status change with no existing status"});
+                                rmbotService.triggerAIOnStatusChange(request); 
+                            }
                         }
                     }
                 }
@@ -6217,6 +6234,29 @@ function ActivityService(objectCollection) {
         return [error, responseData];
     }       
 
+    async function getArpLeadFlag(request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [
+            request.organization_id,
+            request.activity_id,
+            request.activity_type_id || 0
+        ];
+
+        const queryString = util.getQueryString('ds_v1_workforce_activity_type_mapping_select_activity', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 }
 
 module.exports = ActivityService;

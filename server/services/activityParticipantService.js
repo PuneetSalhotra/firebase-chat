@@ -112,6 +112,16 @@ function ActivityParticipantService(objectCollection) {
                         activityTitle = workflowActivityData[0].activity_title;
                         // 
                         request.activity_title = activityTitle;
+
+                        let parentActivityId = workflowActivityData[0].parent_activity_id
+                        if(parentActivityId != null && parentActivityId > 0) {
+                            // Add participant to parent as well
+                            let addParticipantToParentReq = Object.assign({},request);
+                            addParticipantToParentReq.activity_id = parentActivityId;
+                            this.assignCoworker(addParticipantToParentReq,async (err, resp) => {
+                                util.logInfo(request, "Adding participant to parent as well %j",{err, resp});
+                            })
+                        }
                     }
                 })
                 .catch((error) => {

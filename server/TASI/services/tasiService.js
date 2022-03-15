@@ -951,6 +951,71 @@ function TasiService(objectCollection) {
         return [error, responseData];
     }
 
+    this.addEntityTargetMappingV1 = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+          request.level_id,
+          request.total_target_value,
+          request.jan_total_target_value,
+          request.feb_total_target_value,
+          request.mar_total_target_value,
+          request.apr_total_target_value,
+          request.may_total_target_value,
+          request.jun_total_target_value,
+          request.jul_total_target_value,
+          request.aug_total_target_value,
+          request.sep_total_target_value,
+          request.oct_total_target_value,
+          request.nov_total_target_value,
+          request.dec_total_target_value,
+          request.entity_target_inline,
+          request.flag_is_outlier,
+          request.flag_is_bulk,
+          request.flag_type,
+          request.timeline_id,
+          request.period_type_id,
+          request.period_start_datetime,
+          request.period_end_datetime,
+          request.financial_year,
+          request.asset_id,
+          request.asset_type_id,
+          request.customer_account_type_id,
+          request.customer_account_code,
+          request.customer_account_name,
+          request.widget_type_id,
+          request.widget_type_name,
+          request.activity_id,
+          request.product_id,
+          request.workforce_id,
+          request.account_id,
+          request.organization_id,
+          request.workforce_tag_id,
+          request.cluster_tag_id,
+          request.asset_tag_id_1,
+          request.asset_tag_id_2,
+          request.asset_tag_id_3,
+          request.log_asset_id,
+          util.getCurrentUTCTime()
+        );
+        console.log("addEntityTargetMapping V1:");
+        console.log(paramsArr);
+        const queryString = util.getQueryString('ds_p2_2_entity_target_mapping_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                     entityTargetMappingHistoryInsert({...request,entity_target_mapping_id:data[0].entity_target_mapping_id},3001)
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
     this.removeEntityTargetMapping = async function (request) {
         let responseData = [],
             error = true;
@@ -3674,6 +3739,19 @@ function TasiService(objectCollection) {
             error = true;
 
         const paramsArr = new Array(
+          request.entity_target_mapping_id,
+          request.jan_total_target_value,
+          request.feb_total_target_value,
+          request.mar_total_target_value,
+          request.apr_total_target_value,
+          request.may_total_target_value,
+          request.jun_total_target_value,
+          request.jul_total_target_value,
+          request.aug_total_target_value,
+          request.sep_total_target_value,
+          request.oct_total_target_value,
+          request.nov_total_target_value,
+          request.dec_total_target_value,
           request.organization_id,
           request.target_asset_id,
           request.widget_type_id,
@@ -3686,7 +3764,7 @@ function TasiService(objectCollection) {
           util.getCurrentUTCTime()
         );
 
-        const queryString = util.getQueryString('ds_p1_2_entity_target_mapping_update_target', paramsArr);
+        const queryString = util.getQueryString('ds_p1_3_entity_target_mapping_update_target', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
@@ -4099,6 +4177,36 @@ function TasiService(objectCollection) {
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.entityTargetMappingArchiveV1 = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.target_asset_id,
+          request.customer_account_code,
+          request.widget_type_id,
+          request.period_start_datetime,
+          request.period_end_datetime,
+          request.asset_id,
+          util.getCurrentUTCTime()
+        );
+
+        const queryString = util.getQueryString('ds_p1_1_entity_target_mapping_archive', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
