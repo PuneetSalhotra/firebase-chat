@@ -284,6 +284,55 @@ function BotService(objectCollection) {
                          });
                  }
                 
+                // enabling round robin arp bot
+                if(request.bot_operation_type_id == 2) {
+                    const botOperationInlineData = JSON.parse(request.bot_inline_data),
+                    botOperations = botOperationInlineData.bot_operations;
+
+                    let activityTypeFlagRoundRobin = botOperations.status_alter.activity_type_flag_round_robin;
+
+                    let activityStatusId = botOperations.status_alter.activity_status_id;
+                    
+                    if(activityTypeFlagRoundRobin == 1) {
+                        let statusDetails = await getStatusName(request, activityStatusId);
+
+                        for(let status of statusDetails) {
+                            util.logInfo("status", JSON.stringify(status));
+                            let [err,assetList] = await assetService.getAssetTypeList({
+                                organization_id : request.organization_id,
+                                asset_type_id : status.asset_type_id,
+                                asset_type_category_id : status.asset_type_category_id,
+                                start_from : 0,
+                                limit_value : 1000
+                            });
+    
+                            await updateArpRRFlag({
+                                organization_id : request.organization_id,
+                                asset_type_id : status.asset_type_id,
+                                asset_type_arp_round_robin_enabled : 1,
+                                log_asset_id : request.asset_id
+                            });
+
+                            if(err) {
+                                console.error("Got Error");
+                                return [err, []];
+                            }
+                            util.logInfo("assetList", JSON.stringify(assetList));
+                            let sequence_id = 1;
+                            for(let row of assetList) {
+                                await updateAssetSequenceId({
+                                    asset_id : row.asset_id,
+                                    organization_id : request.organization_id,
+                                    sequence_id : sequence_id,
+                                    cycle_id : 1,
+                                    log_asset_id : row.asset_id,
+                                });
+                                sequence_id++;
+                            }
+    
+                        }                        
+                    }
+                }
                 // paramsArray =
                 //     new Array(
                 //         request.bot_id,
