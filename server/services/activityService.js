@@ -2628,13 +2628,8 @@ function ActivityService(objectCollection) {
                                 logger.info("activityService insufficient_data CALLING callAddParticipant");
                                 //rmbotService.callAddParticipant(request);
                             }else{
-                                let [e, response] = await getArpLeadFlag({
-                                    organization_id : request.organization_id,
-                                    activity_id : request.activity_id,
-                                    activity_type_id : request.activity_type_id
-                                })
-    
-                                let arpLeadFlag = response[0].activity_type_arp_lead_setting_enabled || 0;
+                               
+                                let arpLeadFlag = request.flag_trigger_resource_manager || 0;
 
                                 if(arpLeadFlag) {
                                     request.global_array = [];
@@ -2665,13 +2660,9 @@ function ActivityService(objectCollection) {
                             //request.global_array = [];
                             //rmbotService.callAddParticipant(request);
                         }else{
-                            let [e, response] = await getArpLeadFlag({
-                                organization_id : request.organization_id,
-                                activity_id : request.activity_id,
-                                activity_type_id : request.activity_type_id
-                            })
+                            
+                            let arpLeadFlag = request.flag_trigger_resource_manager || 0;
 
-                            let arpLeadFlag = response[0].activity_type_arp_lead_setting_enabled || 0;
                             if(arpLeadFlag) {
                                 request.global_array = [];
                                 request.ai_bot_trigger_key = "status_change_"+request.activity_id+"_"+request.activity_status_id;
