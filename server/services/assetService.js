@@ -1071,7 +1071,8 @@ function AssetService(objectCollection) {
             "workforce_tag_id": util.replaceDefaultNumber(rowArray[0]['workforce_tag_id']),
             "workforce_tag_name": util.replaceDefaultString(rowArray[0]['workforce_tag_name']),
             "asset_type_flag_enable_gamification": util.replaceDefaultNumber(rowArray[0]['asset_type_flag_enable_gamification']),
-            "organization_ai_bot_enabled": util.replaceDefaultNumber(rowArray[0]['organization_ai_bot_enabled'])
+            "organization_ai_bot_enabled": util.replaceDefaultNumber(rowArray[0]['organization_ai_bot_enabled']),
+            "asset_type_flag_enable_gantt_chart": util.replaceDefaultNumber(rowArray[0]['asset_type_flag_enable_gantt_chart'])
        };
 
         callback(false, rowData);
