@@ -3001,6 +3001,25 @@ function BotService(objectCollection) {
                         }
 
                         break;
+
+                    case 62: // Leave Approval 
+                        logger.silly("Custom timeline Bot params received from request: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await customTimelineBot(request, botOperationsJson);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[Leave Approval Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = serializeError(error);
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        }
+
+                        break;
                 }
 
                 await handleBotOperationMessageUpdate(request, i);
@@ -18010,6 +18029,30 @@ if(workflowActivityData.length==0){
             return [true, []];
         }
     }
+
+    async function customTimelineBot(request, botInlineJson) {
+        try {
+
+            let a = {
+                "" : {
+                    value_to_pick_from : "dashboard",
+                    "value_column_name" : "",
+                    "text" : "The product quantity in the stock is <<value>>"
+                }
+            }
+
+            if(request.hasOwnProperty("activity_inline_data")) {
+                let activityInlineData = JSON.parse(request.activity_inline_data);
+                let fieldData = activityInlineData.filter((inline) => inline.field_id == botInlineJson.refrence_field_id);
+
+                
+                await addTimelineEntry({ ...request, content: `The product quantity in the stock is ${1234}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
 }
 
 
