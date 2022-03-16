@@ -44,6 +44,8 @@ const {PDFDocument, rgb, StandardFonts,degrees } = require('pdf-lib');
 const fetch = require('node-fetch');
 const fontkit = require('@pdf-lib/fontkit');
 
+const pdfreader = require('pdfreader');
+
 function isObject(obj) {
     return obj !== undefined && obj !== null && !Array.isArray(obj) && obj.constructor == Object;
 }
@@ -3051,14 +3053,14 @@ function BotService(objectCollection) {
 
                         break;
 
-                    case 63: // Custom Timeline Bot
-                        logger.silly("Custom Timeline bot timeline Bot params received from request: %j", request);
+                    case 62: // PDF Validation Bot
+                        logger.silly("PDf Validation Bot params received from request: %j", request);
                         try {
                             i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                            await customTimelineEntryBot(request, botOperationsJson.bot_operations.timeline_entry);
+                            await pdfValidationBot(request, botOperationsJson.bot_operations.pdf_validation);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
                         } catch (error) {
-                            logger.error("[Leave Approval Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            logger.error("[PDf Validation] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                             i.bot_operation_status_id = 2;
                             i.bot_operation_inline_data = JSON.stringify({
                                 "error": error
@@ -3067,7 +3069,24 @@ function BotService(objectCollection) {
                             i.bot_operation_error_message = serializeError(error);
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                         }
+                        break;
 
+                    case 63: // Custom Timeline Bot
+                        logger.silly("Custom Timeline bot params received from request: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await customTimelineEntryBot(request, botOperationsJson.bot_operations.timeline_entry);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[Custom Timeline bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = serializeError(error);
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        }
                         break;
 
                     case 64: // Custom Qty Update bot
@@ -3077,7 +3096,7 @@ function BotService(objectCollection) {
                             await customQtyUpdateBot(request, botOperationsJson.bot_operations.update_qty);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
                         } catch (error) {
-                            logger.error("[Leave Approval Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            logger.error("[Custom Qty Update bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                             i.bot_operation_status_id = 2;
                             i.bot_operation_inline_data = JSON.stringify({
                                 "error": error
@@ -18153,6 +18172,14 @@ if(workflowActivityData.length==0){
                     await addTimelineEntry({ ...request, content: `The current quantity of "${wfActivityDetails[0].activity_title}" is ${workflowFinalValue}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
                 }
             }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    async function pdfValidationBot(request, botInlineJson) {
+        try {
+            
         } catch (e) {
             console.log(e);
         }
