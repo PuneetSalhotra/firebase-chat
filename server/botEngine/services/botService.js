@@ -3002,11 +3002,30 @@ function BotService(objectCollection) {
 
                         break;
 
-                    case 62: // Leave Approval 
-                        logger.silly("Custom timeline Bot params received from request: %j", request);
+                    case 63: // Custom Timeline Bot
+                        logger.silly("Custom Timeline bot timeline Bot params received from request: %j", request);
                         try {
                             i.bot_operation_start_datetime = util.getCurrentUTCTime();
-                            await customTimelineBot(request, botOperationsJson);
+                            await customTimelineEntryBot(request, botOperationsJson.bot_operations.timeline_entry);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[Leave Approval Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = serializeError(error);
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        }
+
+                        break;
+
+                    case 64: // Custom Qty Update bot
+                        logger.silly("Custom Qty Update bot timeline Bot params received from request: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await customQtyUpdateBot(request, botOperationsJson.bot_operations.update_qty);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
                         } catch (error) {
                             logger.error("[Leave Approval Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
@@ -18030,23 +18049,60 @@ if(workflowActivityData.length==0){
         }
     }
 
-    async function customTimelineBot(request, botInlineJson) {
+    async function customQtyUpdateBot(request, botInlineJson) {
         try {
+            if (request.hasOwnProperty("activity_inline_data")) {
 
-            let a = {
-                "" : {
-                    value_to_pick_from : "dashboard",
-                    "value_column_name" : "",
-                    "text" : "The product quantity in the stock is <<value>>"
+                let activityInlineData = JSON.parse(request.activity_inline_data);
+                let referenceFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.refrence_field_id)[0].field_value;
+                let qtyFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.qty_field_id)[0].field_value;
+                qtyFieldValue = Number(qtyFieldValue);
+
+                let referenceActivityId = referenceFieldValue.split("|")[0];
+                let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, referenceActivityId);
+
+                if (wfActivityDetails.length > 0) {
+                    let workflowFinalValue = wfActivityDetails[0].activity_workflow_value_final;
+                    workflowFinalValue = Number(workflowFinalValue) || 0;
+                    if (botInlineJson.type_of_operation === "add") {
+                        let sum = workflowFinalValue + qtyFieldValue;
+                        let reqForUpdateQty = Object.assign({}, request);
+                        reqForUpdateQty.workflow_activity_id = referenceActivityId;
+                        reqForUpdateQty.sequence_id = 1;
+                        await activityCommonService.updateWorkflowValue(reqForUpdateQty, sum);
+                        await addTimelineEntry({ ...request, content: `The current quantity of "${wfActivityDetails[0].activity_title}" is ${workflowFinalValue} and it is updated to ${sum}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                    } else if (botInlineJson.type_of_operation === "subtract") {
+                        if (workflowFinalValue > qtyFieldValue) {
+                            let sub = workflowFinalValue - qtyFieldValue;
+                            let reqForUpdateQty = Object.assign({}, request);
+                            reqForUpdateQty.workflow_activity_id = referenceActivityId;
+                            reqForUpdateQty.sequence_id = 1;
+                            await activityCommonService.updateWorkflowValue(reqForUpdateQty, sub);
+                            await addTimelineEntry({ ...request, content: `The current quantity of "${wfActivityDetails[0].activity_title}" is ${workflowFinalValue} and it is updated to ${sub}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                        } else {
+                            await addTimelineEntry({ ...request, content: `Error:\nThe Requested qty for "${wfActivityDetails[0].activity_title}" is higher than the current quantity.`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                        }
+                    }
                 }
             }
+        } catch (e) {
+            console.log(e);
+        }
+    }
 
-            if(request.hasOwnProperty("activity_inline_data")) {
+    async function customTimelineEntryBot(request, botInlineJson) {
+        try {
+            if (request.hasOwnProperty("activity_inline_data")) {
                 let activityInlineData = JSON.parse(request.activity_inline_data);
-                let fieldData = activityInlineData.filter((inline) => inline.field_id == botInlineJson.refrence_field_id);
+                let referenceFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.refrence_field_id)[0].field_value;
+                let referenceActivityId = referenceFieldValue.split("|")[0];
+                let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, referenceActivityId);
 
-                
-                await addTimelineEntry({ ...request, content: `The product quantity in the stock is ${1234}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                if (wfActivityDetails.length > 0) {
+                    let workflowFinalValue = wfActivityDetails[0].activity_workflow_value_final;
+                    workflowFinalValue = Number(workflowFinalValue) || 0;
+                    await addTimelineEntry({ ...request, content: `The current quantity of "${wfActivityDetails[0].activity_title}" is ${workflowFinalValue}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                }
             }
         } catch (e) {
             console.log(e);
