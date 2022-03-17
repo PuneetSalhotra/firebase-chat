@@ -18179,9 +18179,78 @@ if(workflowActivityData.length==0){
 
     async function pdfValidationBot(request, botInlineJson) {
         try {
-            
-        } catch (e) {
-            console.log(e);
+            let finalPdfText = "";
+            let activityInlineData = JSON.parse(request.activity_inline_data);
+            let referenceFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.refrence_field_id)[0].field_value;
+            let referenceActivityId = referenceFieldValue.split("|")[0];
+            let pdfFeildValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.pdf_field_id)[0].field_value;
+
+            let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, referenceActivityId);
+
+            const [pdfBufferError, pdfBuffer] = await util.getXlsxDataBodyFromS3Url(request, pdfFeildValue);
+            if (pdfBufferError) {
+                util.logError(request, `[PdfValidationError] `, { error: pdfBufferError });
+                throw new Error(pdfBufferError);
+            }
+
+            if (wfActivityDetails.length > 0) {
+                let activityInlineDataOfReferenceActivity = JSON.parse(wfActivityDetails[0].activity_inline_data);
+                new pdfreader.PdfReader().parseBuffer(pdfBuffer, function (err, item) {
+                    if (err) {
+                        console.error(err);
+                    } else if (!item) {
+                        let misMactchData = "";
+                        for (const [fieldId, fieldConfig] of Object.entries(botInlineJson.pdf_config)) {
+
+                            let fieldData = activityInlineDataOfReferenceActivity.filter((inline) => inline.field_id == fieldId)[0];
+                            let fieldValue = fieldData.field_value;
+                            let fieldName = fieldData.field_name;
+                            let startsFrom = fieldConfig.starts_from;
+                            let endsAt = fieldConfig.ends_at;
+
+                            let startIndex = -1;
+                            if (startsFrom.hasOwnProperty("place_of_occurance") && startsFrom.place_of_occurance > 0) {
+                                let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.end_of, 'gi'))].map(a => a.index);
+                                if (indexes.length >= startsFrom.place_of_occurance) {
+                                    startIndex = indexes[startsFrom.place_of_occurance];
+                                }
+                            } else {
+                                startIndex = finalPdfText.indexOf(startsFrom.end_of);
+                            }
+
+                            if (startIndex != -1) {
+                                startIndex += startsFrom.end_of.length;
+                                let subString = finalPdfText.substring(startIndex);
+                                const indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
+
+                                console.log(finalPdfText.substring(startIndex, startIndex + indexes[endsAt.line_number]).trim());
+
+                                let extractedPdfValueOfField = finalPdfText.substring(startIndex, startIndex + indexes[endsAt.line_number]).trim();
+
+                                if (fieldValue != extractedPdfValueOfField) {
+                                    misMactchData += `${fieldName}\n`;
+                                }
+
+                                if (misMactchData.length > 0) {
+                                    misMactchData = `Error!!\n\nMismatch found in below fields : \n`;
+                                    await addTimelineEntry({ ...request, content: misMactchData, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                                } else {
+                                    await addTimelineEntry({ ...request, content: "No Mismatch data found", subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                                }
+                            } else {
+                                console.log("Couldn't find the match");
+                            }
+                        }
+
+                    } else if (item.text) {
+                        finalPdfText += item.text + "\n";
+                    }
+
+                });
+            }
+
+        } catch (error) {
+            util.logError(request, "[PdfValidationBotError] Error in pdf validation ", { request, error: serializeError(error) })
         }
     }
 
