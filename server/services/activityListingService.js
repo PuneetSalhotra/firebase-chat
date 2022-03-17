@@ -2685,7 +2685,7 @@ function ActivityListingService(objCollection) {
 
 		if (responseData.length > 0) {
 			for (let activity of responseData) {
-				let parentActivityId = activity.parent_activity_id;
+				let parentActivityId = activity.activity_id;
 				if (parentActivityId != null && parentActivityId > 0) {
 					let requestForChild = Object.assign({}, request);
 					requestForChild.parent_activity_id = parentActivityId;

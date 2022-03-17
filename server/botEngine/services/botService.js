@@ -44,6 +44,8 @@ const {PDFDocument, rgb, StandardFonts,degrees } = require('pdf-lib');
 const fetch = require('node-fetch');
 const fontkit = require('@pdf-lib/fontkit');
 
+const pdfreader = require('pdfreader');
+
 function isObject(obj) {
     return obj !== undefined && obj !== null && !Array.isArray(obj) && obj.constructor == Object;
 }
@@ -3040,6 +3042,61 @@ function BotService(objectCollection) {
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
                         } catch (error) {
                             logger.error("[Leave Approval Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = serializeError(error);
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        }
+
+                        break;
+
+                    case 62: // PDF Validation Bot
+                        logger.silly("PDf Validation Bot params received from request: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await pdfValidationBot(request, botOperationsJson.bot_operations.pdf_validation);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[PDf Validation] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = serializeError(error);
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        }
+                        break;
+
+                    case 63: // Custom Timeline Bot
+                        logger.silly("Custom Timeline bot params received from request: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await customTimelineEntryBot(request, botOperationsJson.bot_operations.timeline_entry);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[Custom Timeline bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = serializeError(error);
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        }
+                        break;
+
+                    case 64: // Custom Qty Update bot
+                        logger.silly("Custom Qty Update bot timeline Bot params received from request: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await customQtyUpdateBot(request, botOperationsJson.bot_operations.update_qty);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[Custom Qty Update bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                             i.bot_operation_status_id = 2;
                             i.bot_operation_inline_data = JSON.stringify({
                                 "error": error
@@ -18059,6 +18116,157 @@ if(workflowActivityData.length==0){
             return [true, []];
         }
     }
+
+    async function customQtyUpdateBot(request, botInlineJson) {
+        try {
+            if (request.hasOwnProperty("activity_inline_data")) {
+
+                let activityInlineData = JSON.parse(request.activity_inline_data);
+                let referenceFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.refrence_field_id)[0].field_value;
+                let qtyFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.qty_field_id)[0].field_value;
+                qtyFieldValue = Number(qtyFieldValue);
+
+                let referenceActivityId = referenceFieldValue.split("|")[0];
+                let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, referenceActivityId);
+
+                if (wfActivityDetails.length > 0) {
+                    let workflowFinalValue = wfActivityDetails[0].activity_workflow_value_final;
+                    workflowFinalValue = Number(workflowFinalValue) || 0;
+                    if (botInlineJson.type_of_operation === "add") {
+                        let sum = workflowFinalValue + qtyFieldValue;
+                        let reqForUpdateQty = Object.assign({}, request);
+                        reqForUpdateQty.workflow_activity_id = referenceActivityId;
+                        reqForUpdateQty.sequence_id = 1;
+                        await activityCommonService.updateWorkflowValue(reqForUpdateQty, sum);
+                        await addTimelineEntry({ ...request, content: `The current quantity of "${wfActivityDetails[0].activity_title}" is ${workflowFinalValue} and it is updated to ${sum}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                    } else if (botInlineJson.type_of_operation === "subtract") {
+                        if (workflowFinalValue > qtyFieldValue) {
+                            let sub = workflowFinalValue - qtyFieldValue;
+                            let reqForUpdateQty = Object.assign({}, request);
+                            reqForUpdateQty.workflow_activity_id = referenceActivityId;
+                            reqForUpdateQty.sequence_id = 1;
+                            await activityCommonService.updateWorkflowValue(reqForUpdateQty, sub);
+                            await addTimelineEntry({ ...request, content: `The current quantity of "${wfActivityDetails[0].activity_title}" is ${workflowFinalValue} and it is updated to ${sub}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                        } else {
+                            await addTimelineEntry({ ...request, content: `Error:\nThe Requested qty for "${wfActivityDetails[0].activity_title}" is higher than the current quantity.`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    async function customTimelineEntryBot(request, botInlineJson) {
+        try {
+            if (request.hasOwnProperty("activity_inline_data")) {
+                let activityInlineData = JSON.parse(request.activity_inline_data);
+                let referenceFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.refrence_field_id)[0].field_value;
+                let referenceActivityId = referenceFieldValue.split("|")[0];
+                let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, referenceActivityId);
+
+                if (wfActivityDetails.length > 0) {
+                    let workflowFinalValue = wfActivityDetails[0].activity_workflow_value_final;
+                    workflowFinalValue = Number(workflowFinalValue) || 0;
+                    await addTimelineEntry({ ...request, content: `The current quantity of "${wfActivityDetails[0].activity_title}" is ${workflowFinalValue}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                }
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    async function pdfValidationBot(request, botInlineJson) {
+        try {
+            let finalPdfText = "";
+            let activityInlineData = JSON.parse(request.activity_inline_data);
+            let referenceFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.refrence_field_id)[0].field_value;
+            let referenceActivityId = referenceFieldValue.split("|")[0];
+            let pdfFeildValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.pdf_field_id)[0].field_value;
+
+            let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, referenceActivityId);
+
+            const [pdfBufferError, pdfBuffer] = await util.getXlsxDataBodyFromS3Url(request, pdfFeildValue);
+
+            if (pdfBufferError) {
+                util.logError(request, `[PdfValidationError] `, { error: pdfBufferError });
+                throw new Error(pdfBufferError);
+            }
+
+            if (wfActivityDetails.length > 0) {
+                let activityInlineDataOfReferenceActivity = JSON.parse(wfActivityDetails[0].activity_inline_data);
+                new pdfreader.PdfReader().parseBuffer(pdfBuffer,async function (err, item) {
+                    if (err) {
+                        console.error(err);
+                    } else if (!item) {
+                        let misMactchData = "";
+                        for (const [fieldId, fieldConfig] of Object.entries(botInlineJson.pdf_config)) {
+
+                            let fieldData = activityInlineDataOfReferenceActivity.filter((inline) => inline.field_id == fieldId)[0];
+                            let fieldValue = fieldData.field_value;
+                            let fieldName = fieldData.field_name;
+                            let startsFrom = fieldConfig.starts_from;
+                            let endsAt = fieldConfig.ends_at;
+
+                            let startIndex = -1;
+
+                            if (startsFrom.hasOwnProperty("end_of")) {
+                                if (startsFrom.hasOwnProperty("place_of_occurance") && startsFrom.place_of_occurance > 0) {
+                                    let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.end_of, 'gi'))].map(a => a.index);
+                                    if (indexes.length >= startsFrom.place_of_occurance) {
+                                        startIndex = indexes[startsFrom.place_of_occurance];
+                                    }
+                                } else {
+                                    startIndex = finalPdfText.indexOf(startsFrom.end_of);
+                                }
+
+                                if (startIndex != -1) {
+                                    startIndex += startsFrom.end_of.length;
+                                    let subString = finalPdfText.substring(startIndex);
+                                    const indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
+                                    let extractedPdfValueOfField = finalPdfText.substring(startIndex, startIndex + indexes[endsAt.line_number]).trim();
+
+                                    if (fieldValue != extractedPdfValueOfField) {
+                                        misMactchData += `${fieldName}\n`;
+                                    }
+
+                                } else {
+                                    console.log("Couldn't find the match");
+                                }
+                            } else if (startsFrom.hasOwnProperty("start_of")) {
+                                let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.start_of, 'gi'))].map(a => a.index);
+                                let subString = finalPdfText.substring(0, indexes[startsFrom.place_of_occurance || 0]);
+                                indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
+
+                                let extractedPdfValueOfField = subString.substring(indexes[indexes.length - 2], indexes[indexes.length - 1]).trim();
+
+                                console.log(extractedPdfValueOfField);
+                                if (fieldValue != extractedPdfValueOfField) {
+                                    misMactchData += `${fieldName}\n`;
+                                }
+                            }
+                        }
+
+                        if (misMactchData.length > 0) {
+                            misMactchData = `Error!!\n\nMismatch found in below fields : \n ${misMactchData}`;
+                            await addTimelineEntry({ ...request, content: misMactchData, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                        } else {
+                            await addTimelineEntry({ ...request, content: "No Mismatch data found", subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                        }
+
+                    } else if (item.text) {
+                        finalPdfText += item.text + "\n";
+                    }
+
+                });
+            }
+
+        } catch (error) {
+            util.logError(request, "[PdfValidationBotError] Error in pdf validation ", { request, error: serializeError(error) })
+        }
+    }
+
 }
 
 
