@@ -17264,7 +17264,7 @@ if(workflowActivityData.length==0){
                 title: subjectContent,
                 description: bodyContent,
                 busyStatus: "FREE",
-                location: eventLocation[0].field_value,
+                location: eventLocation.length>0 ? eventLocation[0].field_value : "",
                 start: [
                     createDate.getFullYear(),
                     createDate.getMonth() + 1,
