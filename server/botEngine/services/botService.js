@@ -18188,6 +18188,7 @@ if(workflowActivityData.length==0){
             let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, referenceActivityId);
 
             const [pdfBufferError, pdfBuffer] = await util.getXlsxDataBodyFromS3Url(request, pdfFeildValue);
+
             if (pdfBufferError) {
                 util.logError(request, `[PdfValidationError] `, { error: pdfBufferError });
                 throw new Error(pdfBufferError);
@@ -18195,7 +18196,7 @@ if(workflowActivityData.length==0){
 
             if (wfActivityDetails.length > 0) {
                 let activityInlineDataOfReferenceActivity = JSON.parse(wfActivityDetails[0].activity_inline_data);
-                new pdfreader.PdfReader().parseBuffer(pdfBuffer, function (err, item) {
+                new pdfreader.PdfReader().parseBuffer(pdfBuffer,async function (err, item) {
                     if (err) {
                         console.error(err);
                     } else if (!item) {
@@ -18209,37 +18210,49 @@ if(workflowActivityData.length==0){
                             let endsAt = fieldConfig.ends_at;
 
                             let startIndex = -1;
-                            if (startsFrom.hasOwnProperty("place_of_occurance") && startsFrom.place_of_occurance > 0) {
-                                let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.end_of, 'gi'))].map(a => a.index);
-                                if (indexes.length >= startsFrom.place_of_occurance) {
-                                    startIndex = indexes[startsFrom.place_of_occurance];
+
+                            if (startsFrom.hasOwnProperty("end_of")) {
+                                if (startsFrom.hasOwnProperty("place_of_occurance") && startsFrom.place_of_occurance > 0) {
+                                    let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.end_of, 'gi'))].map(a => a.index);
+                                    if (indexes.length >= startsFrom.place_of_occurance) {
+                                        startIndex = indexes[startsFrom.place_of_occurance];
+                                    }
+                                } else {
+                                    startIndex = finalPdfText.indexOf(startsFrom.end_of);
                                 }
-                            } else {
-                                startIndex = finalPdfText.indexOf(startsFrom.end_of);
-                            }
 
-                            if (startIndex != -1) {
-                                startIndex += startsFrom.end_of.length;
-                                let subString = finalPdfText.substring(startIndex);
-                                const indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
+                                if (startIndex != -1) {
+                                    startIndex += startsFrom.end_of.length;
+                                    let subString = finalPdfText.substring(startIndex);
+                                    const indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
+                                    let extractedPdfValueOfField = finalPdfText.substring(startIndex, startIndex + indexes[endsAt.line_number]).trim();
 
-                                console.log(finalPdfText.substring(startIndex, startIndex + indexes[endsAt.line_number]).trim());
+                                    if (fieldValue != extractedPdfValueOfField) {
+                                        misMactchData += `${fieldName}\n`;
+                                    }
 
-                                let extractedPdfValueOfField = finalPdfText.substring(startIndex, startIndex + indexes[endsAt.line_number]).trim();
+                                } else {
+                                    console.log("Couldn't find the match");
+                                }
+                            } else if (startsFrom.hasOwnProperty("start_of")) {
+                                let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.start_of, 'gi'))].map(a => a.index);
+                                let subString = finalPdfText.substring(0, indexes[startsFrom.place_of_occurance || 0]);
+                                indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
 
+                                let extractedPdfValueOfField = subString.substring(indexes[indexes.length - 2], indexes[indexes.length - 1]).trim();
+
+                                console.log(extractedPdfValueOfField);
                                 if (fieldValue != extractedPdfValueOfField) {
                                     misMactchData += `${fieldName}\n`;
                                 }
-
-                                if (misMactchData.length > 0) {
-                                    misMactchData = `Error!!\n\nMismatch found in below fields : \n`;
-                                    await addTimelineEntry({ ...request, content: misMactchData, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
-                                } else {
-                                    await addTimelineEntry({ ...request, content: "No Mismatch data found", subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
-                                }
-                            } else {
-                                console.log("Couldn't find the match");
                             }
+                        }
+
+                        if (misMactchData.length > 0) {
+                            misMactchData = `Error!!\n\nMismatch found in below fields : \n ${misMactchData}`;
+                            await addTimelineEntry({ ...request, content: misMactchData, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                        } else {
+                            await addTimelineEntry({ ...request, content: "No Mismatch data found", subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
                         }
 
                     } else if (item.text) {
