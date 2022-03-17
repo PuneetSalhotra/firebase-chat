@@ -18251,8 +18251,10 @@ if(workflowActivityData.length==0){
                         if (misMactchData.length > 0) {
                             misMactchData = `Error!!\n\nMismatch found in below fields : \n ${misMactchData}`;
                             await addTimelineEntry({ ...request, content: misMactchData, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                            submitPdfValidationForm(request,botInlineJson,"error",misMactchData)
                         } else {
                             await addTimelineEntry({ ...request, content: "No Mismatch data found", subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                            submitPdfValidationForm(request,botInlineJson,"success","No Mismatch data found")
                         }
 
                     } else if (item.text) {
@@ -18264,6 +18266,243 @@ if(workflowActivityData.length==0){
 
         } catch (error) {
             util.logError(request, "[PdfValidationBotError] Error in pdf validation ", { request, error: serializeError(error) })
+        }
+    }
+
+
+    async function submitPdfValidationForm(request, botInlineJson, formType, message) {
+        try {
+
+            let formId = formType == "error" ? botInlineJson.error_form_id : botInlineJson.success_form_id;
+            let fieldId = formType == "error" ? botInlineJson.error_field_id : botInlineJson.success_field_id;
+            let formApiActivityTypeId = "error" ? botInlineJson.error_activity_type_id : botInlineJson.success_activity_type_id;
+            let formTitle = "error" ? botInlineJson.error_form_title : botInlineJson.success_form_title;
+
+            let dataInLine = [];
+            dataInLine.push({
+                "data_type_combo_id": 0,
+                "data_type_combo_value": "",
+                "field_data_type_category_id": 7,
+                "field_data_type_id": 20,
+                "field_id": fieldId,
+                "field_name": "Comments",
+                "field_value": message,
+                "form_id": formId,
+                "message_unique_id": 123123123123123123
+            })
+
+            dataInLine = JSON.stringify(dataInLine);
+            let timelineCollection = JSON.stringify({
+                "mail_body": `${formTitle} Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                "subject": `${formTitle}`,
+                "content": `${formTitle}`,
+                "asset_reference": [],
+                "activity_reference": [],
+                "form_approval_field_reference": [],
+                "form_submitted": dataInLine,
+                "attachments": []
+            });
+
+            let newReq = null;
+            if (formType == "error") {
+
+                newReq = {
+                    "account_id": "1209",
+                    "activity_access_role_id": 21,
+                    "activity_datetime_end": request.activity_datetime_end,
+                    "activity_datetime_start": request.activity_datetime_start,
+                    "activity_description": message,
+                    "activity_flag_file_enabled": 1,
+                    "activity_form_id": 51557,
+                    "activity_id": request.workflow_activity_id,
+                    "activity_inline_data": dataInLine,
+                    "activity_parent_id": 0,
+                    "activity_status_id": 467292,
+                    "activity_status_type_category_id": 1,
+                    "activity_status_type_id": 22,
+                    "activity_stream_type_id": 705,
+                    "activity_sub_type_id": 0,
+                    "activity_timeline_collection": timelineCollection,
+                    "activity_timeline_text": "",
+                    "activity_timeline_url": "",
+                    "activity_title": message,
+                    "activity_title_expression": null,
+                    "activity_type_category_id": 9,
+                    "activity_type_id": 201201,
+                    "api_version": 1,
+                    "app_version": 1,
+                    "asset_id": request.asset_id,
+                    "asset_image_path": "",
+                    "asset_message_counter": 0,
+                    "asset_participant_access_id": 21,
+                    "asset_token_auth": request.asset_token_auth,
+                    "asset_type_id": "160547",
+                    "auth_asset_id": request.auth_asset_id,
+                    "channel_activity_id": request.workflow_activity_id,
+                    "data_entity_inline": dataInLine,
+                    "device_os_id": 5,
+                    "expression": "",
+                    "file_activity_id": 0,
+                    "flag_offline": 0,
+                    "flag_pin": 0,
+                    "flag_retry": 0,
+                    "flag_timeline_entry": 1,
+                    "form_api_activity_type_category_id": 48,
+                    "form_api_activity_type_id": 201365,
+                    "form_id": 51557,
+                    "form_transaction_id": 0,
+                    "form_workflow_activity_type_id": 201365,
+                    "generated_account_code": null,
+                    "generated_group_account_name": null,
+                    "gst_number": "",
+                    "is_mytony": 1,
+                    "is_refill": 0,
+                    "isOrigin": false,
+                    "lead_asset_first_name": null,
+                    "lead_asset_id": 0,
+                    "lead_asset_type_id": null,
+                    "message_unique_id": "543311647506965662",
+                    "organization_id": "1061",
+                    "organization_onhold": 0,
+                    "pan_number": "",
+                    "service_version": 1,
+                    "track_altitude": 0,
+                    "track_gps_accuracy": "0",
+                    "track_gps_datetime": "2022-03-17 08:35:05",
+                    "track_gps_status": 0,
+                    "track_latitude": "0.0",
+                    "track_longitude": "0.0",
+                    "workflow_activity_id": request.workflow_activity_id,
+                    "workforce_id": "6605"
+                }
+            } else {
+                newReq = {
+                    "activity_id": request.workflow_activity_id,
+                    "channel_activity_id": request.workflow_activity_id,
+                    "activity_title": message,
+                    "activity_description": message,
+                    "activity_inline_data": dataInLine,
+                    "data_entity_inline": dataInLine,
+                    "activity_timeline_collection": timelineCollection,
+                    "form_id": 51559,
+                    "activity_form_id": 51559,
+                    "workflow_activity_id": request.workflow_activity_id,
+                    "activity_type_id": 201201,
+                    "is_refill": 0,
+                    "form_workflow_activity_type_id": 201365,
+                    "generated_group_account_name": null,
+                    "generated_account_code": null,
+                    "activity_title_expression": null,
+                    "gst_number": "",
+                    "pan_number": "",
+                    "activity_datetime_end": "2022-03-17 08:38:56",
+                    "activity_datetime_start": "2022-03-17 08:38:56",
+                    "activity_status_id": 467292,
+                    "lead_asset_first_name": null,
+                    "lead_asset_type_id": null,
+                    "lead_asset_id": 0,
+                    "isOrigin": false,
+                    "form_api_activity_type_category_id": 48,
+                    "form_api_activity_type_id": 201365,
+                    "organization_id": "1061",
+                    "account_id": "1209",
+                    "workforce_id": "6605",
+                    "asset_id": request.asset_id,
+                    "auth_asset_id": request.auth_asset_id,
+                    "asset_type_id": "160547",
+                    "asset_token_auth": request.asset_token_auth,
+                    "asset_image_path": "",
+                    "organization_onhold": 0,
+                    "device_os_id": 5,
+                    "service_version": 1,
+                    "app_version": 1,
+                    "activity_type_category_id": 9,
+                    "activity_sub_type_id": 0,
+                    "activity_access_role_id": 21,
+                    "asset_message_counter": 0,
+                    "activity_status_type_category_id": 1,
+                    "activity_status_type_id": 22,
+                    "asset_participant_access_id": 21,
+                    "activity_flag_file_enabled": 1,
+                    "activity_parent_id": 0,
+                    "flag_pin": 0,
+                    "flag_offline": 0,
+                    "flag_retry": 0,
+                    "message_unique_id": "543311647507206133",
+                    "track_gps_datetime": "2022-03-17 08:38:56",
+                    "track_latitude": "0.0",
+                    "track_longitude": "0.0",
+                    "track_altitude": 0,
+                    "track_gps_accuracy": "0",
+                    "track_gps_status": 0,
+                    "api_version": 1,
+                    "activity_stream_type_id": 705,
+                    "form_transaction_id": 0,
+                    "activity_timeline_text": "",
+                    "activity_timeline_url": "",
+                    "flag_timeline_entry": 1,
+                    "file_activity_id": 0,
+                    "is_mytony": 1,
+                    "expression": ""
+                }
+            }
+            // let newReq = Object.assign({}, request);
+            // newReq.activity_description = message;
+            // newReq.activity_form_id = formId;
+            // newReq.activity_title = message;
+            // newReq.activity_title_expression = null;
+            // newReq.activity_type_category_id = 9;
+            // newReq.channel_activity_id = request.workflow_activity_id;
+            // newReq.form_api_activity_type_category_id = 48;
+            // newReq.form_api_activity_type_id = formApiActivityTypeId;
+            // newReq.form_id = formId;
+            // newReq.form_transaction_id = 0;
+            // newReq.generated_account_code = null;
+            // newReq.generated_group_account_name = null;
+            // newReq.lead_asset_first_name = null;
+            // newReq.lead_asset_id = 0;
+            // newReq.lead_asset_type_id = null;
+
+
+
+            // newReq.activity_inline_data = dataInLine;
+            // newReq.activity_timeline_collection = timelineCollection;
+            // newReq.data_entity_inline = dataInLine;
+
+
+            const addActivityAsync = nodeUtil.promisify(makeRequest.post);
+            let makeRequestOptions = {
+                form: newReq
+            };
+
+
+            console.log(JSON.stringify(newReq, null, 2));
+            let response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
+            let body = JSON.parse(response.body);
+            console.log(`Add activity response  %j`, body);
+
+            if (Number(body.status) === 200) {
+
+                newReq.data_activity_id = newReq.workflow_activity_id;
+                newReq.activity_type_category_id = 48;
+                newReq.form_transaction_id = body.response.form_transaction_id;
+
+                makeRequestOptions = {
+                    form: newReq
+                };
+
+                const addTimeLineAsync = nodeUtil.promisify(makeRequest.post);
+                const maketimelineRequestOptions = {
+                    form: newReq
+                };
+                console.log(`Timeline request params for account %j`, maketimelineRequestOptions);
+                const timelineresponse = await addTimeLineAsync(global.config.mobileBaseUrl + global.config.version + '/activity/timeline/entry/add', maketimelineRequestOptions);
+                const timelineresponsebody = JSON.parse(timelineresponse.body);
+                console.log(`Timeline response  %j`, timelineresponsebody);
+            }
+
+        } catch (error) {
+            util.logError(request, "[PdfValidationBotError] Error in pdf validation form submission ", { request, error: serializeError(error) })
         }
     }
 
