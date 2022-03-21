@@ -7133,6 +7133,22 @@ this.getChildOfAParent = async (request) => {
         }
         return [error, {}];
     };
+    this.notifyVendor=  function (request) {
+        let responseData = [],
+            error = true;
+            let paramsArr = new Array(
+                request.vendor_id,
+                request.vendor_name,
+                request.ingredient_id   ,
+                request.ingredeint_name,
+                request.ingredeint_unit ,
+                request.quantity,
+                request.vendor_phone_number ,
+                request.vendor_email
+            );
+            error=false;
+        return [error, responseData];
+    };
 };
 
 module.exports = PamService;
