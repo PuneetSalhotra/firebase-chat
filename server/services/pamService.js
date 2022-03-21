@@ -6789,7 +6789,7 @@ this.getChildOfAParent = async (request) => {
             request.promo_title,
             request.promo_description,
             request.discount_maximum_value,
-            request.promo_minimum_bil,
+            request.promo_minimum_bill,
             request.promo_start_datetime,
             request.promo_end_datetime,
             request.promo_level_id,
@@ -6821,6 +6821,11 @@ this.getChildOfAParent = async (request) => {
     this.updateMinimumCountAssetlist = async function (request) {
         let responseData = [],
             error = true;
+        let [error1, responseData1] = await self.assetInlineDataGetUserprofile(request, request.asset_id);
+        let data = JSON.parse(responseData1[0].asset_inline_data);
+        data.asset_storage_limit = request.asset_storage_limit;
+        data = JSON.stringify(data);
+        let [err, res] = await self.coverInlineAlterV1(request, request.asset_id, data);
         let paramsArr = new Array(
             request.organization_id,
             request.asset_id,
@@ -7100,7 +7105,34 @@ this.getChildOfAParent = async (request) => {
         } catch (error) {
             return [err, -9999];
         }
-    };    
+    };  
+    this.coverInlineAlterV1 = async function (request, target_asset_id, data) {
+        let responseData = [],
+            error = true;
+        let dateTimeLog = util.getCurrentUTCTime();
+        request['datetime_log'] = dateTimeLog;
+        let paramsArr = new Array(
+            target_asset_id,
+            request.organization_id,
+            request.asset_first_name,
+            request.asset_description,
+            data,
+            request.asset_id,
+            request.datetime_log
+        );
+        let queryString = util.getQueryString('ds_v1_asset_list_update_cover_inline_data', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    pamAssetListHistoryInsert(request, 221, target_asset_id).then(() => { });
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, {}];
+    };
 };
 
 module.exports = PamService;
