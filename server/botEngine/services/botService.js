@@ -18180,7 +18180,23 @@ if(workflowActivityData.length==0){
     async function pdfValidationBot(request, botInlineJson) {
         try {
             let finalPdfText = "";
-            let activityInlineData = JSON.parse(request.activity_inline_data);
+            if(!request.hasOwnProperty("workflow_activity_id")) {
+                request.workflow_activity_id= request.activity_id
+            }
+
+            let referenceFormId = botInlineJson.reference_form_id;
+            const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                organization_id: request.organization_id,
+                account_id: request.account_id
+            }, request.workflow_activity_id, request.form_id);
+
+            let dataEntityInline = JSON.parse(formData[0].data_entity_inline);
+
+            if(typeof dataEntityInline == "string") {
+                dataEntityInline = JSON.parse(dataEntityInline);
+            }
+
+            let activityInlineData = dataEntityInline.form_submitted;
             let referenceFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.refrence_field_id)[0].field_value;
             let referenceActivityId = referenceFieldValue.split("|")[0];
             let pdfFeildValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.pdf_field_id)[0].field_value;
@@ -18195,7 +18211,19 @@ if(workflowActivityData.length==0){
             }
 
             if (wfActivityDetails.length > 0) {
-                let activityInlineDataOfReferenceActivity = JSON.parse(wfActivityDetails[0].activity_inline_data);
+
+                const refrenceFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, referenceActivityId, referenceFormId);
+    
+
+                let refrenceDataEntityInline = JSON.parse(refrenceFormData[0].data_entity_inline);
+                if(typeof refrenceDataEntityInline == "string") {
+                    refrenceDataEntityInline = JSON.parse(refrenceDataEntityInline);
+                }
+                let activityInlineDataOfReferenceActivity = refrenceDataEntityInline.form_submitted;
+                console.log(activityInlineDataOfReferenceActivity);
                 new pdfreader.PdfReader().parseBuffer(pdfBuffer,async function (err, item) {
                     if (err) {
                         console.error(err);
@@ -18232,7 +18260,7 @@ if(workflowActivityData.length==0){
                                     }
 
                                 } else {
-                                    console.log("Couldn't find the match");
+                                    misMactchData += `${fieldName}\n`;
                                 }
                             } else if (startsFrom.hasOwnProperty("start_of")) {
                                 let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.start_of, 'gi'))].map(a => a.index);
