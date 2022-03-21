@@ -1231,6 +1231,36 @@ function ActivityListingController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/activity/reference/add', async (req, res) => {
+        const [err, responseData] = await activityListingService.activityReferenceAdd(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/reference/add | Error: ", err);
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/activity/reference/delete', async (req, res) => {
+        const [err, responseData] = await activityListingService.activityReferenceDelete(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/reference/delete | Error: ", err);
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/activity/reference/update', async (req, res) => {
+        const [err, responseData] = await activityListingService.activityReferenceUpdate(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/reference/update | Error: ", err);
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
 
 }
 
