@@ -818,6 +818,14 @@ function PamController(objCollection) {
             console.log("/pam/get/menu/select/detailes | Error: ", err);
             res.json(responseWrapper.getResponse(true, result, -9999, req.body));
         }
+    });  
+    app.post('/' + global.config.version + '/pam/vendor/notify', async function (req, res) {
+        let [err, result] = await pamService.notifyVendor(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            res.json(responseWrapper.getResponse(true, result, -9999, req.body));
+        }
     });    
 };
 
