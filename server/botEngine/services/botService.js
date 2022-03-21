@@ -18303,8 +18303,8 @@ if(workflowActivityData.length==0){
 
             let formId = formType == "error" ? botInlineJson.error_form_id : botInlineJson.success_form_id;
             let fieldId = formType == "error" ? botInlineJson.error_field_id : botInlineJson.success_field_id;
-            let formApiActivityTypeId = "error" ? botInlineJson.error_activity_type_id : botInlineJson.success_activity_type_id;
-            let formTitle = "error" ? botInlineJson.error_form_title : botInlineJson.success_form_title;
+            let formApiActivityTypeId = formType == "error" ? botInlineJson.error_activity_type_id : botInlineJson.success_activity_type_id;
+            let formTitle = formType == "error" ? botInlineJson.error_form_title : botInlineJson.success_form_title;
 
             let dataInLine = [];
             dataInLine.push({
