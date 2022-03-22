@@ -3769,32 +3769,33 @@ function TasiService(objectCollection) {
             error = true;
 
         const paramsArr = new Array(
-          request.entity_target_mapping_id,
-          request.jan_total_target_value,
-          request.feb_total_target_value,
-          request.mar_total_target_value,
-          request.apr_total_target_value,
-          request.may_total_target_value,
-          request.jun_total_target_value,
-          request.jul_total_target_value,
-          request.aug_total_target_value,
-          request.sep_total_target_value,
-          request.oct_total_target_value,
-          request.nov_total_target_value,
-          request.dec_total_target_value,
-          request.organization_id,
-          request.target_asset_id,
-          request.widget_type_id,
-          request.customer_account_code,
-          request.period_start_datetime,
-          request.period_end_datetime,
-          request.period_type_id,
-          request.target,
-          request.log_asset_id,
-          util.getCurrentUTCTime()
+            request.entity_target_mapping_id,
+            request.flag_type,
+            request.jan_total_target_value,
+            request.feb_total_target_value,
+            request.mar_total_target_value,
+            request.apr_total_target_value,
+            request.may_total_target_value,
+            request.jun_total_target_value,
+            request.jul_total_target_value,
+            request.aug_total_target_value,
+            request.sep_total_target_value,
+            request.oct_total_target_value,
+            request.nov_total_target_value,
+            request.dec_total_target_value,
+            request.organization_id,
+            request.asset_id,
+            request.widget_type_id,
+            request.customer_account_code,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.period_type_id,
+            request.target,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
         );
 
-        const queryString = util.getQueryString('ds_p1_3_entity_target_mapping_update_target', paramsArr);
+        const queryString = util.getQueryString('ds_p1_4_entity_target_mapping_update_target', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
