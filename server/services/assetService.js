@@ -8620,6 +8620,221 @@ this.getQrBarcodeFeeback = async(request) => {
 
         return [error, responseData];
     };
+    this.sendCallOrSmsV1 = async (verificationMethod, countryCode, phoneNumber, verificationCode, request) => {
+
+        let smsString = util.getSMSString(verificationCode);
+        let domesticSmsMode = global.config.domestic_sms_mode;
+        let internationalSmsMode = global.config.international_sms_mode;
+        let phoneCall = global.config.phone_call;
+        let appID = Number(request.app_id) || 3;
+
+        // SMS heart-beat logic
+        if (`${countryCode}${phoneNumber}` === '919100112970') {
+            verificationCode = util.getOTPHeartBeatCode();
+        }
+
+        //Get the appID
+        let [err, appData] = await activityCommonService.getAppName(request, appID);
+        if (err) {
+            //appName = 'TONY';
+            appName = 'greneOS app.';
+        } else {
+            appName = appData[0].app_name;
+        }
+        console.log('appName : ', appName);
+
+        let smsOptions = {
+            type: 'OTP', // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
+            countryCode,
+            phoneNumber,
+            verificationCode,
+            failOver: true,
+            appName
+        };
+        switch (verificationMethod) {
+            case 0:
+                //global.logger.write('client chose only to retrive data', request, 'device', 'trace'); // no third party api's in this case
+                break;
+            case 1:
+                // send sms                
+                //global.logger.write("sms string is " + smsString, request, 'trace'); // no third party api's in this case
+
+                // There used to be a logic earlier to decide between the SMS vendors and 
+                // and then send domestic/international text. You can check it out in the
+                // GitHub PR (Pull Request) #19. 
+                // Pick the initial/primary SMS provider from domesticSmsMode.txt
+                if (countryCode === 91) {
+
+                    let redisValdomesticSmsMode = await cacheWrapper.getSmsMode('domestic_sms_mode');
+                    domesticSmsMode = Number(redisValdomesticSmsMode);
+                    // fs.readFile(`${__dirname}/../utils/domesticSmsMode.txt`, function (err, data) {
+                    //     (err) ? global.logger.write('debug', err, {}, request) : domesticSmsMode = Number(data.toString());
+
+                    /*   case 1: // mvaayoo                        
+                            util.sendSmsMvaayoo(smsString, countryCode, phoneNumber, function (error, data) {
+                                if (error)
+                                    //console.log(error);
+                                    //console.log(data);
+                                    global.logger.write('trace', data, error, request)
+                            });
+                            break;
+                        case 2: // bulk sms                            
+                            util.sendSmsBulk(smsString, countryCode, phoneNumber, function (error, data) {
+                                if (error)
+                                    //console.log(error);
+                                    //console.log(data);
+                                    global.logger.write('trace', data, error, request)
+                            });
+                            break;
+                        case 3: // sinfini                                                        
+                            console.log('In send SmsSinfini');
+                            util.sendSmsSinfini(smsString, countryCode, phoneNumber, function (error, data) {
+                                if (error)
+                                    console.log(error);
+                                console.log(data);
+                                global.logger.write('trace', data, error, request)
+                            });
+                            break;
+                     */
+
+                    switch (domesticSmsMode) {
+                        case 1: // SinFini
+                            smsEngine.emit('send-sinfini-sms', smsOptions);
+                            break;
+                        case 2: // mVayoo
+                            smsEngine.emit('send-textlocal-sms', smsOptions);
+                            break;
+                        default: // SinFini
+                            smsEngine.emit('send-sinfini-sms', smsOptions);
+                            break;
+                    }
+
+
+                    /* smsEngine.sendDomesticSms(smsOptions); */
+
+                } else {
+
+                    let redisValinternationalSmsMode = await cacheWrapper.getSmsMode('international_sms_mode');
+                    internationalSmsMode = Number(redisValinternationalSmsMode);
+
+                    // fs.readFile(`${__dirname}/../utils/internationalSmsMode.txt`, function (err, data) {
+                    //     (err) ? global.logger.write('debug', err, {}, request) : internationalSmsMode = Number(data.toString());
+
+                    /* case 1:
+                           util.sendInternationalTwilioSMS(smsString, countryCode, phoneNumber, function (error, data) {
+                               if (error)
+                                   global.logger.write('trace', data, error, request)
+                           });
+                           break;
+
+                       case 2:
+                           util.sendInternationalNexmoSMS(smsString, countryCode, phoneNumber, function (error, data) {
+                               if (error)
+                                   global.logger.write('trace', data, error, request)
+                           });
+                           break; */
+
+                    switch (internationalSmsMode) {
+                        case 1: // Twilio
+                            smsEngine.emit('send-twilio-sms', smsOptions);
+                            break;
+                        case 2: // Nexmo
+                            smsEngine.emit('send-nexmo-sms', smsOptions);
+                            break;
+                    }
+
+
+                    // let smsOptions = {
+                    //     type: 'OTP', // Other types: 'NOTFCTN' | 'COLLBRTN' | 'INVTATN',
+                    //     countryCode,
+                    //     phoneNumber,
+                    //     verificationCode,
+                    //     failOver: true
+                    // };
+                    // smsEngine.sendInternationalSms(smsOptions);
+
+                }
+                break;
+            case 2: //Make a call                
+                // fs.readFile(`${__dirname}/../utils/phoneCall.txt`, function (err, data) {
+                //     (err) ? global.logger.write('debug', err, {}, request) : phoneCall = Number(data.toString());
+
+                let redisPhoneCallMode = await cacheWrapper.getSmsMode('phone_call_mode');
+                redisPhoneCallMode = Number(redisPhoneCallMode);
+
+                let passcode = "", text = "";
+                switch (redisPhoneCallMode) {
+                    case 2: //Nexmo
+                        //console.log('Making Nexmo Call');
+                        //global.logger.write('conLog', 'Making Nexmo Call', {}, request);
+                        util.logInfo(request, `sendCallOrSms Making Nexmo Call %j`, { request });
+                        passcode = request.passcode;
+                        passcode = passcode.split("");
+                        passcode = passcode.toString();
+                        passcode = passcode.replace(/,/g, " ");
+
+                        //var text = "Your passcode for Mytony App is, " + passcode + ". I repeat, your passcode for Mytony App is, " + passcode + ". Thank you.";
+                        text = "Your passcode for " + appName + " App is, " + passcode;
+                        text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                        text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                        text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                        text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                        //console.log('Text: ' + text);
+                        //global.logger.write('debug', 'Text: ' + text, {}, request);
+                        util.logInfo(request, `sendCallOrSms debug Text:  %j`, { Text: text, request });
+
+                        util.makeCallNexmoV1(text, request.passcode, countryCode, phoneNumber, function (error, data) {
+                            if (error)
+                                console.log(error);
+                            console.log(data);
+                            //global.logger.write('trace', data, error, request)
+                            util.logError(request, `sendCallOrSms trace Error %j`, { data, error, request });
+                        });
+                        break;
+
+                    case 1: //Twilio
+                        //console.log('Making Twilio Call');
+                        //global.logger.write('conLog', 'Making Twilio Call', {}, request);
+                        util.logInfo(request, `sendCallOrSms Making Twilio Call %j`, { request });
+                        passcode = request.passcode;
+                        passcode = passcode.split("");
+
+                        //var text = "Your passcode is " + passcode + " I repeat," + passcode + " Thank you.";
+                        //var text = "Your passcode for Mytony App is, " + passcode + ". I repeat, your passcode for Mytony App is, " + passcode + ". Thank you.";
+                        text = "Your passcode for " + appName + " App is, " + passcode;
+                        text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                        text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                        text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                        text += ". I repeat, your passcode for " + appName + " App is, " + passcode;
+                        //console.log('Text: ' + text);
+                        //global.logger.write('debug', 'Text: ' + text, {}, request);
+                        util.logInfo(request, `sendCallOrSms debug Text: %j`, { Text: text, request });
+                        util.MakeCallTwilio(text, request.passcode, countryCode, phoneNumber, function (error, data) {
+                            if (error)
+                                console.log(error);
+                            console.log(data);
+                            //global.logger.write('trace', data, error, request)
+                            util.logError(request, `sendCallOrSms trace Error %j`, { data, error, request });
+                        });
+                        break;
+                }
+
+                // });
+
+                break;
+            case 3: //email
+                request.email_receiver_name = "";
+                request.email_sender_name = "greneOS";
+                //request.email_id = request.email_id;
+                request.email_sender = "support@greneos.com";
+                request.subject = "greneOS App One Time Password";
+                request.body = `Hi, <br/> ${verificationCode} is your verification code for the ${appName}.`;
+                request.email_id = request.email;
+                this.sendEmail(request);
+                break;
+
+        }
+    };
 
 }
 module.exports = AssetService;

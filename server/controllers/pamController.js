@@ -826,7 +826,23 @@ function PamController(objCollection) {
         } else {
             res.json(responseWrapper.getResponse(true, result, -9999, req.body));
         }
-    });    
+    });  
+    app.post('/' + global.config.version + '/pam/asset/add', async (req, res) => {
+        let [err, result] = await pamService.addPamAsset(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            res.json(responseWrapper.getResponse(err, {}, result, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/pam/asset/phone/verification', async (req, res) => {
+        let [err, result] = await pamService.verifyPhoneNumber(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            res.json(responseWrapper.getResponse(err, {}, result, req.body));
+        }
+    });  
 };
 
 module.exports = PamController;
