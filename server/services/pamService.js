@@ -4834,17 +4834,15 @@ this.addAssetPamSubfnV1 = async function (request) {
 
 	let queryString = util.getQueryString('ds_v1_asset_list_insert_pam', paramsArr);
 	if (queryString != '') {
-		//global.logger.write(queryString, request, 'asset', 'trace');
-		db.executeQuery(0, queryString, request, function (err, assetData) {
-			if (err === false) {
-				assetListHistoryInsert(request, assetData[0]['asset_id'], request.organization_id, 0, request.datetime_log, function (err, data) {});
-				request.ingredient_asset_id = assetData[0]['asset_id'];
-				err = false 
-				responseData = assetData
-		        // return [false ,{"asset_id": assetData[0]['asset_id']} ]		
-			 // callback(false, {"asset_id": assetData[0]['asset_id']}, 200);
-			} 
-			});
+        await db.executeQueryPromise(0, queryString, request)
+        .then(async(assetData) => {
+           await assetListHistoryInsert(request, assetData[0]['asset_id'], request.organization_id, 0, request.datetime_log, function (err, data) {});
+            responseData = assetData;
+            error = false;
+        })
+        .catch((err) => {
+            error = err;
+        })
 		}
 		return [err, responseData]       
 };
@@ -7190,14 +7188,11 @@ this.getChildOfAParent = async (request) => {
 
                 phoneNumber = await util.cleanPhoneNumber(request.asset_phone_number);
                 countryCode = await util.cleanPhoneNumber(request.phone_country_code);
-                await self.addAssetPamSubfnV2(request).then(async (newAssetData) => {
-                    if (newAssetData.length > 0) {
-                        request.member_asset_id = newAssetData[0].asset_id
-                        await self.updateAssetPasscode(request, request.member_asset_id, countryCode, phoneNumber);
-                    }
-                }).catch((err) => {
-                    err = true;
-                });
+                const [error,newAssetData] = await self.addAssetPamSubfnV1(request);
+                console.log(newAssetData)
+                if(newAssetData.length>0){
+                    request.member_asset_id = newAssetData[0].asset_id
+                }
             }
             console.log("phoneNumber", phoneNumber);
             console.log("countryCode", countryCode);
@@ -7306,7 +7301,6 @@ this.getChildOfAParent = async (request) => {
         let updateQueryString = util.getQueryString('ds_v1_asset_list_update_passcode', paramsArr);
         db.executeQuery(0, updateQueryString, request, function (err, data) {
             assetListHistoryInsert(request,member_asset_id, request.organization_id, 208, util.getCurrentUTCTime(), function (err, data) {
-            //   return[false,{}];
             error=false;
             responseData=data;
             
@@ -7315,55 +7309,6 @@ this.getChildOfAParent = async (request) => {
 
         await assetService.sendCallOrSmsV1(1, countryCode, phoneNumber, verificationCode, request);
         return [error, responseData];
-    };
-    this.addAssetPamSubfnV2 = async function (request) {
-        return new Promise(function (resolve, reject) {
-            let dateTimeLog = util.getCurrentUTCTime();
-            request['datetime_log'] = dateTimeLog;
-
-            let assetTypeCtgId;
-            (request.hasOwnProperty('asset_type_category_id')) ? assetTypeCtgId = request.asset_type_category_id : assetTypeCtgId = 0;
-
-            request.code = (request.code || '');
-            request.enc_token = (request.enc_token || '');
-            let paramsArr = new Array(
-                request.asset_first_name,
-                request.asset_last_name,
-                request.asset_description,
-                request.customer_unique_id,
-                request.asset_profile_picture,
-                request.asset_inline_data,
-                request.phone_country_code,
-                request.asset_phone_number,
-                request.asset_email_id,
-                request.asset_timezone_id,
-                request.asset_type_id,
-                request.operating_asset_id,
-                request.manager_asset_id,
-                request.workforce_id,
-                request.account_id,
-                request.organization_id,
-                request.asset_id,
-                request.datetime_log,
-                request.code,
-                request.enc_token,
-                request.is_member || 0,
-                request.invite_sent || 0,
-                request.discount_percent || 0
-            );
-
-            let queryString = util.getQueryString('ds_v1_asset_list_insert_pam', paramsArr);
-            if (queryString != '') {
-                //global.logger.write(queryString, request, 'asset', 'trace');
-                db.executeQuery(0, queryString, request, function (err, assetData) {
-                    if (err === false) {
-                        assetListHistoryInsert(request, assetData[0]['asset_id'], request.organization_id, 0, request.datetime_log, function (err, data) { });
-                        request.ingredient_asset_id = assetData[0]['asset_id'];
-                        (!err) ? resolve(assetData) : reject(err);
-                    }
-                });
-            }
-        });
     };
 };
 
