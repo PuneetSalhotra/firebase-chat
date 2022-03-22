@@ -818,7 +818,7 @@ function ActivityListingController(objCollection) {
     // ....... sort_flag=0: sorted by activity_datetime_created
     // ....... sort_flag=1: sorted by activity_datetime_end_deferred
     app.post('/' + global.config.version + '/activity/workflow/child_orders/list', async function (req, res) {
-        const [err, childOrderData] = await activityListingService.activityListSelectChildOrders(req.body);
+        const [err, childOrderData] = await activityListingService.activityListSelectChildOrdersBasedOnAssetAccess(req.body);
         if (!err) {
             res.json(responseWrapper.getResponse({}, childOrderData, 200, req.body));
         } else {
@@ -827,6 +827,20 @@ function ActivityListingController(objCollection) {
         }
     });
 
+
+    // Flag=0: Get the count of child orders which are open in a given bulk order
+    // Flag=1: Get the list of child orders in a given bulk order
+    // ....... sort_flag=0: sorted by activity_datetime_created
+    // ....... sort_flag=1: sorted by activity_datetime_end_deferred
+    app.post('/' + global.config.version + '/activity/gantt-chart/child-orders/list', async function (req, res) {
+        const [err, childOrderData] = await activityListingService.activityListSelectChildOrdersForGanttChart(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, childOrderData, 200, req.body));
+        } else {
+            console.log("/activity/workflow/child_orders/list | Error: ", err);
+            res.json(responseWrapper.getResponse(err, childOrderData, -9999, req.body));
+        }
+    });
 
     app.post('/' + global.config.version + '/activity/form/download/attachements', function (req, res) {
         activityListingService.downloadZipFile(req.body).then((data) => {
@@ -1101,7 +1115,7 @@ function ActivityListingController(objCollection) {
             return;
         }
         let activityTypeID = req.body.activity_type_id || 0;
-        if (activityTypeID === 190797 || activityTypeID === 191879) {
+        if (activityTypeID === 190797 || activityTypeID === 191879 || activityTypeID === 197905) {
             activityListingService.generateSummary(req.body);
             const isRateLimitSet = await cacheWrapper.setBulkFeasibilitySummaryReportRateLimitWithExpiry(req.body, 60);
             res.json(responseWrapper.getResponse(false, [{ message: "The summary is being generated and will be available on the timeline shortly!" }], 200, req.body));
@@ -1213,6 +1227,36 @@ function ActivityListingController(objCollection) {
             res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/activity/update/widgets | Error: ", err);
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/activity/reference/add', async (req, res) => {
+        const [err, responseData] = await activityListingService.activityReferenceAdd(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/reference/add | Error: ", err);
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/activity/reference/delete', async (req, res) => {
+        const [err, responseData] = await activityListingService.activityReferenceDelete(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/reference/delete | Error: ", err);
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/activity/reference/update', async (req, res) => {
+        const [err, responseData] = await activityListingService.activityReferenceUpdate(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/reference/update | Error: ", err);
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     });

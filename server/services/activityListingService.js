@@ -2645,6 +2645,99 @@ function ActivityListingService(objCollection) {
 		return [error, responseData];
 	}
 
+	this.activityListSelectChildOrdersForGanttChart = async function (request) {
+		// IN p_organization_id BIGINT(20), IN p_parent_activity_id BIGINT(20), 
+		// IN p_flag TINYINT(4), IN p_sort_flag TINYINT(4), IN p_datetime_start DATETIME, 
+		// IN p_datetime_end DATETIME, IN p_start_from SMALLINT(6), IN p_limit_value SMALLINT(6)
+		let responseData = [],
+			error = true;
+
+		const paramsArr = new Array(
+			request.organization_id,
+			request.parent_activity_id,
+			request.flag || 1,
+			request.sort_flag,
+			request.datetime_start || '1970-01-01 00:00:00',
+			request.datetime_end || util.getCurrentUTCTime(),
+			request.start_from || 0,
+			request.limit_value || 50
+		);
+
+		const queryString = util.getQueryString('ds_p1_activity_list_select_child_orders', paramsArr);
+
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					try {
+						let dataWithParticipant = await appendParticipantList(request, data);
+						responseData = dataWithParticipant;
+					} catch (error) {
+						console.log("activityListSelectChildOrders | appendParticipantList | Error: ", error);
+						// Do nothing
+					}
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				})
+		}
+
+		if (responseData.length > 0) {
+			for (let activity of responseData) {
+				let parentActivityId = activity.activity_id;
+				if (parentActivityId != null && parentActivityId > 0) {
+					let requestForChild = Object.assign({}, request);
+					requestForChild.parent_activity_id = parentActivityId;
+					const [errorZero, childWorkflows] = await this.activityListSelectChildOrders(requestForChild);
+					activity.child_workflows = childWorkflows;
+				}
+			}
+		}
+
+		return [error, responseData];
+	}
+
+	this.activityListSelectChildOrdersBasedOnAssetAccess = async function (request) {
+		// IN p_organization_id BIGINT(20), IN p_parent_activity_id BIGINT(20), 
+		// IN p_flag TINYINT(4), IN p_sort_flag TINYINT(4), IN p_datetime_start DATETIME, 
+		// IN p_datetime_end DATETIME, IN p_start_from SMALLINT(6), IN p_limit_value SMALLINT(6)
+		let responseData = [],
+			error = true;
+
+		const paramsArr = new Array(
+			request.organization_id,
+			request.parent_activity_id,
+			request.asset_id,
+			request.flag || 1,
+			request.sort_flag,
+			request.datetime_start || '1970-01-01 00:00:00',
+			request.datetime_end || util.getCurrentUTCTime(),
+			request.start_from || 0,
+			request.limit_value || 50
+		);
+		const queryString = util.getQueryString('ds_p1_activity_asset_mapping_select_child_orders', paramsArr);
+
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					try {
+						let dataWithParticipant = await appendParticipantList(request, data);
+						responseData = dataWithParticipant;
+					} catch (error) {
+						console.log("activityListSelectChildOrders | appendParticipantList | Error: ", error);
+						// Do nothing
+					}
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				})
+		}
+		return [error, responseData];
+	}
+
 	this.getQueueActivitiesAllFiltersV1 = function (request) {
 		// IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20),
 		// IN p_asset_id BIGINT(20),  IN p_sort_flag TINYINT(4), IN p_flag TINYINT(4), IN p_queue_id BIGINT(20),
@@ -4116,6 +4209,7 @@ function ActivityListingService(objCollection) {
 
 		let htmlString = "";
 		let attachmentPath = "";
+		let activityTypeId = Number(request.activity_type_id) || 0;
 		const [errorZero, childMOM] = await this.activityListSelectChildOrders({
 			organization_id: request.organization_id,
 			parent_activity_id: request.activity_id,
@@ -4126,11 +4220,21 @@ function ActivityListingService(objCollection) {
 			return [htmlString, attachmentPath];
 		}
 
+		let meetingRequestFormId = 50816;
+		let scheduledTimeFieldId = 312542;
+		let nsr1FieldId = 316536;
+		let nsr2FieldId = 316535;
+		if(activityTypeId === 197905) {
+			meetingRequestFormId = 51493;
+			scheduledTimeFieldId = 318525;
+			nsr1FieldId = 318631;
+		}
+
 		const formTimelineDataOfMeeting = await activityCommonService.getActivityTimelineTransactionByFormId713({
 			organization_id: request.organization_id,
 			account_id: request.account_id
-		}, request.activity_id, 50816);
-		//312542
+		}, request.activity_id, meetingRequestFormId);
+
 		let meetingDate = "";
 
 		let formTransactionID = 0, formActivityID = 0;
@@ -4143,15 +4247,15 @@ function ActivityListingService(objCollection) {
 
 			const fieldData = await getFieldValue({
 				form_transaction_id: formTransactionID,
-				form_id: 50816,
-				field_id: 312542,
+				form_id: meetingRequestFormId,
+				field_id: scheduledTimeFieldId,
 				organization_id: request.organization_id
 			});
 
 			let fieldDataOfAttachment = await getFieldValue({
 				form_transaction_id: formTransactionID,
-				form_id: 50816,
-				field_id: 316536,
+				form_id: meetingRequestFormId,
+				field_id: nsr1FieldId,
 				organization_id: request.organization_id
 			});
 
@@ -4162,8 +4266,8 @@ function ActivityListingService(objCollection) {
 			if (attachmentPath == null || attachmentPath == "") {
 				fieldDataOfAttachment = await getFieldValue({
 					form_transaction_id: formTransactionID,
-					form_id: 50816,
-					field_id: 316535,
+					form_id: meetingRequestFormId,
+					field_id: nsr2FieldId,
 					organization_id: request.organization_id
 				});
 
@@ -4178,13 +4282,13 @@ function ActivityListingService(objCollection) {
 				if (entityInlineJSON.hasOwnProperty("start_date_time")) {
 					meetingDate = entityInlineJSON.start_date_time;
 					if (meetingDate) {
+						console.log(meetingDate);
 						meetingDate = moment(meetingDate);
 						meetingDate = `${meetingDate.format('DD')}-${meetingDate.format("MMMM")}`;
 					}
 				}
 			}
 		}
-
 
 		let finalSummaryData = [];
 		let momFieldMappingsForSummary = {
@@ -4228,26 +4332,74 @@ function ActivityListingService(objCollection) {
 					"Comments": 313566
 				}
 			},
-			"field_order": [
-				"SL_NO",
-				"Meeting_ID",
-				"MOM_Point_ID",
-				"Discussion_Point",
-				"Description",
-				"Responsible_Person_Email_ID",
-				"Responsibility_Holder",
-				"Category_ID",
-				"Assigned_To",
-				"Assigned_Date",
-				"Due_Date",
-				"Comments",
-				"Status"
-			],
+			"197905": {
+				"form_id": 51568,
+				"fields": {
+					"Discussion_Point": 318882,
+					"Description": 318883,
+					"Responsible_Person_Email_ID": 318884,
+					"Responsibility_Holder": 318885,
+					"Category_ID": 318886,
+					"Assigned_To": 318888,
+					"Assigned_Date": 318888,
+					"Target_Closure_Date": 318889,
+					"Comments": 318890
+				}
+			},
+			"field_order": {
+				"190797": [
+					"SL_NO",
+					"Meeting_ID",
+					"MOM_Point_ID",
+					"Discussion_Point",
+					"Description",
+					"Responsible_Person_Email_ID",
+					"Responsibility_Holder",
+					"Category_ID",
+					"Assigned_To",
+					"Assigned_Date",
+					"Due_Date",
+					"Comments",
+					"Status"
+				],
+				"191879": [
+					"SL_NO",
+					"Meeting_ID",
+					"MOM_Point_ID",
+					"Discussion_Point",
+					"Description",
+					"Responsible_Person_Email_ID",
+					"Responsibility_Holder",
+					"Category_ID",
+					"Assigned_To",
+					"Assigned_Date",
+					"Due_Date",
+					"Comments",
+					"Status"
+				],
+				"197905": [
+					"SL_NO",
+					"Meeting_ID",
+					"MOM_Point_ID",
+					"Discussion_Point",
+					"Description",
+					"Responsible_Person_Email_ID",
+					"Responsibility_Holder",
+					"Category_ID",
+					"Assigned_To",
+					"Assigned_Date",
+					"Target_Closure_Date",
+					"Comments",
+					"Status"
+				]
+			},
 			"date_fields": [
 				312767,
 				312432,
 				313563,
-				313562
+				313562,
+				318888,
+				318889
 			]
 		};
 
@@ -4274,7 +4426,6 @@ function ActivityListingService(objCollection) {
 			for (let fieldData of inlineJSON) {
 				fieldIDValue[String(fieldData.field_id)] = fieldData.field_value;
 			}
-
 
 			let data = {};
 			data["SL_NO"] = i + 1;
@@ -4314,14 +4465,14 @@ function ActivityListingService(objCollection) {
 
 		htmlString = `<p>Hi,</p><p>Greetings from Vi&trade;</p><p>The mail is to inform you that Based on Meeting Id:${wfActivityDetails[0].activity_cuid_3} on ${meetingDate} with ${wfActivityDetails[0].activity_title}, the updated discussion points are the following point(s).</p><br><table width="100%" border="1" cellspacing="0"><thead><tr>`;
 
-		for (const key of momFieldMappingsForSummary["field_order"]) {
+		for (const key of momFieldMappingsForSummary["field_order"][String(request.activity_type_id)]) {
 			htmlString += '<th>' + key + '</th>';
 		}
 		htmlString += '</tr></thead><tbody>';
 
 		for (let child of finalSummaryData) {
 			htmlString += '<tr>';
-			for (const key of momFieldMappingsForSummary["field_order"]) {
+			for (const key of momFieldMappingsForSummary["field_order"][String(request.activity_type_id)]) {
 				htmlString += '<td>' + child[key] + '</td>';
 			}
 			htmlString += '</tr>';
@@ -4515,6 +4666,74 @@ function ActivityListingService(objCollection) {
 					error = err;
 				})
 		}
+		return [error, responseData];
+	}
+
+	// Activity Reference Add
+	this.activityReferenceAdd = async function (request) {
+		let responseData = [],
+			error = true;
+		let activityReferenceId = request.refrence_activity_id;
+		request.datetime_log = util.getCurrentUTCTime();
+		[error, responseData] = await activityCommonService.activityActivityMappingInsertV1(request, activityReferenceId);
+
+		if (error) {
+			error = true;
+			responseData = [{ "message": "Activity refrence addition failed" }];
+		}
+		else {
+			error = false;
+			responseData = [{ "message": "Activity refrence added successfully" }];
+		}
+
+		return [error, responseData];
+	}
+
+	// Activity Reference Delete
+	this.activityReferenceDelete = async function (request) {
+		let responseData = [],
+			error = true;
+		let activityReferenceId = request.refrence_activity_id;
+		[error, responseData] = await activityCommonService.activityActivityMappingArchive(request, activityReferenceId);
+		if (error) {
+			error = true;
+			responseData = [{ "message": "Activity refrence deletion failed" }];
+		}
+		else {
+			error = false;
+			responseData = [{ "message": "Activity refrence deleted successfully" }];
+		}
+
+		return [error, responseData];
+	}
+
+	// Activity Reference Update
+	this.activityReferenceUpdate = async function (request) {
+		let responseData = [],
+			error = true;
+		let oldActivityReferenceId = request.old_refrence_activity_id;
+		let activityReferenceId = request.refrence_activity_id;
+		request.datetime_log = util.getCurrentUTCTime();
+		[error, responseData] = await activityCommonService.activityActivityMappingArchive(request, oldActivityReferenceId);
+
+		if (error) {
+			error = true;
+			responseData = [{ "message": "Activity refrence updation failed" }];
+		}
+		else {
+			[error, responseData] = await activityCommonService.activityActivityMappingInsertV1(request, activityReferenceId);
+			if (error) {
+				error = true;
+				responseData = [{ "message": "Activity refrence updation failed" }];
+			}
+			else {
+				error = false;
+				responseData = [{ "message": "Activity refrence updated successfully" }];
+			}
+
+		}
+
+
 		return [error, responseData];
 	}
 

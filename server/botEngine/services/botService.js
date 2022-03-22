@@ -8,6 +8,7 @@ const ActivityParticipantService = require('../../services/activityParticipantSe
 //var ActivityUpdateService = require('../../services/activityUpdateService.js');
 const ActivityTimelineService = require('../../services/activityTimelineService.js');
 const ActivityListingService = require('../../services/activityListingService.js');
+const AssetService = require('../../services/assetService.js');
 
 const UrlOpsService = require('../../UrlShortner/services/urlOpsService');
 
@@ -43,6 +44,8 @@ const {PDFDocument, rgb, StandardFonts,degrees } = require('pdf-lib');
 const fetch = require('node-fetch');
 const fontkit = require('@pdf-lib/fontkit');
 
+const pdfreader = require('pdfreader');
+
 function isObject(obj) {
     return obj !== undefined && obj !== null && !Array.isArray(obj) && obj.constructor == Object;
 }
@@ -72,7 +75,7 @@ function BotService(objectCollection) {
     const activityService = new ActivityService(objectCollection);
     const activityListingService = new ActivityListingService(objectCollection);
     const activityTimelineService = new ActivityTimelineService(objectCollection);
-
+    
     const urlOpsService = new UrlOpsService(objectCollection);
     const ledgerOpsService = new LedgerOpsService(objectCollection);
 
@@ -84,6 +87,8 @@ function BotService(objectCollection) {
     //const workbookOpsService_VodafoneCustom = new WorkbookOpsService_VodafoneCustom(objectCollection);
 
     const rmBotService = new RMBotService(objectCollection);
+
+    const assetService = new AssetService(objectCollection);
 
     const nodeUtil = require('util');
 
@@ -281,6 +286,55 @@ function BotService(objectCollection) {
                          });
                  }
                 
+                // enabling round robin arp bot
+                if(request.bot_operation_type_id == 2) {
+                    const botOperationInlineData = JSON.parse(request.bot_inline_data),
+                    botOperations = botOperationInlineData.bot_operations;
+
+                    let activityTypeFlagRoundRobin = botOperations.status_alter.activity_type_flag_round_robin;
+
+                    let activityStatusId = botOperations.status_alter.activity_status_id;
+                    
+                    if(activityTypeFlagRoundRobin == 1) {
+                        let statusDetails = await getStatusName(request, activityStatusId);
+
+                        for(let status of statusDetails) {
+                            util.logInfo("status", JSON.stringify(status));
+                            let [err,assetList] = await assetService.getAssetTypeList({
+                                organization_id : request.organization_id,
+                                asset_type_id : status.asset_type_id,
+                                asset_type_category_id : status.asset_type_category_id,
+                                start_from : 0,
+                                limit_value : 1000
+                            });
+    
+                            await updateArpRRFlag({
+                                organization_id : request.organization_id,
+                                asset_type_id : status.asset_type_id,
+                                asset_type_arp_round_robin_enabled : 1,
+                                log_asset_id : request.asset_id
+                            });
+
+                            if(err) {
+                                console.error("Got Error");
+                                return [err, []];
+                            }
+                            util.logInfo("assetList", JSON.stringify(assetList));
+                            let sequence_id = 1;
+                            for(let row of assetList) {
+                                await updateAssetSequenceId({
+                                    asset_id : row.asset_id,
+                                    organization_id : request.organization_id,
+                                    sequence_id : sequence_id,
+                                    cycle_id : 1,
+                                    log_asset_id : row.asset_id,
+                                });
+                                sequence_id++;
+                            }
+    
+                        }                        
+                    }
+                }
                 // paramsArray =
                 //     new Array(
                 //         request.bot_id,
@@ -410,6 +464,56 @@ function BotService(objectCollection) {
                           );
 
                         await db.callDBProcedure(request, 'ds_p1_workforce_form_field_mapping_update_prefill_enabled', paramsArray, 0);
+                    }
+                }
+
+                // enabling round robin arp bot
+                if(request.bot_operation_type_id == 2) {
+                    const botOperationInlineData = JSON.parse(request.bot_operation_inline_data),
+                    botOperations = botOperationInlineData.bot_operations;
+
+                    let activityTypeFlagRoundRobin = botOperations.status_alter.activity_type_flag_round_robin;
+
+                    let activityStatusId = botOperations.status_alter.activity_status_id;
+                    
+                    if(activityTypeFlagRoundRobin == 1) {
+                        let statusDetails = await getStatusName(request, activityStatusId);
+
+                        for(let status of statusDetails) {
+                            util.logInfo("status", JSON.stringify(status));
+                            let [err,assetList] = await assetService.getAssetTypeList({
+                                organization_id : request.organization_id,
+                                asset_type_id : status.asset_type_id,
+                                asset_type_category_id : status.asset_type_category_id,
+                                start_from : 0,
+                                limit_value : 1000
+                            });
+    
+                            await updateArpRRFlag({
+                                organization_id : request.organization_id,
+                                asset_type_id : status.asset_type_id,
+                                asset_type_arp_round_robin_enabled : 1,
+                                log_asset_id : request.asset_id
+                            });
+
+                            if(err) {
+                                console.error("Got Error");
+                                return [err, []];
+                            }
+                            util.logInfo("assetList", JSON.stringify(assetList));
+                            let sequence_id = 1;
+                            for(let row of assetList) {
+                                await updateAssetSequenceId({
+                                    asset_id : row.asset_id,
+                                    organization_id : request.organization_id,
+                                    sequence_id : sequence_id,
+                                    cycle_id : 1,
+                                    log_asset_id : row.asset_id,
+                                });
+                                sequence_id++;
+                            }
+    
+                        }                        
                     }
                 }
 
@@ -1405,7 +1509,7 @@ function BotService(objectCollection) {
                             i.bot_operation_inline_data = JSON.stringify({
                                 "err": err
                             });
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //return Promise.reject(err);
                         }
                         util.logInfo(request, `****************************************************************`);
@@ -1438,7 +1542,7 @@ function BotService(objectCollection) {
                             });
                             //return Promise.reject(err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                         }
                         util.logInfo(request, `****************************************************************`);
@@ -1464,7 +1568,7 @@ function BotService(objectCollection) {
                             });
                             //return Promise.reject(err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                         }
                         util.logInfo(request, `****************************************************************`);
@@ -1499,7 +1603,7 @@ function BotService(objectCollection) {
                             });
                             //return Promise.reject(err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                         }
                         util.logInfo(request, '****************************************************************');
@@ -1523,7 +1627,7 @@ function BotService(objectCollection) {
                             });
                             //return Promise.reject(err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                         }
                         util.logInfo(request, '****************************************************************');
@@ -1561,7 +1665,7 @@ function BotService(objectCollection) {
                             });
                             //return Promise.reject(err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                         }
                         util.logInfo(request, '****************************************************************');
@@ -1598,7 +1702,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //return Promise.reject(err);
                         }
                         util.logInfo(request, '****************************************************************');
@@ -1622,7 +1726,7 @@ function BotService(objectCollection) {
                                 "err": err
                             });
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             // await handleBotOperationMessageUpdate(request, i, 4, err);
                         }
                         util.logInfo(request, `****************************************************************`);
@@ -1665,7 +1769,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                         }
                         util.logInfo(request, `****************************************************************`);
                         break;
@@ -1705,7 +1809,7 @@ function BotService(objectCollection) {
                                 "err": err
                             });
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                         }
                         util.logInfo(request, `****************************************************************`);
@@ -1725,7 +1829,7 @@ function BotService(objectCollection) {
                             util.logError(request, `LEDGER TRANSACTION Error: `, { type: 'bot_engine', error });
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -1750,7 +1854,7 @@ function BotService(objectCollection) {
                         } catch (error) {
                             util.logError(request, `CREATE CUSTOMER Error: `, { type: 'bot_engine', error });
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                         }
                         break;
@@ -1765,7 +1869,7 @@ function BotService(objectCollection) {
                         } catch (error) {
                             util.logError(request, `Workflow Reference Bot: `, { type: 'bot_engine', error });
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                         }
                         break;
@@ -1799,7 +1903,7 @@ function BotService(objectCollection) {
                             logger.error("Error parsing inline JSON for workbook bot", { type: 'bot_engine', error, request_body: request });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
 
                         util.logInfo(request, ` `);
@@ -1921,7 +2025,7 @@ function BotService(objectCollection) {
                                             logger.error("Error sending excel job to SQS queue", { type: 'bot_engine', error: serializeError(error), request_body: request });
                                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                                            i.bot_operation_error_message = error;
+                                            i.bot_operation_error_message = serializeError(error);
                                             activityCommonService.workbookTrxUpdate({
                                                 activity_workbook_transaction_id: workbookTxnID,
                                                 flag_generated: -1, //Error pushing to SQS Queue
@@ -1947,7 +2051,7 @@ function BotService(objectCollection) {
                                 logger.error("Error running the Workbook Mapping Bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                                 //await handleBotOperationMessageUpdate(request, i, 4, error);
                                 i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                                i.bot_operation_error_message = error;
+                                i.bot_operation_error_message = serializeError(error);
                             }
                         } else {
                             util.logInfo(request, `Its not a custom Variant. Hence not triggering the Bot!`);
@@ -1994,7 +2098,7 @@ function BotService(objectCollection) {
                             request.opportunity_update = true;
                             updateCuids = botOperationsJson.bot_operations.update_cuids;
 
-                        } else if (Number(request.activity_type_category_id) === 63 && Number(request.activity_type_id) === 190798) {
+                        } else if (Number(request.activity_type_category_id) === 63) {
 
                             let formID = request.form_id;
                             let activityId = request.workflow_activity_id || request.activity_id;
@@ -2022,7 +2126,7 @@ function BotService(objectCollection) {
                             logger.error("Error running the CUID update bot", { type: 'bot_engine', error: serializeError(error), request_body: request });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2038,7 +2142,7 @@ function BotService(objectCollection) {
                             logger.error("Error running the setDueDateOfWorkflow", { type: 'bot_engine', error: serializeError(error), request_body: request });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2057,7 +2161,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2085,7 +2189,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2106,7 +2210,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2124,7 +2228,7 @@ function BotService(objectCollection) {
                                 "error": error
                             });
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                         }
                         break;
@@ -2151,7 +2255,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2175,7 +2279,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //return Promise.reject(err);
                         }
                         util.logInfo(request, '****************************************************************');
@@ -2199,7 +2303,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //return Promise.reject(err);
                         }
                         util.logInfo(request, '****************************************************************');
@@ -2224,7 +2328,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                         }
                         util.logInfo(request, '****************************************************************');
 
@@ -2282,7 +2386,7 @@ function BotService(objectCollection) {
                                     });
                                     //await handleBotOperationMessageUpdate(request, i, 4, error);
                                     i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                                    i.bot_operation_error_message = error;
+                                    i.bot_operation_error_message = serializeError(error);
                                 } else {
                                     logger.info("Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
                                 }
@@ -2307,7 +2411,7 @@ function BotService(objectCollection) {
                             //return Promise.reject(err);
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                         }
                         util.logInfo(request, '****************************************************************');
                         break;
@@ -2330,7 +2434,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //return Promise.reject(err);
                         }
                         util.logInfo(request, '****************************************************************');
@@ -2418,7 +2522,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                         }
                         util.logInfo(request, '****************************************************************');
                         break;
@@ -2436,7 +2540,7 @@ function BotService(objectCollection) {
                             //await handleBotOperationMessageUpdate(request, i, 3);
                         } catch (error) {
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                         }
 
@@ -2457,7 +2561,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2488,7 +2592,7 @@ function BotService(objectCollection) {
                                 "error": error
                             });
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                         }
                         break;
@@ -2550,7 +2654,7 @@ function BotService(objectCollection) {
                                 "error_stack": error.stack
                             });
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                         }
                         break;
@@ -2580,7 +2684,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2603,7 +2707,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                         }
                         util.logInfo(request, `****************************************************************`);
                         break;
@@ -2622,7 +2726,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2644,7 +2748,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                         }
                         util.logInfo(request, `****************************************************************`);
                         break;
@@ -2668,7 +2772,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                         }
                         util.logInfo(request, `****************************************************************`);
                         break;
@@ -2691,7 +2795,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                         }
                         util.logInfo(request, `****************************************************************`);
                         break;
@@ -2764,7 +2868,7 @@ function BotService(objectCollection) {
                                     util.logError(request, request.workflow_activity_id + `: Error sending excel job to SQS queue`, { type: 'bot_engine', error });
                                     //await handleBotOperationMessageUpdate(request, i, 4, error);
                                     i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                                    i.bot_operation_error_message = error;
+                                    i.bot_operation_error_message = serializeError(error);
                                 } else {
                                     logger.info(request.workflow_activity_id + ": Successfully sent excel job to SQS queue: %j", data, { type: 'bot_engine', request_body: request });
                                     util.logInfo(request, `${request.workflow_activity_id} : Successfully sent excel job to SQS queue:  %j`, data);
@@ -2809,7 +2913,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = err;
+                            i.bot_operation_error_message = serializeError(err);
                             //return Promise.reject(err);
                         }
                         util.logInfo(request, '****************************************************************');
@@ -2836,7 +2940,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2855,7 +2959,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2874,7 +2978,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2893,7 +2997,7 @@ function BotService(objectCollection) {
                             });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2909,7 +3013,7 @@ function BotService(objectCollection) {
                             logger.error("Error running the removeDueDateOfWorkflow", { type: 'bot_engine', error: serializeError(error), request_body: request });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
 
@@ -2925,7 +3029,7 @@ function BotService(objectCollection) {
                             logger.error("Error running the smeGemification", { type: 'bot_engine', error: serializeError(error), request_body: request });
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
                         }
                         break;
                     
@@ -2943,7 +3047,62 @@ function BotService(objectCollection) {
                                 "error": error
                             });
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
-                            i.bot_operation_error_message = error;
+                            i.bot_operation_error_message = serializeError(error);
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        }
+
+                        break;
+
+                    case 62: // PDF Validation Bot
+                        logger.silly("PDf Validation Bot params received from request: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await pdfValidationBot(request, botOperationsJson.bot_operations.pdf_validation);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[PDf Validation] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = serializeError(error);
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        }
+                        break;
+
+                    case 63: // Custom Timeline Bot
+                        logger.silly("Custom Timeline bot params received from request: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await customTimelineEntryBot(request, botOperationsJson.bot_operations.timeline_entry);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[Custom Timeline bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = serializeError(error);
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        }
+                        break;
+
+                    case 64: // Custom Qty Update bot
+                        logger.silly("Custom Qty Update bot timeline Bot params received from request: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await customQtyUpdateBot(request, botOperationsJson.bot_operations.update_qty);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[Custom Qty Update bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = serializeError(error);
                             //await handleBotOperationMessageUpdate(request, i, 4, error);
                         }
 
@@ -17105,7 +17264,7 @@ if(workflowActivityData.length==0){
                 title: subjectContent,
                 description: bodyContent,
                 busyStatus: "FREE",
-                location: eventLocation[0].field_value,
+                location: eventLocation.length>0 ? eventLocation[0].field_value : "",
                 start: [
                     createDate.getFullYear(),
                     createDate.getMonth() + 1,
@@ -17901,6 +18060,478 @@ if(workflowActivityData.length==0){
         }
       }
       return inline_data;
+    }
+
+    async function updateAssetSequenceId(request){
+        try {
+            let error = true;
+            let paramsArray =
+                new Array(
+                    request.asset_id,
+                    request.organization_id,
+                    request.sequence_id,
+                    request.cycle_id,
+                    request.log_asset_id,
+                    util.getCurrentUTCTime()
+                );
+                const queryString = util.getQueryString('ds_v1_asset_list_update_arp_rr_sequence', paramsArray);
+                if (queryString != '') {
+                    await db.executeQueryPromise(0, queryString, request)
+                       .then((data)=>{
+                            error = false;
+                        }).catch((err)=>{
+                            util.logError(request,`[Error] bot data update `, { type: 'bot_config', err });
+                            error = err;
+                        });
+                }
+        } catch(e) {
+            util.logError(request,`[Error] bot data update `, { type: 'bot_config', e });
+            return [true, []];
+        }
+    }
+
+    async function updateArpRRFlag(request){
+        try {
+            let error = true;
+            let paramsArray =
+                new Array(
+                    request.organization_id,
+                    request.asset_type_id,
+                    request.asset_type_arp_round_robin_enabled || 0,
+                    request.log_asset_id,
+                    util.getCurrentUTCTime()
+                );
+                const queryString = util.getQueryString('ds_v1_workforce_asset_type_mapping_update_arp_rr', paramsArray);
+                if (queryString != '') {
+                    await db.executeQueryPromise(0, queryString, request)
+                       .then((data)=>{
+                            error = false;
+                        }).catch((err)=>{
+                            util.logError(request,`[Error] bot data update `, { type: 'bot_config', err });
+                            error = err;
+                        });
+                }
+        } catch(e) {
+            util.logError(request,`[Error] bot data update `, { type: 'bot_config', e });
+            return [true, []];
+        }
+    }
+
+    async function customQtyUpdateBot(request, botInlineJson) {
+        try {
+            if (request.hasOwnProperty("activity_inline_data")) {
+
+                let activityInlineData = JSON.parse(request.activity_inline_data);
+                let referenceFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.refrence_field_id)[0].field_value;
+                let qtyFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.qty_field_id)[0].field_value;
+                qtyFieldValue = Number(qtyFieldValue);
+
+                let referenceActivityId = referenceFieldValue.split("|")[0];
+                let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, referenceActivityId);
+
+                if (wfActivityDetails.length > 0) {
+                    let workflowFinalValue = wfActivityDetails[0].activity_workflow_value_final;
+                    workflowFinalValue = Number(workflowFinalValue) || 0;
+                    if (botInlineJson.type_of_operation === "add") {
+                        let sum = workflowFinalValue + qtyFieldValue;
+                        let reqForUpdateQty = Object.assign({}, request);
+                        reqForUpdateQty.workflow_activity_id = referenceActivityId;
+                        reqForUpdateQty.sequence_id = 1;
+                        await activityCommonService.updateWorkflowValue(reqForUpdateQty, sum);
+                        await addTimelineEntry({ ...request, content: `The current quantity of "${wfActivityDetails[0].activity_title}" is ${workflowFinalValue} and it is updated to ${sum}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                    } else if (botInlineJson.type_of_operation === "subtract") {
+                        if (workflowFinalValue > qtyFieldValue) {
+                            let sub = workflowFinalValue - qtyFieldValue;
+                            let reqForUpdateQty = Object.assign({}, request);
+                            reqForUpdateQty.workflow_activity_id = referenceActivityId;
+                            reqForUpdateQty.sequence_id = 1;
+                            await activityCommonService.updateWorkflowValue(reqForUpdateQty, sub);
+                            await addTimelineEntry({ ...request, content: `The current quantity of "${wfActivityDetails[0].activity_title}" is ${workflowFinalValue} and it is updated to ${sub}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                        } else {
+                            await addTimelineEntry({ ...request, content: `Error:\nThe Requested qty for "${wfActivityDetails[0].activity_title}" is higher than the current quantity.`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    async function customTimelineEntryBot(request, botInlineJson) {
+        try {
+            if (request.hasOwnProperty("activity_inline_data")) {
+                let activityInlineData = JSON.parse(request.activity_inline_data);
+                let referenceFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.refrence_field_id)[0].field_value;
+                let referenceActivityId = referenceFieldValue.split("|")[0];
+                let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, referenceActivityId);
+
+                if (wfActivityDetails.length > 0) {
+                    let workflowFinalValue = wfActivityDetails[0].activity_workflow_value_final;
+                    workflowFinalValue = Number(workflowFinalValue) || 0;
+                    await addTimelineEntry({ ...request, content: `The current quantity of "${wfActivityDetails[0].activity_title}" is ${workflowFinalValue}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                }
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    async function pdfValidationBot(request, botInlineJson) {
+        try {
+            let finalPdfText = "";
+            if(!request.hasOwnProperty("workflow_activity_id")) {
+                request.workflow_activity_id= request.activity_id
+            }
+
+            let referenceFormId = botInlineJson.reference_form_id;
+            const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                organization_id: request.organization_id,
+                account_id: request.account_id
+            }, request.workflow_activity_id, request.form_id);
+
+            let dataEntityInline = JSON.parse(formData[0].data_entity_inline);
+
+            if(typeof dataEntityInline == "string") {
+                dataEntityInline = JSON.parse(dataEntityInline);
+            }
+
+            let activityInlineData = dataEntityInline.form_submitted;
+            let referenceFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.refrence_field_id)[0].field_value;
+            let referenceActivityId = referenceFieldValue.split("|")[0];
+            let pdfFeildValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.pdf_field_id)[0].field_value;
+
+            let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, referenceActivityId);
+
+            const [pdfBufferError, pdfBuffer] = await util.getXlsxDataBodyFromS3Url(request, pdfFeildValue);
+
+            if (pdfBufferError) {
+                util.logError(request, `[PdfValidationError] `, { error: pdfBufferError });
+                throw new Error(pdfBufferError);
+            }
+
+            if (wfActivityDetails.length > 0) {
+
+                const refrenceFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, referenceActivityId, referenceFormId);
+    
+
+                let refrenceDataEntityInline = JSON.parse(refrenceFormData[0].data_entity_inline);
+                if(typeof refrenceDataEntityInline == "string") {
+                    refrenceDataEntityInline = JSON.parse(refrenceDataEntityInline);
+                }
+                let activityInlineDataOfReferenceActivity = refrenceDataEntityInline.form_submitted;
+                console.log(activityInlineDataOfReferenceActivity);
+                new pdfreader.PdfReader().parseBuffer(pdfBuffer,async function (err, item) {
+                    if (err) {
+                        console.error(err);
+                    } else if (!item) {
+                        let misMactchData = "";
+                        for (const [fieldId, fieldConfig] of Object.entries(botInlineJson.pdf_config)) {
+
+                            let fieldData = activityInlineDataOfReferenceActivity.filter((inline) => inline.field_id == fieldId)[0];
+                            let fieldValue = fieldData.field_value;
+                            let fieldName = fieldData.field_name;
+                            let startsFrom = fieldConfig.starts_from;
+                            let endsAt = fieldConfig.ends_at;
+
+                            let startIndex = -1;
+
+                            if (startsFrom.hasOwnProperty("end_of")) {
+                                if (startsFrom.hasOwnProperty("place_of_occurance") && startsFrom.place_of_occurance > 0) {
+                                    let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.end_of, 'gi'))].map(a => a.index);
+                                    if (indexes.length >= startsFrom.place_of_occurance) {
+                                        startIndex = indexes[startsFrom.place_of_occurance];
+                                    }
+                                } else {
+                                    startIndex = finalPdfText.indexOf(startsFrom.end_of);
+                                }
+
+                                if (startIndex != -1) {
+                                    startIndex += startsFrom.end_of.length;
+                                    let subString = finalPdfText.substring(startIndex);
+                                    const indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
+                                    let extractedPdfValueOfField = finalPdfText.substring(startIndex, startIndex + indexes[endsAt.line_number]).trim();
+
+                                    if (fieldValue != extractedPdfValueOfField) {
+                                        misMactchData += `${fieldName}\n`;
+                                    }
+
+                                } else {
+                                    misMactchData += `${fieldName}\n`;
+                                }
+                            } else if (startsFrom.hasOwnProperty("start_of")) {
+                                let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.start_of, 'gi'))].map(a => a.index);
+                                let subString = finalPdfText.substring(0, indexes[startsFrom.place_of_occurance || 0]);
+                                indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
+
+                                let extractedPdfValueOfField = subString.substring(indexes[indexes.length - 2], indexes[indexes.length - 1]).trim();
+
+                                console.log(extractedPdfValueOfField);
+                                if (fieldValue != extractedPdfValueOfField) {
+                                    misMactchData += `${fieldName}\n`;
+                                }
+                            }
+                        }
+
+                        if (misMactchData.length > 0) {
+                            misMactchData = `Error!!\n\nMismatch found in below fields : \n ${misMactchData}`;
+                            await addTimelineEntry({ ...request, content: misMactchData, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                            submitPdfValidationForm(request,botInlineJson,"error",misMactchData)
+                        } else {
+                            await addTimelineEntry({ ...request, content: "No Mismatch data found", subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                            submitPdfValidationForm(request,botInlineJson,"success","No Mismatch data found")
+                        }
+
+                    } else if (item.text) {
+                        finalPdfText += item.text + "\n";
+                    }
+
+                });
+            }
+
+        } catch (error) {
+            util.logError(request, "[PdfValidationBotError] Error in pdf validation ", { request, error: serializeError(error) })
+        }
+    }
+
+
+    async function submitPdfValidationForm(request, botInlineJson, formType, message) {
+        try {
+
+            let formId = formType == "error" ? botInlineJson.error_form_id : botInlineJson.success_form_id;
+            let fieldId = formType == "error" ? botInlineJson.error_field_id : botInlineJson.success_field_id;
+            let formApiActivityTypeId = formType == "error" ? botInlineJson.error_activity_type_id : botInlineJson.success_activity_type_id;
+            let formTitle = formType == "error" ? botInlineJson.error_form_title : botInlineJson.success_form_title;
+
+            let dataInLine = [];
+            dataInLine.push({
+                "data_type_combo_id": 0,
+                "data_type_combo_value": "",
+                "field_data_type_category_id": 7,
+                "field_data_type_id": 20,
+                "field_id": fieldId,
+                "field_name": "Comments",
+                "field_value": message,
+                "form_id": formId,
+                "message_unique_id": 123123123123123123
+            })
+
+            dataInLine = JSON.stringify(dataInLine);
+            let timelineCollection = JSON.stringify({
+                "mail_body": `${formTitle} Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                "subject": `${formTitle}`,
+                "content": `${formTitle}`,
+                "asset_reference": [],
+                "activity_reference": [],
+                "form_approval_field_reference": [],
+                "form_submitted": dataInLine,
+                "attachments": []
+            });
+
+            let newReq = null;
+            if (formType == "error") {
+
+                newReq = {
+                    "account_id": "1209",
+                    "activity_access_role_id": 21,
+                    "activity_datetime_end": request.activity_datetime_end,
+                    "activity_datetime_start": request.activity_datetime_start,
+                    "activity_description": message,
+                    "activity_flag_file_enabled": 1,
+                    "activity_form_id": 51557,
+                    "activity_id": request.workflow_activity_id,
+                    "activity_inline_data": dataInLine,
+                    "activity_parent_id": 0,
+                    "activity_status_id": 467292,
+                    "activity_status_type_category_id": 1,
+                    "activity_status_type_id": 22,
+                    "activity_stream_type_id": 705,
+                    "activity_sub_type_id": 0,
+                    "activity_timeline_collection": timelineCollection,
+                    "activity_timeline_text": "",
+                    "activity_timeline_url": "",
+                    "activity_title": message,
+                    "activity_title_expression": null,
+                    "activity_type_category_id": 9,
+                    "activity_type_id": 201201,
+                    "api_version": 1,
+                    "app_version": 1,
+                    "asset_id": request.asset_id,
+                    "asset_image_path": "",
+                    "asset_message_counter": 0,
+                    "asset_participant_access_id": 21,
+                    "asset_token_auth": request.asset_token_auth,
+                    "asset_type_id": "160547",
+                    "auth_asset_id": request.auth_asset_id,
+                    "channel_activity_id": request.workflow_activity_id,
+                    "data_entity_inline": dataInLine,
+                    "device_os_id": 5,
+                    "expression": "",
+                    "file_activity_id": 0,
+                    "flag_offline": 0,
+                    "flag_pin": 0,
+                    "flag_retry": 0,
+                    "flag_timeline_entry": 1,
+                    "form_api_activity_type_category_id": 48,
+                    "form_api_activity_type_id": 201365,
+                    "form_id": 51557,
+                    "form_transaction_id": 0,
+                    "form_workflow_activity_type_id": 201365,
+                    "generated_account_code": null,
+                    "generated_group_account_name": null,
+                    "gst_number": "",
+                    "is_mytony": 1,
+                    "is_refill": 0,
+                    "isOrigin": false,
+                    "lead_asset_first_name": null,
+                    "lead_asset_id": 0,
+                    "lead_asset_type_id": null,
+                    "message_unique_id": "543311647506965662",
+                    "organization_id": "1061",
+                    "organization_onhold": 0,
+                    "pan_number": "",
+                    "service_version": 1,
+                    "track_altitude": 0,
+                    "track_gps_accuracy": "0",
+                    "track_gps_datetime": "2022-03-17 08:35:05",
+                    "track_gps_status": 0,
+                    "track_latitude": "0.0",
+                    "track_longitude": "0.0",
+                    "workflow_activity_id": request.workflow_activity_id,
+                    "workforce_id": "6605"
+                }
+            } else {
+                newReq = {
+                    "activity_id": request.workflow_activity_id,
+                    "channel_activity_id": request.workflow_activity_id,
+                    "activity_title": message,
+                    "activity_description": message,
+                    "activity_inline_data": dataInLine,
+                    "data_entity_inline": dataInLine,
+                    "activity_timeline_collection": timelineCollection,
+                    "form_id": 51559,
+                    "activity_form_id": 51559,
+                    "workflow_activity_id": request.workflow_activity_id,
+                    "activity_type_id": 201201,
+                    "is_refill": 0,
+                    "form_workflow_activity_type_id": 201365,
+                    "generated_group_account_name": null,
+                    "generated_account_code": null,
+                    "activity_title_expression": null,
+                    "gst_number": "",
+                    "pan_number": "",
+                    "activity_datetime_end": "2022-03-17 08:38:56",
+                    "activity_datetime_start": "2022-03-17 08:38:56",
+                    "activity_status_id": 467292,
+                    "lead_asset_first_name": null,
+                    "lead_asset_type_id": null,
+                    "lead_asset_id": 0,
+                    "isOrigin": false,
+                    "form_api_activity_type_category_id": 48,
+                    "form_api_activity_type_id": 201365,
+                    "organization_id": "1061",
+                    "account_id": "1209",
+                    "workforce_id": "6605",
+                    "asset_id": request.asset_id,
+                    "auth_asset_id": request.auth_asset_id,
+                    "asset_type_id": "160547",
+                    "asset_token_auth": request.asset_token_auth,
+                    "asset_image_path": "",
+                    "organization_onhold": 0,
+                    "device_os_id": 5,
+                    "service_version": 1,
+                    "app_version": 1,
+                    "activity_type_category_id": 9,
+                    "activity_sub_type_id": 0,
+                    "activity_access_role_id": 21,
+                    "asset_message_counter": 0,
+                    "activity_status_type_category_id": 1,
+                    "activity_status_type_id": 22,
+                    "asset_participant_access_id": 21,
+                    "activity_flag_file_enabled": 1,
+                    "activity_parent_id": 0,
+                    "flag_pin": 0,
+                    "flag_offline": 0,
+                    "flag_retry": 0,
+                    "message_unique_id": "543311647507206133",
+                    "track_gps_datetime": "2022-03-17 08:38:56",
+                    "track_latitude": "0.0",
+                    "track_longitude": "0.0",
+                    "track_altitude": 0,
+                    "track_gps_accuracy": "0",
+                    "track_gps_status": 0,
+                    "api_version": 1,
+                    "activity_stream_type_id": 705,
+                    "form_transaction_id": 0,
+                    "activity_timeline_text": "",
+                    "activity_timeline_url": "",
+                    "flag_timeline_entry": 1,
+                    "file_activity_id": 0,
+                    "is_mytony": 1,
+                    "expression": ""
+                }
+            }
+            // let newReq = Object.assign({}, request);
+            // newReq.activity_description = message;
+            // newReq.activity_form_id = formId;
+            // newReq.activity_title = message;
+            // newReq.activity_title_expression = null;
+            // newReq.activity_type_category_id = 9;
+            // newReq.channel_activity_id = request.workflow_activity_id;
+            // newReq.form_api_activity_type_category_id = 48;
+            // newReq.form_api_activity_type_id = formApiActivityTypeId;
+            // newReq.form_id = formId;
+            // newReq.form_transaction_id = 0;
+            // newReq.generated_account_code = null;
+            // newReq.generated_group_account_name = null;
+            // newReq.lead_asset_first_name = null;
+            // newReq.lead_asset_id = 0;
+            // newReq.lead_asset_type_id = null;
+
+
+
+            // newReq.activity_inline_data = dataInLine;
+            // newReq.activity_timeline_collection = timelineCollection;
+            // newReq.data_entity_inline = dataInLine;
+
+
+            const addActivityAsync = nodeUtil.promisify(makeRequest.post);
+            let makeRequestOptions = {
+                form: newReq
+            };
+
+
+            console.log(JSON.stringify(newReq, null, 2));
+            let response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
+            let body = JSON.parse(response.body);
+            console.log(`Add activity response  %j`, body);
+
+            if (Number(body.status) === 200) {
+
+                newReq.data_activity_id = newReq.workflow_activity_id;
+                newReq.activity_type_category_id = 48;
+                newReq.form_transaction_id = body.response.form_transaction_id;
+
+                makeRequestOptions = {
+                    form: newReq
+                };
+
+                const addTimeLineAsync = nodeUtil.promisify(makeRequest.post);
+                const maketimelineRequestOptions = {
+                    form: newReq
+                };
+                console.log(`Timeline request params for account %j`, maketimelineRequestOptions);
+                const timelineresponse = await addTimeLineAsync(global.config.mobileBaseUrl + global.config.version + '/activity/timeline/entry/add', maketimelineRequestOptions);
+                const timelineresponsebody = JSON.parse(timelineresponse.body);
+                console.log(`Timeline response  %j`, timelineresponsebody);
+            }
+
+        } catch (error) {
+            util.logError(request, "[PdfValidationBotError] Error in pdf validation form submission ", { request, error: serializeError(error) })
+        }
     }
 
 }

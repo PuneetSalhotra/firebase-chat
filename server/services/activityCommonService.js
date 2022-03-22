@@ -5671,11 +5671,12 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                         request.activity_id, 
                         request.parent_activity_id, 
                         request.organization_id,
+                        request.activity_flag_is_prerequisite || 0,
                         request.message_unique_id,
                         request.asset_id,
                         request.datetime_log
                     );
-        const queryString = util.getQueryString('ds_p1_activity_activity_mapping_insert', paramsArr);           
+        const queryString = util.getQueryString('ds_p1_1_activity_activity_mapping_insert', paramsArr);           
         if (queryString != '') {
                 await db.executeQueryPromise(0, queryString, request)
                     .then((data) => {
@@ -5869,11 +5870,12 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
                         request.activity_id, 
                         referredActivityID, 
                         request.organization_id,
+                        request.activity_flag_is_prerequisite || 0,
                         request.message_unique_id,
                         request.asset_id,
                         request.datetime_log
                     );
-        const queryString = util.getQueryString('ds_p1_activity_activity_mapping_insert', paramsArr);           
+        const queryString = util.getQueryString('ds_p1_1_activity_activity_mapping_insert', paramsArr);           
         if (queryString != '') {
                 await db.executeQueryPromise(0, queryString, request)
                     .then((data) => {
