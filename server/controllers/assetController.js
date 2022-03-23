@@ -1173,5 +1173,15 @@ function AssetController(objCollection) {
             res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/asset/mapping/category/targets/select', async function (req, res) {
+        const [err, resData] = await assetService.getAssetCategoryTargets(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/asset/mapping/category/targets/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
 }
 module.exports = AssetController;
