@@ -18309,8 +18309,8 @@ if(workflowActivityData.length==0){
     async function pdfValidationBot(request, botInlineJson) {
         try {
             let finalPdfText = "";
-            if(!request.hasOwnProperty("workflow_activity_id")) {
-                request.workflow_activity_id= request.activity_id
+            if (!request.hasOwnProperty("workflow_activity_id")) {
+                request.workflow_activity_id = request.activity_id
             }
 
             let referenceFormId = botInlineJson.reference_form_id;
@@ -18321,7 +18321,7 @@ if(workflowActivityData.length==0){
 
             let dataEntityInline = JSON.parse(formData[0].data_entity_inline);
 
-            if(typeof dataEntityInline == "string") {
+            if (typeof dataEntityInline == "string") {
                 dataEntityInline = JSON.parse(dataEntityInline);
             }
 
@@ -18345,15 +18345,14 @@ if(workflowActivityData.length==0){
                     organization_id: request.organization_id,
                     account_id: request.account_id
                 }, referenceActivityId, referenceFormId);
-    
 
                 let refrenceDataEntityInline = JSON.parse(refrenceFormData[0].data_entity_inline);
-                if(typeof refrenceDataEntityInline == "string") {
+                if (typeof refrenceDataEntityInline == "string") {
                     refrenceDataEntityInline = JSON.parse(refrenceDataEntityInline);
                 }
                 let activityInlineDataOfReferenceActivity = refrenceDataEntityInline.form_submitted;
                 console.log(activityInlineDataOfReferenceActivity);
-                new pdfreader.PdfReader().parseBuffer(pdfBuffer,async function (err, item) {
+                new pdfreader.PdfReader().parseBuffer(pdfBuffer, async function (err, item) {
                     if (err) {
                         console.error(err);
                     } else if (!item) {
@@ -18363,26 +18362,59 @@ if(workflowActivityData.length==0){
                             let fieldData = activityInlineDataOfReferenceActivity.filter((inline) => inline.field_id == fieldId)[0];
                             let fieldValue = fieldData.field_value;
                             let fieldName = fieldData.field_name;
-                            let startsFrom = fieldConfig.starts_from;
-                            let endsAt = fieldConfig.ends_at;
 
-                            let startIndex = -1;
 
-                            if (startsFrom.hasOwnProperty("end_of")) {
-                                if (startsFrom.hasOwnProperty("place_of_occurance") && startsFrom.place_of_occurance > 0) {
-                                    let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.end_of, 'gi'))].map(a => a.index);
-                                    if (indexes.length >= startsFrom.place_of_occurance) {
-                                        startIndex = indexes[startsFrom.place_of_occurance];
+                            if (fieldConfig.hasOwnProperty("starts_from")) {
+                                let startsFrom = fieldConfig.starts_from;
+                                let endsAt = fieldConfig.ends_at;
+
+                                let startIndex = -1;
+
+                                if (startsFrom.hasOwnProperty("end_of")) {
+                                    if (startsFrom.hasOwnProperty("place_of_occurance") && startsFrom.place_of_occurance > 0) {
+                                        let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.end_of, 'gi'))].map(a => a.index);
+                                        if (indexes.length >= startsFrom.place_of_occurance) {
+                                            startIndex = indexes[startsFrom.place_of_occurance];
+                                        }
+                                    } else {
+                                        startIndex = finalPdfText.indexOf(startsFrom.end_of);
                                     }
-                                } else {
-                                    startIndex = finalPdfText.indexOf(startsFrom.end_of);
-                                }
 
-                                if (startIndex != -1) {
-                                    startIndex += startsFrom.end_of.length;
-                                    let subString = finalPdfText.substring(startIndex);
-                                    const indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
-                                    let extractedPdfValueOfField = finalPdfText.substring(startIndex, startIndex + indexes[endsAt.line_number]).trim();
+                                    if (startIndex != -1) {
+                                        startIndex += startsFrom.end_of.length;
+                                        let subString = finalPdfText.substring(startIndex);
+                                        const indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
+                                        let extractedPdfValueOfField = finalPdfText.substring(startIndex, startIndex + indexes[endsAt.line_number]).trim();
+                                        extractedPdfValueOfField = extractedPdfValueOfField.replace(/\n/g, "");
+                                        if (fieldValue != extractedPdfValueOfField) {
+                                            misMactchData += `${fieldName}\n`;
+                                        }
+
+                                    } else {
+                                        misMactchData += `${fieldName}\n`;
+                                    }
+                                } else if (startsFrom.hasOwnProperty("start_of")) {
+                                    let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.start_of, 'gi'))].map(a => a.index);
+                                    let subString = finalPdfText.substring(0, indexes[startsFrom.place_of_occurance || 0]);
+                                    indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
+
+                                    let extractedPdfValueOfField = subString.substring(indexes[indexes.length - 2], indexes[indexes.length - 1]).trim();
+
+                                    extractedPdfValueOfField = extractedPdfValueOfField.replace(/\n/g, "");
+                                    if (fieldValue != extractedPdfValueOfField) {
+                                        misMactchData += `${fieldName}\n`;
+                                    }
+                                }
+                            } else if (fieldConfig.hasOwnProperty("between")) {
+                                let between = fieldConfig.between;
+                                let startsFrom = between.start_from;
+                                let endAt = between.end_at;
+                                let startIndex = finalPdfText.indexOf(startsFrom);
+                                let endIndex = finalPdfText.indexOf(endAt);
+                                if (startIndex != -1 && endIndex != -1) {
+                                    startIndex += startsFrom.length;
+                                    let extractedPdfValueOfField = finalPdfText.substring(startIndex, endIndex).trim();
+                                    extractedPdfValueOfField = extractedPdfValueOfField.replace(/\n/g, "");
 
                                     if (fieldValue != extractedPdfValueOfField) {
                                         misMactchData += `${fieldName}\n`;
@@ -18391,27 +18423,18 @@ if(workflowActivityData.length==0){
                                 } else {
                                     misMactchData += `${fieldName}\n`;
                                 }
-                            } else if (startsFrom.hasOwnProperty("start_of")) {
-                                let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.start_of, 'gi'))].map(a => a.index);
-                                let subString = finalPdfText.substring(0, indexes[startsFrom.place_of_occurance || 0]);
-                                indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
 
-                                let extractedPdfValueOfField = subString.substring(indexes[indexes.length - 2], indexes[indexes.length - 1]).trim();
-
-                                console.log(extractedPdfValueOfField);
-                                if (fieldValue != extractedPdfValueOfField) {
-                                    misMactchData += `${fieldName}\n`;
-                                }
                             }
+
                         }
 
                         if (misMactchData.length > 0) {
                             misMactchData = `Error!!\n\nMismatch found in below fields : \n ${misMactchData}`;
                             await addTimelineEntry({ ...request, content: misMactchData, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
-                            submitPdfValidationForm(request,botInlineJson,"error",misMactchData)
+                            submitPdfValidationForm(request, botInlineJson, "error", misMactchData)
                         } else {
                             await addTimelineEntry({ ...request, content: "No Mismatch data found", subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
-                            submitPdfValidationForm(request,botInlineJson,"success","No Mismatch data found")
+                            submitPdfValidationForm(request, botInlineJson, "success", "No Mismatch data found")
                         }
 
                     } else if (item.text) {
@@ -18432,8 +18455,8 @@ if(workflowActivityData.length==0){
 
             let formId = formType == "error" ? botInlineJson.error_form_id : botInlineJson.success_form_id;
             let fieldId = formType == "error" ? botInlineJson.error_field_id : botInlineJson.success_field_id;
-            let formApiActivityTypeId = "error" ? botInlineJson.error_activity_type_id : botInlineJson.success_activity_type_id;
-            let formTitle = "error" ? botInlineJson.error_form_title : botInlineJson.success_form_title;
+            let formApiActivityTypeId = formType == "error" ? botInlineJson.error_activity_type_id : botInlineJson.success_activity_type_id;
+            let formTitle = formType == "error" ? botInlineJson.error_form_title : botInlineJson.success_form_title;
 
             let dataInLine = [];
             dataInLine.push({

@@ -4669,6 +4669,74 @@ function ActivityListingService(objCollection) {
 		return [error, responseData];
 	}
 
+	// Activity Reference Add
+	this.activityReferenceAdd = async function (request) {
+		let responseData = [],
+			error = true;
+		let activityReferenceId = request.refrence_activity_id;
+		request.datetime_log = util.getCurrentUTCTime();
+		[error, responseData] = await activityCommonService.activityActivityMappingInsertV1(request, activityReferenceId);
+
+		if (error) {
+			error = true;
+			responseData = [{ "message": "Activity refrence addition failed" }];
+		}
+		else {
+			error = false;
+			responseData = [{ "message": "Activity refrence added successfully" }];
+		}
+
+		return [error, responseData];
+	}
+
+	// Activity Reference Delete
+	this.activityReferenceDelete = async function (request) {
+		let responseData = [],
+			error = true;
+		let activityReferenceId = request.refrence_activity_id;
+		[error, responseData] = await activityCommonService.activityActivityMappingArchive(request, activityReferenceId);
+		if (error) {
+			error = true;
+			responseData = [{ "message": "Activity refrence deletion failed" }];
+		}
+		else {
+			error = false;
+			responseData = [{ "message": "Activity refrence deleted successfully" }];
+		}
+
+		return [error, responseData];
+	}
+
+	// Activity Reference Update
+	this.activityReferenceUpdate = async function (request) {
+		let responseData = [],
+			error = true;
+		let oldActivityReferenceId = request.old_refrence_activity_id;
+		let activityReferenceId = request.refrence_activity_id;
+		request.datetime_log = util.getCurrentUTCTime();
+		[error, responseData] = await activityCommonService.activityActivityMappingArchive(request, oldActivityReferenceId);
+
+		if (error) {
+			error = true;
+			responseData = [{ "message": "Activity refrence updation failed" }];
+		}
+		else {
+			[error, responseData] = await activityCommonService.activityActivityMappingInsertV1(request, activityReferenceId);
+			if (error) {
+				error = true;
+				responseData = [{ "message": "Activity refrence updation failed" }];
+			}
+			else {
+				error = false;
+				responseData = [{ "message": "Activity refrence updated successfully" }];
+			}
+
+		}
+
+
+		return [error, responseData];
+	}
+
 
 }
 
