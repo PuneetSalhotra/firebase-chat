@@ -12342,6 +12342,31 @@ if (queryString !== '') {
         }
         return [error, responseData];
     };
+
+    this.assetSummaryTransactionManagerSelect = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.asset_id,
+          request.flag,
+          request.summary_id
+        );
+        const queryString = util.getQueryString('ds_v1_asset_summary_transaction_select_manager', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
 }
 
 module.exports = AdminOpsService;

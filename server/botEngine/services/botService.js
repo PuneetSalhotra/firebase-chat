@@ -10179,9 +10179,14 @@ else{
             method: "alterActivityCover",
             payload: newReq
         };
+
+        if(inlineData && inlineData.hasOwnProperty('is_parent_due_date_update') && inlineData.is_parent_due_date_update == 1){
+            this.setDueDateV1(request,newDate)
+        }
         util.logInfo(request,`request.workflow_activity_id : ${request.workflow_activity_id}`);
         request.debug_info.push('request.workflow_activity_id : '+ request.workflow_activity_id);
         let status_dueDate = false;
+
         if(inlineData && inlineData.hasOwnProperty('is_status_due_date') && inlineData.is_status_due_date == 1) {
            let updateStatusDueDateParams = {...request};
            updateStatusDueDateParams.activity_id = Number(request.workflow_activity_id);
@@ -10193,6 +10198,7 @@ else{
 
         await queueWrapper.raiseActivityEventPromise(event, request.workflow_activity_id);
         }
+        
 
         //Timeline /activity/timeline/entry/add
             /*account_id: 1100
@@ -10276,6 +10282,129 @@ else{
             await queueWrapper.raiseActivityEventPromise(event1, request.workflow_activity_id);
 
         return [error, responseData];
+    }
+
+    this.setDueDateV1 = async function (request,newDate){
+        
+        let activity_id = request.workflow_activity_id;
+        
+        do {
+            
+            let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activity_id);
+            activity_id = workflowActivityDetails[0].parent_activity_id;
+            if(Number(activity_id)==0){
+                continue;
+            }
+            let parentWorkflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, workflowActivityDetails[0].parent_activity_id);
+            let childEndDate = moment(newDate);
+            let oldDate = parentWorkflowActivityDetails[0].activity_datetime_end_deferred;
+            let oldDateM = moment(parentWorkflowActivityDetails[0].activity_datetime_end_deferred);
+            console.log("OLD DATE :: ",oldDate);
+            console.log(oldDate.diff(childEndDate))
+            if(oldDateM.diff(childEndDate)>=0){
+              continue;
+            }
+            let newReq = Object.assign({}, request);
+            newReq.timeline_transaction_datetime = util.getCurrentUTCTime();
+            newReq.track_gps_datetime = util.getCurrentUTCTime();
+            newReq.datetime_log = newReq.track_gps_datetime;
+            newReq.message_unique_id = util.getMessageUniqueId(100);
+            
+        let activityCoverData = {};
+            activityCoverData.title = {};
+                activityCoverData.title.old = parentWorkflowActivityDetails[0].activity_title;
+                activityCoverData.title.new = parentWorkflowActivityDetails[0].activity_title;
+
+            activityCoverData.description = {};
+                activityCoverData.description.old = "";
+                activityCoverData.description.new = "";
+
+            activityCoverData.duedate = {};
+                activityCoverData.duedate.old = oldDate;
+                activityCoverData.duedate.new = newDate;
+        try{
+            newReq.activity_cover_data = JSON.stringify(activityCoverData);
+        } catch(err) {
+            util.logError(request,`Error`, { type: 'bot_engine', err });
+        }
+        
+        newReq.asset_id = 100;
+        newReq.creator_asset_id = Number(request.asset_id);
+        newReq.activity_id = Number(workflowActivityDetails[0].parent_activity_id);
+        
+        const event = {
+            name: "alterActivityCover",
+            service: "activityUpdateService",
+            method: "alterActivityCover",
+            payload: newReq
+        };
+
+        await queueWrapper.raiseActivityEventPromise(event, workflowActivityDetails[0].parent_activity_id);
+
+            let assetDetails = await getAssetDetails({
+                "organization_id": request.organization_id,
+                "asset_id": request.asset_id
+            });
+
+            let assetName = (assetDetails.length > 0) ? assetDetails[0].operating_asset_first_name : 'Bot';
+            let status_dueDate = false;
+            let content = `${status_dueDate?"Status d":"D"}ue date ${oldDate != "" ? `changed from ${moment(oldDate).format('Do MMMM YYYY, h:mm a')}`:"set"} to ${moment(newDate).format('Do MMMM YYYY, h:mm a')} by ${assetName}`;
+            let activityTimelineCollection = {
+                content: content,
+                subject: `Note - ${util.getCurrentDate()}`,
+                mail_body: content,
+                attachments: [],                
+                asset_reference: [],
+                activity_reference: [],
+                form_approval_field_reference: []
+            };
+
+            let timelineReq = Object.assign({}, request);
+                timelineReq.activity_type_category_id= 48;
+                timelineReq.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
+                timelineReq.data_entity_inline = JSON.stringify(activityTimelineCollection);
+                timelineReq.asset_id = 100;   
+                timelineReq.timeline_stream_type_id= 734;
+                timelineReq.activity_stream_type_id= 734;
+                timelineReq.timeline_transaction_datetime = util.getCurrentUTCTime();
+                timelineReq.track_gps_datetime = timelineReq.timeline_transaction_datetime;
+                timelineReq.datetime_log = timelineReq.timeline_transaction_datetime;
+                timelineReq.message_unique_id = util.getMessageUniqueId(100);
+                timelineReq.form_date = oldDate;
+                timelineReq.to_date = newDate;
+                //timelineReq.device_os_id = 10; //Do not trigger Bots
+
+            timelineReq.activity_id = Number(workflowActivityDetails[0].parent_activity_id);
+            const event1 = {
+                name: "addTimelineTransaction",
+                service: "activityTimelineService",                
+                method: "addTimelineTransactionAsync",                
+                payload: timelineReq
+            };
+            await queueWrapper.raiseActivityEventPromise(event1, workflowActivityDetails[0].parent_activity_id);
+        
+          }
+          while (Number(activity_id)==0);
+          return [false,[]]
+    }
+    
+    async function checkParentActivityDueDate(request,child_activity_id,newDate){
+        let responseReturn = true;
+        let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, child_activity_id);
+        if(Number(workflowActivityDetails[0].parent_activity_id) === 0){
+            return responseReturn;
+        }
+        // let parentWorkflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, workflowActivityDetails[0].parent_activity_id);
+        // let childEndDate = moment(newDate);
+        // let parentEndDate = moment(parentWorkflowActivityDetails[0].activity_datetime_end_deferred);
+        // if(parentEndDate.diff(childEndDate)>=0){
+        //     return responseReturn;
+        // }
+        // else {
+        //     return true;
+        // }
+        return responseReturn;
+
     }
 
     this.smeGemification = async (request, bot_inline) => {
@@ -18180,8 +18309,8 @@ if(workflowActivityData.length==0){
     async function pdfValidationBot(request, botInlineJson) {
         try {
             let finalPdfText = "";
-            if(!request.hasOwnProperty("workflow_activity_id")) {
-                request.workflow_activity_id= request.activity_id
+            if (!request.hasOwnProperty("workflow_activity_id")) {
+                request.workflow_activity_id = request.activity_id
             }
 
             let referenceFormId = botInlineJson.reference_form_id;
@@ -18192,7 +18321,7 @@ if(workflowActivityData.length==0){
 
             let dataEntityInline = JSON.parse(formData[0].data_entity_inline);
 
-            if(typeof dataEntityInline == "string") {
+            if (typeof dataEntityInline == "string") {
                 dataEntityInline = JSON.parse(dataEntityInline);
             }
 
@@ -18216,15 +18345,14 @@ if(workflowActivityData.length==0){
                     organization_id: request.organization_id,
                     account_id: request.account_id
                 }, referenceActivityId, referenceFormId);
-    
 
                 let refrenceDataEntityInline = JSON.parse(refrenceFormData[0].data_entity_inline);
-                if(typeof refrenceDataEntityInline == "string") {
+                if (typeof refrenceDataEntityInline == "string") {
                     refrenceDataEntityInline = JSON.parse(refrenceDataEntityInline);
                 }
                 let activityInlineDataOfReferenceActivity = refrenceDataEntityInline.form_submitted;
                 console.log(activityInlineDataOfReferenceActivity);
-                new pdfreader.PdfReader().parseBuffer(pdfBuffer,async function (err, item) {
+                new pdfreader.PdfReader().parseBuffer(pdfBuffer, async function (err, item) {
                     if (err) {
                         console.error(err);
                     } else if (!item) {
@@ -18234,55 +18362,84 @@ if(workflowActivityData.length==0){
                             let fieldData = activityInlineDataOfReferenceActivity.filter((inline) => inline.field_id == fieldId)[0];
                             let fieldValue = fieldData.field_value;
                             let fieldName = fieldData.field_name;
-                            let startsFrom = fieldConfig.starts_from;
-                            let endsAt = fieldConfig.ends_at;
 
-                            let startIndex = -1;
 
-                            if (startsFrom.hasOwnProperty("end_of")) {
-                                if (startsFrom.hasOwnProperty("place_of_occurance") && startsFrom.place_of_occurance > 0) {
-                                    let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.end_of, 'gi'))].map(a => a.index);
-                                    if (indexes.length >= startsFrom.place_of_occurance) {
-                                        startIndex = indexes[startsFrom.place_of_occurance];
+                            if (fieldConfig.hasOwnProperty("starts_from")) {
+                                let startsFrom = fieldConfig.starts_from;
+                                let endsAt = fieldConfig.ends_at;
+
+                                let startIndex = -1;
+
+                                if (startsFrom.hasOwnProperty("end_of")) {
+                                    if (startsFrom.hasOwnProperty("place_of_occurance") && startsFrom.place_of_occurance > 0) {
+                                        let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.end_of, 'gi'))].map(a => a.index);
+                                        if (indexes.length >= startsFrom.place_of_occurance) {
+                                            startIndex = indexes[startsFrom.place_of_occurance];
+                                        }
+                                    } else {
+                                        startIndex = finalPdfText.indexOf(startsFrom.end_of);
                                     }
-                                } else {
-                                    startIndex = finalPdfText.indexOf(startsFrom.end_of);
-                                }
 
-                                if (startIndex != -1) {
-                                    startIndex += startsFrom.end_of.length;
-                                    let subString = finalPdfText.substring(startIndex);
-                                    const indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
-                                    let extractedPdfValueOfField = finalPdfText.substring(startIndex, startIndex + indexes[endsAt.line_number]).trim();
+                                    if (startIndex != -1) {
+                                        startIndex += startsFrom.end_of.length;
+                                        let subString = finalPdfText.substring(startIndex);
+                                        const indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
+                                        let extractedPdfValueOfField = finalPdfText.substring(startIndex, startIndex + indexes[endsAt.line_number]).trim();
+                                        extractedPdfValueOfField = extractedPdfValueOfField.replace(/\n/g, "");
+                                        if (fieldValue != extractedPdfValueOfField) {
+                                            misMactchData += `<b>${fieldName}</b>\n`;
+                                            misMactchData +=`Correct Value: ${fieldValue}\nIncorrect Value: ${extractedPdfValueOfField}\n\n`;
+                                        }
+
+                                    } else {
+                                        misMactchData += `<b>${fieldName}</b>\n`;
+                                        misMactchData +=`Correct Value: ${fieldValue}\nIncorrect Value: Couldn't extract.\n\n`;
+                                    }
+                                } else if (startsFrom.hasOwnProperty("start_of")) {
+                                    let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.start_of, 'gi'))].map(a => a.index);
+                                    let subString = finalPdfText.substring(0, indexes[startsFrom.place_of_occurance || 0]);
+                                    indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
+
+                                    let extractedPdfValueOfField = subString.substring(indexes[indexes.length - 2], indexes[indexes.length - 1]).trim();
+
+                                    extractedPdfValueOfField = extractedPdfValueOfField.replace(/\n/g, "");
+                                    if (fieldValue != extractedPdfValueOfField) {
+                                        misMactchData += `<b>${fieldName}</b>\n`;
+                                        misMactchData +=`Correct Value: ${fieldValue}\nIncorrect Value: ${extractedPdfValueOfField}\n\n`;
+                                    }
+                                }
+                            } else if (fieldConfig.hasOwnProperty("between")) {
+                                let between = fieldConfig.between;
+                                let startsFrom = between.start_from;
+                                let endAt = between.end_at;
+                                let startIndex = finalPdfText.indexOf(startsFrom);
+                                let endIndex = finalPdfText.indexOf(endAt);
+                                if (startIndex != -1 && endIndex != -1) {
+                                    startIndex += startsFrom.length;
+                                    let extractedPdfValueOfField = finalPdfText.substring(startIndex, endIndex).trim();
+                                    extractedPdfValueOfField = extractedPdfValueOfField.replace(/\n/g, "");
 
                                     if (fieldValue != extractedPdfValueOfField) {
-                                        misMactchData += `${fieldName}\n`;
+                                        misMactchData += `<b>${fieldName}</b>\n`;
+                                        misMactchData +=`Correct Value: ${fieldValue}\nIncorrect Value: ${extractedPdfValueOfField}\n\n`;
                                     }
 
                                 } else {
-                                    misMactchData += `${fieldName}\n`;
+                                    misMactchData += `<b>${fieldName}</b>\n`;
+                                    misMactchData +=`Correct Value: ${fieldValue}\nIncorrect Value: Couldn't extract.\n\n`;
                                 }
-                            } else if (startsFrom.hasOwnProperty("start_of")) {
-                                let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.start_of, 'gi'))].map(a => a.index);
-                                let subString = finalPdfText.substring(0, indexes[startsFrom.place_of_occurance || 0]);
-                                indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
 
-                                let extractedPdfValueOfField = subString.substring(indexes[indexes.length - 2], indexes[indexes.length - 1]).trim();
-
-                                console.log(extractedPdfValueOfField);
-                                if (fieldValue != extractedPdfValueOfField) {
-                                    misMactchData += `${fieldName}\n`;
-                                }
                             }
+
                         }
 
                         if (misMactchData.length > 0) {
-                            misMactchData = `Error!!\n\nMismatch found in below fields : \n ${misMactchData}`;
+                            misMactchData = `Error!!\n\nMismatch found in Invoice Data : \n\n ${misMactchData}`;
                             await addTimelineEntry({ ...request, content: misMactchData, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
-                            submitPdfValidationForm(request,botInlineJson,"error",misMactchData)
+                            submitPdfValidationForm(request, botInlineJson, "error", misMactchData)
                         } else {
                             await addTimelineEntry({ ...request, content: "No Mismatch data found", subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
-                            submitPdfValidationForm(request,botInlineJson,"success","No Mismatch data found")
+                            submitPdfValidationForm(request, botInlineJson, "success", "No Mismatch data found")
                         }
 
                     } else if (item.text) {

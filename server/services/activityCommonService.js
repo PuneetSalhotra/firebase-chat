@@ -7610,6 +7610,13 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         }
         return [error, responseData];
     }
+
+    this.changeDueDateOfParentBasedOnChild = async function (request) {
+        let workflowActivityDeatils = await this.getActivityDetailsAsync(request);
+        request.workflow_activity_id = request.workflow_activity_id || request.activity_id;
+        await botService.setDueDateV1(request,workflowActivityDeatils[0].activity_datetime_end_deferred);
+        return [false,[]]
+    }
 }
 
 
