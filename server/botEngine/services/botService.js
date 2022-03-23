@@ -18258,11 +18258,13 @@ if(workflowActivityData.length==0){
                                         let extractedPdfValueOfField = finalPdfText.substring(startIndex, startIndex + indexes[endsAt.line_number]).trim();
                                         extractedPdfValueOfField = extractedPdfValueOfField.replace(/\n/g, "");
                                         if (fieldValue != extractedPdfValueOfField) {
-                                            misMactchData += `${fieldName}\n`;
+                                            misMactchData += `<b>${fieldName}</b>\n`;
+                                            misMactchData +=`Correct Value: ${fieldValue}\nIncorrect Value: ${extractedPdfValueOfField}\n\n`;
                                         }
 
                                     } else {
-                                        misMactchData += `${fieldName}\n`;
+                                        misMactchData += `<b>${fieldName}</b>\n`;
+                                        misMactchData +=`Correct Value: ${fieldValue}\nIncorrect Value: Couldn't extract.\n\n`;
                                     }
                                 } else if (startsFrom.hasOwnProperty("start_of")) {
                                     let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.start_of, 'gi'))].map(a => a.index);
@@ -18273,7 +18275,8 @@ if(workflowActivityData.length==0){
 
                                     extractedPdfValueOfField = extractedPdfValueOfField.replace(/\n/g, "");
                                     if (fieldValue != extractedPdfValueOfField) {
-                                        misMactchData += `${fieldName}\n`;
+                                        misMactchData += `<b>${fieldName}</b>\n`;
+                                        misMactchData +=`Correct Value: ${fieldValue}\nIncorrect Value: ${extractedPdfValueOfField}\n\n`;
                                     }
                                 }
                             } else if (fieldConfig.hasOwnProperty("between")) {
@@ -18288,11 +18291,13 @@ if(workflowActivityData.length==0){
                                     extractedPdfValueOfField = extractedPdfValueOfField.replace(/\n/g, "");
 
                                     if (fieldValue != extractedPdfValueOfField) {
-                                        misMactchData += `${fieldName}\n`;
+                                        misMactchData += `<b>${fieldName}</b>\n`;
+                                        misMactchData +=`Correct Value: ${fieldValue}\nIncorrect Value: ${extractedPdfValueOfField}\n\n`;
                                     }
 
                                 } else {
-                                    misMactchData += `${fieldName}\n`;
+                                    misMactchData += `<b>${fieldName}</b>\n`;
+                                    misMactchData +=`Correct Value: ${fieldValue}\nIncorrect Value: Couldn't extract.\n\n`;
                                 }
 
                             }
@@ -18300,7 +18305,7 @@ if(workflowActivityData.length==0){
                         }
 
                         if (misMactchData.length > 0) {
-                            misMactchData = `Error!!\n\nMismatch found in below fields : \n ${misMactchData}`;
+                            misMactchData = `Error!!\n\nMismatch found in Invoice Data : \n\n ${misMactchData}`;
                             await addTimelineEntry({ ...request, content: misMactchData, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
                             submitPdfValidationForm(request, botInlineJson, "error", misMactchData)
                         } else {
