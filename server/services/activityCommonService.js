@@ -7614,7 +7614,23 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
     this.changeDueDateOfParentBasedOnChild = async function (request) {
         let workflowActivityDeatils = await this.getActivityDetailsAsync(request);
         request.workflow_activity_id = request.workflow_activity_id || request.activity_id;
-        await botService.setDueDateV1(request,workflowActivityDeatils[0].activity_datetime_end_deferred);
+        const changeParentDueDate = nodeUtil.promisify(makingRequest.post);
+        const makeRequestOptions = {
+            form: {...request,new_date:workflowActivityDeatils[0].activity_datetime_end_deferred}
+        };
+        try {
+            // global.config.mobileBaseUrl + global.config.version
+            const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parents/due/date', makeRequestOptions);
+            const body = JSON.parse(response.body);
+            if (Number(body.status) === 200) {
+                console.log("Success | changeParentDueDate | Body: ", body);
+                return [false, body];
+            }
+        } catch (error) {
+            console.log("Success | changeParentDueDate | Error: ", error);
+            return [true, {}];
+        }
+        // await botService.setDueDateV1(request,workflowActivityDeatils[0].activity_datetime_end_deferred);
         return [false,[]]
     }
 }
