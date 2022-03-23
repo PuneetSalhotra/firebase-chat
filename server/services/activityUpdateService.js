@@ -3039,6 +3039,11 @@ function ActivityUpdateService(objectCollection) {
             } catch (error) {
                 util.logError(request, `activityMappingParentUpdate updateCUIDs | Error updating CUID in the AssetSearchMapping Error %j`, { type: 'esms_ibm_mq', error: serializeError(error), request });
             }
+            try {
+                activityCommonService.changeDueDateOfParentBasedOnChild({ activity_id: request.activity_id || request.workflow_activity_id, organization_id: request.organization_id, asset_id: request.asset_id })
+            } catch (error) {
+                util.logError(request, `activityMappingParentUpdate updateDueDates | Error updating updateDueDates in the Parent Activity Error %j`, { type: 'esms_ibm_mq', error: serializeError(error), request });
+            }
             error = false;
             responseData = [{ "message": "Activity details updated successfully" }];
             util.logInfo(request, `activityMappingParentUpdate Activity details updated successfully %j`, { request });
