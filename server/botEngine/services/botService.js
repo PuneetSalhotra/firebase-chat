@@ -10293,7 +10293,7 @@ else{
             let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activity_id);
             activity_id = workflowActivityDetails[0].parent_activity_id;
             if(Number(activity_id)==0){
-                return;
+                return [true,[]];
             }
             let parentWorkflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, workflowActivityDetails[0].parent_activity_id);
             let childEndDate = moment(newDate);
