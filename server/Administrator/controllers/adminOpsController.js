@@ -1388,6 +1388,16 @@ function AdminOpsController(objCollection) {
             }
         });
 
+        app.post("/" + global.config.version + "/admin/asset/summary/transaction/manager/select", async function (req, res) {
+            const [err, result] = await adminOpsService.assetSummaryTransactionManagerSelect(req.body);
+            if (!err) {
+                res.json(responseWrapper.getResponse(false, result, 200, req.body));
+            } else {
+                console.log("/admin/asset/summary/transaction/manager/select | Error: ", err);
+                res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+            }
+        });
+
     app.post("/" + global.config.version + "/admin/workforce/list/delete", async function (req, res) {
         const [err, result] = await adminOpsService.workforceListDelete(req.body);
         if (!err) {

@@ -1850,7 +1850,7 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = {};
+                    responseData = data;
                     if(!request.hasOwnProperty('validation_id')){
                         request.validation_id = data[0].validation_id;
                     }
@@ -2138,7 +2138,7 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = [];
+                    responseData = data;
                     error = false;
                     try {
                         this.entityTargetSettingHistoryInsert({...request, entity_target_setting_id : data[0].entity_target_setting_id, update_type_id : 3601 });
