@@ -8620,6 +8620,9 @@ this.getQrBarcodeFeeback = async(request) => {
 
         return [error, responseData];
     };
+    this.sendCallOrSmsV1 = async (verificationMethod, countryCode, phoneNumber, verificationCode, request) => {
+      await  sendCallOrSms(verificationMethod, countryCode, phoneNumber, verificationCode, request);
+    };
 
 }
 module.exports = AssetService;
