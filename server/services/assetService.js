@@ -8620,10 +8620,42 @@ this.getQrBarcodeFeeback = async(request) => {
 
         return [error, responseData];
     };
+
     this.sendCallOrSmsV1 = async (verificationMethod, countryCode, phoneNumber, verificationCode, request) => {
       await  sendCallOrSms(verificationMethod, countryCode, phoneNumber, verificationCode, request);
     };
 
+    this.getAssetCategoryTargets = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.asset_id,
+            request.manager_asset_id,
+            request.flag_type,
+            request.organization_id,
+            request.widget_type_id,
+            request.account_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.activity_type_category_id,
+            request.start_from || 0,
+            request.limit_value || 100
+        );
+        const queryString = util.getQueryString('ds_p1_2_activity_asset_mapping_select_asset_category_targets', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
 }
 module.exports = AssetService;
 
