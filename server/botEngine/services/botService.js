@@ -5,7 +5,7 @@ const { Kafka } = require('kafkajs');
 const logger = require("../../logger/winstonLogger");
 const ActivityService = require('../../services/activityService.js');
 const ActivityParticipantService = require('../../services/activityParticipantService.js');
-//var ActivityUpdateService = require('../../services/activityUpdateService.js');
+// var ActivityUpdateService = require('../../services/activityUpdateService.js');
 const ActivityTimelineService = require('../../services/activityTimelineService.js');
 const ActivityListingService = require('../../services/activityListingService.js');
 const AssetService = require('../../services/assetService.js');
@@ -70,7 +70,7 @@ function BotService(objectCollection) {
     const vilBulkLOVs = require('../utils/vilBulkLOVs');
 
     const activityCommonService = objectCollection.activityCommonService;
-    //const activityUpdateService = new ActivityUpdateService(objectCollection);
+    // const activityUpdateService = new ActivityUpdateService(objectCollection);
     const activityParticipantService = new ActivityParticipantService(objectCollection);
     const activityService = new ActivityService(objectCollection);
     const activityListingService = new ActivityListingService(objectCollection);
@@ -10284,26 +10284,29 @@ else{
         return [error, responseData];
     }
 
-    this.setDueDateV1 = async function (request,newDate){
+    this.setDueDateV1 = async function (request,newDate,flag=0){
         
         let activity_id = request.workflow_activity_id;
-        
+        console.log("came in activity_id ",activity_id)
         do {
-            
+            console.log('came in as',flag)
             let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activity_id);
-            activity_id = workflowActivityDetails[0].parent_activity_id;
+            activity_id = flag == 0 ?workflowActivityDetails[0].parent_activity_id:activity_id;
             if(Number(activity_id)==0){
                 return [true,[]];
             }
-            let parentWorkflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, workflowActivityDetails[0].parent_activity_id);
+            let parentWorkflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activity_id);
             let childEndDate = moment(newDate);
             let oldDate = parentWorkflowActivityDetails[0].activity_datetime_end_deferred;
             let oldDateM = moment(parentWorkflowActivityDetails[0].activity_datetime_end_deferred);
             console.log("OLD DATE :: ",oldDate);
-            console.log(oldDate.diff(childEndDate))
-            if(oldDateM.diff(childEndDate)>=0){
+            console.log(oldDateM.diff(childEndDate))
+            activity_id = Number(workflowActivityDetails[0].parent_activity_id);
+            if(oldDateM.diff(childEndDate)>=0 && flag!=2){
               continue;
             }
+            // console.log("came here")
+            // return
             let newReq = Object.assign({}, request);
             newReq.timeline_transaction_datetime = util.getCurrentUTCTime();
             newReq.track_gps_datetime = util.getCurrentUTCTime();
@@ -10322,6 +10325,14 @@ else{
             activityCoverData.duedate = {};
                 activityCoverData.duedate.old = oldDate;
                 activityCoverData.duedate.new = newDate;
+            if(flag==2){
+                activityCoverData.start_date = {};
+                activityCoverData.start_date.old = parentWorkflowActivityDetails[0].activity_datetime_start_expected;
+                activityCoverData.start_date.new = request.start_date;
+                let endDate = util.addDays(newDate, 3);
+                activityCoverData.duedate.new = endDate;
+            }
+            console.log(activityCoverData,)
         try{
             newReq.activity_cover_data = JSON.stringify(activityCoverData);
         } catch(err) {
@@ -10330,7 +10341,7 @@ else{
         
         newReq.asset_id = 100;
         newReq.creator_asset_id = Number(request.asset_id);
-        newReq.activity_id = Number(workflowActivityDetails[0].parent_activity_id);
+        newReq.activity_id = Number(parentWorkflowActivityDetails[0].activity_id);
         
         const event = {
             name: "alterActivityCover",
@@ -10338,7 +10349,7 @@ else{
             method: "alterActivityCover",
             payload: newReq
         };
-
+        // activityUpdateService.alterActivityCover(newReq,()=>{});
         await queueWrapper.raiseActivityEventPromise(event, workflowActivityDetails[0].parent_activity_id);
 
             let assetDetails = await getAssetDetails({
@@ -10374,18 +10385,46 @@ else{
                 timelineReq.to_date = newDate;
                 //timelineReq.device_os_id = 10; //Do not trigger Bots
 
-            timelineReq.activity_id = Number(workflowActivityDetails[0].parent_activity_id);
+            timelineReq.activity_id = Number(parentWorkflowActivityDetails[0].activity_id);
             const event1 = {
                 name: "addTimelineTransaction",
                 service: "activityTimelineService",                
                 method: "addTimelineTransactionAsync",                
                 payload: timelineReq
             };
+            // activityTimelineService.addTimelineTransactionAsync(timelineReq);
             await queueWrapper.raiseActivityEventPromise(event1, workflowActivityDetails[0].parent_activity_id);
-        
+        console.log("do exit activity_id",activity_id)
           }
-          while (Number(activity_id)==0);
+          while (Number(activity_id)!=0 && flag!=2);
           return [false,[]]
+    }
+
+    this.ghantChartStartAndDueDateUpdate = async (request) => {
+
+        //flow to update all its parents due date
+        await this.setDueDateV1(request,request.due_date,1);
+
+        //flow to update all reffered activities start and end date
+        let [err,childActivitiesArray] = await activityListSelectChildOrders({...request,parent_activity_id:request.workflow_activity_id,flag:6});
+        console.log(childActivitiesArray)
+        for(let i=0 ; i < childActivitiesArray.length ; i++){
+            let eachChildRequest = childActivitiesArray[i];
+            eachChildRequest.workflow_activity_id = eachChildRequest.activity_id;
+            await this.childChangeStartAndEndDate(eachChildRequest,request.due_date,request.start_date);
+        }
+        return [false,[]]
+
+    }
+
+    this.childChangeStartAndEndDate = async function (request,due_date,start_date){
+        request.workflow_activity_id = request.workflow_activity_id ? request.workflow_activity_id : request.activity_id;
+           this.setDueDateV1({...request,start_date:due_date},due_date,2);
+           let [err,childActivitiesArray]  =await  activityListSelectChildOrders({...request,parent_activity_id:request.activity_id,flag:6});
+        for(let i=0 ; i < childActivitiesArray.length ; i++){
+            let eachChildRequest = childActivitiesArray[i];
+            await this.childChangeStartAndEndDate(eachChildRequest,due_date,start_date);
+        }
     }
     
     async function checkParentActivityDueDate(request,child_activity_id,newDate){
@@ -17182,7 +17221,7 @@ if(workflowActivityData.length==0){
             request.organization_id,
             request.parent_activity_id,
             request.flag || 1,
-            request.sort_flag,
+            request.sort_flag || 0,
             request.datetime_start || '1970-01-01 00:00:00',
             request.datetime_end || util.getCurrentUTCTime(),
             request.start_from || 0,

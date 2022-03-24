@@ -471,7 +471,16 @@ function BotController(objCollection) {
         }
     });
     app.post('/' + global.config.version + '/bot/set/parents/due/date', async (req, res) => {
-        const [err, data] = await botService.setDueDateV1(req.body,req.body.new_date);
+        const [err, data] = await botService.setDueDateV1(req.body,req.body.new_date,1);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log('Error - /bot/set/parents/due/date : ', err);
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+    app.post('/' + global.config.version + '/bot/set/parent/child/due/date/v1', async (req, res) => {
+        const [err, data] = await botService.ghantChartStartAndDueDateUpdate(req.body);
         if (!err) {
             res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
