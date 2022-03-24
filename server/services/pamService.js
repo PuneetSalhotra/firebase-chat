@@ -8,6 +8,7 @@ let makingRequest = require('request');
 const nodeUtil = require('util');
 let TinyURL = require('tinyurl');
 const XLSX = require('xlsx');
+const AssetService = require('../services/assetService');
 
 function PamService(objectCollection) {
 
@@ -23,6 +24,7 @@ function PamService(objectCollection) {
 
     const self = this;
     const supportContactNumber = "9154395728";
+    const assetService = new AssetService(objectCollection);
           
     this.ivrService = function(request, callback) {
         console.log('Request params received for ivr Service : ' , request);
@@ -4832,17 +4834,15 @@ this.addAssetPamSubfnV1 = async function (request) {
 
 	let queryString = util.getQueryString('ds_v1_asset_list_insert_pam', paramsArr);
 	if (queryString != '') {
-		//global.logger.write(queryString, request, 'asset', 'trace');
-		db.executeQuery(0, queryString, request, function (err, assetData) {
-			if (err === false) {
-				assetListHistoryInsert(request, assetData[0]['asset_id'], request.organization_id, 0, request.datetime_log, function (err, data) {});
-				request.ingredient_asset_id = assetData[0]['asset_id'];
-				err = false 
-				responseData = assetData
-		        // return [false ,{"asset_id": assetData[0]['asset_id']} ]		
-			 // callback(false, {"asset_id": assetData[0]['asset_id']}, 200);
-			} 
-			});
+        await db.executeQueryPromise(0, queryString, request)
+        .then(async(assetData) => {
+           await assetListHistoryInsert(request, assetData[0]['asset_id'], request.organization_id, 0, request.datetime_log, function (err, data) {});
+            responseData = assetData;
+            error = false;
+        })
+        .catch((err) => {
+            error = err;
+        })
 		}
 		return [err, responseData]       
 };
@@ -6789,7 +6789,7 @@ this.getChildOfAParent = async (request) => {
             request.promo_title,
             request.promo_description,
             request.discount_maximum_value,
-            request.promo_minimum_bil,
+            request.promo_minimum_bill,
             request.promo_start_datetime,
             request.promo_end_datetime,
             request.promo_level_id,
@@ -6821,6 +6821,11 @@ this.getChildOfAParent = async (request) => {
     this.updateMinimumCountAssetlist = async function (request) {
         let responseData = [],
             error = true;
+        let [error1, responseData1] = await self.assetInlineDataGetUserprofile(request, request.asset_id);
+        let data = JSON.parse(responseData1[0].asset_inline_data);
+        data.asset_storage_limit = request.asset_storage_limit;
+        data = JSON.stringify(data);
+        let [err, res] = await self.coverInlineAlterV1(request, request.asset_id, data);
         let paramsArr = new Array(
             request.organization_id,
             request.asset_id,
@@ -7100,7 +7105,211 @@ this.getChildOfAParent = async (request) => {
         } catch (error) {
             return [err, -9999];
         }
-    };    
+    };  
+    this.coverInlineAlterV1 = async function (request, target_asset_id, data) {
+        let responseData = [],
+            error = true;
+        let dateTimeLog = util.getCurrentUTCTime();
+        request['datetime_log'] = dateTimeLog;
+        let paramsArr = new Array(
+            target_asset_id,
+            request.organization_id,
+            request.asset_first_name,
+            request.asset_description,
+            data,
+            request.asset_id,
+            request.datetime_log
+        );
+        let queryString = util.getQueryString('ds_v1_asset_list_update_cover_inline_data', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    pamAssetListHistoryInsert(request, 221, target_asset_id).then(() => { });
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, {}];
+    };
+    this.notifyVendor=  function (request) {
+        let responseData = [],
+            error = true;
+            let paramsArr = new Array(
+                request.vendor_id,
+                request.vendor_name,
+                request.ingredient_id   ,
+                request.ingredeint_name,
+                request.ingredeint_unit ,
+                request.quantity,
+                request.vendor_phone_number ,
+                request.vendor_email
+            );
+            error=false;
+        return [error, responseData];
+    };
+    this.addPamAsset = async (request) => {
+        let phoneNumber;
+        let countryCode;
+        (err = true), (responseData = -9999);
+
+        try {
+            let assetData = await self.assetListSelectPhoneNumber(request);
+            if (assetData.length > 0) {
+                request.member_asset_id = assetData[0].asset_id;
+                request.asset_first_name = assetData[0].asset_first_name;
+                phoneNumber = util.cleanPhoneNumber(assetData[0].asset_phone_number);
+                countryCode = util.cleanPhoneNumber(assetData[0].asset_phone_country_code);
+            } else {
+                const [assetTypeError, assetType] = await self.workforceAssetTypeMappingSelectCategoryAsync(request, 30);
+                // create the asset
+                request.asset_first_name = request.asset_first_name;
+                request.asset_last_name = "";
+                request.asset_description = "";
+                request.customer_unique_id = 0;
+                request.asset_profile_picture = "";
+                request.asset_inline_data = '{}';
+                request.phone_country_code = request.country_code;
+                request.asset_phone_number = request.phone_number;
+                request.asset_email_id = "";
+                request.asset_timezone_id = 0;
+                request.asset_type_id = assetType[0].asset_type_id;
+                request.asset_type_category_id = 30;
+                request.asset_type_name = "Member";
+                request.operating_asset_id = 0;
+                request.manager_asset_id = 0;
+                request.code = "";
+                request.enc_token = "";
+                request.is_member = 1;
+                request.invite_sent = 0;
+                request.discount_percent = 0;
+                request.asset_id = '0'
+
+                phoneNumber = await util.cleanPhoneNumber(request.asset_phone_number);
+                countryCode = await util.cleanPhoneNumber(request.phone_country_code);
+                const [error,newAssetData] = await self.addAssetPamSubfnV1(request);
+                console.log(newAssetData)
+                if(newAssetData.length>0){
+                    request.member_asset_id = newAssetData[0].asset_id
+                }
+            }
+            console.log("phoneNumber", phoneNumber);
+            console.log("countryCode", countryCode);
+            await self.updateAssetPasscode(request, request.member_asset_id, countryCode, phoneNumber);
+            responseData = {},
+                err = false;
+
+        } catch (e) {
+            console.log(e);
+        }
+        return [err, responseData];
+    }
+    this.verifyPhoneNumber = async (request) => {
+        (err = true), (responseData = -9999);
+        
+        try {
+            let assetData = await self.assetListSelectPhoneNumber(request);
+            if(assetData.length > 0){
+                request.member_asset_id = assetData[0].asset_id;
+                request.asset_first_name = assetData[0].asset_first_name ;
+                request.asset_phone_number=assetData[0].asset_phone_number
+            }
+
+            let [e,passcode] = await self.selectAssetPasscode({
+                asset_id: assetData[0].asset_id,
+                asset_phone_number:assetData[0].asset_phone_number,
+                asset_phone_country_code:assetData[0].asset_phone_country_code
+            });
+            
+            if(passcode.length && passcode[0].asset_phone_passcode !==  request.passcode) {
+                return [true, "Passcode is not matched"]
+            }
+
+            self.updateAssetPhoneVerified({
+                asset_id : request.member_asset_id,
+                asset_phone_number : request.asset_phone_number,
+                workforce_id : request.workforce_id,
+                account_id : request.account_id
+            });
+
+            return [false, assetData];
+
+
+        } catch(e) {
+            console.log("Error ", e, e.stack);
+        
+        }
+
+        return [err, responseData];
+    }
+    this.updateAssetPhoneVerified = async function (request) {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.asset_id,
+            request.asset_phone_number,
+            request.workforce_id,
+            request.account_id,
+            1
+        );
+        const queryString = util.getQueryString('ds_p1_asset_list_update_phone_number_verified', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then(async (data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+    this.selectAssetPasscode = async function (request) {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.asset_id,
+            request.asset_phone_number,
+            request.asset_phone_country_code
+        );
+        const queryString = util.getQueryString('ds_p1_asset_phone_passcode_select', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then(async (data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return [error, responseData];
+    };
+    this.updateAssetPasscode = async function (request,member_asset_id,countryCode,phoneNumber) {
+        let responseData = [],
+            error = true;
+        let verificationCode = util.getVerificationCode();
+        let pwdValidDatetime = util.addDays(util.getCurrentUTCTime(), 1);
+        let paramsArr = new Array(
+            member_asset_id,
+            request.organization_id,
+            verificationCode,
+            pwdValidDatetime
+        );
+        let updateQueryString = util.getQueryString('ds_v1_asset_list_update_passcode', paramsArr);
+        db.executeQuery(0, updateQueryString, request, function (err, data) {
+            assetListHistoryInsert(request,member_asset_id, request.organization_id, 208, util.getCurrentUTCTime(), function (err, data) {
+            error=false;
+            responseData=data;
+            
+            });
+        });
+
+        await assetService.sendCallOrSmsV1(1, countryCode, phoneNumber, verificationCode, request);
+        return [error, responseData];
+    };
 };
 
 module.exports = PamService;

@@ -44,6 +44,8 @@ const {PDFDocument, rgb, StandardFonts,degrees } = require('pdf-lib');
 const fetch = require('node-fetch');
 const fontkit = require('@pdf-lib/fontkit');
 
+const pdfreader = require('pdfreader');
+
 function isObject(obj) {
     return obj !== undefined && obj !== null && !Array.isArray(obj) && obj.constructor == Object;
 }
@@ -284,6 +286,55 @@ function BotService(objectCollection) {
                          });
                  }
                 
+                // enabling round robin arp bot
+                if(request.bot_operation_type_id == 2) {
+                    const botOperationInlineData = JSON.parse(request.bot_inline_data),
+                    botOperations = botOperationInlineData.bot_operations;
+
+                    let activityTypeFlagRoundRobin = botOperations.status_alter.activity_type_flag_round_robin;
+
+                    let activityStatusId = botOperations.status_alter.activity_status_id;
+                    
+                    if(activityTypeFlagRoundRobin == 1) {
+                        let statusDetails = await getStatusName(request, activityStatusId);
+
+                        for(let status of statusDetails) {
+                            util.logInfo("status", JSON.stringify(status));
+                            let [err,assetList] = await assetService.getAssetTypeList({
+                                organization_id : request.organization_id,
+                                asset_type_id : status.asset_type_id,
+                                asset_type_category_id : status.asset_type_category_id,
+                                start_from : 0,
+                                limit_value : 1000
+                            });
+    
+                            await updateArpRRFlag({
+                                organization_id : request.organization_id,
+                                asset_type_id : status.asset_type_id,
+                                asset_type_arp_round_robin_enabled : 1,
+                                log_asset_id : request.asset_id
+                            });
+
+                            if(err) {
+                                console.error("Got Error");
+                                return [err, []];
+                            }
+                            util.logInfo("assetList", JSON.stringify(assetList));
+                            let sequence_id = 1;
+                            for(let row of assetList) {
+                                await updateAssetSequenceId({
+                                    asset_id : row.asset_id,
+                                    organization_id : request.organization_id,
+                                    sequence_id : sequence_id,
+                                    cycle_id : 1,
+                                    log_asset_id : row.asset_id,
+                                });
+                                sequence_id++;
+                            }
+    
+                        }                        
+                    }
+                }
                 // paramsArray =
                 //     new Array(
                 //         request.bot_id,
@@ -2991,6 +3042,61 @@ function BotService(objectCollection) {
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
                         } catch (error) {
                             logger.error("[Leave Approval Bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = serializeError(error);
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        }
+
+                        break;
+
+                    case 62: // PDF Validation Bot
+                        logger.silly("PDf Validation Bot params received from request: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await pdfValidationBot(request, botOperationsJson.bot_operations.pdf_validation);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[PDf Validation] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = serializeError(error);
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        }
+                        break;
+
+                    case 63: // Custom Timeline Bot
+                        logger.silly("Custom Timeline bot params received from request: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await customTimelineEntryBot(request, botOperationsJson.bot_operations.timeline_entry);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[Custom Timeline bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
+                            i.bot_operation_status_id = 2;
+                            i.bot_operation_inline_data = JSON.stringify({
+                                "error": error
+                            });
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                            i.bot_operation_error_message = serializeError(error);
+                            //await handleBotOperationMessageUpdate(request, i, 4, error);
+                        }
+                        break;
+
+                    case 64: // Custom Qty Update bot
+                        logger.silly("Custom Qty Update bot timeline Bot params received from request: %j", request);
+                        try {
+                            i.bot_operation_start_datetime = util.getCurrentUTCTime();
+                            await customQtyUpdateBot(request, botOperationsJson.bot_operations.update_qty);
+                            i.bot_operation_end_datetime = util.getCurrentUTCTime();
+                        } catch (error) {
+                            logger.error("[Custom Qty Update bot] Error: ", { type: 'bot_engine', error: serializeError(error), request_body: request });
                             i.bot_operation_status_id = 2;
                             i.bot_operation_inline_data = JSON.stringify({
                                 "error": error
@@ -10073,9 +10179,14 @@ else{
             method: "alterActivityCover",
             payload: newReq
         };
+
+        if(inlineData && inlineData.hasOwnProperty('is_parent_due_date_update') && inlineData.is_parent_due_date_update == 1){
+            this.setDueDateV1(request,newDate)
+        }
         util.logInfo(request,`request.workflow_activity_id : ${request.workflow_activity_id}`);
         request.debug_info.push('request.workflow_activity_id : '+ request.workflow_activity_id);
         let status_dueDate = false;
+
         if(inlineData && inlineData.hasOwnProperty('is_status_due_date') && inlineData.is_status_due_date == 1) {
            let updateStatusDueDateParams = {...request};
            updateStatusDueDateParams.activity_id = Number(request.workflow_activity_id);
@@ -10087,6 +10198,7 @@ else{
 
         await queueWrapper.raiseActivityEventPromise(event, request.workflow_activity_id);
         }
+        
 
         //Timeline /activity/timeline/entry/add
             /*account_id: 1100
@@ -10170,6 +10282,129 @@ else{
             await queueWrapper.raiseActivityEventPromise(event1, request.workflow_activity_id);
 
         return [error, responseData];
+    }
+
+    this.setDueDateV1 = async function (request,newDate){
+        
+        let activity_id = request.workflow_activity_id;
+        
+        do {
+            
+            let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activity_id);
+            activity_id = workflowActivityDetails[0].parent_activity_id;
+            if(Number(activity_id)==0){
+                return [true,[]];
+            }
+            let parentWorkflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, workflowActivityDetails[0].parent_activity_id);
+            let childEndDate = moment(newDate);
+            let oldDate = parentWorkflowActivityDetails[0].activity_datetime_end_deferred;
+            let oldDateM = moment(parentWorkflowActivityDetails[0].activity_datetime_end_deferred);
+            console.log("OLD DATE :: ",oldDate);
+            console.log(oldDate.diff(childEndDate))
+            if(oldDateM.diff(childEndDate)>=0){
+              continue;
+            }
+            let newReq = Object.assign({}, request);
+            newReq.timeline_transaction_datetime = util.getCurrentUTCTime();
+            newReq.track_gps_datetime = util.getCurrentUTCTime();
+            newReq.datetime_log = newReq.track_gps_datetime;
+            newReq.message_unique_id = util.getMessageUniqueId(100);
+            
+        let activityCoverData = {};
+            activityCoverData.title = {};
+                activityCoverData.title.old = parentWorkflowActivityDetails[0].activity_title;
+                activityCoverData.title.new = parentWorkflowActivityDetails[0].activity_title;
+
+            activityCoverData.description = {};
+                activityCoverData.description.old = "";
+                activityCoverData.description.new = "";
+
+            activityCoverData.duedate = {};
+                activityCoverData.duedate.old = oldDate;
+                activityCoverData.duedate.new = newDate;
+        try{
+            newReq.activity_cover_data = JSON.stringify(activityCoverData);
+        } catch(err) {
+            util.logError(request,`Error`, { type: 'bot_engine', err });
+        }
+        
+        newReq.asset_id = 100;
+        newReq.creator_asset_id = Number(request.asset_id);
+        newReq.activity_id = Number(workflowActivityDetails[0].parent_activity_id);
+        
+        const event = {
+            name: "alterActivityCover",
+            service: "activityUpdateService",
+            method: "alterActivityCover",
+            payload: newReq
+        };
+
+        await queueWrapper.raiseActivityEventPromise(event, workflowActivityDetails[0].parent_activity_id);
+
+            let assetDetails = await getAssetDetails({
+                "organization_id": request.organization_id,
+                "asset_id": request.asset_id
+            });
+
+            let assetName = (assetDetails.length > 0) ? assetDetails[0].operating_asset_first_name : 'Bot';
+            let status_dueDate = false;
+            let content = `${status_dueDate?"Status d":"D"}ue date ${oldDate != "" ? `changed from ${moment(oldDate).format('Do MMMM YYYY, h:mm a')}`:"set"} to ${moment(newDate).format('Do MMMM YYYY, h:mm a')} by ${assetName}`;
+            let activityTimelineCollection = {
+                content: content,
+                subject: `Note - ${util.getCurrentDate()}`,
+                mail_body: content,
+                attachments: [],                
+                asset_reference: [],
+                activity_reference: [],
+                form_approval_field_reference: []
+            };
+
+            let timelineReq = Object.assign({}, request);
+                timelineReq.activity_type_category_id= 48;
+                timelineReq.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
+                timelineReq.data_entity_inline = JSON.stringify(activityTimelineCollection);
+                timelineReq.asset_id = 100;   
+                timelineReq.timeline_stream_type_id= 734;
+                timelineReq.activity_stream_type_id= 734;
+                timelineReq.timeline_transaction_datetime = util.getCurrentUTCTime();
+                timelineReq.track_gps_datetime = timelineReq.timeline_transaction_datetime;
+                timelineReq.datetime_log = timelineReq.timeline_transaction_datetime;
+                timelineReq.message_unique_id = util.getMessageUniqueId(100);
+                timelineReq.form_date = oldDate;
+                timelineReq.to_date = newDate;
+                //timelineReq.device_os_id = 10; //Do not trigger Bots
+
+            timelineReq.activity_id = Number(workflowActivityDetails[0].parent_activity_id);
+            const event1 = {
+                name: "addTimelineTransaction",
+                service: "activityTimelineService",                
+                method: "addTimelineTransactionAsync",                
+                payload: timelineReq
+            };
+            await queueWrapper.raiseActivityEventPromise(event1, workflowActivityDetails[0].parent_activity_id);
+        
+          }
+          while (Number(activity_id)==0);
+          return [false,[]]
+    }
+    
+    async function checkParentActivityDueDate(request,child_activity_id,newDate){
+        let responseReturn = true;
+        let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, child_activity_id);
+        if(Number(workflowActivityDetails[0].parent_activity_id) === 0){
+            return responseReturn;
+        }
+        // let parentWorkflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, workflowActivityDetails[0].parent_activity_id);
+        // let childEndDate = moment(newDate);
+        // let parentEndDate = moment(parentWorkflowActivityDetails[0].activity_datetime_end_deferred);
+        // if(parentEndDate.diff(childEndDate)>=0){
+        //     return responseReturn;
+        // }
+        // else {
+        //     return true;
+        // }
+        return responseReturn;
+
     }
 
     this.smeGemification = async (request, bot_inline) => {
@@ -17158,7 +17393,7 @@ if(workflowActivityData.length==0){
                 title: subjectContent,
                 description: bodyContent,
                 busyStatus: "FREE",
-                location: eventLocation[0].field_value,
+                location: eventLocation.length>0 ? eventLocation[0].field_value : "",
                 start: [
                     createDate.getFullYear(),
                     createDate.getMonth() + 1,
@@ -18010,6 +18245,452 @@ if(workflowActivityData.length==0){
             return [true, []];
         }
     }
+
+    async function customQtyUpdateBot(request, botInlineJson) {
+        try {
+            if (request.hasOwnProperty("activity_inline_data")) {
+
+                let activityInlineData = JSON.parse(request.activity_inline_data);
+                let referenceFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.refrence_field_id)[0].field_value;
+                let qtyFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.qty_field_id)[0].field_value;
+                qtyFieldValue = Number(qtyFieldValue);
+
+                let referenceActivityId = referenceFieldValue.split("|")[0];
+                let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, referenceActivityId);
+
+                if (wfActivityDetails.length > 0) {
+                    let workflowFinalValue = wfActivityDetails[0].activity_workflow_value_final;
+                    workflowFinalValue = Number(workflowFinalValue) || 0;
+                    if (botInlineJson.type_of_operation === "add") {
+                        let sum = workflowFinalValue + qtyFieldValue;
+                        let reqForUpdateQty = Object.assign({}, request);
+                        reqForUpdateQty.workflow_activity_id = referenceActivityId;
+                        reqForUpdateQty.sequence_id = 1;
+                        await activityCommonService.updateWorkflowValue(reqForUpdateQty, sum);
+                        await addTimelineEntry({ ...request, content: `The current quantity of "${wfActivityDetails[0].activity_title}" is ${workflowFinalValue} and it is updated to ${sum}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                    } else if (botInlineJson.type_of_operation === "subtract") {
+                        if (workflowFinalValue > qtyFieldValue) {
+                            let sub = workflowFinalValue - qtyFieldValue;
+                            let reqForUpdateQty = Object.assign({}, request);
+                            reqForUpdateQty.workflow_activity_id = referenceActivityId;
+                            reqForUpdateQty.sequence_id = 1;
+                            await activityCommonService.updateWorkflowValue(reqForUpdateQty, sub);
+                            await addTimelineEntry({ ...request, content: `The current quantity of "${wfActivityDetails[0].activity_title}" is ${workflowFinalValue} and it is updated to ${sub}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                        } else {
+                            await addTimelineEntry({ ...request, content: `Error:\nThe Requested qty for "${wfActivityDetails[0].activity_title}" is higher than the current quantity.`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    async function customTimelineEntryBot(request, botInlineJson) {
+        try {
+            if (request.hasOwnProperty("activity_inline_data")) {
+                let activityInlineData = JSON.parse(request.activity_inline_data);
+                let referenceFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.refrence_field_id)[0].field_value;
+                let referenceActivityId = referenceFieldValue.split("|")[0];
+                let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, referenceActivityId);
+
+                if (wfActivityDetails.length > 0) {
+                    let workflowFinalValue = wfActivityDetails[0].activity_workflow_value_final;
+                    workflowFinalValue = Number(workflowFinalValue) || 0;
+                    await addTimelineEntry({ ...request, content: `The current quantity of "${wfActivityDetails[0].activity_title}" is ${workflowFinalValue}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                }
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    async function pdfValidationBot(request, botInlineJson) {
+        try {
+            let finalPdfText = "";
+            if (!request.hasOwnProperty("workflow_activity_id")) {
+                request.workflow_activity_id = request.activity_id
+            }
+
+            let referenceFormId = botInlineJson.reference_form_id;
+            const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                organization_id: request.organization_id,
+                account_id: request.account_id
+            }, request.workflow_activity_id, request.form_id);
+
+            let dataEntityInline = JSON.parse(formData[0].data_entity_inline);
+
+            if (typeof dataEntityInline == "string") {
+                dataEntityInline = JSON.parse(dataEntityInline);
+            }
+
+            let activityInlineData = dataEntityInline.form_submitted;
+            let referenceFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.refrence_field_id)[0].field_value;
+            let referenceActivityId = referenceFieldValue.split("|")[0];
+            let pdfFeildValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.pdf_field_id)[0].field_value;
+
+            let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, referenceActivityId);
+
+            const [pdfBufferError, pdfBuffer] = await util.getXlsxDataBodyFromS3Url(request, pdfFeildValue);
+
+            if (pdfBufferError) {
+                util.logError(request, `[PdfValidationError] `, { error: pdfBufferError });
+                throw new Error(pdfBufferError);
+            }
+
+            if (wfActivityDetails.length > 0) {
+
+                const refrenceFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                    organization_id: request.organization_id,
+                    account_id: request.account_id
+                }, referenceActivityId, referenceFormId);
+
+                let refrenceDataEntityInline = JSON.parse(refrenceFormData[0].data_entity_inline);
+                if (typeof refrenceDataEntityInline == "string") {
+                    refrenceDataEntityInline = JSON.parse(refrenceDataEntityInline);
+                }
+                let activityInlineDataOfReferenceActivity = refrenceDataEntityInline.form_submitted;
+                console.log(activityInlineDataOfReferenceActivity);
+                new pdfreader.PdfReader().parseBuffer(pdfBuffer, async function (err, item) {
+                    if (err) {
+                        console.error(err);
+                    } else if (!item) {
+                        let misMactchData = "";
+                        for (const [fieldId, fieldConfig] of Object.entries(botInlineJson.pdf_config)) {
+
+                            let fieldData = activityInlineDataOfReferenceActivity.filter((inline) => inline.field_id == fieldId)[0];
+                            let fieldValue = fieldData.field_value;
+                            let fieldName = fieldData.field_name;
+
+
+                            if (fieldConfig.hasOwnProperty("starts_from")) {
+                                let startsFrom = fieldConfig.starts_from;
+                                let endsAt = fieldConfig.ends_at;
+
+                                let startIndex = -1;
+
+                                if (startsFrom.hasOwnProperty("end_of")) {
+                                    if (startsFrom.hasOwnProperty("place_of_occurance") && startsFrom.place_of_occurance > 0) {
+                                        let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.end_of, 'gi'))].map(a => a.index);
+                                        if (indexes.length >= startsFrom.place_of_occurance) {
+                                            startIndex = indexes[startsFrom.place_of_occurance];
+                                        }
+                                    } else {
+                                        startIndex = finalPdfText.indexOf(startsFrom.end_of);
+                                    }
+
+                                    if (startIndex != -1) {
+                                        startIndex += startsFrom.end_of.length;
+                                        let subString = finalPdfText.substring(startIndex);
+                                        const indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
+                                        let extractedPdfValueOfField = finalPdfText.substring(startIndex, startIndex + indexes[endsAt.line_number]).trim();
+                                        extractedPdfValueOfField = extractedPdfValueOfField.replace(/\n/g, "");
+                                        if (fieldValue != extractedPdfValueOfField) {
+                                            misMactchData += `<b>${fieldName}</b>\n`;
+                                            misMactchData +=`Correct Value: ${fieldValue}\nIncorrect Value: ${extractedPdfValueOfField}\n\n`;
+                                        }
+
+                                    } else {
+                                        misMactchData += `<b>${fieldName}</b>\n`;
+                                        misMactchData +=`Correct Value: ${fieldValue}\nIncorrect Value: Couldn't extract.\n\n`;
+                                    }
+                                } else if (startsFrom.hasOwnProperty("start_of")) {
+                                    let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.start_of, 'gi'))].map(a => a.index);
+                                    let subString = finalPdfText.substring(0, indexes[startsFrom.place_of_occurance || 0]);
+                                    indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
+
+                                    let extractedPdfValueOfField = subString.substring(indexes[indexes.length - 2], indexes[indexes.length - 1]).trim();
+
+                                    extractedPdfValueOfField = extractedPdfValueOfField.replace(/\n/g, "");
+                                    if (fieldValue != extractedPdfValueOfField) {
+                                        misMactchData += `<b>${fieldName}</b>\n`;
+                                        misMactchData +=`Correct Value: ${fieldValue}\nIncorrect Value: ${extractedPdfValueOfField}\n\n`;
+                                    }
+                                }
+                            } else if (fieldConfig.hasOwnProperty("between")) {
+                                let between = fieldConfig.between;
+                                let startsFrom = between.start_from;
+                                let endAt = between.end_at;
+                                let startIndex = finalPdfText.indexOf(startsFrom);
+                                let endIndex = finalPdfText.indexOf(endAt);
+                                if (startIndex != -1 && endIndex != -1) {
+                                    startIndex += startsFrom.length;
+                                    let extractedPdfValueOfField = finalPdfText.substring(startIndex, endIndex).trim();
+                                    extractedPdfValueOfField = extractedPdfValueOfField.replace(/\n/g, "");
+
+                                    if (fieldValue != extractedPdfValueOfField) {
+                                        misMactchData += `<b>${fieldName}</b>\n`;
+                                        misMactchData +=`Correct Value: ${fieldValue}\nIncorrect Value: ${extractedPdfValueOfField}\n\n`;
+                                    }
+
+                                } else {
+                                    misMactchData += `<b>${fieldName}</b>\n`;
+                                    misMactchData +=`Correct Value: ${fieldValue}\nIncorrect Value: Couldn't extract.\n\n`;
+                                }
+
+                            }
+
+                        }
+
+                        if (misMactchData.length > 0) {
+                            misMactchData = `Error!!\n\nMismatch found in Invoice Data : \n\n ${misMactchData}`;
+                            await addTimelineEntry({ ...request, content: misMactchData, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                            submitPdfValidationForm(request, botInlineJson, "error", misMactchData)
+                        } else {
+                            await addTimelineEntry({ ...request, content: "No Mismatch data found", subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                            submitPdfValidationForm(request, botInlineJson, "success", "No Mismatch data found")
+                        }
+
+                    } else if (item.text) {
+                        finalPdfText += item.text + "\n";
+                    }
+
+                });
+            }
+
+        } catch (error) {
+            util.logError(request, "[PdfValidationBotError] Error in pdf validation ", { request, error: serializeError(error) })
+        }
+    }
+
+
+    async function submitPdfValidationForm(request, botInlineJson, formType, message) {
+        try {
+
+            let formId = formType == "error" ? botInlineJson.error_form_id : botInlineJson.success_form_id;
+            let fieldId = formType == "error" ? botInlineJson.error_field_id : botInlineJson.success_field_id;
+            let formApiActivityTypeId = formType == "error" ? botInlineJson.error_activity_type_id : botInlineJson.success_activity_type_id;
+            let formTitle = formType == "error" ? botInlineJson.error_form_title : botInlineJson.success_form_title;
+
+            let dataInLine = [];
+            dataInLine.push({
+                "data_type_combo_id": 0,
+                "data_type_combo_value": "",
+                "field_data_type_category_id": 7,
+                "field_data_type_id": 20,
+                "field_id": fieldId,
+                "field_name": "Comments",
+                "field_value": message,
+                "form_id": formId,
+                "message_unique_id": 123123123123123123
+            })
+
+            dataInLine = JSON.stringify(dataInLine);
+            let timelineCollection = JSON.stringify({
+                "mail_body": `${formTitle} Submitted at ${moment().utcOffset('+05:30').format('LLLL')}`,
+                "subject": `${formTitle}`,
+                "content": `${formTitle}`,
+                "asset_reference": [],
+                "activity_reference": [],
+                "form_approval_field_reference": [],
+                "form_submitted": dataInLine,
+                "attachments": []
+            });
+
+            let newReq = null;
+            if (formType == "error") {
+
+                newReq = {
+                    "account_id": "1209",
+                    "activity_access_role_id": 21,
+                    "activity_datetime_end": request.activity_datetime_end,
+                    "activity_datetime_start": request.activity_datetime_start,
+                    "activity_description": message,
+                    "activity_flag_file_enabled": 1,
+                    "activity_form_id": 51557,
+                    "activity_id": request.workflow_activity_id,
+                    "activity_inline_data": dataInLine,
+                    "activity_parent_id": 0,
+                    "activity_status_id": 467292,
+                    "activity_status_type_category_id": 1,
+                    "activity_status_type_id": 22,
+                    "activity_stream_type_id": 705,
+                    "activity_sub_type_id": 0,
+                    "activity_timeline_collection": timelineCollection,
+                    "activity_timeline_text": "",
+                    "activity_timeline_url": "",
+                    "activity_title": message,
+                    "activity_title_expression": null,
+                    "activity_type_category_id": 9,
+                    "activity_type_id": 201201,
+                    "api_version": 1,
+                    "app_version": 1,
+                    "asset_id": request.asset_id,
+                    "asset_image_path": "",
+                    "asset_message_counter": 0,
+                    "asset_participant_access_id": 21,
+                    "asset_token_auth": request.asset_token_auth,
+                    "asset_type_id": "160547",
+                    "auth_asset_id": request.auth_asset_id,
+                    "channel_activity_id": request.workflow_activity_id,
+                    "data_entity_inline": dataInLine,
+                    "device_os_id": 5,
+                    "expression": "",
+                    "file_activity_id": 0,
+                    "flag_offline": 0,
+                    "flag_pin": 0,
+                    "flag_retry": 0,
+                    "flag_timeline_entry": 1,
+                    "form_api_activity_type_category_id": 48,
+                    "form_api_activity_type_id": 201365,
+                    "form_id": 51557,
+                    "form_transaction_id": 0,
+                    "form_workflow_activity_type_id": 201365,
+                    "generated_account_code": null,
+                    "generated_group_account_name": null,
+                    "gst_number": "",
+                    "is_mytony": 1,
+                    "is_refill": 0,
+                    "isOrigin": false,
+                    "lead_asset_first_name": null,
+                    "lead_asset_id": 0,
+                    "lead_asset_type_id": null,
+                    "message_unique_id": "543311647506965662",
+                    "organization_id": "1061",
+                    "organization_onhold": 0,
+                    "pan_number": "",
+                    "service_version": 1,
+                    "track_altitude": 0,
+                    "track_gps_accuracy": "0",
+                    "track_gps_datetime": "2022-03-17 08:35:05",
+                    "track_gps_status": 0,
+                    "track_latitude": "0.0",
+                    "track_longitude": "0.0",
+                    "workflow_activity_id": request.workflow_activity_id,
+                    "workforce_id": "6605"
+                }
+            } else {
+                newReq = {
+                    "activity_id": request.workflow_activity_id,
+                    "channel_activity_id": request.workflow_activity_id,
+                    "activity_title": message,
+                    "activity_description": message,
+                    "activity_inline_data": dataInLine,
+                    "data_entity_inline": dataInLine,
+                    "activity_timeline_collection": timelineCollection,
+                    "form_id": 51559,
+                    "activity_form_id": 51559,
+                    "workflow_activity_id": request.workflow_activity_id,
+                    "activity_type_id": 201201,
+                    "is_refill": 0,
+                    "form_workflow_activity_type_id": 201365,
+                    "generated_group_account_name": null,
+                    "generated_account_code": null,
+                    "activity_title_expression": null,
+                    "gst_number": "",
+                    "pan_number": "",
+                    "activity_datetime_end": "2022-03-17 08:38:56",
+                    "activity_datetime_start": "2022-03-17 08:38:56",
+                    "activity_status_id": 467292,
+                    "lead_asset_first_name": null,
+                    "lead_asset_type_id": null,
+                    "lead_asset_id": 0,
+                    "isOrigin": false,
+                    "form_api_activity_type_category_id": 48,
+                    "form_api_activity_type_id": 201365,
+                    "organization_id": "1061",
+                    "account_id": "1209",
+                    "workforce_id": "6605",
+                    "asset_id": request.asset_id,
+                    "auth_asset_id": request.auth_asset_id,
+                    "asset_type_id": "160547",
+                    "asset_token_auth": request.asset_token_auth,
+                    "asset_image_path": "",
+                    "organization_onhold": 0,
+                    "device_os_id": 5,
+                    "service_version": 1,
+                    "app_version": 1,
+                    "activity_type_category_id": 9,
+                    "activity_sub_type_id": 0,
+                    "activity_access_role_id": 21,
+                    "asset_message_counter": 0,
+                    "activity_status_type_category_id": 1,
+                    "activity_status_type_id": 22,
+                    "asset_participant_access_id": 21,
+                    "activity_flag_file_enabled": 1,
+                    "activity_parent_id": 0,
+                    "flag_pin": 0,
+                    "flag_offline": 0,
+                    "flag_retry": 0,
+                    "message_unique_id": "543311647507206133",
+                    "track_gps_datetime": "2022-03-17 08:38:56",
+                    "track_latitude": "0.0",
+                    "track_longitude": "0.0",
+                    "track_altitude": 0,
+                    "track_gps_accuracy": "0",
+                    "track_gps_status": 0,
+                    "api_version": 1,
+                    "activity_stream_type_id": 705,
+                    "form_transaction_id": 0,
+                    "activity_timeline_text": "",
+                    "activity_timeline_url": "",
+                    "flag_timeline_entry": 1,
+                    "file_activity_id": 0,
+                    "is_mytony": 1,
+                    "expression": ""
+                }
+            }
+            // let newReq = Object.assign({}, request);
+            // newReq.activity_description = message;
+            // newReq.activity_form_id = formId;
+            // newReq.activity_title = message;
+            // newReq.activity_title_expression = null;
+            // newReq.activity_type_category_id = 9;
+            // newReq.channel_activity_id = request.workflow_activity_id;
+            // newReq.form_api_activity_type_category_id = 48;
+            // newReq.form_api_activity_type_id = formApiActivityTypeId;
+            // newReq.form_id = formId;
+            // newReq.form_transaction_id = 0;
+            // newReq.generated_account_code = null;
+            // newReq.generated_group_account_name = null;
+            // newReq.lead_asset_first_name = null;
+            // newReq.lead_asset_id = 0;
+            // newReq.lead_asset_type_id = null;
+
+
+
+            // newReq.activity_inline_data = dataInLine;
+            // newReq.activity_timeline_collection = timelineCollection;
+            // newReq.data_entity_inline = dataInLine;
+
+
+            const addActivityAsync = nodeUtil.promisify(makeRequest.post);
+            let makeRequestOptions = {
+                form: newReq
+            };
+
+
+            console.log(JSON.stringify(newReq, null, 2));
+            let response = await addActivityAsync(global.config.mobileBaseUrl + global.config.version + '/activity/add/v1', makeRequestOptions);
+            let body = JSON.parse(response.body);
+            console.log(`Add activity response  %j`, body);
+
+            if (Number(body.status) === 200) {
+
+                newReq.data_activity_id = newReq.workflow_activity_id;
+                newReq.activity_type_category_id = 48;
+                newReq.form_transaction_id = body.response.form_transaction_id;
+
+                makeRequestOptions = {
+                    form: newReq
+                };
+
+                const addTimeLineAsync = nodeUtil.promisify(makeRequest.post);
+                const maketimelineRequestOptions = {
+                    form: newReq
+                };
+                console.log(`Timeline request params for account %j`, maketimelineRequestOptions);
+                const timelineresponse = await addTimeLineAsync(global.config.mobileBaseUrl + global.config.version + '/activity/timeline/entry/add', maketimelineRequestOptions);
+                const timelineresponsebody = JSON.parse(timelineresponse.body);
+                console.log(`Timeline response  %j`, timelineresponsebody);
+            }
+
+        } catch (error) {
+            util.logError(request, "[PdfValidationBotError] Error in pdf validation form submission ", { request, error: serializeError(error) })
+        }
+    }
+
 }
 
 

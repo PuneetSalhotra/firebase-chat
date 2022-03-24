@@ -2645,6 +2645,59 @@ function ActivityListingService(objCollection) {
 		return [error, responseData];
 	}
 
+	this.activityListSelectChildOrdersForGanttChart = async function (request) {
+		// IN p_organization_id BIGINT(20), IN p_parent_activity_id BIGINT(20), 
+		// IN p_flag TINYINT(4), IN p_sort_flag TINYINT(4), IN p_datetime_start DATETIME, 
+		// IN p_datetime_end DATETIME, IN p_start_from SMALLINT(6), IN p_limit_value SMALLINT(6)
+		let responseData = [],
+			error = true;
+
+		const paramsArr = new Array(
+			request.organization_id,
+			request.parent_activity_id,
+			request.flag || 1,
+			request.sort_flag,
+			request.datetime_start || '1970-01-01 00:00:00',
+			request.datetime_end || util.getCurrentUTCTime(),
+			request.start_from || 0,
+			request.limit_value || 50
+		);
+
+		const queryString = util.getQueryString('ds_p1_activity_list_select_child_orders', paramsArr);
+
+		if (queryString !== '') {
+			await db.executeQueryPromise(1, queryString, request)
+				.then(async (data) => {
+					responseData = data;
+					try {
+						let dataWithParticipant = await appendParticipantList(request, data);
+						responseData = dataWithParticipant;
+					} catch (error) {
+						console.log("activityListSelectChildOrders | appendParticipantList | Error: ", error);
+						// Do nothing
+					}
+					error = false;
+				})
+				.catch((err) => {
+					error = err;
+				})
+		}
+
+		if (responseData.length > 0) {
+			for (let activity of responseData) {
+				let parentActivityId = activity.activity_id;
+				if (parentActivityId != null && parentActivityId > 0) {
+					let requestForChild = Object.assign({}, request);
+					requestForChild.parent_activity_id = parentActivityId;
+					const [errorZero, childWorkflows] = await this.activityListSelectChildOrders(requestForChild);
+					activity.child_workflows = childWorkflows;
+				}
+			}
+		}
+
+		return [error, responseData];
+	}
+
 	this.activityListSelectChildOrdersBasedOnAssetAccess = async function (request) {
 		// IN p_organization_id BIGINT(20), IN p_parent_activity_id BIGINT(20), 
 		// IN p_flag TINYINT(4), IN p_sort_flag TINYINT(4), IN p_datetime_start DATETIME, 
@@ -4280,17 +4333,17 @@ function ActivityListingService(objCollection) {
 				}
 			},
 			"197905": {
-				"form_id": 51501,
+				"form_id": 51568,
 				"fields": {
-					"Discussion_Point": 318645,
-					"Description": 318646,
-					"Responsible_Person_Email_ID": 318607,
-					"Responsibility_Holder": 318608,
-					"Category_ID": 318616,
-					"Assigned_To": 318609,
-					"Assigned_Date": 318610,
-					"Target_Closure_Date": 318611,
-					"Comments": 318612
+					"Discussion_Point": 318882,
+					"Description": 318883,
+					"Responsible_Person_Email_ID": 318884,
+					"Responsibility_Holder": 318885,
+					"Category_ID": 318886,
+					"Assigned_To": 318888,
+					"Assigned_Date": 318888,
+					"Target_Closure_Date": 318889,
+					"Comments": 318890
 				}
 			},
 			"field_order": {
@@ -4345,8 +4398,8 @@ function ActivityListingService(objCollection) {
 				312432,
 				313563,
 				313562,
-				318610,
-				318611
+				318888,
+				318889
 			]
 		};
 
@@ -4613,6 +4666,74 @@ function ActivityListingService(objCollection) {
 					error = err;
 				})
 		}
+		return [error, responseData];
+	}
+
+	// Activity Reference Add
+	this.activityReferenceAdd = async function (request) {
+		let responseData = [],
+			error = true;
+		let activityReferenceId = request.refrence_activity_id;
+		request.datetime_log = util.getCurrentUTCTime();
+		[error, responseData] = await activityCommonService.activityActivityMappingInsertV1(request, activityReferenceId);
+
+		if (error) {
+			error = true;
+			responseData = [{ "message": "Activity refrence addition failed" }];
+		}
+		else {
+			error = false;
+			responseData = [{ "message": "Activity refrence added successfully" }];
+		}
+
+		return [error, responseData];
+	}
+
+	// Activity Reference Delete
+	this.activityReferenceDelete = async function (request) {
+		let responseData = [],
+			error = true;
+		let activityReferenceId = request.refrence_activity_id;
+		[error, responseData] = await activityCommonService.activityActivityMappingArchive(request, activityReferenceId);
+		if (error) {
+			error = true;
+			responseData = [{ "message": "Activity refrence deletion failed" }];
+		}
+		else {
+			error = false;
+			responseData = [{ "message": "Activity refrence deleted successfully" }];
+		}
+
+		return [error, responseData];
+	}
+
+	// Activity Reference Update
+	this.activityReferenceUpdate = async function (request) {
+		let responseData = [],
+			error = true;
+		let oldActivityReferenceId = request.old_refrence_activity_id;
+		let activityReferenceId = request.refrence_activity_id;
+		request.datetime_log = util.getCurrentUTCTime();
+		[error, responseData] = await activityCommonService.activityActivityMappingArchive(request, oldActivityReferenceId);
+
+		if (error) {
+			error = true;
+			responseData = [{ "message": "Activity refrence updation failed" }];
+		}
+		else {
+			[error, responseData] = await activityCommonService.activityActivityMappingInsertV1(request, activityReferenceId);
+			if (error) {
+				error = true;
+				responseData = [{ "message": "Activity refrence updation failed" }];
+			}
+			else {
+				error = false;
+				responseData = [{ "message": "Activity refrence updated successfully" }];
+			}
+
+		}
+
+
 		return [error, responseData];
 	}
 

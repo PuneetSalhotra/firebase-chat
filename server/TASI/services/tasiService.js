@@ -1168,15 +1168,42 @@ function TasiService(objectCollection) {
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
-                .then((data) => {
+                .then(async (data) => {
                     responseData = data;
                     error = false;
+                    await inputListHistoryInsert({...request,input_id:data[0].input_id},2801)
                 })
                 .catch((err) => {
                     error = err;
                 })
         }
         return [error, responseData];
+    }
+    async function inputListHistoryInsert(request,update_type_id) {
+
+        let responseData = [],
+            error = true;
+            
+            // IN p_organization_id BIGINT(20), IN p_input_id BIGINT(20), IN p_update_type_id INT(11), IN p_update_datetime DATETIME)
+        let paramsArr = new Array(
+            request.organization_id,
+            request.input_id,
+            update_type_id,
+            util.getCurrentUTCTime(),
+        )
+        const queryString = util.getQueryString('ds_p1_input_list_history_insert', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+        return [error, responseData];
+       
     }
 
     this.reportListInsert = async function (request) {
@@ -1823,8 +1850,10 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = {};
-                    
+                    responseData = data;
+                    if(!request.hasOwnProperty('validation_id')){
+                        request.validation_id = data[0].validation_id;
+                    }
                     try {
                         this.validationHistoryInsert({...request, update_type_id : 3501 });
                     } catch(e) {
@@ -1859,11 +1888,11 @@ function TasiService(objectCollection) {
                     responseData = data;
                     error = false;
 
-                    try {
-                        this.validationHistoryInsert({...request, update_type_id : 3501 });
-                    } catch(e) {
-                        console.log("Error while validationHistoryInsert", e, e.stack);
-                    }
+                    // try {
+                    //     this.validationHistoryInsert({...request, update_type_id : 3501 });
+                    // } catch(e) {
+                    //     console.log("Error while validationHistoryInsert", e, e.stack);
+                    // }
                 })
                 .catch((err) => {
                     error = err;
@@ -2109,7 +2138,7 @@ function TasiService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
-                    responseData = [];
+                    responseData = data;
                     error = false;
                     try {
                         this.entityTargetSettingHistoryInsert({...request, entity_target_setting_id : data[0].entity_target_setting_id, update_type_id : 3601 });
@@ -3401,6 +3430,7 @@ function TasiService(objectCollection) {
                 .then((data) => {
                     responseData = data;
                     error = false;
+                    reportListHistoryInsert({...request,report_id:data[0].report_id},3301)
                 })
                 .catch((err) => {
                     error = err;
@@ -3739,32 +3769,33 @@ function TasiService(objectCollection) {
             error = true;
 
         const paramsArr = new Array(
-          request.entity_target_mapping_id,
-          request.jan_total_target_value,
-          request.feb_total_target_value,
-          request.mar_total_target_value,
-          request.apr_total_target_value,
-          request.may_total_target_value,
-          request.jun_total_target_value,
-          request.jul_total_target_value,
-          request.aug_total_target_value,
-          request.sep_total_target_value,
-          request.oct_total_target_value,
-          request.nov_total_target_value,
-          request.dec_total_target_value,
-          request.organization_id,
-          request.target_asset_id,
-          request.widget_type_id,
-          request.customer_account_code,
-          request.period_start_datetime,
-          request.period_end_datetime,
-          request.period_type_id,
-          request.target,
-          request.log_asset_id,
-          util.getCurrentUTCTime()
+            request.entity_target_mapping_id,
+            request.flag_type,
+            request.jan_total_target_value,
+            request.feb_total_target_value,
+            request.mar_total_target_value,
+            request.apr_total_target_value,
+            request.may_total_target_value,
+            request.jun_total_target_value,
+            request.jul_total_target_value,
+            request.aug_total_target_value,
+            request.sep_total_target_value,
+            request.oct_total_target_value,
+            request.nov_total_target_value,
+            request.dec_total_target_value,
+            request.organization_id,
+            request.asset_id,
+            request.widget_type_id,
+            request.customer_account_code,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.period_type_id,
+            request.target,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
         );
 
-        const queryString = util.getQueryString('ds_p1_3_entity_target_mapping_update_target', paramsArr);
+        const queryString = util.getQueryString('ds_p1_4_entity_target_mapping_update_target', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
