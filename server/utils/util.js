@@ -3261,8 +3261,7 @@ function Util(objectCollection) {
     this.uploadXLSXToS3 = async (fileData,prefix) => {
         return new Promise(async (resolve)=>{
             
-            let bucketData = await this.getDynamicBucketName();
-            let bucketName = bucketData[0].bucket_encrypted_name;
+            let bucketName = await this.getDynamicBucketName();
             let s3 = new AWS.S3();
             let params = {
                 Body: fileData,
@@ -3826,6 +3825,43 @@ function Util(objectCollection) {
         }
         return [error, responseData];
     };
+
+    this.getS3ObjectsfromFolder = async function (S3FolderUrl) {
+        const s3 = new AWS.S3();
+
+        let [bucketName, keyName, bucketUrl] = await new Promise((resolve) => {
+            try {
+
+                let urlParts;
+                let mainUrl = "";
+                if (S3FolderUrl.indexOf('ap-south') > 1) {
+                    urlParts = S3FolderUrl.split('.s3.ap-south-1.amazonaws.com/');
+                    mainUrl = urlParts[0] + ".s3.ap-south-1.amazonaws.com/";
+                } else {
+                    urlParts = S3FolderUrl.split('.s3.amazonaws.com/');
+                    mainUrl = urlParts[0] + ".s3.amazonaws.com/";
+                }
+
+                let BucketName = urlParts[0].replace('https://', '');
+                let KeyName = urlParts[1];
+
+                resolve([BucketName, KeyName, mainUrl]);
+            } catch (err) {
+                resolve(['', '', '']);
+            }
+        });
+
+        const params = {
+            Bucket: bucketName,
+            Delimiter: '/',
+            Prefix: keyName + '/'
+        };
+
+        const data = await s3.listObjects(params).promise();
+        return [data['Contents'], bucketUrl];
+
+    };
+
 }
 
 module.exports = Util;

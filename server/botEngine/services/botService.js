@@ -45,6 +45,7 @@ const fetch = require('node-fetch');
 const fontkit = require('@pdf-lib/fontkit');
 
 const pdfreader = require('pdfreader');
+const excelColumnName = require('excel-column-name');
 
 function isObject(obj) {
     return obj !== undefined && obj !== null && !Array.isArray(obj) && obj.constructor == Object;
@@ -18248,40 +18249,51 @@ if(workflowActivityData.length==0){
 
     async function customQtyUpdateBot(request, botInlineJson) {
         try {
-            if (request.hasOwnProperty("activity_inline_data")) {
+            let formId = request.form_id;
+            const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                organization_id: request.organization_id,
+                account_id: request.account_id
+            }, request.workflow_activity_id, formId);
 
-                let activityInlineData = JSON.parse(request.activity_inline_data);
-                let referenceFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.refrence_field_id)[0].field_value;
-                let qtyFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.qty_field_id)[0].field_value;
-                qtyFieldValue = Number(qtyFieldValue);
+            let dataEntityInline = JSON.parse(formData[0].data_entity_inline);
 
-                let referenceActivityId = referenceFieldValue.split("|")[0];
-                let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, referenceActivityId);
+            if (typeof dataEntityInline == "string") {
+                dataEntityInline = JSON.parse(dataEntityInline);
+            }
 
-                if (wfActivityDetails.length > 0) {
-                    let workflowFinalValue = wfActivityDetails[0].activity_workflow_value_final;
-                    workflowFinalValue = Number(workflowFinalValue) || 0;
-                    if (botInlineJson.type_of_operation === "add") {
-                        let sum = workflowFinalValue + qtyFieldValue;
+            let activityInlineData = dataEntityInline.form_submitted;
+
+            let referenceFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.refrence_field_id)[0].field_value;
+            let qtyFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.qty_field_id)[0].field_value;
+            qtyFieldValue = Number(qtyFieldValue);
+
+            let referenceActivityId = referenceFieldValue.split("|")[0];
+            let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, referenceActivityId);
+
+            if (wfActivityDetails.length > 0) {
+                let workflowFinalValue = wfActivityDetails[0].activity_workflow_value_final;
+                workflowFinalValue = Number(workflowFinalValue) || 0;
+                if (botInlineJson.type_of_operation === "add") {
+                    let sum = workflowFinalValue + qtyFieldValue;
+                    let reqForUpdateQty = Object.assign({}, request);
+                    reqForUpdateQty.workflow_activity_id = referenceActivityId;
+                    reqForUpdateQty.sequence_id = 1;
+                    await activityCommonService.updateWorkflowValue(reqForUpdateQty, sum);
+                    await addTimelineEntry({ ...request, content: `The current quantity of "${wfActivityDetails[0].activity_title}" is ${workflowFinalValue} and it is updated to ${sum}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                } else if (botInlineJson.type_of_operation === "subtract") {
+                    if (workflowFinalValue > qtyFieldValue) {
+                        let sub = workflowFinalValue - qtyFieldValue;
                         let reqForUpdateQty = Object.assign({}, request);
                         reqForUpdateQty.workflow_activity_id = referenceActivityId;
                         reqForUpdateQty.sequence_id = 1;
-                        await activityCommonService.updateWorkflowValue(reqForUpdateQty, sum);
-                        await addTimelineEntry({ ...request, content: `The current quantity of "${wfActivityDetails[0].activity_title}" is ${workflowFinalValue} and it is updated to ${sum}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
-                    } else if (botInlineJson.type_of_operation === "subtract") {
-                        if (workflowFinalValue > qtyFieldValue) {
-                            let sub = workflowFinalValue - qtyFieldValue;
-                            let reqForUpdateQty = Object.assign({}, request);
-                            reqForUpdateQty.workflow_activity_id = referenceActivityId;
-                            reqForUpdateQty.sequence_id = 1;
-                            await activityCommonService.updateWorkflowValue(reqForUpdateQty, sub);
-                            await addTimelineEntry({ ...request, content: `The current quantity of "${wfActivityDetails[0].activity_title}" is ${workflowFinalValue} and it is updated to ${sub}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
-                        } else {
-                            await addTimelineEntry({ ...request, content: `Error:\nThe Requested qty for "${wfActivityDetails[0].activity_title}" is higher than the current quantity.`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
-                        }
+                        await activityCommonService.updateWorkflowValue(reqForUpdateQty, sub);
+                        await addTimelineEntry({ ...request, content: `The current quantity of "${wfActivityDetails[0].activity_title}" is ${workflowFinalValue} and it is updated to ${sub}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                    } else {
+                        await addTimelineEntry({ ...request, content: `Error:\nThe Requested qty for "${wfActivityDetails[0].activity_title}" is higher than the current quantity.`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
                     }
                 }
             }
+
         } catch (e) {
             console.log(e);
         }
@@ -18289,18 +18301,30 @@ if(workflowActivityData.length==0){
 
     async function customTimelineEntryBot(request, botInlineJson) {
         try {
-            if (request.hasOwnProperty("activity_inline_data")) {
-                let activityInlineData = JSON.parse(request.activity_inline_data);
-                let referenceFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.refrence_field_id)[0].field_value;
-                let referenceActivityId = referenceFieldValue.split("|")[0];
-                let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, referenceActivityId);
+            let formId = request.form_id;
+            const formData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                organization_id: request.organization_id,
+                account_id: request.account_id
+            }, request.workflow_activity_id, formId);
 
-                if (wfActivityDetails.length > 0) {
-                    let workflowFinalValue = wfActivityDetails[0].activity_workflow_value_final;
-                    workflowFinalValue = Number(workflowFinalValue) || 0;
-                    await addTimelineEntry({ ...request, content: `The current quantity of "${wfActivityDetails[0].activity_title}" is ${workflowFinalValue}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
-                }
+            let dataEntityInline = JSON.parse(formData[0].data_entity_inline);
+
+            if (typeof dataEntityInline == "string") {
+                dataEntityInline = JSON.parse(dataEntityInline);
             }
+
+            let activityInlineData = dataEntityInline.form_submitted;
+
+            let referenceFieldValue = activityInlineData.filter((inline) => inline.field_id == botInlineJson.refrence_field_id)[0].field_value;
+            let referenceActivityId = referenceFieldValue.split("|")[0];
+            let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, referenceActivityId);
+
+            if (wfActivityDetails.length > 0) {
+                let workflowFinalValue = wfActivityDetails[0].activity_workflow_value_final;
+                workflowFinalValue = Number(workflowFinalValue) || 0;
+                await addTimelineEntry({ ...request, content: `The current quantity of "${wfActivityDetails[0].activity_title}" is ${workflowFinalValue}`, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+            }
+
         } catch (e) {
             console.log(e);
         }
@@ -18332,121 +18356,225 @@ if(workflowActivityData.length==0){
 
             let wfActivityDetails = await activityCommonService.getActivityDetailsPromise(request, referenceActivityId);
 
-            const [pdfBufferError, pdfBuffer] = await util.getXlsxDataBodyFromS3Url(request, pdfFeildValue);
+            const [data, bucketPath] = await util.getS3ObjectsfromFolder(pdfFeildValue);
 
-            if (pdfBufferError) {
-                util.logError(request, `[PdfValidationError] `, { error: pdfBufferError });
-                throw new Error(pdfBufferError);
+            console.log(data, bucketPath);
+
+            let excelData = {};
+
+            let totalMisMatchData = "";
+
+            let misMatchFound = false;
+
+            const refrenceFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
+                organization_id: request.organization_id,
+                account_id: request.account_id
+            }, referenceActivityId, referenceFormId);
+
+            let refrenceDataEntityInline = JSON.parse(refrenceFormData[0].data_entity_inline);
+            if (typeof refrenceDataEntityInline == "string") {
+                refrenceDataEntityInline = JSON.parse(refrenceDataEntityInline);
             }
+            let activityInlineDataOfReferenceActivity = refrenceDataEntityInline.form_submitted;
+            console.log(activityInlineDataOfReferenceActivity);
 
-            if (wfActivityDetails.length > 0) {
+            for (let index = 0; index < data.length; index++) {
+                let pdfPath = data[index]['Key'];
+                let misMactchData = "";
+                console.log(bucketPath + pdfPath);
 
-                const refrenceFormData = await activityCommonService.getActivityTimelineTransactionByFormId713({
-                    organization_id: request.organization_id,
-                    account_id: request.account_id
-                }, referenceActivityId, referenceFormId);
+                let pdfFileName = pdfPath.split("/")[pdfPath.split("/").length - 1];
+                const [pdfBufferError, pdfBuffer] = await util.getXlsxDataBodyFromS3Url(request, bucketPath + pdfPath);
 
-                let refrenceDataEntityInline = JSON.parse(refrenceFormData[0].data_entity_inline);
-                if (typeof refrenceDataEntityInline == "string") {
-                    refrenceDataEntityInline = JSON.parse(refrenceDataEntityInline);
+                if (pdfBufferError) {
+                    util.logError(request, `[PdfValidationError] `, { error: pdfBufferError });
+                    throw new Error(pdfBufferError);
                 }
-                let activityInlineDataOfReferenceActivity = refrenceDataEntityInline.form_submitted;
-                console.log(activityInlineDataOfReferenceActivity);
-                new pdfreader.PdfReader().parseBuffer(pdfBuffer, async function (err, item) {
-                    if (err) {
-                        console.error(err);
-                    } else if (!item) {
-                        let misMactchData = "";
-                        for (const [fieldId, fieldConfig] of Object.entries(botInlineJson.pdf_config)) {
 
-                            let fieldData = activityInlineDataOfReferenceActivity.filter((inline) => inline.field_id == fieldId)[0];
-                            let fieldValue = fieldData.field_value;
-                            let fieldName = fieldData.field_name;
+                if (wfActivityDetails.length > 0) {
 
+                    let finalPdfText = await readPdfAsync(pdfBuffer);
 
-                            if (fieldConfig.hasOwnProperty("starts_from")) {
-                                let startsFrom = fieldConfig.starts_from;
-                                let endsAt = fieldConfig.ends_at;
+                    let columnIndex = 0;
+                    excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = pdfFileName;
+                    for (const [fieldId, fieldConfig] of Object.entries(botInlineJson.pdf_config)) {
 
-                                let startIndex = -1;
+                        let fieldData = activityInlineDataOfReferenceActivity.filter((inline) => inline.field_id == fieldId)[0];
+                        let fieldValue = fieldData.field_value;
+                        let fieldName = fieldData.field_name;
 
-                                if (startsFrom.hasOwnProperty("end_of")) {
-                                    if (startsFrom.hasOwnProperty("place_of_occurance") && startsFrom.place_of_occurance > 0) {
-                                        let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.end_of, 'gi'))].map(a => a.index);
-                                        if (indexes.length >= startsFrom.place_of_occurance) {
-                                            startIndex = indexes[startsFrom.place_of_occurance];
-                                        }
-                                    } else {
-                                        startIndex = finalPdfText.indexOf(startsFrom.end_of);
+                        if (fieldConfig.hasOwnProperty("starts_from")) {
+                            let startsFrom = fieldConfig.starts_from;
+                            let endsAt = fieldConfig.ends_at;
+
+                            let startIndex = -1;
+
+                            if (startsFrom.hasOwnProperty("end_of")) {
+                                if (startsFrom.hasOwnProperty("place_of_occurance") && startsFrom.place_of_occurance > 0) {
+                                    let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.end_of, 'gi'))].map(a => a.index);
+                                    if (indexes.length >= startsFrom.place_of_occurance) {
+                                        startIndex = indexes[startsFrom.place_of_occurance];
                                     }
-
-                                    if (startIndex != -1) {
-                                        startIndex += startsFrom.end_of.length;
-                                        let subString = finalPdfText.substring(startIndex);
-                                        const indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
-                                        let extractedPdfValueOfField = finalPdfText.substring(startIndex, startIndex + indexes[endsAt.line_number]).trim();
-                                        extractedPdfValueOfField = extractedPdfValueOfField.replace(/\n/g, "");
-                                        if (fieldValue != extractedPdfValueOfField) {
-                                            misMactchData += `<b>${fieldName}</b>\n`;
-                                            misMactchData +=`Correct Value: ${fieldValue}\nIncorrect Value: ${extractedPdfValueOfField}\n\n`;
-                                        }
-
-                                    } else {
-                                        misMactchData += `<b>${fieldName}</b>\n`;
-                                        misMactchData +=`Correct Value: ${fieldValue}\nIncorrect Value: Couldn't extract.\n\n`;
-                                    }
-                                } else if (startsFrom.hasOwnProperty("start_of")) {
-                                    let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.start_of, 'gi'))].map(a => a.index);
-                                    let subString = finalPdfText.substring(0, indexes[startsFrom.place_of_occurance || 0]);
-                                    indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
-
-                                    let extractedPdfValueOfField = subString.substring(indexes[indexes.length - 2], indexes[indexes.length - 1]).trim();
-
-                                    extractedPdfValueOfField = extractedPdfValueOfField.replace(/\n/g, "");
-                                    if (fieldValue != extractedPdfValueOfField) {
-                                        misMactchData += `<b>${fieldName}</b>\n`;
-                                        misMactchData +=`Correct Value: ${fieldValue}\nIncorrect Value: ${extractedPdfValueOfField}\n\n`;
-                                    }
+                                } else {
+                                    startIndex = finalPdfText.indexOf(startsFrom.end_of);
                                 }
-                            } else if (fieldConfig.hasOwnProperty("between")) {
-                                let between = fieldConfig.between;
-                                let startsFrom = between.start_from;
-                                let endAt = between.end_at;
-                                let startIndex = finalPdfText.indexOf(startsFrom);
-                                let endIndex = finalPdfText.indexOf(endAt);
-                                if (startIndex != -1 && endIndex != -1) {
-                                    startIndex += startsFrom.length;
-                                    let extractedPdfValueOfField = finalPdfText.substring(startIndex, endIndex).trim();
+
+                                if (startIndex != -1) {
+                                    startIndex += startsFrom.end_of.length;
+                                    let subString = finalPdfText.substring(startIndex);
+                                    const indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
+                                    let extractedPdfValueOfField = finalPdfText.substring(startIndex, startIndex + indexes[endsAt.line_number]).trim();
                                     extractedPdfValueOfField = extractedPdfValueOfField.replace(/\n/g, "");
 
+                                    excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = fieldValue;
+                                    excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = extractedPdfValueOfField;
+
                                     if (fieldValue != extractedPdfValueOfField) {
+                                        misMatchFound = true;
                                         misMactchData += `<b>${fieldName}</b>\n`;
-                                        misMactchData +=`Correct Value: ${fieldValue}\nIncorrect Value: ${extractedPdfValueOfField}\n\n`;
+                                        misMactchData += `Correct Value: ${fieldValue}\nIncorrect Value: ${extractedPdfValueOfField}\n\n`;
+                                        excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = "Mismatch";
+                                    } else {
+                                        excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = "Matched";
                                     }
 
                                 } else {
+                                    misMatchFound = true;
                                     misMactchData += `<b>${fieldName}</b>\n`;
-                                    misMactchData +=`Correct Value: ${fieldValue}\nIncorrect Value: Couldn't extract.\n\n`;
+                                    misMactchData += `Correct Value: ${fieldValue}\nIncorrect Value: Couldn't extract.\n\n`;
+
+                                    excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = fieldValue;
+                                    excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = "Couldn't extract";
+                                    excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = "Mismatch";
+                                }
+                            } else if (startsFrom.hasOwnProperty("start_of")) {
+                                let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.start_of, 'gi'))].map(a => a.index);
+                                let subString = finalPdfText.substring(0, indexes[startsFrom.place_of_occurance || 0]);
+                                indexes = [...subString.matchAll(new RegExp("\n", 'gi'))].map(a => a.index);
+
+                                let extractedPdfValueOfField = subString.substring(indexes[indexes.length - 2], indexes[indexes.length - 1]).trim();
+
+                                excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = fieldValue;
+                                excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = extractedPdfValueOfField;
+
+                                extractedPdfValueOfField = extractedPdfValueOfField.replace(/\n/g, "");
+                                if (fieldValue != extractedPdfValueOfField) {
+                                    misMatchFound = true;
+                                    misMactchData += `<b>${fieldName}</b>\n`;
+                                    misMactchData += `Correct Value: ${fieldValue}\nIncorrect Value: ${extractedPdfValueOfField}\n\n`;
+                                    excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = "Mismatch";
+                                } else {
+                                    excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = "Matched";
+                                }
+                            }
+                        } else if (fieldConfig.hasOwnProperty("between")) {
+                            let between = fieldConfig.between;
+                            let startsFrom = between.start_from;
+                            let endAt = between.end_at;
+                            let startIndex = finalPdfText.indexOf(startsFrom);
+                            let endIndex = finalPdfText.indexOf(endAt);
+                            if (startIndex != -1 && endIndex != -1) {
+                                startIndex += startsFrom.length;
+                                let extractedPdfValueOfField = finalPdfText.substring(startIndex, endIndex).trim();
+                                extractedPdfValueOfField = extractedPdfValueOfField.replace(/\n/g, "");
+
+                                excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = fieldValue;
+                                excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = extractedPdfValueOfField;
+
+                                if (fieldValue != extractedPdfValueOfField) {
+                                    misMatchFound = true;
+                                    misMactchData += `<b>${fieldName}</b>\n`;
+                                    misMactchData += `Correct Value: ${fieldValue}\nIncorrect Value: ${extractedPdfValueOfField}\n\n`;
+                                    excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = "Mismatch";
+                                } else {
+                                    excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = "Matched";
                                 }
 
+                            } else {
+                                misMatchFound = true;
+                                misMactchData += `<b>${fieldName}</b>\n`;
+                                misMactchData += `Correct Value: ${fieldValue}\nIncorrect Value: Couldn't extract.\n\n`;
+
+                                excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = fieldValue;
+                                excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = "Couldn't extract";
+                                excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = "Mismatch";
                             }
 
                         }
 
-                        if (misMactchData.length > 0) {
-                            misMactchData = `Error!!\n\nMismatch found in Invoice Data : \n\n ${misMactchData}`;
-                            await addTimelineEntry({ ...request, content: misMactchData, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
-                            submitPdfValidationForm(request, botInlineJson, "error", misMactchData)
-                        } else {
-                            await addTimelineEntry({ ...request, content: "No Mismatch data found", subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
-                            submitPdfValidationForm(request, botInlineJson, "success", "No Mismatch data found")
-                        }
-
-                    } else if (item.text) {
-                        finalPdfText += item.text + "\n";
                     }
 
-                });
+                    if (misMactchData.length > 0) {
+                        misMactchData = `Error!!\n\nMismatch found in Invoice Data : \n\n<b>File Name:</b> ${pdfFileName}\n\n${misMactchData}`;
+                        await addTimelineEntry({ ...request, content: misMactchData, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                    } else {
+                        misMactchData = `No Mismatch found in Invoice Data : \n\n<b>File Name:</b> ${pdfFileName}\n\n${misMactchData}`;
+                        await addTimelineEntry({ ...request, content: misMactchData, subject: "sample", mail_body: request.mail_body, attachment: [], timeline_stream_type_id: request.timeline_stream_type_id }, 1);
+                    }
+                }
+                totalMisMatchData += misMactchData;
+            }
+
+
+            let columnIndexRow1 = 1;
+            let columnIndexRow2 = 1;
+
+            excelData[`${excelColumnName.intToExcelCol(columnIndexRow1++)}1`] = "File Name";
+            excelData[`${excelColumnName.intToExcelCol(columnIndexRow2++)}2`] = "";
+            for (const [fieldId, fieldConfig] of Object.entries(botInlineJson.pdf_config)) {
+
+                let fieldData = activityInlineDataOfReferenceActivity.filter((inline) => inline.field_id == fieldId)[0];
+                let fieldName = fieldData.field_name;
+
+                excelData[`${excelColumnName.intToExcelCol(columnIndexRow1)}1`] = fieldName;
+                columnIndexRow1 += 3;
+
+                excelData[`${excelColumnName.intToExcelCol(columnIndexRow2++)}2`] = "Value from Vendor";
+                excelData[`${excelColumnName.intToExcelCol(columnIndexRow2++)}2`] = "Value from Invoice";
+                excelData[`${excelColumnName.intToExcelCol(columnIndexRow2++)}2`] = "Remarks";
+            }
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet([])
+
+            for (const [key, value] of Object.entries(excelData)) {
+                XLSX.utils.sheet_add_aoa(ws, [[value]], { origin: key });
+            }
+
+            ws["!merges"] = [];
+            let columnIndexToMerge = 1;
+            for (const [fieldId, fieldConfig] of Object.entries(botInlineJson.pdf_config)) {
+                ws["!merges"].push({ s: { c: columnIndexToMerge, r: 0 }, e: { c: columnIndexToMerge + 2, r: 0 } });
+                columnIndexToMerge += 3;
+            }
+
+            ws["!merges"].push({ s: { c: 0, r: 0 }, e: { c: 0, r: 1 } });
+
+            XLSX.utils.book_append_sheet(wb, ws, "sheet_1");
+            var fileBuffer = XLSX.write(wb, { type: 'buffer', bookType: "xlsx" });
+            const timestampIST = moment().utcOffset("+05:30").format("DD_MM_YYYY-hh_mm_A");
+            let fileName = request.organization_id + "/summary_report_" + request.activity_id + "_" + timestampIST + ".xlsx";
+            let s3Url = await util.uploadXLSXToS3(fileBuffer, fileName);
+
+            timelineMessageObject = {
+                subject: "Summary Sheet",
+                content: "Summary Sheet",
+                mail_body: "Summary Sheet",
+                attachments: [s3Url]
+            };
+
+            await addTimelineMessage(
+                {
+                    activity_timeline_text: "Summary Sheet",
+                    organization_id: request.organization_id
+                }, request.workflow_activity_id || 0,
+                timelineMessageObject
+            );
+
+            if (misMatchFound) {
+                submitPdfValidationForm(request, botInlineJson, "error", totalMisMatchData)
+            } else {
+                submitPdfValidationForm(request, botInlineJson, "success", totalMisMatchData)
             }
 
         } catch (error) {
@@ -18454,6 +18582,23 @@ if(workflowActivityData.length==0){
         }
     }
 
+    async function readPdfAsync(pdfBuffer) {
+        let finalPdfText = "";
+        await new Promise((resolve) => {
+            new pdfreader.PdfReader().parseBuffer(pdfBuffer, async function (err, item) {
+                if (err) {
+                    console.error(err);
+                    resolve();
+                } else if (!item) {
+                    resolve();
+                } else if (item.text) {
+                    finalPdfText += item.text + "\n";
+                }
+            });
+        })
+
+        return finalPdfText;
+    }
 
     async function submitPdfValidationForm(request, botInlineJson, formType, message) {
         try {
