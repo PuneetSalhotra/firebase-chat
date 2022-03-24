@@ -747,6 +747,15 @@ function AnalyticsController(objCollection)
             res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
         }
     }); 
+    app.post("/" + global.config.version + "/analytics/asset/summary/transaction/manager/select", async function (req, res) {
+        const [err, result] = await analyticsService.assetSummaryTransactionManagerSelectV1(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            console.log("/analytics/asset/summary/transaction/manager/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+        }
+    });
 
     }
 
