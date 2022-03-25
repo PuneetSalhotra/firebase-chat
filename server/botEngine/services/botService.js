@@ -10330,7 +10330,10 @@ else{
                 activityCoverData.start_date = {};
                 activityCoverData.start_date.old = parentWorkflowActivityDetails[0].activity_datetime_start_expected;
                 activityCoverData.start_date.new = request.start_date;
-                let endDate = util.addDays(newDate, 3);
+                let startDatePrev = moment(parentWorkflowActivityDetails[0].activity_datetime_start_expected);
+                let endDatePrev = moment(oldDate);
+                let daystoAdd = endDatePrev.diff(startDatePrev,'days');
+                let endDate = util.addDays(newDate, daystoAdd);
                 activityCoverData.duedate.new = endDate;
             }
             console.log(activityCoverData,)
@@ -10404,12 +10407,26 @@ else{
     this.ghantChartStartAndDueDateUpdate = async (request) => {
 
         //flow to update all its parents due date
-        await this.setDueDateV1(request,request.due_date,1);
+        let startDate = moment(request.start_date);
+        let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
+        let oldDateM = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
+        console.log(oldDateM.diff(startDate));
+        
+        if(oldDateM.diff(startDate)>=0 || request.set_flag==1){
+            await this.setDueDateV1(request,request.start_date,2);
+          }
+          else{
+            await this.setDueDateV1(request,request.due_date,1);
+          }
+        
 
         //flow to update all reffered activities start and end date
-        let [err,childActivitiesArray] = await activityListSelectChildOrders({...request,parent_activity_id:request.workflow_activity_id,flag:6});
-        console.log(childActivitiesArray)
+        let [err,childActivitiesArray] = await activityListSelectChildOrders({...request,parent_activity_id:request.workflow_activity_id,flag:7});
+        // console.log(childActivitiesArray)
         for(let i=0 ; i < childActivitiesArray.length ; i++){
+            if(Number(childActivitiesArray[i].activity_mapping_flag_is_prerequisite)==0){
+                continue;
+            }
             let eachChildRequest = childActivitiesArray[i];
             eachChildRequest.workflow_activity_id = eachChildRequest.activity_id;
             await this.childChangeStartAndEndDate(eachChildRequest,request.due_date,request.start_date);
@@ -10421,8 +10438,11 @@ else{
     this.childChangeStartAndEndDate = async function (request,due_date,start_date){
         request.workflow_activity_id = request.workflow_activity_id ? request.workflow_activity_id : request.activity_id;
            this.setDueDateV1({...request,start_date:due_date},due_date,2);
-           let [err,childActivitiesArray]  =await  activityListSelectChildOrders({...request,parent_activity_id:request.activity_id,flag:6});
+           let [err,childActivitiesArray]  =await  activityListSelectChildOrders({...request,parent_activity_id:request.activity_id,flag:7});
         for(let i=0 ; i < childActivitiesArray.length ; i++){
+            if(Number(childActivitiesArray[i].activity_mapping_flag_is_prerequisite)==0){
+                continue;
+            }
             let eachChildRequest = childActivitiesArray[i];
             await this.childChangeStartAndEndDate(eachChildRequest,due_date,start_date);
         }
