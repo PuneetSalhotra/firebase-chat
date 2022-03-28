@@ -44,6 +44,7 @@
     "dd-trace": "^0.14.1",
     "docusign-esign": "^5.6.0",
     "elasticsearch": "^16.7.1",
+    "excel-column-name": "^1.0.1",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "express-xml-bodyparser": "^0.3.0",
