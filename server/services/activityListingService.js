@@ -4678,10 +4678,10 @@ function ActivityListingService(objCollection) {
 		[error, responseData] = await activityCommonService.activityActivityMappingInsertV1(request, activityReferenceId);
 		
 		// reffered activity change start and end datetime
-		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
 		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
         const makeRequestOptions = {
-            form:{...request,workflow_activity_id:activityReferenceId,start_date:workflowActivityDetails[0].activity_datetime_end_deferred,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1}
+            form:{...request,workflow_activity_id:request.activity_id,start_date:workflowActivityDetails[0].activity_datetime_end_deferred,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1}
         };
 		try{
             // global.config.mobileBaseUrl + global.config.version
