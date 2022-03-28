@@ -40,6 +40,7 @@ AWS.config.update({
 const sqs = new AWS.SQS();
 
 const XLSX = require('xlsx');
+const XLSXColor = require('xlsx-color');
 const {PDFDocument, rgb, StandardFonts,degrees } = require('pdf-lib');
 const fetch = require('node-fetch');
 const fontkit = require('@pdf-lib/fontkit');
@@ -18420,6 +18421,7 @@ if(workflowActivityData.length==0){
             console.log(data, bucketPath);
 
             let excelData = {};
+            let cellColorData = {};
 
             let totalMisMatchData = "";
 
@@ -18493,8 +18495,10 @@ if(workflowActivityData.length==0){
                                         misMactchData += `<b>${fieldName}</b>\n`;
                                         misMactchData += `Correct Value: ${fieldValue}\nIncorrect Value: ${extractedPdfValueOfField}\n\n`;
                                         excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = "Mismatch";
+                                        cellColorData[`${excelColumnName.intToExcelCol(columnIndex)}${index + 3}`] = "red";
                                     } else {
                                         excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = "Matched";
+                                        cellColorData[`${excelColumnName.intToExcelCol(columnIndex)}${index + 3}`] = "green";
                                     }
 
                                 } else {
@@ -18505,6 +18509,7 @@ if(workflowActivityData.length==0){
                                     excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = fieldValue;
                                     excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = "Couldn't extract";
                                     excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = "Mismatch";
+                                    cellColorData[`${excelColumnName.intToExcelCol(columnIndex)}${index + 3}`] = "red";
                                 }
                             } else if (startsFrom.hasOwnProperty("start_of")) {
                                 let indexes = [...finalPdfText.matchAll(new RegExp(startsFrom.start_of, 'gi'))].map(a => a.index);
@@ -18522,8 +18527,10 @@ if(workflowActivityData.length==0){
                                     misMactchData += `<b>${fieldName}</b>\n`;
                                     misMactchData += `Correct Value: ${fieldValue}\nIncorrect Value: ${extractedPdfValueOfField}\n\n`;
                                     excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = "Mismatch";
+                                    cellColorData[`${excelColumnName.intToExcelCol(columnIndex)}${index + 3}`] = "red";
                                 } else {
                                     excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = "Matched";
+                                    cellColorData[`${excelColumnName.intToExcelCol(columnIndex)}${index + 3}`] = "green";
                                 }
                             }
                         } else if (fieldConfig.hasOwnProperty("between")) {
@@ -18545,8 +18552,10 @@ if(workflowActivityData.length==0){
                                     misMactchData += `<b>${fieldName}</b>\n`;
                                     misMactchData += `Correct Value: ${fieldValue}\nIncorrect Value: ${extractedPdfValueOfField}\n\n`;
                                     excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = "Mismatch";
+                                    cellColorData[`${excelColumnName.intToExcelCol(columnIndex)}${index + 3}`] = "red";
                                 } else {
                                     excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = "Matched";
+                                    cellColorData[`${excelColumnName.intToExcelCol(columnIndex)}${index + 3}`] = "green";
                                 }
 
                             } else {
@@ -18557,6 +18566,7 @@ if(workflowActivityData.length==0){
                                 excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = fieldValue;
                                 excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = "Couldn't extract";
                                 excelData[`${excelColumnName.intToExcelCol(++columnIndex)}${index + 3}`] = "Mismatch";
+                                cellColorData[`${excelColumnName.intToExcelCol(columnIndex)}${index + 3}`] = "red";
                             }
 
                         }
@@ -18593,11 +18603,11 @@ if(workflowActivityData.length==0){
                 excelData[`${excelColumnName.intToExcelCol(columnIndexRow2++)}2`] = "Remarks";
             }
 
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet([])
+            const wb = XLSXColor.utils.book_new();
+            const ws = XLSXColor.utils.aoa_to_sheet([])
 
             for (const [key, value] of Object.entries(excelData)) {
-                XLSX.utils.sheet_add_aoa(ws, [[value]], { origin: key });
+                XLSXColor.utils.sheet_add_aoa(ws, [[value]], { origin: key });
             }
 
             ws["!merges"] = [];
@@ -18609,8 +18619,25 @@ if(workflowActivityData.length==0){
 
             ws["!merges"].push({ s: { c: 0, r: 0 }, e: { c: 0, r: 1 } });
 
-            XLSX.utils.book_append_sheet(wb, ws, "sheet_1");
-            var fileBuffer = XLSX.write(wb, { type: 'buffer', bookType: "xlsx" });
+
+            XLSXColor.utils.book_append_sheet(wb, ws, "sheet_1");
+
+            console.log(ws);
+            for (const [cellId, color] of Object.entries(cellColorData)) {
+
+                let colorId = "ff0000";
+                if(color == "green") {
+                    colorId = "26A65B";
+                }
+                ws[cellId].s = {
+                    fill: {
+                        patternType: "solid",
+                        fgColor: { rgb: colorId }
+                    }
+                };
+            }
+
+            var fileBuffer = XLSXColor.write(wb, { type: 'buffer', bookType: "xlsx" });
             const timestampIST = moment().utcOffset("+05:30").format("DD_MM_YYYY-hh_mm_A");
             let fileName = request.organization_id + "/summary_report_" + request.activity_id + "_" + timestampIST + ".xlsx";
             let s3Url = await util.uploadXLSXToS3(fileBuffer, fileName);
