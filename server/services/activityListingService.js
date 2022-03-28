@@ -4737,6 +4737,38 @@ function ActivityListingService(objCollection) {
 		return [error, responseData];
 	}
 
+    this.workforceActivityStatusMappingSelectStatus = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_status_type_id
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_status_mapping_select_status', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
+	this.callTimelineService = async function(request){
+		let responseData = [],
+            error = true;
+		
+		await activityTimelineService.addTimelineTransactionAsync(request);
+		return [error, responseData];
+	}
 
 }
 

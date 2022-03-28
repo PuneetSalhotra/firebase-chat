@@ -66,8 +66,12 @@ function ActivityService(objectCollection) {
                 }
             });
             //kafkaProducer.on('ready', resolve);
-        }).then(() => {
-            activityListInsert(request, function (err, boolResult) {
+        }).then(async () => {
+
+            if(request.hasOwnProperty("add_activity_v2") && activityTypeCategroyId !== 9)
+            request.form_transaction_id = await cacheWrapper.getFormTransactionIdPromise();
+
+            activityListInsert(request, async function (err, boolResult) {
                 activityCommonService.updateAssetLocation(request, (err, data) =>{});
                 if (err === false) {
 
@@ -193,6 +197,37 @@ function ActivityService(objectCollection) {
                             activityStreamTypeId = 1; //by default so that we know
                             //console.log('adding streamtype id 1');
                             break;
+                    }
+
+                    if(request.hasOwnProperty("add_activity_v2") && activityTypeCategroyId !== 9){
+                       
+                        let req = Object.assign({},request);            
+
+                        req.activity_channel_id = request.activity_id;
+                        req.activity_channel_category_id = activityTypeCategroyId;
+                        req.workflow_activity_id = request.activity_id;
+                        // req.activity_type_id = 0;
+                       
+                        req.level_id = 4;
+                        req.activity_type_category_id = 9;
+                        req.search_string = '';
+                        req.start_from = 0;
+                        req.limit_value = 1;
+                        let [err1, activityType] = await self.activityTypeMappingSearchV1(req);
+                        req.activity_type_id = activityType[0].activity_type_id;
+                        req.activity_status_type_id = 22;
+                        let [err2, activityStatus]= await activityListingService.workforceActivityStatusMappingSelectStatus(req);
+                        req.activity_status_id = activityStatus[0].activity_status_id;
+                        req.activity_id = await cacheWrapper.getActivityIdPromise();
+                        
+                        activityListInsert(req, async function (err, boolResult) {
+                            assetActivityListInsertAddActivity(req, function (err, status) {});
+                            activityCommonService.activityTimelineTransactionInsertAsync(req, {}, activityStreamTypeId);
+                            request.data_activity_id = req.activity_id;
+                            activityListingService.callTimelineService(request);                            
+                        });
+                        
+
                     }
                     //console.log('streamtype id is: ' + activityStreamTypeId)
                     util.logInfo(request,`streamtype id is: ${activityStreamTypeId}`);
