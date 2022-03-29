@@ -501,7 +501,17 @@ function PamListingController(objCollection) {
             console.log("Error: ", err)
             res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
-    });	   
+    });	
+  
+    app.post('/' + global.config.version + '/pam/table/orders/list', async function (req, res) {
+        const [err, data] = await pamListingService.getTableOrders(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log("/pam/table/orders/list Error: ", err)
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });	
      
 };
 module.exports = PamListingController;
