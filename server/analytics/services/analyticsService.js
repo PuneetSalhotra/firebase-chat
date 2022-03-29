@@ -8351,6 +8351,43 @@ function AnalyticsService(objectCollection)
         }               
         return [error,responseData];
     } 
+    this.assetSummaryTransactionManagerSelectV1 = async (request) => {
+        let responseData = [],
+            error = false;
+
+        let self = await assetSummaryTransactionSelectManager(request,1);
+        let reportees = await assetSummaryTransactionSelectManager(request,2);
+        responseData = {
+            self:self[0],
+            reportees : reportees
+        }
+        return [error, responseData];
+    };
+    async function assetSummaryTransactionSelectManager (request,flag){
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.asset_id,
+          flag,
+          request.summary_id
+        );
+        const queryString = util.getQueryString('ds_v1_asset_summary_transaction_select_manager', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    console.log(data)
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+        return responseData;
+    }
     
 }
 

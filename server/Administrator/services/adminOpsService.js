@@ -12356,7 +12356,7 @@ if (queryString !== '') {
         const queryString = util.getQueryString('ds_v1_asset_summary_transaction_select_manager', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(0, queryString, request)
+            await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
