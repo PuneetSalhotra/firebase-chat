@@ -3044,6 +3044,11 @@ function ActivityUpdateService(objectCollection) {
             } catch (error) {
                 util.logError(request, `activityMappingParentUpdate updateDueDates | Error updating updateDueDates in the Parent Activity Error %j`, { type: 'esms_ibm_mq', error: serializeError(error), request });
             }
+            try {
+                activityCommonService.activityActivityMappingInsertV1(request,request.parent_activity_id)
+            } catch (error) {
+                util.logError(request, `activityMappingParentUpdate updateDueDates | Error updating updateDueDates in the Parent Activity Error %j`, { type: 'esms_ibm_mq', error: serializeError(error), request });
+            }
             error = false;
             responseData = [{ "message": "Activity details updated successfully" }];
             util.logInfo(request, `activityMappingParentUpdate Activity details updated successfully %j`, { request });
