@@ -10299,12 +10299,14 @@ else{
             }
             let parentWorkflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activity_id);
             let childEndDate = moment(newDate);
+            console.log("newwww",newDate);
+            console.log("request.start date",request.start_date)
             let oldDate = parentWorkflowActivityDetails[0].activity_datetime_end_deferred;
             let oldDateM = moment(parentWorkflowActivityDetails[0].activity_datetime_end_deferred);
             console.log("OLD DATE :: ",oldDate);
             console.log(oldDateM.diff(childEndDate))
             activity_id = Number(workflowActivityDetails[0].parent_activity_id);
-            if(oldDateM.diff(childEndDate)>=0 && flag!=2){
+            if(oldDateM.diff(childEndDate)>=0 && flag!=2 && flag != 1){
               continue;
             }
             // console.log("came here")
@@ -10334,10 +10336,28 @@ else{
                 let startDatePrev = moment(parentWorkflowActivityDetails[0].activity_datetime_start_expected);
                 let endDatePrev = moment(oldDate);
                 let daystoAdd = endDatePrev.diff(startDatePrev,'days');
-                let endDate = util.addDays(newDate, daystoAdd);
+                
+                let endDate = util.addDays(request.start_date, daystoAdd);
                 activityCoverData.duedate.new = endDate;
+                newDate = endDate;
             }
-            console.log(activityCoverData,)
+            let finalNewDate = '';
+            if(flag==1){
+                
+                
+                let startDatePrev = moment(parentWorkflowActivityDetails[0].activity_datetime_start_expected);
+                let endDatePrev = moment(oldDate);
+                let daystoAdd = endDatePrev.diff(startDatePrev,'days');
+                console.log('days');
+                let endDate = util.subtractDays(newDate, daystoAdd);
+                activityCoverData.start_date = {};
+                activityCoverData.start_date.old = parentWorkflowActivityDetails[0].activity_datetime_start_expected;
+                activityCoverData.start_date.new = endDate;
+                
+                // activityCoverData.duedate.new = endDate;
+                finalNewDate = endDate;
+            }
+            console.log(activityCoverData)
         try{
             newReq.activity_cover_data = JSON.stringify(activityCoverData);
         } catch(err) {
@@ -10347,7 +10367,7 @@ else{
         newReq.asset_id = 100;
         newReq.creator_asset_id = Number(request.asset_id);
         newReq.activity_id = Number(parentWorkflowActivityDetails[0].activity_id);
-        
+        // flag = 0;
         const event = {
             name: "alterActivityCover",
             service: "activityUpdateService",
@@ -10374,7 +10394,7 @@ else{
                 activity_reference: [],
                 form_approval_field_reference: []
             };
-
+            newDate = finalNewDate;
             let timelineReq = Object.assign({}, request);
                 timelineReq.activity_type_category_id= 48;
                 timelineReq.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
@@ -10401,7 +10421,7 @@ else{
             await queueWrapper.raiseActivityEventPromise(event1, workflowActivityDetails[0].parent_activity_id);
         console.log("do exit activity_id",activity_id)
           }
-          while (Number(activity_id)!=0 && flag!=2);
+          while (Number(activity_id)!=0 && flag !=2);
           return [false,[]]
     }
 
@@ -10411,16 +10431,18 @@ else{
         let startDate = moment(request.start_date);
         let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
         let oldDateM = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
+        console.log(workflowActivityDetails1[0].activity_datetime_start_expected);
+        console.log(startDate)
         console.log(oldDateM.diff(startDate));
-        
-        if(oldDateM.diff(startDate)>=0 || request.set_flag==1){
+       
+        if(request.set_flag==1){
             await this.setDueDateV1(request,request.start_date,2);
           }
           else{
             await this.setDueDateV1(request,request.due_date,1);
           }
         
-
+          
         //flow to update all reffered activities start and end date
         let [err,childActivitiesArray] = await activityListSelectChildOrders({...request,parent_activity_id:request.workflow_activity_id,flag:7});
         // console.log(childActivitiesArray)
@@ -10439,13 +10461,17 @@ else{
     this.childChangeStartAndEndDate = async function (request,due_date,start_date){
         request.workflow_activity_id = request.workflow_activity_id ? request.workflow_activity_id : request.activity_id;
            this.setDueDateV1({...request,start_date:due_date},due_date,2);
+           await sleep(3000);
+           let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+           
            let [err,childActivitiesArray]  =await  activityListSelectChildOrders({...request,parent_activity_id:request.activity_id,flag:7});
         for(let i=0 ; i < childActivitiesArray.length ; i++){
             if(Number(childActivitiesArray[i].activity_mapping_flag_is_prerequisite)==0){
                 continue;
             }
+
             let eachChildRequest = childActivitiesArray[i];
-            await this.childChangeStartAndEndDate(eachChildRequest,due_date,start_date);
+            await this.childChangeStartAndEndDate(eachChildRequest,workflowActivityDetails1[0].activity_datetime_end_deferred,start_date);
         }
     }
     
