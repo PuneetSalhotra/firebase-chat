@@ -1728,7 +1728,34 @@ function PamListingService(objectCollection) {
                     error = err;
                 })
         }
-	}    
+	}; 
+
+    this.getTableOrders = async function (request) {
+        let responseData = [],
+            error = true;
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.table_asset_id,
+            request.start_date,
+            request.end_date,
+            request.name,
+            request.start_from,
+            request.limit_value
+        );
+        let queryString = util.getQueryString('pm_v1_table_listing_order_select', paramsArr);
+        if (queryString != '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
 };
 
 module.exports = PamListingService;

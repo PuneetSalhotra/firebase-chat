@@ -15,7 +15,7 @@ const sqs = new AWS.SQS();
 const uuidv4 = require('uuid/v4');
 
 function ActivityListingService(objCollection) {
-
+	const makeRequest = require('request');
 	let db = objCollection.db;
 	let util = objCollection.util;
 	let activityCommonService = objCollection.activityCommonService;
@@ -2669,6 +2669,7 @@ function ActivityListingService(objCollection) {
 			await db.executeQueryPromise(1, queryString, request)
 				.then(async (data) => {
 					responseData = data;
+					
 					try {
 						let dataWithParticipant = await appendParticipantList(request, data);
 						responseData = dataWithParticipant;
@@ -4675,7 +4676,21 @@ function ActivityListingService(objCollection) {
 			error = true;
 		let activityReferenceId = request.refrence_activity_id;
 		request.datetime_log = util.getCurrentUTCTime();
-		[error, responseData] = await activityCommonService.activityActivityMappingInsertV1(request, activityReferenceId);
+		request.activity_flag_is_prerequisite = 1;
+		[error, responseData] = await activityCommonService.activityActivityMappingInsertV1(request,activityReferenceId);
+		
+		// reffered activity change start and end datetime
+		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
+		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form:{...request,workflow_activity_id:request.activity_id,start_date:workflowActivityDetails[0].activity_datetime_end_deferred,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1}
+        };
+		try{
+            // global.config.mobileBaseUrl + global.config.version
+            const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions);
+		}catch(err1){
+
+		}
 
 		if (error) {
 			error = true;
@@ -4715,12 +4730,23 @@ function ActivityListingService(objCollection) {
 		let activityReferenceId = request.refrence_activity_id;
 		request.datetime_log = util.getCurrentUTCTime();
 		[error, responseData] = await activityCommonService.activityActivityMappingArchive(request, oldActivityReferenceId);
+		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
+		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form:{...request,workflow_activity_id:request.activity_id,start_date:workflowActivityDetails[0].activity_datetime_end_deferred,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1}
+        };
+		try{
+            // global.config.mobileBaseUrl + global.config.version
+            const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions);
+		}catch(err1){
 
+		}
 		if (error) {
 			error = true;
 			responseData = [{ "message": "Activity refrence updation failed" }];
 		}
 		else {
+			request.activity_flag_is_prerequisite = 1;
 			[error, responseData] = await activityCommonService.activityActivityMappingInsertV1(request, activityReferenceId);
 			if (error) {
 				error = true;

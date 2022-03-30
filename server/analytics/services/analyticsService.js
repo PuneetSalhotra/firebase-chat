@@ -8358,7 +8358,7 @@ function AnalyticsService(objectCollection)
         let self = await assetSummaryTransactionSelectManager(request,1);
         let reportees = await assetSummaryTransactionSelectManager(request,2);
         responseData = {
-            self:self[0],
+            self:self[0]?self[0]:{},
             reportees : reportees
         }
         return [error, responseData];
