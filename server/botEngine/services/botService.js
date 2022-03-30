@@ -1521,6 +1521,7 @@ function BotService(objectCollection) {
                     case 2: // Alter Status
                         util.logInfo(request, `****************************************************************`);
                         util.logInfo(request, `STATUS ALTER BOT %j`, request);
+                        request.debug_info.push('STATUS ALTER BOT');
                         try {
                             i.bot_operation_start_datetime = util.getCurrentUTCTime();
                             let result = await changeStatusV1(request, botOperationsJson.bot_operations.status_alter);
@@ -1529,6 +1530,7 @@ function BotService(objectCollection) {
                                 i.bot_operation_inline_data = JSON.stringify({
                                     "err": result[1]
                                 });
+                                request.debug_info.push(result[1]);
                                 //await handleBotOperationMessageUpdate(request, i, 4, result[1]);
                                 i.bot_operation_end_datetime = util.getCurrentUTCTime();
                                 i.bot_operation_error_message = result[1];
@@ -1538,10 +1540,11 @@ function BotService(objectCollection) {
                             }
                         } catch (err) {
                             util.logError(request, `serverError | Error in executing changeStatus Step`, { type: "bot_engine", error: serializeError(err) });
+                            request.debug_info.push(err);
                             i.bot_operation_status_id = 2;
-                            i.bot_operation_inline_data = JSON.stringify({
-                                "err": err
-                            });
+                            i.bot_operation_inline_data = JSON.stringify(
+                                request.debug_info
+                            );
                             //return Promise.reject(err);
                             i.bot_operation_end_datetime = util.getCurrentUTCTime();
                             i.bot_operation_error_message = serializeError(err);
@@ -5472,6 +5475,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
 
     async function changeStatusV1(request, inlineData = {}) {
         util.logInfo(request,`change status v1 %j` , inlineData);
+        request.debug_info.push('change status v1 ');
         // if(inlineData.hasOwnProperty('check_dates')&&Number(inlineData.check_dates)===1){
             
         //     let field_value1 = await getFormFieldValue(request,inlineData.field_id1);
@@ -5532,7 +5536,8 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             
         }else{
             // return [false,{}]
-        return changeStatus(request,inlineData);
+            request.debug_info.push(' Hitting changeStatus ');
+            return changeStatus(request,inlineData);
         }
     }
     
@@ -5540,7 +5545,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
     async function changeStatus(request, inlineData = {}) {
         let botOperationId = request.bot_operation_id || "";
         const workflowActivityID = request.workflow_activity_id;
-
+        request.debug_info.push(' In changeStatus '+JSON.stringify(inlineData));
         // Status alter or substatus completion bot incorporating arithmetic condition
         if (
             // Check if the new condition array exists
@@ -5638,6 +5643,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
 
         let newReq = Object.assign({}, request);
         util.logInfo(request,` inlineData: %j`, inlineData);
+        request.debug_info.push(' In changeStatus '+request.workflow_activity_id+" "+inlineData.activity_status_id);
         newReq.activity_id = request.workflow_activity_id;
         newReq.activity_status_id = inlineData.activity_status_id;
         //newRequest.activity_status_type_id = inlineData.activity_status_id; 
@@ -5671,6 +5677,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
         }        
 
         let statusName = await getStatusName(newReq, inlineData.activity_status_id);
+        request.debug_info.push(' In changeStatus getStatusName '+statusName);
         if (Number(statusName.length) > 0) {
             newReq.activity_timeline_collection = JSON.stringify({
                 "activity_reference": [{
@@ -5695,11 +5702,12 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
         //console.log('statusName newReq ########################## : ', statusName);
         try {
             await new Promise((resolve, reject) => {
+                request.debug_info.push(' In changeStatus alterActivityStatus '+JSON.stringify(newReq));
                 activityService.alterActivityStatus(newReq, (err, resp) => {
                     (err === false) ? resolve() : reject(err);
                 });
             });
-
+            request.debug_info.push(' In changeStatus updateWorkflowQueueMapping ');
             await activityService.updateWorkflowQueueMapping(newReq);
         } catch (err) {
             util.logError(request,`Error updating the workflow's queue mapping`, { type: 'bot_engine', error: err });

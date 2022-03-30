@@ -243,10 +243,15 @@ function ActivityTimelineService(objectCollection) {
             }, 2000);
 
         } else {
-
-            if(![50079,50068, 4609, 50294, 50295, 50264,50403].includes(Number(request.form_id))){
-            request.form_id = 0;
+            let [errSuppress, dataSuppress] = await activityCommonService.workforceFormMappingSelectSuppress(request);
+            util.logInfo(request, `workforceFormMappingSelectSuppress ${dataSuppress.length} %j`);
+            if (errSuppress || dataSuppress.length === 0) {
+                request.form_id = 0;
             }
+
+            // if(![50079,50068, 4609, 50294, 50295, 50264,50403].includes(Number(request.form_id))){
+            // request.form_id = 0;
+            // }
             timelineStandardCalls(request).then(() => {}).catch((err) => {
                 util.logError(request,`Error in timelineStandardCalls  `, { type: 'timeline', error: serializeError(err) });
             });
