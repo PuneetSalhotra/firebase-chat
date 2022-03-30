@@ -4681,10 +4681,35 @@ function ActivityListingService(objCollection) {
 		
 		// reffered activity change start and end datetime
 		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
+		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
+                let endDatePrev = moment(workflowActivityDetails1[0].activity_datetime_end_deferred);
+                let daystoAdd = endDatePrev.diff(startDatePrev,'days');
+                console.log('days',daystoAdd);
+                let endDate = util.addDays(workflowActivityDetails[0].activity_datetime_end_deferred, daystoAdd);
+				let workflowActivityDetails2 = await activityCommonService.getActivityDetailsPromise(request, request.parent_activity_id);
+				let dueDateParent = moment(workflowActivityDetails2[0].activity_datetime_end_deferred);
+				console.log(endDate,"end date")
 		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
         const makeRequestOptions = {
             form:{...request,workflow_activity_id:request.activity_id,start_date:workflowActivityDetails[0].activity_datetime_end_deferred,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1}
         };
+		console.log(endDate,"end date");
+		console.log('ddd',dueDateParent)
+		console.log(dueDateParent.diff(endDate));
+		
+		if(dueDateParent.diff(endDate)<0){
+			const makeRequestOptions1 = {
+				form:{...request,workflow_activity_id:workflowActivityDetails2[0].activity_id,start_date:"",due_date:endDate,set_flag:2}
+			};
+			try{
+				// global.config.mobileBaseUrl + global.config.version
+				const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions1);
+			}catch(err2){
+	
+			}
+		}
+        
 		try{
             // global.config.mobileBaseUrl + global.config.version
             const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions);
