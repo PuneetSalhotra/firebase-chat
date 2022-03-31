@@ -5488,6 +5488,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
         //         util.logInfo(request,"both dates are equal proceeding in");
         //         await changeStatus(request,inlineData);
                 // await this.alterWFCompletionPercentageMethod({...request,activity_status_workflow_percentage:inlineData.})
+                
                 if(inlineData.hasOwnProperty('check_parent_closure')&& Number(inlineData.check_parent_closure)===1){
                     util.logInfo(request,"checking parent closure");
                     let childActivityDetails = await activityCommonService.getActivityDetailsPromise(request,request.workflow_activity_id);
@@ -10337,10 +10338,14 @@ else{
             activityCoverData.duedate = {};
                 activityCoverData.duedate.old = oldDate;
                 activityCoverData.duedate.new = newDate;
+            if(flag==3){
+                activityCoverData.duedate.old = oldDate;
+                activityCoverData.duedate.new = newDate;
+                }
             if(flag==2){
                 activityCoverData.start_date = {};
                 activityCoverData.start_date.old = parentWorkflowActivityDetails[0].activity_datetime_start_expected;
-                activityCoverData.start_date.new = request.start_date;
+                activityCoverData.start_date.new = request.start_date == ""?parentWorkflowActivityDetails[0].activity_datetime_start_expected:request.start_date;
                 let startDatePrev = moment(parentWorkflowActivityDetails[0].activity_datetime_start_expected);
                 let endDatePrev = moment(oldDate);
                 let daystoAdd = endDatePrev.diff(startDatePrev,'days');
@@ -10429,7 +10434,7 @@ else{
             await queueWrapper.raiseActivityEventPromise(event1, workflowActivityDetails[0].parent_activity_id);
         console.log("do exit activity_id",activity_id)
           }
-          while (Number(activity_id)!=0 && flag !=2);
+          while (Number(activity_id)!=0 && flag !=2 && flag !=3);
           return [false,[]]
     }
 
@@ -10445,6 +10450,10 @@ else{
        
         if(request.set_flag==1){
             await this.setDueDateV1(request,request.start_date,2);
+          }
+          else if(request.set_flag==2){
+            await this.setDueDateV1(request,request.due_date,3);
+            return [false,[]]
           }
           else{
             await this.setDueDateV1(request,request.due_date,1);
@@ -10481,6 +10490,127 @@ else{
             let eachChildRequest = childActivitiesArray[i];
             await this.childChangeStartAndEndDate(eachChildRequest,workflowActivityDetails1[0].activity_datetime_end_deferred,start_date);
         }
+    }
+
+
+    this.ghantChartStartAndDueDateUpdateV1 = async (request) => {
+         
+        let parentActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.start_end.project_activity_id);
+        // let childActivityDetails = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
+        if(request.start_end){
+            if(request.start_end.activity_id == request.workflow_activity_id) {
+                let oldDateM = moment(parentActivityDetails[0].activity_datetime_end_deferred);
+                let endDate = moment(request.start_end.end);
+                // console.log(parentActivityDetails[0].activity_datetime_start_expected);
+                
+                    let parentDueDateReq = {...request};
+                    parentDueDateReq.workflow_activity_id = request.start_end.project_activity_id;
+                    parentDueDateReq.due_date = request.due_date;
+                    parentDueDateReq.start_date = "";
+
+                    await this.setDueDateV2(parentDueDateReq);
+                
+            }
+        }
+        await this.setDueDateV2(request);
+        return [false,[]]
+    }
+
+
+    this.setDueDateV2 = async function (request){
+            let activity_id = request.workflow_activity_id;
+            let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activity_id);
+           
+            // console.log("came here")
+            // return
+            let newReq = Object.assign({}, request);
+            newReq.timeline_transaction_datetime = util.getCurrentUTCTime();
+            newReq.track_gps_datetime = util.getCurrentUTCTime();
+            newReq.datetime_log = newReq.track_gps_datetime;
+            newReq.message_unique_id = util.getMessageUniqueId(100);
+            
+        let activityCoverData = {};
+            activityCoverData.title = {};
+                activityCoverData.title.old = workflowActivityDetails[0].activity_title;
+                activityCoverData.title.new = workflowActivityDetails[0].activity_title;
+
+            activityCoverData.description = {};
+                activityCoverData.description.old = "";
+                activityCoverData.description.new = "";
+
+            activityCoverData.duedate = {};
+                activityCoverData.duedate.old = workflowActivityDetails[0].activity_datetime_end_deferred;
+                activityCoverData.duedate.new = request.due_date;
+            if(request.start_date != ""){
+                activityCoverData.start_date = {};
+                activityCoverData.start_date.old = workflowActivityDetails[0].activity_datetime_start_expected;
+                activityCoverData.start_date.new = request.start_date;
+            }
+            
+            console.log(activityCoverData)
+        try{
+            newReq.activity_cover_data = JSON.stringify(activityCoverData);
+        } catch(err) {
+            util.logError(request,`Error`, { type: 'bot_engine', err });
+        }
+        
+        newReq.asset_id = 100;
+        newReq.creator_asset_id = Number(request.asset_id);
+        newReq.activity_id = request.workflow_activity_id;
+        // flag = 0;
+        const event = {
+            name: "alterActivityCover",
+            service: "activityUpdateService",
+            method: "alterActivityCover",
+            payload: newReq
+        };
+       
+        // activityUpdateService.alterActivityCover(newReq,()=>{});
+        await queueWrapper.raiseActivityEventPromise(event, request.workflow_activity_id);
+
+            let assetDetails = await getAssetDetails({
+                "organization_id": request.organization_id,
+                "asset_id": request.asset_id
+            });
+
+            let assetName = (assetDetails.length > 0) ? assetDetails[0].operating_asset_first_name : 'Bot';
+            let status_dueDate = false;
+            let content = `Due date changed from ${moment(workflowActivityDetails[0].activity_datetime_end_deferred).format('Do MMMM YYYY, h:mm a')} to ${moment(request.due_date).format('Do MMMM YYYY, h:mm a')} by ${assetName}`;
+            let activityTimelineCollection = {
+                content: content,
+                subject: `Note - ${util.getCurrentDate()}`,
+                mail_body: content,
+                attachments: [],                
+                asset_reference: [],
+                activity_reference: [],
+                form_approval_field_reference: []
+            };
+          
+            let timelineReq = Object.assign({}, request);
+                timelineReq.activity_type_category_id= 48;
+                timelineReq.activity_timeline_collection = JSON.stringify(activityTimelineCollection);
+                timelineReq.data_entity_inline = JSON.stringify(activityTimelineCollection);
+                timelineReq.asset_id = 100;   
+                timelineReq.timeline_stream_type_id= 734;
+                timelineReq.activity_stream_type_id= 734;
+                timelineReq.timeline_transaction_datetime = util.getCurrentUTCTime();
+                timelineReq.track_gps_datetime = timelineReq.timeline_transaction_datetime;
+                timelineReq.datetime_log = timelineReq.timeline_transaction_datetime;
+                timelineReq.message_unique_id = util.getMessageUniqueId(100);
+                timelineReq.form_date = workflowActivityDetails[0].activity_datetime_end_deferred;
+                timelineReq.to_date = request.due_date;
+                //timelineReq.device_os_id = 10; //Do not trigger Bots
+
+            timelineReq.activity_id = Number(request.workflow_activity_id);
+            const event1 = {
+                name: "addTimelineTransaction",
+                service: "activityTimelineService",                
+                method: "addTimelineTransactionAsync",                
+                payload: timelineReq
+            };
+            // activityTimelineService.addTimelineTransactionAsync(timelineReq);
+            await queueWrapper.raiseActivityEventPromise(event1, request.workflow_activity_id);
+          return [false,[]]
     }
     
     async function checkParentActivityDueDate(request,child_activity_id,newDate){
