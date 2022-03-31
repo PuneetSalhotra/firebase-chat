@@ -10315,7 +10315,7 @@ else{
             console.log("OLD DATE :: ",oldDate);
             console.log(oldDateM.diff(childEndDate))
             activity_id = Number(workflowActivityDetails[0].parent_activity_id);
-            if(oldDateM.diff(childEndDate)>=0 && flag!=2 && flag != 1){
+            if(oldDateM.diff(childEndDate)>=0 && flag!=2 && flag != 1 && flag !=3){
               continue;
             }
             // console.log("came here")
@@ -10341,6 +10341,11 @@ else{
             if(flag==3){
                 activityCoverData.duedate.old = oldDate;
                 activityCoverData.duedate.new = newDate;
+                if(request.start_date && request.start_date!=""){
+                    activityCoverData.start_date = {};
+                    activityCoverData.start_date.old = parentWorkflowActivityDetails[0].activity_datetime_start_expected;
+                    activityCoverData.start_date.new = request.start_date;
+                }
                 }
             if(flag==2){
                 activityCoverData.start_date = {};
@@ -10439,7 +10444,7 @@ else{
     }
 
     this.ghantChartStartAndDueDateUpdate = async (request) => {
-
+console.log(request)
         //flow to update all its parents due date
         let startDate = moment(request.start_date);
         let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
@@ -10448,16 +10453,14 @@ else{
         console.log(startDate)
         console.log(oldDateM.diff(startDate));
        
-        if(request.set_flag==1){
-            await this.setDueDateV1(request,request.start_date,2);
-          }
-          else if(request.set_flag==2){
-            await this.setDueDateV1(request,request.due_date,3);
-            return [false,[]]
-          }
-          else{
-            await this.setDueDateV1(request,request.due_date,1);
-          }
+        if (request.set_flag == 1) {
+          await this.setDueDateV1(request, request.start_date, 2);
+        } else if (request.set_flag == 2) {
+          await this.setDueDateV1(request, request.due_date, 3);
+          return [false, []];
+        } else {
+          await this.setDueDateV1(request, request.due_date, 1);
+        }
         
           
         //flow to update all reffered activities start and end date
