@@ -2649,6 +2649,32 @@ function ActivityListingService(objCollection) {
 		// IN p_organization_id BIGINT(20), IN p_parent_activity_id BIGINT(20), 
 		// IN p_flag TINYINT(4), IN p_sort_flag TINYINT(4), IN p_datetime_start DATETIME, 
 		// IN p_datetime_end DATETIME, IN p_start_from SMALLINT(6), IN p_limit_value SMALLINT(6)
+		let [error,responseData] = await this.activityListSelectCHildOrdersList(request);
+		for (let activity of responseData) {
+			let parentActivityId = activity.activity_id;
+			if (parentActivityId != null && parentActivityId > 0) {
+				let requestForChild = Object.assign({}, request);
+				requestForChild.parent_activity_id = parentActivityId;
+				requestForChild.flag = 7;
+				const [errorZero, childWorkflows] = await this.activityListSelectChildOrders(requestForChild);
+				activity.prerequisite_list = childWorkflows;
+				for(let childActivity of activity.child_workflows){
+					let parentActivityId = childActivity.activity_id;
+			if (parentActivityId != null && parentActivityId > 0) {
+				let requestForChild = Object.assign({}, request);
+				requestForChild.parent_activity_id = parentActivityId;
+				requestForChild.flag = 7;
+				const [errorZero, childWorkflows1] = await this.activityListSelectChildOrders(requestForChild);
+				childActivity.prerequisite_list = childWorkflows1;
+			}
+				}
+			}
+		}
+
+		return [error, responseData];
+	}
+
+	this.activityListSelectCHildOrdersList = async(request)  => {
 		let responseData = [],
 			error = true;
 
@@ -2670,21 +2696,14 @@ function ActivityListingService(objCollection) {
 				.then(async (data) => {
 					responseData = data;
 					
-					try {
-						let dataWithParticipant = await appendParticipantList(request, data);
-						responseData = dataWithParticipant;
-					} catch (error) {
-						console.log("activityListSelectChildOrders | appendParticipantList | Error: ", error);
-						// Do nothing
-					}
 					error = false;
 				})
 				.catch((err) => {
 					error = err;
 				})
 		}
-
 		if (responseData.length > 0) {
+			
 			for (let activity of responseData) {
 				let parentActivityId = activity.activity_id;
 				if (parentActivityId != null && parentActivityId > 0) {
@@ -2695,8 +2714,7 @@ function ActivityListingService(objCollection) {
 				}
 			}
 		}
-
-		return [error, responseData];
+		return [error,responseData]
 	}
 
 	this.activityListSelectChildOrdersBasedOnAssetAccess = async function (request) {
@@ -4700,7 +4718,7 @@ function ActivityListingService(objCollection) {
 		
 		if(dueDateParent.diff(endDate)<0){
 			const makeRequestOptions1 = {
-				form:{...request,workflow_activity_id:workflowActivityDetails2[0].activity_id,start_date:"",due_date:endDate,set_flag:2}
+				form:{...request,workflow_activity_id:request.parent_activity_id,start_date:"",due_date:endDate,set_flag:2}
 			};
 			try{
 				// global.config.mobileBaseUrl + global.config.version
