@@ -1,6 +1,7 @@
 
 function ActivityCommonService(db, util, forEachAsync) {
     let makingRequest = require('request');
+    let moment = require('moment');
     const self = this;
     const nodeUtil = require('util');
     let elasticsearch = require('elasticsearch');
@@ -7612,15 +7613,38 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
     }
 
     this.changeDueDateOfParentBasedOnChild = async function (request) {
-        let workflowActivityDeatils = await this.getActivityDetailsAsync(request);
+        let workflowActivityDeatils = await this.getActivityDetailsPromise(request,request.activity_id);
+        let parentWorkflowDetails = await this.getActivityDetailsPromise(request,request.parent_activity_id);
         request.workflow_activity_id = request.workflow_activity_id || request.activity_id;
+
+        let childStartDate =  workflowActivityDeatils[0].activity_datetime_start_expected;
+        let childEndDate =  workflowActivityDeatils[0].activity_datetime_end_deferred;
+        let parentStartDate =  parentWorkflowDetails[0].activity_datetime_start_expected;
+        let parentEndDate =  parentWorkflowDetails[0].activity_datetime_end_deferred;
+        
+        //moment object
+        let childStartDateM =  moment(childStartDate);
+        let childEndDateM =  moment(childEndDate);
+        let parentStartDateM =  moment(parentStartDate);
+        let parentEndDateM =  moment(parentEndDate);
+
+        let start_end_dates = {}
+        //check condition
+        if(childStartDateM.diff(parentStartDateM)<0){
+           start_end_dates.start_date = childStartDate;
+        }
+        if(parentEndDateM.diff(childEndDateM)<0){
+            start_end_dates.end_date = childEndDate;
+        }
+        
+
         const changeParentDueDate = nodeUtil.promisify(makingRequest.post);
         const makeRequestOptions = {
-            form: {...request,new_date:workflowActivityDeatils[0].activity_datetime_end_deferred}
+            form: {...request,workflow_activity_id:request.parent_activity_id,start_date:start_end_dates.start_date,due_date:start_end_dates.end_date||parentEndDate,set_flag:2}
         };
         try {
             // global.config.mobileBaseUrl + global.config.version
-            const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parents/due/date', makeRequestOptions);
+            const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions);
             const body = JSON.parse(response.body);
             if (Number(body.status) === 200) {
                 console.log("Success | changeParentDueDate | Body: ", body);
