@@ -5563,7 +5563,7 @@ this.getChildOfAParent = async (request) => {
             request.organization_id || 351, //
             request.account_id || 452, //,
             request.event_activity_id,
-            request.member_asset_id
+            request.member_asset_id 
             );
         let queryString = util.getQueryString('ds_v1_activity_asset_mapping_select_reservation', paramsArr);
         if (queryString != '') {
@@ -6994,16 +6994,14 @@ this.getChildOfAParent = async (request) => {
     this.assetInlineDataUpdateUserProfile = async function (request, asset_id) {
         let responseData = [],
             error = true;
-        let inline_data = typeof request.update_value == 'string' ? JSON.parse(request.update_value) : request.update_value;
-        for (let i = 1; i <= 4; i++) {
             let paramsArr = new Array(
-                request.organization_id,
                 asset_id,
-                util.getCurrentUTCTime(),
-                flag = i,
-                inline_data[i - 1]
+                request.organization_id,
+                request.asset_inline_data,
+                request.log_asset_id,
+                util.getCurrentUTCTime(),                
             );
-            const queryString = util.getQueryString('pm_asset_inline_data_update_user_profile', paramsArr);
+            const queryString = util.getQueryString('ds_p1_1_asset_list_update_inline_data', paramsArr);
             if (queryString !== '') {
                 await db.executeQueryPromise(0, queryString, request)
                     .then((data) => {
@@ -7014,7 +7012,6 @@ this.getChildOfAParent = async (request) => {
                         error = err;
                     });
             }
-        }
         return [error, responseData];
     };
     this.assetInlineDataGetUserprofile = async function (request, asset_id) {
@@ -7067,7 +7064,9 @@ this.getChildOfAParent = async (request) => {
         /* flag = 1 => Rating based on each menu item
          flag = 2 => My orders history
          flag = 3 => filter by status: all, in process, completed, cancelled
-         flag = 4 => search in orders */
+         flag = 4 => search in orders 
+         flag = 5 => Order Based on Reservation
+         */
         let responseData = [],
             error = true;
         try {
@@ -7081,7 +7080,7 @@ this.getChildOfAParent = async (request) => {
                     request.end_date,
                     request.name,
                     request.flag || 1,
-                    request.type || 0,
+                    request.type ,
                     request.activity_status_type_id,
                     request.start_from || 0,
                     request.limit_value
@@ -7091,6 +7090,12 @@ this.getChildOfAParent = async (request) => {
                     await db.executeQueryPromise(1, queryString, request)
                         .then(async (data) => {
                             responseData = data;
+                            if (request.flag == 5) {
+                                for (i = 0; i < data.length; i++) {
+                                    let [errr, ResData] = await this.getOrdersV1(request, data[i].activity_id);
+                                    data[i]['reservationOrder'] = ResData;
+                                }
+                            }
                             error = false;
                         })
                         .catch((err) => {
@@ -7310,6 +7315,34 @@ this.getChildOfAParent = async (request) => {
         await assetService.sendCallOrSmsV1(1, countryCode, phoneNumber, verificationCode, request);
         return [error, responseData];
     };
+
+    this.getOrdersV1 = async (request,idReservation) => {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            idReservation,
+            38,
+            0,
+            50
+        )
+        const queryString = util.getQueryString('pm_v1_activity_list_select_reservation_orders', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 };
 
 module.exports = PamService;
