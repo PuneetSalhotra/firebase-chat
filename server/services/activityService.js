@@ -2335,7 +2335,7 @@ function ActivityService(objectCollection) {
         let activityTypeCategroyId = Number(request.activity_type_category_id) || 0;
         const widgetFieldsStatusesData = util.widgetFieldsStatusesData();
 
-        console.log('In alterActivityStatus ', activityTypeCategoryId);
+        util.logInfo(request, 'In alterActivityStatus :'+activityStatusId, activityTypeCategoryId);
         if (request.hasOwnProperty('activity_type_category_id')) {
             switch (activityTypeCategroyId) {
                 case 1: // to-do 
@@ -2449,7 +2449,7 @@ function ActivityService(objectCollection) {
         }
         // Check for the sub-status
         try {
-            console.log('Checking for substatus');
+            util.logInfo(request,'Checking for substatus :'+activityStatusId);
             const [error, workforceActivityStatusData] = await getAssetTypeIDForAStatusID(request, activityStatusId);
             // Check:
             // 1. If a sub-status exists AND
@@ -2494,11 +2494,11 @@ function ActivityService(objectCollection) {
         }
         
         activityCommonService.updateAssetLocation(request, (err, data) => {});
-        console.log('Before activityListUpdateStatus');
+        util.logInfo(request,'Before activityListUpdateStatus :'+activityStatusId);
         activityListUpdateStatus(request, async (err, data) => {
             if (err === false) {
                 activityListUpdateStatusDuration(request)
-                console.log("*****STATUS CHANGE | activityTypeCategroyId: ", activityTypeCategroyId);
+                util.logInfo(request,"*****STATUS CHANGE | activityTypeCategroyId :"+activityStatusId, activityTypeCategroyId);
                 updateWidgetAggrStatus(request);               
                 
                 if(activityTypeCategoryId === 48){

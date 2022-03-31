@@ -488,6 +488,16 @@ function BotController(objCollection) {
             res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/bot/set/parent/child/due/date/v2', async (req, res) => {
+        const [err, data] = await botService.ghantChartStartAndDueDateUpdateV1(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log('Error - /bot/set/parents/due/date : ', err);
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
 }
 
 module.exports = BotController;
