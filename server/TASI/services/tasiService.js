@@ -2196,6 +2196,7 @@ function TasiService(objectCollection) {
           request.level_id,
           request.asset_id,
           request.asset_type_id,
+            request.account_id,
           request.widget_type_id,
           request.workforce_tag_id,
           request.cluster_tag_id,
@@ -2209,7 +2210,7 @@ function TasiService(objectCollection) {
           request.limit_value || 50
         );
 
-        const queryString = util.getQueryString('ds_p1_1_entity_target_setting_select_freeze', paramsArr);
+        const queryString = util.getQueryString('ds_p1_2_entity_target_setting_select_freeze', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
