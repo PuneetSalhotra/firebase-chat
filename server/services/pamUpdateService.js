@@ -303,7 +303,7 @@ function PamUpdateService(objectCollection) {
             	console.log('request.activity_status_type_id: '+request.activity_status_type_id );
                     switch(Number(request.activity_status_type_id)) {                    	
                         case 106: if (request.served_at_bar == 1) {
-                            			itemOrderAlterStatus(request).then(() => {});
+                            			// itemOrderAlterStatus(request).then(() => {});
                         			}
                         case 125: updateStatusDateTimes(request).then(()=>{});
                         		  break;		
