@@ -7096,6 +7096,12 @@ this.getChildOfAParent = async (request) => {
                                     data[i]['reservationOrder'] = ResData;
                                 }
                             }
+                            if (request.flag == 6) {
+                                for (i = 0; i < data.length; i++) {
+                                    let [errr, ResData] = await this.getOrdersByStatus(request, data[i].activity_id);
+                                    data[i]['reservationOrder'] = ResData;
+                                }
+                            }
                             error = false;
                         })
                         .catch((err) => {
@@ -7341,7 +7347,34 @@ this.getChildOfAParent = async (request) => {
                 })
         }
         return [error, responseData];
-    }
+    };
+    this.getOrdersByStatus = async (request,idReservation) => {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            idReservation,
+            38,
+            request.activity_status_type_id,
+            0,
+            50
+        )
+        const queryString = util.getQueryString('pm_v2_activity_list_select_reservation_orders', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
 
 };
 
