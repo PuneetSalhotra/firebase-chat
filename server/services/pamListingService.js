@@ -885,10 +885,11 @@ function PamListingService(objectCollection) {
 					request.order_activity_type_id,
 					request.is_date,
 					request.start_date,
-					request.end_date
+					request.end_date,
+                    request.is_most_ordered || 1
 	                );
 	
-	        let queryString = util.getQueryString('pm_v1_pam_order_list_max_ordered', paramsArr);
+	        let queryString = util.getQueryString('pm_v1_1_pam_order_list_max_ordered', paramsArr);
 	        if (queryString != '') {
 	            db.executeQuery(1, queryString, request, function (err, data) {
 	            	//console.log("err "+err);
