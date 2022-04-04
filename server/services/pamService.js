@@ -7382,6 +7382,56 @@ this.getChildOfAParent = async (request) => {
         return [error, responseData];
     };
 
+    this.getTableBasedReservationOrders = async function (request) {
+        let responseData = [],
+            error = true;
+        try {
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.table_asset_id,
+                request.start_date,
+                request.end_date,
+                request.name,
+                request.flag,
+                request.type,
+                request.activity_status_type_id,
+                request.start_from || 0,
+                request.limit_value
+            );
+            const queryString = util.getQueryString('pm_pam_order_list_get_select_details', paramsArr);
+            if (queryString !== '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then(async (data) => {
+                        responseData = data;
+                        for (let i = 0; i < data.length; i++) {
+                            if (request.flag == 5) {
+                                let amountPaid = JSON.parse(data[i].activity_inline_data);
+                                data[i]['amount'] = amountPaid.paid_amount || 0;
+                                data[i]['is_paid'] = (amountPaid.paid_amount) > 0;
+                                let [errr, ResData] = await this.getOrdersV1(request, data[i].activity_id);
+                                data[i]['reservationOrder'] = ResData;
+                            }
+                            else if (request.flag == 6) {
+                                let amountPaid = JSON.parse(data[i].activity_inline_data);
+                                data[i]['amount'] = amountPaid.paid_amount || 0;
+                                data[i]['is_paid'] = (amountPaid.paid_amount) > 0;
+                                let [errr, ResData] = await this.getOrdersByStatus(request, data[i].activity_id);
+                                data[i]['reservationOrder'] = ResData;
+                            }
+                        }
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+            return [error, responseData];
+        } catch (error) {
+            return [err, -9999];
+        }
+    };  
+
 };
 
 module.exports = PamService;
