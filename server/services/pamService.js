@@ -7091,13 +7091,19 @@ this.getChildOfAParent = async (request) => {
                         .then(async (data) => {
                             responseData = data;
                             if (request.flag == 5) {
-                                for (i = 0; i < data.length; i++) {
+                                for (let i = 0; i < data.length; i++) {
+                                    let amountPaid = JSON.parse(data[i].activity_inline_data);
+                                    data[i]['amount'] = amountPaid.paid_amount || 0;
+                                    data[i]['is_paid'] = (amountPaid.paid_amount) > 0;
                                     let [errr, ResData] = await this.getOrdersV1(request, data[i].activity_id);
                                     data[i]['reservationOrder'] = ResData;
                                 }
                             }
-                            if (request.flag == 6) {
-                                for (i = 0; i < data.length; i++) {
+                            else if (request.flag == 6) {
+                                for (let i = 0; i < data.length; i++) {
+                                    let amountPaid = JSON.parse(data[i].activity_inline_data);
+                                    data[i]['amount'] = amountPaid.paid_amount || 0;
+                                    data[i]['is_paid'] = (amountPaid.paid_amount) > 0;
                                     let [errr, ResData] = await this.getOrdersByStatus(request, data[i].activity_id);
                                     data[i]['reservationOrder'] = ResData;
                                 }
