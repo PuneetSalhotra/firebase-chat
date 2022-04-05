@@ -7420,6 +7420,15 @@ this.getChildOfAParent = async (request) => {
                                 data[i]['reservationOrder'] = ResData;
                             }
                         }
+                        let unPadiList = [];
+                        if (request.hasOwnProperty("is_unpaid") && request.is_unpaid === true) {
+                            for (let i = 0; i < responseData.length; i++) {
+                                if (responseData[i].is_paid == false) {
+                                    unPadiList.push(responseData[i]);
+                                }
+                            }
+                            responseData = unPadiList;
+                        }
                         error = false;
                     })
                     .catch((err) => {
