@@ -8603,11 +8603,12 @@ this.getQrBarcodeFeeback = async(request) => {
             request.asset_tag_type_id_1,
             request.asset_tag_id_2,
             request.asset_tag_id_3,
+            request.target_asset_id || 0,
             request.flag,
             request.start_from,
             request.limit_value
         );
-        const queryString = util.getQueryString('ds_p1_3_asset_list_select_manager', paramsArr);
+        const queryString = util.getQueryString('ds_p1_4_asset_list_select_manager', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
