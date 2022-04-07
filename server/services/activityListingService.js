@@ -2757,6 +2757,18 @@ function ActivityListingService(objCollection) {
 		return [error, responseData];
 	}
 
+	this.activityListChildOrders = async function (request) {
+		let responseData = [],
+			error = true;
+		if (Number(request.based_on_asset_access) === 1) {
+			[error, responseData] = await this.activityListSelectChildOrdersBasedOnAssetAccess(request);
+		} else {
+			[error, responseData] = await this.activityListSelectChildOrders(request);
+		}
+
+		return [error, responseData];
+	}
+
 	this.getQueueActivitiesAllFiltersV1 = function (request) {
 		// IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20),
 		// IN p_asset_id BIGINT(20),  IN p_sort_flag TINYINT(4), IN p_flag TINYINT(4), IN p_queue_id BIGINT(20),
@@ -4692,6 +4704,7 @@ function ActivityListingService(objCollection) {
 	this.activityReferenceAdd = async function (request) {
 		let responseData = [],
 			error = true;
+		let parentActivity_id = request.parent_activity_id;
 		let activityReferenceId = request.refrence_activity_id;
 		request.datetime_log = util.getCurrentUTCTime();
 		request.activity_flag_is_prerequisite = 1;
@@ -4705,7 +4718,7 @@ function ActivityListingService(objCollection) {
                 let daystoAdd = endDatePrev.diff(startDatePrev,'days');
                 console.log('days',daystoAdd);
                 let endDate = util.addDays(workflowActivityDetails[0].activity_datetime_end_deferred, daystoAdd);
-				let workflowActivityDetails2 = await activityCommonService.getActivityDetailsPromise(request, request.parent_activity_id);
+				let workflowActivityDetails2 = await activityCommonService.getActivityDetailsPromise(request, parentActivity_id);
 				let dueDateParent = moment(workflowActivityDetails2[0].activity_datetime_end_deferred);
 				console.log(endDate,"end date")
 		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
@@ -4718,7 +4731,7 @@ function ActivityListingService(objCollection) {
 		
 		if(dueDateParent.diff(endDate)<0){
 			const makeRequestOptions1 = {
-				form:{...request,workflow_activity_id:request.parent_activity_id,start_date:"",due_date:endDate,set_flag:2}
+				form:{...request,workflow_activity_id:parentActivity_id,start_date:"",due_date:endDate,set_flag:2}
 			};
 			try{
 				// global.config.mobileBaseUrl + global.config.version

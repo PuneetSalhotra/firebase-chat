@@ -1527,10 +1527,11 @@ function BotService(objectCollection) {
                             let result = await changeStatusV1(request, botOperationsJson.bot_operations.status_alter);
                             if (result[0]) {
                                 i.bot_operation_status_id = 2;
-                                i.bot_operation_inline_data = JSON.stringify({
-                                    "err": result[1]
-                                });
-                                request.debug_info.push(result[1]);
+                                request.debug_info.push(result);
+                                i.bot_operation_inline_data = JSON.stringify(
+                                    request.debug_info
+                                );
+                                
                                 //await handleBotOperationMessageUpdate(request, i, 4, result[1]);
                                 i.bot_operation_end_datetime = util.getCurrentUTCTime();
                                 i.bot_operation_error_message = result[1];
@@ -5678,7 +5679,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
         }        
 
         let statusName = await getStatusName(newReq, inlineData.activity_status_id);
-        request.debug_info.push(' In changeStatus getStatusName '+statusName);
+        request.debug_info.push(' In changeStatus getStatusName '+JSON.stringify(statusName));
         if (Number(statusName.length) > 0) {
             newReq.activity_timeline_collection = JSON.stringify({
                 "activity_reference": [{
@@ -5801,7 +5802,7 @@ fs.writeFile(documentWithAttestationPath, pdfBytes, function (err) {
             return [false, {}];
         } else {
             util.logError(request,`No workflow to queue mappings found`, { type: 'bot_engine'});
-            return [true, "No workflow to queue mappings found"];
+            return [false, "No workflow to queue mappings found"];
         }
     }
 
