@@ -2757,6 +2757,18 @@ function ActivityListingService(objCollection) {
 		return [error, responseData];
 	}
 
+	this.activityListChildOrders = async function (request) {
+		let responseData = [],
+			error = true;
+		if (Number(request.based_on_asset_access) === 1) {
+			[error, responseData] = await this.activityListSelectChildOrdersBasedOnAssetAccess(request);
+		} else {
+			[error, responseData] = await this.activityListSelectChildOrders(request);
+		}
+
+		return [error, responseData];
+	}
+
 	this.getQueueActivitiesAllFiltersV1 = function (request) {
 		// IN p_organization_id BIGINT(20), IN p_account_id BIGINT(20), IN p_workforce_id BIGINT(20),
 		// IN p_asset_id BIGINT(20),  IN p_sort_flag TINYINT(4), IN p_flag TINYINT(4), IN p_queue_id BIGINT(20),

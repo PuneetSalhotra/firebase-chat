@@ -818,7 +818,7 @@ function ActivityListingController(objCollection) {
     // ....... sort_flag=0: sorted by activity_datetime_created
     // ....... sort_flag=1: sorted by activity_datetime_end_deferred
     app.post('/' + global.config.version + '/activity/workflow/child_orders/list', async function (req, res) {
-        const [err, childOrderData] = await activityListingService.activityListSelectChildOrdersBasedOnAssetAccess(req.body);
+        const [err, childOrderData] = await activityListingService.activityListChildOrders(req.body);
         if (!err) {
             res.json(responseWrapper.getResponse({}, childOrderData, 200, req.body));
         } else {
