@@ -1159,7 +1159,8 @@ function TasiService(objectCollection) {
             request.asset_tag_id_1,
             request.asset_tag_id_2,
             request.asset_tag_id_3,
-            request.organization_id, 
+            request.organization_id,
+            request.account_id || 0,
             request.log_asset_id,
             util.getCurrentUTCTime()
         );
@@ -3899,6 +3900,8 @@ function TasiService(objectCollection) {
 
         const paramsArr = new Array(
           request.organization_id,
+            request.p_flag_type || 0,
+            request.p_workforce_tag_id || 0,            
           request.asset_type_id,
           request.asset_id,
           request.widget_type_id,
