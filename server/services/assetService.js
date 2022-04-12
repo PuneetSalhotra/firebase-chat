@@ -8658,6 +8658,39 @@ this.getQrBarcodeFeeback = async(request) => {
 
         return [error, responseData];
     };
+
+    this.individualTargetListing = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_type_id,
+            request.workforce_id,
+            request.workforce_tag_id,
+            request.cluster_tag_id,
+            request.vertical_tag_id,
+            request.subvertical_tag_id,
+            request.flag,
+            request.sort_flag,
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p2_asset_list_select_flag', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
 }
 module.exports = AssetService;
 

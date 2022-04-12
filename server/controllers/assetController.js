@@ -1183,5 +1183,17 @@ function AssetController(objCollection) {
             res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/asset/individual/targets/select', async function (req, res) {
+        const [err, resData] = await assetService.individualTargetListing(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/asset/individual/targets/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
+
 }
 module.exports = AssetController;
