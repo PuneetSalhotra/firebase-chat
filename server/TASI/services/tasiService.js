@@ -3900,8 +3900,8 @@ function TasiService(objectCollection) {
 
         const paramsArr = new Array(
           request.organization_id,
-            request.p_flag_type || 0,
-            request.p_workforce_tag_id || 0,            
+            request.flag_type || 0,
+            request.workforce_tag_id || 0,            
           request.asset_type_id,
           request.asset_id,
           request.widget_type_id,
