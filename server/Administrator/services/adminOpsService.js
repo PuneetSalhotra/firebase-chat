@@ -12367,6 +12367,40 @@ if (queryString !== '') {
         }
         return [error, responseData];
     };
+
+    this.triggerUpdateAccountIntegrations = async (request) => {
+        let responseData = [],
+            error = true;
+        const mode = global.mode;
+
+        try {
+            if (request.request_type == "CLMS_ACCOUNT_UPDATE_SERVICE") {
+                [error, responseData] = await triggerESMSIntegrationsService({
+                    request
+                }, {
+                    mode: mode,
+                    request_type: request.request_type
+                });
+            }
+            else {
+                error = true;
+                responseData = [{ "message": "Invalid request type" }];
+            }
+        } catch (e) {
+            console.log(e);
+            error = true;
+        }
+        if (error) {
+            error = true;
+            responseData = [{ "message": "Trigger activity code integration failed" }];
+        }
+        else {
+            error = false;
+            responseData = [{ "message": "Trigger activity code integration updated successfully" }];
+        }
+
+        return [error, responseData];
+    };
 }
 
 module.exports = AdminOpsService;
