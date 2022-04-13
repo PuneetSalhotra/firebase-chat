@@ -7441,6 +7441,58 @@ this.getChildOfAParent = async (request) => {
         }
     };  
 
+    this.getOrderIngredientMapingInventory = async (request) => {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.event_activity_id,
+            request.start_date,
+            request.end_date,
+        )
+        const queryString = util.getQueryString('pm_v1_pam_order_ingredient_mapping_select_inventory', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+    
+    this.getOrderIngredientMapingInventoryDetails = async (request) => {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.ingredient_asset_id,
+            request.event_activity_id,
+            request.start_date,
+            request.end_date
+        )
+        const queryString = util.getQueryString('pm_v1_pam_order_ingredient_mapping_select_inventory_detail', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
 };
 
 module.exports = PamService;
