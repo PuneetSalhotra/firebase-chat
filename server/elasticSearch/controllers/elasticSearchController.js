@@ -48,7 +48,7 @@ function elasticSearchController(objCollection) {
                 res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             }
         });
-
+/*
     app.post('/' + global.config.version + '/elastic/activity/delete/add', async (req, res) => {
             try {
                 let result = await activityCommonService.delteAndInsertInElastic(req.body);
@@ -65,7 +65,7 @@ function elasticSearchController(objCollection) {
                 res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
             }
         });
-
+*/
     app.post('/' + global.config.version + '/elastic/activity/delete/add/multi', async (req, res) => {
         try {
             let result = await activityCommonService.delteAndInsertInElasticMulti(req.body);
