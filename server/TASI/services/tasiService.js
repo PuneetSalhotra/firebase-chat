@@ -1159,7 +1159,8 @@ function TasiService(objectCollection) {
             request.asset_tag_id_1,
             request.asset_tag_id_2,
             request.asset_tag_id_3,
-            request.organization_id, 
+            request.organization_id,
+            request.account_id || 0,
             request.log_asset_id,
             util.getCurrentUTCTime()
         );
@@ -2733,11 +2734,12 @@ function TasiService(objectCollection) {
             request.asset_tag_id_3,
             request.workforce_tag_id,
             request.cluster_tag_id,
+            request.log_asset_id,
             request.start_from,
             request.limit_value
         );
 
-        const queryString = util.getQueryString('ds_p1_2_input_list_select_filter', paramsArr);
+        const queryString = util.getQueryString('ds_p1_3_input_list_select_filter', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
@@ -2777,11 +2779,12 @@ function TasiService(objectCollection) {
             request.account_id,
             request.cluster_tag_id,
             request.widget_type_name,
+            request.log_asset_id,
             request.start_form, 
             request.limit_value
         );
 
-        const queryString = util.getQueryString('ds_v1_1_report_list_select_simulation', paramsArr);
+        const queryString = util.getQueryString('ds_v1_2_report_list_select_simulation', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
@@ -3897,6 +3900,8 @@ function TasiService(objectCollection) {
 
         const paramsArr = new Array(
           request.organization_id,
+            request.flag_type || 0,
+            request.workforce_tag_id || 0,            
           request.asset_type_id,
           request.asset_id,
           request.widget_type_id,
