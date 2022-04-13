@@ -12375,12 +12375,14 @@ if (queryString !== '') {
 
         try {
             if (request.request_type == "CLMS_ACCOUNT_UPDATE_SERVICE") {
-                [error, responseData] = await triggerESMSIntegrationsService({
+                await triggerESMSIntegrationsService({
                     request
                 }, {
                     mode: mode,
                     request_type: request.request_type
                 });
+
+                error = false;
             }
             else {
                 error = true;
@@ -12396,7 +12398,7 @@ if (queryString !== '') {
         }
         else {
             error = false;
-            responseData = [{ "message": "Trigger activity code integration updated successfully" }];
+            responseData = [{ "message": "Message produced successfully" }];
         }
 
         return [error, responseData];
