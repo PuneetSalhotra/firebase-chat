@@ -4371,7 +4371,7 @@ function ActivityListingService(objCollection) {
 					"Responsible_Person_Email_ID": 318884,
 					"Responsibility_Holder": 318885,
 					"Category_ID": 318886,
-					"Assigned_To": 318888,
+					"Assigned_To": 318887,
 					"Assigned_Date": 318888,
 					"Target_Closure_Date": 318889,
 					"Comments": 318890

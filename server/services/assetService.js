@@ -8603,11 +8603,12 @@ this.getQrBarcodeFeeback = async(request) => {
             request.asset_tag_type_id_1,
             request.asset_tag_id_2,
             request.asset_tag_id_3,
+            request.target_asset_id || 0,
             request.flag,
             request.start_from,
             request.limit_value
         );
-        const queryString = util.getQueryString('ds_p1_3_asset_list_select_manager', paramsArr);
+        const queryString = util.getQueryString('ds_p1_4_asset_list_select_manager', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -8644,6 +8645,39 @@ this.getQrBarcodeFeeback = async(request) => {
             request.limit_value || 100
         );
         const queryString = util.getQueryString('ds_p1_2_activity_asset_mapping_select_asset_category_targets', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+    this.individualTargetListing = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_type_id,
+            request.workforce_id,
+            request.workforce_tag_id,
+            request.cluster_tag_id,
+            request.vertical_tag_id,
+            request.subvertical_tag_id,
+            request.flag,
+            request.sort_flag,
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p2_asset_list_select_flag', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {

@@ -1408,6 +1408,16 @@ function AdminOpsController(objCollection) {
         }
     });
 
+    app.post("/" + global.config.version + "/trigger/update/account/integrations", async function (req, res) {
+        const [err, result] = await adminOpsService.triggerUpdateAccountIntegrations(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            console.log("/trigger/update/account/integrations | Error: ", err);
+            res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+        }
+    });
+
 }
 
 module.exports = AdminOpsController;
