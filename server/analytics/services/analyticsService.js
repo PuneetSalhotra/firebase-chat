@@ -2459,6 +2459,8 @@ function AnalyticsService(objectCollection)
                             );
                         }else{
                             let totalValue = 0;
+                            let totalCount = 0;
+                            let submissionCount = 0;
                              //console.log("request.widget_type_id :: "+request.widget_type_id);
                             if(parseInt(request.widget_type_id) === 44){
                                 //console.log("request.widget_type_id :: "+request.widget_type_id);
@@ -2467,7 +2469,9 @@ function AnalyticsService(objectCollection)
                                     totalValue = totalValue + tempResult[i].value
                                 }
                             }else{
-                                totalValue = tempResult[0].value
+                                totalValue = tempResult[0].value;
+                                totalCount = tempResult[0].total_value;
+                                submissionCount = tempResult[0].submissions_count;
                             }          
 
                             results[iterator] =
@@ -2476,6 +2480,8 @@ function AnalyticsService(objectCollection)
                                     "tag_type_id": request.tag_type_id,
                                     "status_type_id": request.filter_activity_status_type_id,
                                     "result": totalValue,
+                                    "total_value": totalCount,
+                                    "submission_count": submissionCount,
                                 }
                             );
                         }
