@@ -4707,10 +4707,42 @@ function ActivityListingService(objCollection) {
 		let parentActivity_id = request.parent_activity_id;
 		let activityReferenceId = request.refrence_activity_id;
 		request.datetime_log = util.getCurrentUTCTime();
-		request.activity_flag_is_prerequisite = 1;
+		request.activity_flag_is_prerequisite = request.activity_flag_is_prerequisite ? request.activity_flag_is_prerequisite : 1;
 		[error, responseData] = await activityCommonService.activityActivityMappingInsertV1(request,activityReferenceId);
 		
 		// reffered activity change start and end datetime
+		await taskRelationTypesSet(request)
+		if (error) {
+			error = true;
+			responseData = [{ "message": "Activity refrence addition failed" }];
+		}
+		else {
+			error = false;
+			responseData = [{ "message": "Activity refrence added successfully" }];
+		}
+
+		return [error, responseData];
+	}
+
+	async function taskRelationTypesSet (req){
+		switch (Number(req.activity_flag_is_prerequisite)) {
+			case 1:
+			  fsRelation(req);
+			  break;
+			case 2:
+			  sfRelation(req);
+			  break;
+			case 3:
+			  ffRelation(req);
+			  break;
+			case 4:
+			  ssRelation(req);
+		  }
+	}
+
+	async function fsRelation(request){
+		let parentActivity_id = request.parent_activity_id;
+		let activityReferenceId = request.refrence_activity_id;
 		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
 		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
 		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
@@ -4747,17 +4779,109 @@ function ActivityListingService(objCollection) {
 		}catch(err1){
 
 		}
-
-		if (error) {
-			error = true;
-			responseData = [{ "message": "Activity refrence addition failed" }];
+	}
+	async function sfRelation(request){
+		let parentActivity_id = request.parent_activity_id;
+		let activityReferenceId = request.refrence_activity_id;
+		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
+		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
+                let endDatePrev = moment(workflowActivityDetails1[0].activity_datetime_end_deferred);
+                let daystoAdd = endDatePrev.diff(startDatePrev,'days');
+                console.log('days',daystoAdd);
+                // let endDate = util.addDays(workflowActivityDetails[0].activity_datetime_end_deferred, daystoAdd);
+				let endDate = workflowActivityDetails[0].activity_datetime_start_expected;
+				let startDate = util.subtractDays(workflowActivityDetails[0].activity_datetime_start_expected,daystoAdd);
+				let startDateM = moment(startDate);
+				let workflowActivityDetails2 = await activityCommonService.getActivityDetailsPromise(request, parentActivity_id);
+				let startDateParent = moment(workflowActivityDetails2[0].activity_datetime_start_expected);
+				console.log(endDate,"end date")
+		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form:{...request,workflow_activity_id:request.activity_id,start_date:startDate,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1}
+        };
+		// console.log(endDate,"end date");
+		// console.log('ddd',dueDateParent)
+		console.log(startDateParent.diff(startDate));
+		if(startDateM.diff(startDateParent)<0){
+			const makeRequestOptions1 = {
+				form:{...request,workflow_activity_id:parentActivity_id,start_date:startDate,due_date:workflowActivityDetails2[0].activity_datetime_end_deferred,set_flag:2}
+			};
+			try{
+				// global.config.mobileBaseUrl + global.config.version
+				const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions1);
+			}catch(err2){
+	
+			}
 		}
-		else {
-			error = false;
-			responseData = [{ "message": "Activity refrence added successfully" }];
+        
+		try{
+            // global.config.mobileBaseUrl + global.config.version
+            const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions);
+		}catch(err1){
+
+		}
+		
+	}
+	async function ffRelation(request){
+		let parentActivity_id = request.parent_activity_id;
+		let activityReferenceId = request.refrence_activity_id;
+		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
+		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
+        let endDatePrev = moment(workflowActivityDetails1[0].activity_datetime_end_deferred);
+        let daystoAdd = endDatePrev.diff(startDatePrev, "days");
+        console.log("days", daystoAdd);
+        let startDate = util.subtractDays(workflowActivityDetails[0].activity_datetime_end_deferred,daystoAdd);
+		// let startDate = workflowActivityDetails[0].activity_datetime_start_expected;
+		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form:{...request,workflow_activity_id:request.activity_id,start_date:startDate,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1}
+        };
+        
+		try{
+            // global.config.mobileBaseUrl + global.config.version
+            const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions);
+		}catch(err1){
+
+		}
+	}
+	async function ssRelation(request){
+		let parentActivity_id = request.parent_activity_id;
+		let activityReferenceId = request.refrence_activity_id;
+		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
+		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
+        let endDatePrev = moment(workflowActivityDetails1[0].activity_datetime_end_deferred);
+        let daystoAdd = endDatePrev.diff(startDatePrev, "days");
+        console.log("days", daystoAdd);
+        let endDate = util.addDays(workflowActivityDetails[0].activity_datetime_start_expected,daystoAdd);
+		let startDate = workflowActivityDetails[0].activity_datetime_start_expected;
+		let workflowActivityDetails2 = await activityCommonService.getActivityDetailsPromise(request, parentActivity_id);
+		let dueDateParent = moment(workflowActivityDetails2[0].activity_datetime_end_deferred);
+		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form:{...request,workflow_activity_id:request.activity_id,start_date:startDate,due_date:endDate,set_flag:1}
+        };
+		if(dueDateParent.diff(endDate)<0){
+			const makeRequestOptions1 = {
+				form:{...request,workflow_activity_id:parentActivity_id,start_date:"",due_date:endDate,set_flag:2}
+			};
+			try{
+				// global.config.mobileBaseUrl + global.config.version
+				const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions1);
+			}catch(err2){
+	
+			}
+		}
+        
+		try{
+            // global.config.mobileBaseUrl + global.config.version
+            const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions);
+		}catch(err1){
+
 		}
 
-		return [error, responseData];
 	}
 
 	// Activity Reference Delete
