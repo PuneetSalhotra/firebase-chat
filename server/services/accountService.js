@@ -8,6 +8,7 @@ let CryptoJS = require("crypto-js");
 function AccountService(objectCollection) {
 
     let db = objectCollection.db;
+    let pgdb = objectCollection.pgdb;
     let util = objectCollection.util;
     let forEachAsync = objectCollection.forEachAsync;
     //var cacheWrapper = objectCollection.cacheWrapper;
@@ -819,6 +820,23 @@ function AccountService(objectCollection) {
             
         return [error,responseData]
     }
+
+    this.singleaccountMobIoTransactionsSummary = async function (request) {
+        let error = true;
+        let responseData = []
+        let paramsArr = new Array(
+            request.asset_id,
+            request.month,
+            request.year
+        );
+
+        let queryString = util.getPgQueryString('ds_p1_ent_singleaccount_mob_iot_transactions_summary_select', paramsArr);
+        if (queryString != '') {
+            [error, responseData] = await pgdb.executeQueryPromise(1, queryString, request);
+        }
+        return [error, responseData]
+    }
+
 
 }
 
