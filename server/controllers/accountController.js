@@ -497,9 +497,6 @@ function AccountController(objCollection) {
 
         const [err, result] = await accountService.singleaccountMobIoTransactionsSummary(req.body);
 
-        console.log(err);
-
-        console.log(result);
         if (!err) {
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {

@@ -39,26 +39,28 @@ let executeQueryPromise = async function (flag, queryString, request) {
         client = flag === 1 ? await readCluster.connect() : await writeCluster.connect();
         connetionEstablished = true;
     } catch (e) {
-        console.log(e);
+        logger.error("[PGDBError] Error in getting connection ", { error: e });
         if (flag === 1) {
             try {
                 client = await masterPool.connect();
                 connetionEstablished = true;
             } catch (e1) {
                 console.log(e1);
+                logger.error("[PGDBError] Error in getting connection ", { error: e1 });
             }
         }
     }
 
     if (connetionEstablished) {
         try {
-            const res = await client.query(queryString);
 
-            console.log("res ", res.rows);
+            const res = await client.query(queryString);
+            logger.verbose(`[${flag}] ${queryString}`, { type: 'postgres', db_response: null, request_body: null });
             error = false
             responseData = res.rows;
         } catch (e) {
             console.log(e);
+            logger.error("[PGDBError] Error in executing query", { error: e });
             error = true
             responseData = [];
         } finally {
