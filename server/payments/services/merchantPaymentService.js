@@ -2118,9 +2118,17 @@ function MerchantPaymentService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
+                    if (request.hasOwnProperty('is_unpaid')) {
+                        request.activity_parent_id = request.reservation_id;
+                        request.activity_type_category_id = 37;
+                        request.amount = 0;
+                        activityCommonService.updateAmountInInlineData(request);
+                    }
+                    else {
                    request.activity_parent_id= request.reservation_id;
                    request.activity_type_category_id=37;
                     activityCommonService.updateAmountInInlineData(request);
+                    }
                     error = false;
                     responseData = data;
                 })
