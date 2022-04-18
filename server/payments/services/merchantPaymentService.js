@@ -2122,12 +2122,16 @@ function MerchantPaymentService(objectCollection) {
                         request.activity_parent_id = request.reservation_id;
                         request.activity_type_category_id = 37;
                         request.amount = 0;
+                        console.log('is_unpaid...', request.amount)
                         activityCommonService.updateAmountInInlineData(request);
                     }
                     else {
-                   request.activity_parent_id= request.reservation_id;
-                   request.activity_type_category_id=37;
-                    activityCommonService.updateAmountInInlineData(request);
+                        request.activity_parent_id = request.reservation_id;
+                        request.activity_type_category_id = 37;
+                        let orderAmount = typeof request.amount == 'string' ? request.amount : `"${request.amount}"`;
+                        request.amount = orderAmount;
+                        console.log(typeof orderAmount, '::::::::paid orders:::::::::::')
+                        activityCommonService.updateAmountInInlineData(request);
                     }
                     error = false;
                     responseData = data;
