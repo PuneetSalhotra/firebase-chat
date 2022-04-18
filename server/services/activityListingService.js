@@ -2630,8 +2630,11 @@ function ActivityListingService(objCollection) {
 				.then(async (data) => {
 					responseData = data;
 					try {
-						let dataWithParticipant = await appendParticipantList(request, data);
-						responseData = dataWithParticipant;
+						if(request.flag!=7){
+							let dataWithParticipant = await appendParticipantList(request, data);
+							responseData = dataWithParticipant;	
+						}
+						
 					} catch (error) {
 						console.log("activityListSelectChildOrders | appendParticipantList | Error: ", error);
 						// Do nothing
@@ -2657,7 +2660,18 @@ function ActivityListingService(objCollection) {
 				requestForChild.parent_activity_id = parentActivityId;
 				requestForChild.flag = 7;
 				const [errorZero, childWorkflows] = await this.activityListSelectChildOrders(requestForChild);
-				activity.prerequisite_list = childWorkflows;
+				console.log('came in 1',parentActivityId);
+				console.log('came in 2',childWorkflows);
+				let preList = [];
+				for(let eachAct of childWorkflows){
+					if(Number(eachAct.activity_mapping_flag_is_prerequisite)>0){
+                   let eachPreActivity = await activityCommonService.getActivityDetailsPromise(request, eachAct.parent_activity_id);
+				   eachPreActivity[0].activity_mapping_flag_is_prerequisite=eachAct.activity_mapping_flag_is_prerequisite;
+				   preList.push(eachPreActivity[0]);
+					}
+				}
+				activity.prerequisite_list = preList;
+
 				for(let childActivity of activity.child_workflows){
 					let parentActivityId = childActivity.activity_id;
 			if (parentActivityId != null && parentActivityId > 0) {
@@ -2665,7 +2679,16 @@ function ActivityListingService(objCollection) {
 				requestForChild.parent_activity_id = parentActivityId;
 				requestForChild.flag = 7;
 				const [errorZero, childWorkflows1] = await this.activityListSelectChildOrders(requestForChild);
-				childActivity.prerequisite_list = childWorkflows1;
+				// console.log("came in",parentActivityId)
+				let preList = [];
+				for(let eachAct of childWorkflows1){
+					if(Number(eachAct.activity_mapping_flag_is_prerequisite)>0){
+                   let eachPreActivity = await activityCommonService.getActivityDetailsPromise(request, eachAct.parent_activity_id);
+				   eachPreActivity[0].activity_mapping_flag_is_prerequisite=eachAct.activity_mapping_flag_is_prerequisite;
+				   preList.push(eachPreActivity[0])
+				}
+			}
+				childActivity.prerequisite_list = preList;
 			}
 				}
 			}
@@ -4705,13 +4728,14 @@ function ActivityListingService(objCollection) {
 		let responseData = [],
 			error = true;
 		let parentActivity_id = request.parent_activity_id;
+		console.log("parent_activity_id",parentActivity_id)
 		let activityReferenceId = request.refrence_activity_id;
 		request.datetime_log = util.getCurrentUTCTime();
 		request.activity_flag_is_prerequisite = request.activity_flag_is_prerequisite ? request.activity_flag_is_prerequisite : 1;
 		[error, responseData] = await activityCommonService.activityActivityMappingInsertV1(request,activityReferenceId);
 		
 		// reffered activity change start and end datetime
-		await taskRelationTypesSet(request)
+		await taskRelationTypesSet({...request,parent_activity_id:parentActivity_id})
 		if (error) {
 			error = true;
 			responseData = [{ "message": "Activity refrence addition failed" }];
