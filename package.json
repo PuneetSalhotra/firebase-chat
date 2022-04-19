@@ -82,6 +82,8 @@
     "pdf-to-base64": "^1.0.2",
     "pdfmake": "^0.1.68",
     "pdfreader": "^1.2.14",
+    "pg": "^8.7.3",
+    "pg-format": "^1.0.4",
     "pubnub": "~4.21.7",
     "puppeteer": "^4.0.0",
     "razorpay": "^2.0.6",

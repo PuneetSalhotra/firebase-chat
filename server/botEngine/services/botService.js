@@ -10382,7 +10382,7 @@ else{
         } catch(err) {
             util.logError(request,`Error`, { type: 'bot_engine', err });
         }
-        
+        // return [false,[]]
         newReq.asset_id = 100;
         newReq.creator_asset_id = Number(request.asset_id);
         newReq.activity_id = Number(parentWorkflowActivityDetails[0].activity_id);
@@ -10446,6 +10446,7 @@ else{
 
     this.ghantChartStartAndDueDateUpdate = async (request) => {
 console.log(request)
+// console.log(request.activity_id)
         //flow to update all its parents due date
         let startDate = moment(request.start_date);
         let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
@@ -10465,7 +10466,7 @@ console.log(request)
         
           
         //flow to update all reffered activities start and end date
-        let [err,childActivitiesArray] = await activityListSelectChildOrders({...request,parent_activity_id:request.workflow_activity_id,flag:7});
+        let [err,childActivitiesArray] = await activityListSelectChildOrders({...request,parent_activity_id:request.workflow_activity_id,flag:8});
         // console.log(childActivitiesArray)
         for(let i=0 ; i < childActivitiesArray.length ; i++){
             if(Number(childActivitiesArray[i].activity_mapping_flag_is_prerequisite)==0){
@@ -10485,7 +10486,7 @@ console.log(request)
            await sleep(3000);
            let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
            
-           let [err,childActivitiesArray]  =await  activityListSelectChildOrders({...request,parent_activity_id:request.activity_id,flag:7});
+           let [err,childActivitiesArray]  =await  activityListSelectChildOrders({...request,parent_activity_id:request.activity_id,flag:8});
         for(let i=0 ; i < childActivitiesArray.length ; i++){
             if(Number(childActivitiesArray[i].activity_mapping_flag_is_prerequisite)==0){
                 continue;

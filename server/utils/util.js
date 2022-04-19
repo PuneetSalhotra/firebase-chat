@@ -101,6 +101,8 @@ const CryptoJS = require("crypto-js");
 // initialize node-ews
 const ews = new EWS(ewsConfig);*/
 
+const pgformat = require('pg-format');
+
 function Util(objectCollection) {
     
     let cacheWrapper = {};
@@ -3861,6 +3863,10 @@ function Util(objectCollection) {
         return [data['Contents'], bucketUrl];
 
     };
+
+    this.getPgQueryString = function (callName, paramsArr) {
+        return pgformat(`SELECT * FROM ${callName}(%L)`, paramsArr);
+    }
 
 }
 
