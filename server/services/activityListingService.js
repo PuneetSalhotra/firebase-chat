@@ -4734,13 +4734,17 @@ function ActivityListingService(objCollection) {
 		request.activity_flag_is_prerequisite = request.activity_flag_is_prerequisite ? request.activity_flag_is_prerequisite : 1;
 		[error, responseData] = await activityCommonService.activityActivityMappingInsertV1(request,activityReferenceId);
 		
+        [error,infiloopdat] = await this.checkGantLoopPossibility(request);
+
 		// reffered activity change start and end datetime
-		await taskRelationTypesSet({...request,parent_activity_id:parentActivity_id})
+		
 		if (error) {
+		 let [error1, responseData1] = await activityCommonService.activityActivityMappingArchive(request, activityReferenceId);
 			error = true;
 			responseData = [{ "message": "Activity refrence addition failed" }];
 		}
 		else {
+			await taskRelationTypesSet({...request,parent_activity_id:parentActivity_id})
 			error = false;
 			responseData = [{ "message": "Activity refrence added successfully" }];
 		}
@@ -4929,42 +4933,82 @@ function ActivityListingService(objCollection) {
 	// Activity Reference Update
 	this.activityReferenceUpdate = async function (request) {
 		let responseData = [],
-			error = true;
+			error = false;
+		let parentActivity_id = request.parent_activity_id;
 		let oldActivityReferenceId = request.old_refrence_activity_id;
 		let activityReferenceId = request.refrence_activity_id;
 		request.datetime_log = util.getCurrentUTCTime();
 		[error, responseData] = await activityCommonService.activityActivityMappingArchive(request, oldActivityReferenceId);
-		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
-		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
-        const makeRequestOptions = {
-            form:{...request,workflow_activity_id:request.activity_id,start_date:workflowActivityDetails[0].activity_datetime_end_deferred,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1}
-        };
-		try{
-            // global.config.mobileBaseUrl + global.config.version
-            const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions);
-		}catch(err1){
-
-		}
+		
 		if (error) {
 			error = true;
 			responseData = [{ "message": "Activity refrence updation failed" }];
 		}
 		else {
-			request.activity_flag_is_prerequisite = 1;
+			request.activity_flag_is_prerequisite = request.activity_flag_is_prerequisite?request.activity_flag_is_prerequisite:1;
 			[error, responseData] = await activityCommonService.activityActivityMappingInsertV1(request, activityReferenceId);
+			[error,infiloopdat] = await this.checkGantLoopPossibility(request);
+			
+			// await taskRelationTypesSet({...request,parent_activity_id:parentActivity_id})
 			if (error) {
 				error = true;
+			    await activityCommonService.activityActivityMappingArchive(request, activityReferenceId);
+			    await activityCommonService.activityActivityMappingInsertV1(request, oldActivityReferenceId);
 				responseData = [{ "message": "Activity refrence updation failed" }];
 			}
 			else {
 				error = false;
+				await taskRelationTypesSet({...request,parent_activity_id:parentActivity_id})
 				responseData = [{ "message": "Activity refrence updated successfully" }];
 			}
 
 		}
-
-
 		return [error, responseData];
+	}
+
+	this.checkGantLoopPossibility = async function (request) {
+        let allChildsArray = [request.activity_id];
+		let [err,childActivitiesArray] = await this.activityListSelectChildOrders({...request,parent_activity_id:request.activity_id,flag:8});
+		for(let eachAct of childActivitiesArray){
+           allChildsArray.push(eachAct.activity_id);
+		   let [err1,resArray] = await this.loopChildActivities({...request,parent_activity_id:eachAct.activity_id},allChildsArray);
+		   if(err1){
+			   return [true,[]]
+		   }
+		   allChildsArray = [...allChildsArray,...resArray];
+		};
+		return [false,[]]
+	}
+
+    async function checkDupeChilds(childArray) {
+      const arrayWithoutDuplicates = [...new Set(childArray)];
+      arrayWithoutDuplicates.forEach((item) => {
+        const i = childArray.indexOf(item);
+        childArray = childArray
+          .slice(0, i)
+          .concat(childArray.slice(i + 1, childArray.length));
+      });
+	  console.log("final dupe array",childArray);
+	  if(childArray.length>0){
+		  return true
+	  }
+	  return false;
+    }
+
+	this.loopChildActivities = async function(request,preActivities) {
+      let allChildArray = preActivities;
+	  let [err,childActivitiesArray] = await this.activityListSelectChildOrders({...request,parent_activity_id:request.activity_id,flag:8});
+		for(let eachAct of childActivitiesArray){
+
+			allChildArray.push(eachAct.activity_id);
+			let dupecheck = await checkDupeChilds(allChildArray);
+              if(dupecheck){
+				  return [true,[]]
+			  }
+		   let [err1,resArray] = await this.loopChildActivities({...request,parent_activity_id:eachAct.activity_id});
+		   allChildArray = [...allChildArray,...resArray];
+		}
+		return [false,allChildArray]
 	}
 
     this.workforceActivityStatusMappingSelectStatus = async function (request) {

@@ -1237,7 +1237,7 @@ function ActivityListingController(objCollection) {
             res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/activity/reference/add | Error: ", err);
-            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, responseData, -9998, req.body));
         }
     });
 
@@ -1257,7 +1257,7 @@ function ActivityListingController(objCollection) {
             res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/activity/reference/update | Error: ", err);
-            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, responseData, -9998, req.body));
         }
     });
 
