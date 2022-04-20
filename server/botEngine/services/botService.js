@@ -10655,7 +10655,7 @@ console.log(request)
         }
       }
       //field edit request
-      activity_inline_data = await fieldMappingGamification(request,activity_inline_data);
+      [activity_inline_data,totalFormScore] = await fieldMappingGamification(request,activity_inline_data);
       
       util.logInfo(request,`in is_from_field_alter : %j`,request.is_from_field_alter);
       util.logInfo(request,`in is_refill : %j`,request.is_refill);
@@ -10677,9 +10677,13 @@ console.log(request)
             let [err2,gamificationScoreOverall] = await getFormGamificationScore(request,3);
             let previousScoreOverall = Number(gamificationScoreOverall[0].field_gamification_score_value);
             let previousScoreMonthly = Number(gamificationScoreMonthly[0].field_gamification_score_value);
+            let previousFormScoreOverall = gamificationScoreOverall.length>0?Number(gamificationScoreOverall[0].form_gamification_score_value):0;
+            let previousFormScoreMonthly = gamificationScoreMonthly.length>0?Number(gamificationScoreMonthly[0].form_gamification_score_value):0;
+            let previousSubmissionsScoreOverall = gamificationScoreOverall.length>0?Number(gamificationScoreOverall[0].No_of_submissions):0;
+            let previousSubmissionsScoreMonthly = gamificationScoreMonthly.length>0?Number(gamificationScoreMonthly[0].No_of_submissions):0;
             await updateGamificationScore(request,3);
-            await assetSummaryTransactionInsert(request,previousScoreOverall+Math.abs(previousScore-finalScore));
-            await assetMonthlySummaryTransactionInsert(request,previousScoreMonthly+Math.abs(previousScore-finalScore))
+            await assetSummaryTransactionInsert(request,previousScoreOverall+Math.abs(previousScore-finalScore),previousFormScoreOverall,previousSubmissionsScoreOverall);
+            await assetMonthlySummaryTransactionInsert(request,previousScoreMonthly+Math.abs(previousScore-finalScore),previousFormScoreMonthly,previousSubmissionsScoreMonthly)
         }
         
       } //resubmit or refill case
@@ -10697,13 +10701,17 @@ console.log(request)
             let [err2,gamificationScoreOverall] = await getFormGamificationScore(request,3);
             let previousScoreOverall = gamificationScoreOverall.length>0?Number(gamificationScoreOverall[0].field_gamification_score_value):0;
             let previousScoreMonthly = gamificationScoreMonthly.length>0?Number(gamificationScoreMonthly[0].field_gamification_score_value):0;
+            let previousFormScoreOverall = gamificationScoreOverall.length>0?Number(gamificationScoreOverall[0].form_gamification_score_value):0;
+            let previousFormScoreMonthly = gamificationScoreMonthly.length>0?Number(gamificationScoreMonthly[0].form_gamification_score_value):0;
+            let previousSubmissionsScoreOverall = gamificationScoreOverall.length>0?Number(gamificationScoreOverall[0].No_of_submissions):0;
+            let previousSubmissionsScoreMonthly = gamificationScoreMonthly.length>0?Number(gamificationScoreMonthly[0].No_of_submissions):0;
             console.log("final overall prev",previousScoreOverall)
             console.log("final overall",previousScoreOverall+finalScore);
             console.log("montly overall prev",previousScoreMonthly);
             console.log("montly overall final",previousScoreMonthly + finalScore);
             await insertGamificationScore(request);
-            await assetSummaryTransactionInsert(request,previousScoreOverall+finalScore);
-            await assetMonthlySummaryTransactionInsert(request,previousScoreMonthly+finalScore);
+            await assetSummaryTransactionInsert(request,previousScoreOverall+finalScore,previousFormScoreOverall+totalFormScore,previousSubmissionsScoreOverall+1);
+            await assetMonthlySummaryTransactionInsert(request,previousScoreMonthly+finalScore,previousFormScoreMonthly+totalFormScore,previousSubmissionsScoreMonthly+1);
       }
     };
 
@@ -10754,7 +10762,7 @@ console.log(request)
         return [error, responseData];
     }
 
-    async function assetSummaryTransactionInsert(request,score) {
+    async function assetSummaryTransactionInsert(request,score,formScore,noOfSubmissions) {
         let responseData = [],
             error = true;
 
@@ -10768,7 +10776,9 @@ console.log(request)
         request.entity_date_1 || '', 
         request.entity_datetime_1 || '', 
         request.entity_tinyint_1 || '', 
-        score, 
+        score,
+        formScore,
+        noOfSubmissions,
         request.entity_double_1 || '', 
         request.entity_decimal_1 || '', 
         request.entity_decimal_2 || '', 
@@ -10795,7 +10805,7 @@ console.log(request)
         request.transaction_datetime || '', 
         util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_v1_asset_summary_transaction_insert', paramsArr);
+        const queryString = util.getQueryString('ds_v1_1_asset_summary_transaction_insert', paramsArr);
 
 
         if (queryString !== '') {
@@ -10811,7 +10821,7 @@ console.log(request)
         return [error, responseData];
     }
 
-    async function assetMonthlySummaryTransactionInsert(request,score) {
+    async function assetMonthlySummaryTransactionInsert(request,score,formScore,noOfSubmissions) {
         let responseData = [],
             error = true;
 
@@ -10825,6 +10835,8 @@ console.log(request)
           util.getStartDateTimeOfMonth(),
           request.entity_tinyint_1 || "",
           score,
+          formScore,
+          noOfSubmissions,
           request.entity_double_1 || "",
           request.entity_decimal_1 || "",
           request.entity_decimal_2 || "",
@@ -10851,7 +10863,7 @@ console.log(request)
           request.transaction_datetime || "",
           util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_v1_asset_monthly_summary_transaction_insert', paramsArr);
+        const queryString = util.getQueryString('ds_v1_1_asset_monthly_summary_transaction_insert', paramsArr);
 
 
         if (queryString !== '') {
@@ -18406,19 +18418,21 @@ if(workflowActivityData.length==0){
 
     async function fieldMappingGamification(request, inline_data) {
       let [err, data] = await formFieldGamificationData(request);
+      let totalScore = 0;
       for (let i = 0; i < data.length; i++) {
         try {
             console.log("index",i)
           let each = await data.find(
             (val) => val.field_id == inline_data[i].field_id
           );
+          totalScore = totalScore + Number(each.field_gamification_score_value)
           inline_data[i].field_gamification_score_value =
             each.field_gamification_score_value;
         } catch (err1) {
           continue;
         }
       }
-      return inline_data;
+      return [inline_data,totalScore];
     }
 
     async function updateAssetSequenceId(request){

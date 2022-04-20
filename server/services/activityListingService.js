@@ -5044,6 +5044,34 @@ function ActivityListingService(objCollection) {
 		return [error, responseData];
 	}
 
+	this.activityListSelectCategoryV1 = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.activity_type_category_id,
+          request.workforce_id,
+          request.account_id,
+		  request.asset_id,
+          request.start_from,
+          request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_select_category', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
+
 }
 
 module.exports = ActivityListingService;
