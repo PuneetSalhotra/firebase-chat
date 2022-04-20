@@ -1194,6 +1194,16 @@ function AssetController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/asset/list/reference/select', async function (req, res) {
+        const [err, resData] = await assetService.assetListForAssetReference(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, resData, 200, req.body));
+        } else {
+            console.log("/asset/list/reference/select | Error: ", err);
+            res.json(responseWrapper.getResponse(err, resData, -9999, req.body));
+        }
+    });
+
 
 }
 module.exports = AssetController;
