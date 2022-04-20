@@ -3902,7 +3902,8 @@ function TasiService(objectCollection) {
         const paramsArr = new Array(
           request.organization_id,
             request.flag_type || 0,
-            request.workforce_tag_id || 0,            
+            request.customer_account_code || '',
+            request.workforce_tag_id || 0,           
           request.asset_type_id,
           request.asset_id,
           request.widget_type_id,
@@ -3910,7 +3911,7 @@ function TasiService(objectCollection) {
           request.limit_value
         );
 
-        const queryString = util.getQueryString('ds_p1_1_entity_target_mapping_history_select', paramsArr);
+        const queryString = util.getQueryString('ds_p1_2_entity_target_mapping_history_select', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
