@@ -6294,8 +6294,10 @@ this.getQrBarcodeFeeback = async(request) => {
                                 singleData.query_status = 0;
                                 singleData.tag_id = 0;
                                 singleData.tag_name = "All";
-
-                                data.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                if(![223,224].includes(Number(request.tag_type_id))){
+                                  data.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                }
+                                
                                 responseData[0] = "";
                                 responseData[1] = data;
                                 resolve(responseData);
