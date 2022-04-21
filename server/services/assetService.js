@@ -1072,7 +1072,12 @@ function AssetService(objectCollection) {
             "workforce_tag_name": util.replaceDefaultString(rowArray[0]['workforce_tag_name']),
             "asset_type_flag_enable_gamification": util.replaceDefaultNumber(rowArray[0]['asset_type_flag_enable_gamification']),
             "organization_ai_bot_enabled": util.replaceDefaultNumber(rowArray[0]['organization_ai_bot_enabled']),
-            "asset_type_flag_enable_gantt_chart": util.replaceDefaultNumber(rowArray[0]['asset_type_flag_enable_gantt_chart'])
+            "asset_type_flag_enable_gantt_chart": util.replaceDefaultNumber(rowArray[0]['asset_type_flag_enable_gantt_chart']),
+            "manager_operating_asset_first_name": util.replaceDefaultString(rowArray[0]['manager_operating_asset_first_name']),
+            "manager_operating_asset_email_id": util.replaceDefaultString(rowArray[0]['manager_operating_asset_email_id']),
+            "operating_asset_customer_unique_id": util.replaceDefaultString(rowArray[0]['operating_asset_customer_unique_id']),
+            "operating_asset_email_id": util.replaceDefaultString(rowArray[0]['operating_asset_email_id']),
+            "asset_type_name": util.replaceDefaultString(rowArray[0]['asset_type_name']) 
        };
 
         callback(false, rowData);
@@ -6535,7 +6540,11 @@ this.getQrBarcodeFeeback = async(request) => {
                                     resolve(responseData);
                                 }
                             } else {    
-                                
+                                singleData.query_status = 0;
+                                singleData.tag_type_id = 0;
+                                singleData.tag_type_name = "All";
+
+                                data.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
                                 responseData[0] = "";
                                 responseData[1] = data;
                                 resolve(responseData);
