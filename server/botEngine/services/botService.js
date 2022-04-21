@@ -33,8 +33,8 @@ const ics = require('ics')
 
 const AWS = require('aws-sdk');
 AWS.config.update({
-    "accessKeyId": "AKIAWIPBVOFRSFSVJZMF",
-    "secretAccessKey": "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",
+    "accessKeyId": "AKIAWIPBVOFR4QJ3TS6E",
+    "secretAccessKey": "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",
     "region": "ap-south-1"
 });
 const sqs = new AWS.SQS();

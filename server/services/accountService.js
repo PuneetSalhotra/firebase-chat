@@ -712,8 +712,8 @@ function AccountService(objectCollection) {
 
         return [false, {
             username: "wd-user-s3",
-            access_key_id: "AKIAI72IRX6A77QNHM6A",
-            secret_access_key: "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"
+            access_key_id: "",
+            secret_access_key: ""
         }];
     };
 
