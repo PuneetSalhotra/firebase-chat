@@ -322,8 +322,8 @@ if(mode === 'masimukku') {
 if(mode === 'local') {
 
     //AWS SQS Email Configuration
-    config.aws_sqs_email_accessKeyId = "AKIAWIPBVOFR5CAQ735U";
-    config.aws_sqs_email_secretAccessKey = "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";
+    config.aws_sqs_email_accessKeyId = "AKIAWIPBVOFRQ2HPP4F3";
+    config.aws_sqs_email_secretAccessKey = "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";
     config.aws_sqs_email_region = "ap-south-1";
     config.emailSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/ews-engine-mail";
     config.smpEmailSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/ews-engine-mail-smp";
@@ -805,8 +805,8 @@ if(mode === 'sprint') {
 if(mode === 'staging') {
     
     //AWS SQS Email Configuration
-    config.aws_sqs_email_accessKeyId = "AKIAWIPBVOFR5CAQ735U";
-    config.aws_sqs_email_secretAccessKey = "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";
+    config.aws_sqs_email_accessKeyId = "AKIAWIPBVOFRQ2HPP4F3";
+    config.aws_sqs_email_secretAccessKey = "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";
     config.aws_sqs_email_region = "ap-south-1";
     config.emailSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/ews-engine-mail";
     config.smpEmailSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/ews-engine-mail-smp";
@@ -976,8 +976,8 @@ if(mode === 'staging') {
 if(mode === 'preprod') {
 
     //AWS SQS Email Configuration
-    config.aws_sqs_email_accessKeyId = "AKIAWIPBVOFR5CAQ735U";
-    config.aws_sqs_email_secretAccessKey = "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";
+    config.aws_sqs_email_accessKeyId = "AKIAWIPBVOFRQ2HPP4F3";
+    config.aws_sqs_email_secretAccessKey = "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";
     config.aws_sqs_email_region = "ap-south-1";
     config.emailSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/ews-engine-mail";
     config.smpEmailSQSQueueUrl = "https://sqs.ap-south-1.amazonaws.com/430506864995/ews-engine-mail-smp";
@@ -1186,8 +1186,8 @@ config.opentok_apiKey = "46050712";
 config.opentok_apiSecret = "2ea5c758e3d625155f3cde7f42586111848b74c5";
 
 //Cognito CLI Access
-config.access_key_id = "AKIAWIPBVOFRSA6UUSRC";
-config.secret_access_key = "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";
+config.access_key_id = "AKIAWIPBVOFRSH7MXHJY";
+config.secret_access_key = "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";
 config.cognito_region = "ap-south-1";
 //Gallabox Whatsapp
 config.gallaboxApiCredentials = {
