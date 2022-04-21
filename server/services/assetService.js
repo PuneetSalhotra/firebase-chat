@@ -6540,7 +6540,11 @@ this.getQrBarcodeFeeback = async(request) => {
                                     resolve(responseData);
                                 }
                             } else {    
-                                
+                                singleData.query_status = 0;
+                                singleData.tag_type_id = 0;
+                                singleData.tag_type_name = "All";
+
+                                data.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
                                 responseData[0] = "";
                                 responseData[1] = data;
                                 resolve(responseData);
