@@ -2428,6 +2428,32 @@ function ActivityConfigService(db,util,objCollection) {
         return [error, responseData];
     } 
     
+    this.workforceActivityTypeMappingUpdateFlag = async (request) => {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_id,
+            request.activity_type_id,
+            request.activity_type_arp_lead_setting_enabled,
+            request.log_asset_id,
+            util.getCurrentUTCTime()
+        );
+        const queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_update_arp_flag', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 
 }
 
