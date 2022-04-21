@@ -504,6 +504,28 @@ function AccountController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/singleaccount/cloud/transactions/summary', async function (req, res) {
+
+        const [err, result] = await accountService.singleaccountCloudTransactionsSummary(req.body);
+
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/singleaccount/fldflv/transactions/summary', async function (req, res) {
+
+        const [err, result] = await accountService.singleaccountFldflvTransactionsSummary(req.body);
+
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.json(responseWrapper.getResponse(err, {}, -9999, req.body));
+        }
+    });
+
 };
 
 module.exports = AccountController;
