@@ -1261,6 +1261,16 @@ function ActivityListingController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/activity/list/select/category/v1', async (req, res) => {
+        const [err, responseData] = await activityListingService.activityListSelectCategoryV1(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/list/select/category/v1 | Error: ", err);
+            res.json(responseWrapper.getResponse(err, responseData, -9998, req.body));
+        }
+    });
+
 
 }
 
