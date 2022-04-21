@@ -10445,7 +10445,11 @@ else{
     }
 
     this.ghantChartStartAndDueDateUpdate = async (request) => {
-console.log(request)
+        if(!request){
+            return [false,[]]
+        }
+console.log(request);
+// console.log('single req',request.single_req)
 // console.log(request.activity_id)
         //flow to update all its parents due date
         let startDate = moment(request.start_date);
@@ -10464,7 +10468,9 @@ console.log(request)
           await this.setDueDateV1(request, request.due_date, 1);
         }
         
-          
+          if(request.hasOwnProperty('single_req')){
+              return [false,[]]
+          }
         //flow to update all reffered activities start and end date
         let [err,childActivitiesArray] = await activityListSelectChildOrders({...request,parent_activity_id:request.workflow_activity_id,flag:8});
         // console.log(childActivitiesArray)
@@ -10474,6 +10480,8 @@ console.log(request)
             }
             let eachChildRequest = childActivitiesArray[i];
             eachChildRequest.workflow_activity_id = eachChildRequest.activity_id;
+            eachChildRequest.refrence_activity_id = request.workflow_activity_id;
+            eachChildRequest.parent_activity_id = request.parent_activity_id;
             await this.childChangeStartAndEndDate(eachChildRequest,request.due_date,request.start_date);
         }
         return [false,[]]
@@ -10482,7 +10490,7 @@ console.log(request)
 
     this.childChangeStartAndEndDate = async function (request,due_date,start_date){
         request.workflow_activity_id = request.workflow_activity_id ? request.workflow_activity_id : request.activity_id;
-           this.setDueDateV1({...request,start_date:due_date},due_date,2);
+           await this.taskRelationTypesSet({...request,})
            await sleep(3000);
            let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
            
@@ -10493,6 +10501,9 @@ console.log(request)
             }
 
             let eachChildRequest = childActivitiesArray[i];
+
+            eachChildRequest.refrence_activity_id = request.activity_id;
+            eachChildRequest.parent_activity_id = request.parent_activity_id;
             await this.childChangeStartAndEndDate(eachChildRequest,workflowActivityDetails1[0].activity_datetime_end_deferred,start_date);
         }
     }
@@ -10520,6 +10531,166 @@ console.log(request)
         await this.setDueDateV2(request);
         return [false,[]]
     }
+
+    this.taskRelationTypesSet = async function (req){
+        // console.log('came in ',req)
+		switch (Number(req.activity_mapping_flag_is_prerequisite)) {
+			case 1:
+			  this.fsRelation(req);
+			  break;
+			case 2:
+			  this.sfRelation(req);
+			  break;
+			case 3:
+			  this.ffRelation(req);
+			  break;
+			case 4:
+			  this.ssRelation(req);
+		  }
+	}
+
+	this.fsRelation = async function (request){
+        console.log('here i am')
+		let parentActivity_id = request.parent_activity_id;
+		let activityReferenceId = request.refrence_activity_id;
+		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
+		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
+                let endDatePrev = moment(workflowActivityDetails1[0].activity_datetime_end_deferred);
+                let daystoAdd = endDatePrev.diff(startDatePrev,'days');
+                console.log('days',daystoAdd);
+                let endDate = util.addDays(workflowActivityDetails[0].activity_datetime_end_deferred, daystoAdd);
+				let workflowActivityDetails2 = await activityCommonService.getActivityDetailsPromise(request, parentActivity_id);
+				let dueDateParent = moment(workflowActivityDetails2[0].activity_datetime_end_deferred);
+				console.log(endDate,"end date")
+		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {...request,workflow_activity_id:request.activity_id,start_date:workflowActivityDetails[0].activity_datetime_end_deferred,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1,single_req:1};
+		console.log(endDate,"end date");
+		console.log('ddd',dueDateParent)
+		console.log(dueDateParent.diff(endDate));
+		
+		if (dueDateParent.diff(endDate) < 0) {
+      const makeRequestOptions1 = {
+          ...request,
+          workflow_activity_id: parentActivity_id,
+          start_date: "",
+          due_date: endDate,
+          set_flag: 2,
+          single_req:1
+      };
+      try {
+          console.log('came here too')
+        // global.config.mobileBaseUrl + global.config.version
+        await this.ghantChartStartAndDueDateUpdate(makeRequestOptions1);
+        // const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions1);
+      } catch (err2) {
+      }
+    }
+
+    try {
+      // global.config.mobileBaseUrl + global.config.version
+      this.ghantChartStartAndDueDateUpdate(makeRequestOptions);
+      // const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions);
+    } catch (err1) {}
+	}
+	this.sfRelation = async function (request){
+		let parentActivity_id = request.parent_activity_id;
+		let activityReferenceId = request.refrence_activity_id;
+		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
+		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
+                let endDatePrev = moment(workflowActivityDetails1[0].activity_datetime_end_deferred);
+                let daystoAdd = endDatePrev.diff(startDatePrev,'days');
+                console.log('days',daystoAdd);
+                // let endDate = util.addDays(workflowActivityDetails[0].activity_datetime_end_deferred, daystoAdd);
+				let endDate = workflowActivityDetails[0].activity_datetime_start_expected;
+				let startDate = util.subtractDays(workflowActivityDetails[0].activity_datetime_start_expected,daystoAdd);
+				let startDateM = moment(startDate);
+				let workflowActivityDetails2 = await activityCommonService.getActivityDetailsPromise(request, parentActivity_id);
+				let startDateParent = moment(workflowActivityDetails2[0].activity_datetime_start_expected);
+				console.log(endDate,"end date")
+		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form:{...request,workflow_activity_id:request.activity_id,start_date:startDate,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1,single_req:1}
+        };
+		// console.log(endDate,"end date");
+		// console.log('ddd',dueDateParent)
+		console.log(startDateParent.diff(startDate));
+		if(startDateM.diff(startDateParent)<0){
+			const makeRequestOptions1 = {
+				form:{...request,workflow_activity_id:parentActivity_id,start_date:startDate,due_date:workflowActivityDetails2[0].activity_datetime_end_deferred,set_flag:2,single_req:1}
+			};
+			try {
+                // global.config.mobileBaseUrl + global.config.version
+                this.ghantChartStartAndDueDateUpdate(makeRequestOptions1.form);
+                // const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions1);
+              } catch (err2) {}
+            }
+        
+            try {
+              // global.config.mobileBaseUrl + global.config.version
+              this.ghantChartStartAndDueDateUpdate(makeRequestOptions.form);
+              // const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions);
+            } catch (err1) {}
+		
+	}
+	this.ffRelation = async function (request){
+		let parentActivity_id = request.parent_activity_id;
+		let activityReferenceId = request.refrence_activity_id;
+		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
+		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
+        let endDatePrev = moment(workflowActivityDetails1[0].activity_datetime_end_deferred);
+        let daystoAdd = endDatePrev.diff(startDatePrev, "days");
+        console.log("days", daystoAdd);
+        let startDate = util.subtractDays(workflowActivityDetails[0].activity_datetime_end_deferred,daystoAdd);
+		// let startDate = workflowActivityDetails[0].activity_datetime_start_expected;
+		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form:{...request,workflow_activity_id:request.activity_id,start_date:startDate,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1,single_req:1}
+        };
+    
+        try {
+          // global.config.mobileBaseUrl + global.config.version
+          this.ghantChartStartAndDueDateUpdate(makeRequestOptions.form);
+          // const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions);
+        } catch (err1) {}
+	}
+	this.ssRelation = async function (request){
+		let parentActivity_id = request.parent_activity_id;
+		let activityReferenceId = request.refrence_activity_id;
+		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
+		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
+        let endDatePrev = moment(workflowActivityDetails1[0].activity_datetime_end_deferred);
+        let daystoAdd = endDatePrev.diff(startDatePrev, "days");
+        console.log("days", daystoAdd);
+        let endDate = util.addDays(workflowActivityDetails[0].activity_datetime_start_expected,daystoAdd);
+		let startDate = workflowActivityDetails[0].activity_datetime_start_expected;
+		let workflowActivityDetails2 = await activityCommonService.getActivityDetailsPromise(request, parentActivity_id);
+		let dueDateParent = moment(workflowActivityDetails2[0].activity_datetime_end_deferred);
+		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form:{...request,workflow_activity_id:request.activity_id,start_date:startDate,due_date:endDate,set_flag:1,single_req:1}
+        };
+		if(dueDateParent.diff(endDate)<0){
+			const makeRequestOptions1 = {
+				form:{...request,workflow_activity_id:parentActivity_id,start_date:"",due_date:endDate,set_flag:2,single_req:1}
+			};
+			try {
+                // global.config.mobileBaseUrl + global.config.version
+                this.ghantChartStartAndDueDateUpdate(makeRequestOptions1.form);
+                // const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions1);
+              } catch (err2) {}
+            }
+        
+            try {
+              // global.config.mobileBaseUrl + global.config.version
+              this.ghantChartStartAndDueDateUpdate(makeRequestOptions.form);
+              // const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions);
+            } catch (err1) {}
+
+	}
 
 
     this.setDueDateV2 = async function (request){
@@ -10723,6 +10894,9 @@ console.log(request)
               if(data.length>1){
                   continue;
               }
+            }
+            if(!eachField.field_value || eachField.field_value==""){
+                continue;
             }
             
             gamification_score = gamification_score + Number(eachField.field_gamification_score_value || 0);

@@ -4783,7 +4783,7 @@ function ActivityListingService(objCollection) {
 				console.log(endDate,"end date")
 		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
         const makeRequestOptions = {
-            form:{...request,workflow_activity_id:request.activity_id,start_date:workflowActivityDetails[0].activity_datetime_end_deferred,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1}
+            form:{...request,parent_activity_id:parentActivity_id,workflow_activity_id:request.activity_id,start_date:workflowActivityDetails[0].activity_datetime_end_deferred,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1}
         };
 		console.log(endDate,"end date");
 		console.log('ddd',dueDateParent)
@@ -4791,7 +4791,7 @@ function ActivityListingService(objCollection) {
 		
 		if(dueDateParent.diff(endDate)<0){
 			const makeRequestOptions1 = {
-				form:{...request,workflow_activity_id:parentActivity_id,start_date:"",due_date:endDate,set_flag:2}
+				form:{...request,parent_activity_id:parentActivity_id,workflow_activity_id:parentActivity_id,start_date:"",due_date:endDate,set_flag:2}
 			};
 			try{
 				// global.config.mobileBaseUrl + global.config.version
@@ -4826,14 +4826,14 @@ function ActivityListingService(objCollection) {
 				console.log(endDate,"end date")
 		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
         const makeRequestOptions = {
-            form:{...request,workflow_activity_id:request.activity_id,start_date:startDate,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1}
+            form:{...request,parent_activity_id:parentActivity_id,workflow_activity_id:request.activity_id,start_date:startDate,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1}
         };
 		// console.log(endDate,"end date");
 		// console.log('ddd',dueDateParent)
 		console.log(startDateParent.diff(startDate));
 		if(startDateM.diff(startDateParent)<0){
 			const makeRequestOptions1 = {
-				form:{...request,workflow_activity_id:parentActivity_id,start_date:startDate,due_date:workflowActivityDetails2[0].activity_datetime_end_deferred,set_flag:2}
+				form:{...request,parent_activity_id:parentActivity_id,workflow_activity_id:parentActivity_id,start_date:startDate,due_date:workflowActivityDetails2[0].activity_datetime_end_deferred,set_flag:2}
 			};
 			try{
 				// global.config.mobileBaseUrl + global.config.version
@@ -4864,7 +4864,7 @@ function ActivityListingService(objCollection) {
 		// let startDate = workflowActivityDetails[0].activity_datetime_start_expected;
 		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
         const makeRequestOptions = {
-            form:{...request,workflow_activity_id:request.activity_id,start_date:startDate,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1}
+            form:{...request,parent_activity_id:parentActivity_id,workflow_activity_id:request.activity_id,start_date:startDate,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1}
         };
         
 		try{
@@ -4889,11 +4889,11 @@ function ActivityListingService(objCollection) {
 		let dueDateParent = moment(workflowActivityDetails2[0].activity_datetime_end_deferred);
 		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
         const makeRequestOptions = {
-            form:{...request,workflow_activity_id:request.activity_id,start_date:startDate,due_date:endDate,set_flag:1}
+            form:{...request,parent_activity_id:parentActivity_id,workflow_activity_id:request.activity_id,start_date:startDate,due_date:endDate,set_flag:1}
         };
 		if(dueDateParent.diff(endDate)<0){
 			const makeRequestOptions1 = {
-				form:{...request,workflow_activity_id:parentActivity_id,start_date:"",due_date:endDate,set_flag:2}
+				form:{...request,parent_activity_id:parentActivity_id,workflow_activity_id:parentActivity_id,start_date:"",due_date:endDate,set_flag:2}
 			};
 			try{
 				// global.config.mobileBaseUrl + global.config.version
@@ -4948,7 +4948,6 @@ function ActivityListingService(objCollection) {
 			request.activity_flag_is_prerequisite = request.activity_flag_is_prerequisite?request.activity_flag_is_prerequisite:1;
 			[error, responseData] = await activityCommonService.activityActivityMappingInsertV1(request, activityReferenceId);
 			[error,infiloopdat] = await this.checkGantLoopPossibility(request);
-			
 			// await taskRelationTypesSet({...request,parent_activity_id:parentActivity_id})
 			if (error) {
 				error = true;
@@ -4969,7 +4968,9 @@ function ActivityListingService(objCollection) {
 	this.checkGantLoopPossibility = async function (request) {
         let allChildsArray = [request.activity_id];
 		let [err,childActivitiesArray] = await this.activityListSelectChildOrders({...request,parent_activity_id:request.activity_id,flag:8});
+		// console.log(childActivitiesArray)
 		for(let eachAct of childActivitiesArray){
+			// console.log('came in',eachAct.activity_id)
            allChildsArray.push(eachAct.activity_id);
 		   let [err1,resArray] = await this.loopChildActivities({...request,parent_activity_id:eachAct.activity_id},allChildsArray);
 		   if(err1){
@@ -4997,15 +4998,15 @@ function ActivityListingService(objCollection) {
 
 	this.loopChildActivities = async function(request,preActivities) {
       let allChildArray = preActivities;
-	  let [err,childActivitiesArray] = await this.activityListSelectChildOrders({...request,parent_activity_id:request.activity_id,flag:8});
+	  let [err,childActivitiesArray] = await this.activityListSelectChildOrders({...request,flag:8});
 		for(let eachAct of childActivitiesArray){
-
 			allChildArray.push(eachAct.activity_id);
 			let dupecheck = await checkDupeChilds(allChildArray);
               if(dupecheck){
 				  return [true,[]]
 			  }
-		   let [err1,resArray] = await this.loopChildActivities({...request,parent_activity_id:eachAct.activity_id});
+			  
+		   let [err1,resArray] = await this.loopChildActivities({...request,parent_activity_id:eachAct.activity_id},allChildArray);
 		   allChildArray = [...allChildArray,...resArray];
 		}
 		return [false,allChildArray]
