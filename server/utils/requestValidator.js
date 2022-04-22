@@ -184,7 +184,6 @@ const exclusionList = [
     `/${global.config.version}/stats/signup/list`,
     `/${global.config.version}/stats/timeline/list`,
     `/${global.config.version}/vodafone/manual_trigger/excel_upload/child_workflows_create`,
-    `/${global.config.version}/trigger/update/account/integrations`,
     `/${global.config.version}/phone_number/verify/invite`
 ];
 
