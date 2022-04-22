@@ -8,6 +8,7 @@ let CryptoJS = require("crypto-js");
 function AccountService(objectCollection) {
 
     let db = objectCollection.db;
+    let pgdb = objectCollection.pgdb;
     let util = objectCollection.util;
     let forEachAsync = objectCollection.forEachAsync;
     //var cacheWrapper = objectCollection.cacheWrapper;
@@ -711,8 +712,8 @@ function AccountService(objectCollection) {
 
         return [false, {
             username: "wd-user-s3",
-            access_key_id: "AKIAI72IRX6A77QNHM6A",
-            secret_access_key: "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"
+            access_key_id: "",
+            secret_access_key: ""
         }];
     };
 
@@ -819,6 +820,76 @@ function AccountService(objectCollection) {
             
         return [error,responseData]
     }
+
+    this.singleaccountMobIoTransactionsSummary = async function (request) {
+        let error = true;
+        let responseData = []
+        let paramsArr = new Array(
+            request.asset_id,
+            request.month,
+            request.year
+        );
+
+        let queryString = util.getPgQueryString('ds_p1_ent_singleaccount_mob_iot_transactions_summary_select', paramsArr);
+        if (queryString != '') {
+            [error, responseData] = await pgdb.executeQueryPromise(1, queryString, request);
+        }
+        return [error, responseData]
+    }
+
+    this.singleaccountCloudTransactionsSummary = async function (request) {
+        let error = true;
+        let responseData = []
+        let paramsArr = new Array(
+            request.asset_id,
+            request.month,
+            request.year
+        );
+
+        let queryString = util.getPgQueryString('ds_p1_ent_singleaccount_cloud_transactions_summary_select', paramsArr);
+        if (queryString != '') {
+            [error, responseData] = await pgdb.executeQueryPromise(1, queryString, request);
+        }
+        return [error, responseData]
+    }
+
+    this.singleaccountFldflvTransactionsSummary = async function (request) {
+        let error = true;
+        let responseData = []
+        let paramsArr = new Array(
+            request.asset_id,
+            request.month,
+            request.year
+        );
+
+        let queryString = util.getPgQueryString('ds_p1_ent_singleaccount_fldflv_transactions_summary_select', paramsArr);
+        if (queryString != '') {
+            [error, responseData] = await pgdb.executeQueryPromise(1, queryString, request);
+        }
+        return [error, responseData]
+    }
+
+    this.accountViewSummarySelect = async function (request) {
+        let error = true;
+        let responseData = []
+        let paramsArr = new Array(
+            request.asset_id,
+            request.start_date,
+            request.end_date,
+            request.month,
+            request.quarter,
+            request.year,
+            request.flag
+        );
+
+        let queryString = util.getPgQueryString('ds_p1_account_view_summary_select', paramsArr);
+        if (queryString != '') {
+            [error, responseData] = await pgdb.executeQueryPromise(1, queryString, request);
+        }
+        console.log("after execution service");
+        return [error, responseData]
+    }
+
 
 }
 

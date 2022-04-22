@@ -7,8 +7,8 @@ const logger = require("../logger/winstonLogger");
 
 const AWS = require('aws-sdk');
 AWS.config.update({
-	"accessKeyId": "AKIAWIPBVOFRSFSVJZMF",
-	"secretAccessKey": "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",
+	"accessKeyId": "AKIAWIPBVOFR4QJ3TS6E",
+	"secretAccessKey": "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",
 	"region": "ap-south-1"
 });
 const sqs = new AWS.SQS();
@@ -2630,8 +2630,11 @@ function ActivityListingService(objCollection) {
 				.then(async (data) => {
 					responseData = data;
 					try {
-						let dataWithParticipant = await appendParticipantList(request, data);
-						responseData = dataWithParticipant;
+						if(request.flag!=7){
+							let dataWithParticipant = await appendParticipantList(request, data);
+							responseData = dataWithParticipant;	
+						}
+						
 					} catch (error) {
 						console.log("activityListSelectChildOrders | appendParticipantList | Error: ", error);
 						// Do nothing
@@ -2657,7 +2660,18 @@ function ActivityListingService(objCollection) {
 				requestForChild.parent_activity_id = parentActivityId;
 				requestForChild.flag = 7;
 				const [errorZero, childWorkflows] = await this.activityListSelectChildOrders(requestForChild);
-				activity.prerequisite_list = childWorkflows;
+				console.log('came in 1',parentActivityId);
+				console.log('came in 2',childWorkflows);
+				let preList = [];
+				for(let eachAct of childWorkflows){
+					if(Number(eachAct.activity_mapping_flag_is_prerequisite)>0){
+                   let eachPreActivity = await activityCommonService.getActivityDetailsPromise(request, eachAct.parent_activity_id);
+				   eachPreActivity[0].activity_mapping_flag_is_prerequisite=eachAct.activity_mapping_flag_is_prerequisite;
+				   preList.push(eachPreActivity[0]);
+					}
+				}
+				activity.prerequisite_list = preList;
+
 				for(let childActivity of activity.child_workflows){
 					let parentActivityId = childActivity.activity_id;
 			if (parentActivityId != null && parentActivityId > 0) {
@@ -2665,7 +2679,16 @@ function ActivityListingService(objCollection) {
 				requestForChild.parent_activity_id = parentActivityId;
 				requestForChild.flag = 7;
 				const [errorZero, childWorkflows1] = await this.activityListSelectChildOrders(requestForChild);
-				childActivity.prerequisite_list = childWorkflows1;
+				// console.log("came in",parentActivityId)
+				let preList = [];
+				for(let eachAct of childWorkflows1){
+					if(Number(eachAct.activity_mapping_flag_is_prerequisite)>0){
+                   let eachPreActivity = await activityCommonService.getActivityDetailsPromise(request, eachAct.parent_activity_id);
+				   eachPreActivity[0].activity_mapping_flag_is_prerequisite=eachAct.activity_mapping_flag_is_prerequisite;
+				   preList.push(eachPreActivity[0])
+				}
+			}
+				childActivity.prerequisite_list = preList;
 			}
 				}
 			}
@@ -2754,6 +2777,18 @@ function ActivityListingService(objCollection) {
 					error = err;
 				})
 		}
+		return [error, responseData];
+	}
+
+	this.activityListChildOrders = async function (request) {
+		let responseData = [],
+			error = true;
+		if (Number(request.based_on_asset_access) === 1) {
+			[error, responseData] = await this.activityListSelectChildOrdersBasedOnAssetAccess(request);
+		} else {
+			[error, responseData] = await this.activityListSelectChildOrders(request);
+		}
+
 		return [error, responseData];
 	}
 
@@ -4249,6 +4284,12 @@ function ActivityListingService(objCollection) {
 			nsr1FieldId = 318631;
 		}
 
+		if(activityTypeId === 201886) {
+			meetingRequestFormId = 51594;
+			scheduledTimeFieldId = 319395;
+			nsr1FieldId = 0;
+		}
+
 		const formTimelineDataOfMeeting = await activityCommonService.getActivityTimelineTransactionByFormId713({
 			organization_id: request.organization_id,
 			account_id: request.account_id
@@ -4359,10 +4400,23 @@ function ActivityListingService(objCollection) {
 					"Responsible_Person_Email_ID": 318884,
 					"Responsibility_Holder": 318885,
 					"Category_ID": 318886,
-					"Assigned_To": 318888,
+					"Assigned_To": 318887,
 					"Assigned_Date": 318888,
 					"Target_Closure_Date": 318889,
 					"Comments": 318890
+				}
+			},
+			"201885": {
+				"form_id": 51597,
+				"fields": {
+					"Discussion_Point": 319400,
+					"Description": 319401,
+					"Responsible_Person_Email_ID": 319405,
+					"Responsibility_Holder": 319404,
+					"Assigned_To": 319403,
+					"Assigned_Date": 319407,
+					"Target_Closure_Date": 319406,
+					"Comments": 319410
 				}
 			},
 			"field_order": {
@@ -4410,6 +4464,20 @@ function ActivityListingService(objCollection) {
 					"Target_Closure_Date",
 					"Comments",
 					"Status"
+				],
+				"201885": [
+					"SL_NO",
+					"Meeting_ID",
+					"MOM_Point_ID",
+					"Discussion_Point",
+					"Description",
+					"Responsible_Person_Email_ID",
+					"Responsibility_Holder",
+					"Assigned_To",
+					"Assigned_Date",
+					"Target_Closure_Date",
+					"Comments",
+					"Status"
 				]
 			},
 			"date_fields": [
@@ -4418,7 +4486,9 @@ function ActivityListingService(objCollection) {
 				313563,
 				313562,
 				318888,
-				318889
+				318889,
+				319407,
+				319406
 			]
 		};
 
@@ -4693,12 +4763,49 @@ function ActivityListingService(objCollection) {
 		let responseData = [],
 			error = true;
 		let parentActivity_id = request.parent_activity_id;
+		console.log("parent_activity_id",parentActivity_id)
 		let activityReferenceId = request.refrence_activity_id;
 		request.datetime_log = util.getCurrentUTCTime();
-		request.activity_flag_is_prerequisite = 1;
+		request.activity_flag_is_prerequisite = request.activity_flag_is_prerequisite ? request.activity_flag_is_prerequisite : 1;
 		[error, responseData] = await activityCommonService.activityActivityMappingInsertV1(request,activityReferenceId);
 		
+        [error,infiloopdat] = await this.checkGantLoopPossibility(request);
+
 		// reffered activity change start and end datetime
+		
+		if (error) {
+		 let [error1, responseData1] = await activityCommonService.activityActivityMappingArchive(request, activityReferenceId);
+			error = true;
+			responseData = [{ "message": "Activity refrence addition failed" }];
+		}
+		else {
+			await taskRelationTypesSet({...request,parent_activity_id:parentActivity_id})
+			error = false;
+			responseData = [{ "message": "Activity refrence added successfully" }];
+		}
+
+		return [error, responseData];
+	}
+
+	async function taskRelationTypesSet (req){
+		switch (Number(req.activity_flag_is_prerequisite)) {
+			case 1:
+			  fsRelation(req);
+			  break;
+			case 2:
+			  sfRelation(req);
+			  break;
+			case 3:
+			  ffRelation(req);
+			  break;
+			case 4:
+			  ssRelation(req);
+		  }
+	}
+
+	async function fsRelation(request){
+		let parentActivity_id = request.parent_activity_id;
+		let activityReferenceId = request.refrence_activity_id;
 		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
 		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
 		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
@@ -4711,7 +4818,7 @@ function ActivityListingService(objCollection) {
 				console.log(endDate,"end date")
 		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
         const makeRequestOptions = {
-            form:{...request,workflow_activity_id:request.activity_id,start_date:workflowActivityDetails[0].activity_datetime_end_deferred,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1}
+            form:{...request,parent_activity_id:parentActivity_id,workflow_activity_id:request.activity_id,start_date:workflowActivityDetails[0].activity_datetime_end_deferred,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1}
         };
 		console.log(endDate,"end date");
 		console.log('ddd',dueDateParent)
@@ -4719,7 +4826,109 @@ function ActivityListingService(objCollection) {
 		
 		if(dueDateParent.diff(endDate)<0){
 			const makeRequestOptions1 = {
-				form:{...request,workflow_activity_id:parentActivity_id,start_date:"",due_date:endDate,set_flag:2}
+				form:{...request,parent_activity_id:parentActivity_id,workflow_activity_id:parentActivity_id,start_date:"",due_date:endDate,set_flag:2}
+			};
+			try{
+				// global.config.mobileBaseUrl + global.config.version
+				const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions1);
+			}catch(err2){
+	
+			}
+		}
+        
+		try{
+            // global.config.mobileBaseUrl + global.config.version
+            const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions);
+		}catch(err1){
+
+		}
+	}
+	async function sfRelation(request){
+		let parentActivity_id = request.parent_activity_id;
+		let activityReferenceId = request.refrence_activity_id;
+		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
+		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
+                let endDatePrev = moment(workflowActivityDetails1[0].activity_datetime_end_deferred);
+                let daystoAdd = endDatePrev.diff(startDatePrev,'days');
+                console.log('days',daystoAdd);
+                // let endDate = util.addDays(workflowActivityDetails[0].activity_datetime_end_deferred, daystoAdd);
+				let endDate = workflowActivityDetails[0].activity_datetime_start_expected;
+				let startDate = util.subtractDays(workflowActivityDetails[0].activity_datetime_start_expected,daystoAdd);
+				let startDateM = moment(startDate);
+				let workflowActivityDetails2 = await activityCommonService.getActivityDetailsPromise(request, parentActivity_id);
+				let startDateParent = moment(workflowActivityDetails2[0].activity_datetime_start_expected);
+				console.log(endDate,"end date")
+		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form:{...request,parent_activity_id:parentActivity_id,workflow_activity_id:request.activity_id,start_date:startDate,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1}
+        };
+		// console.log(endDate,"end date");
+		// console.log('ddd',dueDateParent)
+		console.log(startDateParent.diff(startDate));
+		if(startDateM.diff(startDateParent)<0){
+			const makeRequestOptions1 = {
+				form:{...request,parent_activity_id:parentActivity_id,workflow_activity_id:parentActivity_id,start_date:startDate,due_date:workflowActivityDetails2[0].activity_datetime_end_deferred,set_flag:2}
+			};
+			try{
+				// global.config.mobileBaseUrl + global.config.version
+				const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions1);
+			}catch(err2){
+	
+			}
+		}
+        
+		try{
+            // global.config.mobileBaseUrl + global.config.version
+            const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions);
+		}catch(err1){
+
+		}
+		
+	}
+	async function ffRelation(request){
+		let parentActivity_id = request.parent_activity_id;
+		let activityReferenceId = request.refrence_activity_id;
+		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
+		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
+        let endDatePrev = moment(workflowActivityDetails1[0].activity_datetime_end_deferred);
+        let daystoAdd = endDatePrev.diff(startDatePrev, "days");
+        console.log("days", daystoAdd);
+        let startDate = util.subtractDays(workflowActivityDetails[0].activity_datetime_end_deferred,daystoAdd);
+		// let startDate = workflowActivityDetails[0].activity_datetime_start_expected;
+		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form:{...request,parent_activity_id:parentActivity_id,workflow_activity_id:request.activity_id,start_date:startDate,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1}
+        };
+        
+		try{
+            // global.config.mobileBaseUrl + global.config.version
+            const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions);
+		}catch(err1){
+
+		}
+	}
+	async function ssRelation(request){
+		let parentActivity_id = request.parent_activity_id;
+		let activityReferenceId = request.refrence_activity_id;
+		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
+		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
+        let endDatePrev = moment(workflowActivityDetails1[0].activity_datetime_end_deferred);
+        let daystoAdd = endDatePrev.diff(startDatePrev, "days");
+        console.log("days", daystoAdd);
+        let endDate = util.addDays(workflowActivityDetails[0].activity_datetime_start_expected,daystoAdd);
+		let startDate = workflowActivityDetails[0].activity_datetime_start_expected;
+		let workflowActivityDetails2 = await activityCommonService.getActivityDetailsPromise(request, parentActivity_id);
+		let dueDateParent = moment(workflowActivityDetails2[0].activity_datetime_end_deferred);
+		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form:{...request,parent_activity_id:parentActivity_id,workflow_activity_id:request.activity_id,start_date:startDate,due_date:endDate,set_flag:1}
+        };
+		if(dueDateParent.diff(endDate)<0){
+			const makeRequestOptions1 = {
+				form:{...request,parent_activity_id:parentActivity_id,workflow_activity_id:parentActivity_id,start_date:"",due_date:endDate,set_flag:2}
 			};
 			try{
 				// global.config.mobileBaseUrl + global.config.version
@@ -4736,16 +4945,6 @@ function ActivityListingService(objCollection) {
 
 		}
 
-		if (error) {
-			error = true;
-			responseData = [{ "message": "Activity refrence addition failed" }];
-		}
-		else {
-			error = false;
-			responseData = [{ "message": "Activity refrence added successfully" }];
-		}
-
-		return [error, responseData];
 	}
 
 	// Activity Reference Delete
@@ -4769,42 +4968,83 @@ function ActivityListingService(objCollection) {
 	// Activity Reference Update
 	this.activityReferenceUpdate = async function (request) {
 		let responseData = [],
-			error = true;
+			error = false;
+		let parentActivity_id = request.parent_activity_id;
 		let oldActivityReferenceId = request.old_refrence_activity_id;
 		let activityReferenceId = request.refrence_activity_id;
 		request.datetime_log = util.getCurrentUTCTime();
 		[error, responseData] = await activityCommonService.activityActivityMappingArchive(request, oldActivityReferenceId);
-		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
-		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
-        const makeRequestOptions = {
-            form:{...request,workflow_activity_id:request.activity_id,start_date:workflowActivityDetails[0].activity_datetime_end_deferred,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1}
-        };
-		try{
-            // global.config.mobileBaseUrl + global.config.version
-            const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions);
-		}catch(err1){
-
-		}
+		
 		if (error) {
 			error = true;
 			responseData = [{ "message": "Activity refrence updation failed" }];
 		}
 		else {
-			request.activity_flag_is_prerequisite = 1;
+			request.activity_flag_is_prerequisite = request.activity_flag_is_prerequisite?request.activity_flag_is_prerequisite:1;
 			[error, responseData] = await activityCommonService.activityActivityMappingInsertV1(request, activityReferenceId);
+			[error,infiloopdat] = await this.checkGantLoopPossibility(request);
+			// await taskRelationTypesSet({...request,parent_activity_id:parentActivity_id})
 			if (error) {
 				error = true;
+			    await activityCommonService.activityActivityMappingArchive(request, activityReferenceId);
+			    await activityCommonService.activityActivityMappingInsertV1(request, oldActivityReferenceId);
 				responseData = [{ "message": "Activity refrence updation failed" }];
 			}
 			else {
 				error = false;
+				await taskRelationTypesSet({...request,parent_activity_id:parentActivity_id})
 				responseData = [{ "message": "Activity refrence updated successfully" }];
 			}
 
 		}
-
-
 		return [error, responseData];
+	}
+
+	this.checkGantLoopPossibility = async function (request) {
+        let allChildsArray = [request.activity_id];
+		let [err,childActivitiesArray] = await this.activityListSelectChildOrders({...request,parent_activity_id:request.activity_id,flag:8});
+		// console.log(childActivitiesArray)
+		for(let eachAct of childActivitiesArray){
+			// console.log('came in',eachAct.activity_id)
+           allChildsArray.push(eachAct.activity_id);
+		   let [err1,resArray] = await this.loopChildActivities({...request,parent_activity_id:eachAct.activity_id},allChildsArray);
+		   if(err1){
+			   return [true,[]]
+		   }
+		   allChildsArray = [...allChildsArray,...resArray];
+		};
+		return [false,[]]
+	}
+
+    async function checkDupeChilds(childArray) {
+      const arrayWithoutDuplicates = [...new Set(childArray)];
+      arrayWithoutDuplicates.forEach((item) => {
+        const i = childArray.indexOf(item);
+        childArray = childArray
+          .slice(0, i)
+          .concat(childArray.slice(i + 1, childArray.length));
+      });
+	  console.log("final dupe array",childArray);
+	  if(childArray.length>0){
+		  return true
+	  }
+	  return false;
+    }
+
+	this.loopChildActivities = async function(request,preActivities) {
+      let allChildArray = preActivities;
+	  let [err,childActivitiesArray] = await this.activityListSelectChildOrders({...request,flag:8});
+		for(let eachAct of childActivitiesArray){
+			allChildArray.push(eachAct.activity_id);
+			let dupecheck = await checkDupeChilds(allChildArray);
+              if(dupecheck){
+				  return [true,[]]
+			  }
+			  
+		   let [err1,resArray] = await this.loopChildActivities({...request,parent_activity_id:eachAct.activity_id},allChildArray);
+		   allChildArray = [...allChildArray,...resArray];
+		}
+		return [false,allChildArray]
 	}
 
     this.workforceActivityStatusMappingSelectStatus = async function (request) {
@@ -4839,6 +5079,34 @@ function ActivityListingService(objCollection) {
 		await activityTimelineService.addTimelineTransactionAsync(request);
 		return [error, responseData];
 	}
+
+	this.activityListSelectCategoryV1 = async function (request) {
+        let responseData = [],
+            error = true;
+
+        const paramsArr = new Array(
+          request.organization_id,
+          request.activity_type_category_id,
+          request.workforce_id,
+          request.account_id,
+		  request.asset_id,
+          request.start_from,
+          request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_activity_list_select_category', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }
 
 }
 

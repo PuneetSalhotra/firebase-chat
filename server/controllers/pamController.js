@@ -842,7 +842,33 @@ function PamController(objCollection) {
         } else {
             res.json(responseWrapper.getResponse(err, {}, result, req.body));
         }
+    }); 
+    app.post('/' + global.config.version + '/pam/get/table/reservationorders', async (req, res) => {
+        let [err, result] = await pamService.getTableBasedReservationOrders(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            res.json(responseWrapper.getResponse(err, {}, result, req.body));
+        }
     });  
+
+    app.post('/' + global.config.version + '/pam/get/order/ingredient/inventory', async (req, res) => {
+        let [err, result] = await pamService.getOrderIngredientMapingInventory(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            res.json(responseWrapper.getResponse(err, {}, result, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/pam/get/order/ingredient/inventory/details', async (req, res) => {
+        let [err, result] = await pamService.getOrderIngredientMapingInventoryDetails(req.body)
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, result, 200, req.body));
+        } else {
+            res.json(responseWrapper.getResponse(err, {}, result, req.body));
+        }
+    });
 };
 
 module.exports = PamController;

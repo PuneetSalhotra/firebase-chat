@@ -61,6 +61,12 @@ function MerchantPaymentService(objectCollection) {
                 if (request.workforce_id !== undefined) {
                     hashText = hashText + request.workforce_id;
                 }
+                if (request.is_parent !== undefined) {
+                    hashText = hashText + request.is_parent;
+                }
+                if (request.sub_order_list !== undefined) {
+                    hashText = hashText + request.sub_order_list;
+                }
 
                 hashText = hashText + secretKey;
                 logger.info("hashText = " + hashText);
@@ -124,11 +130,11 @@ function MerchantPaymentService(objectCollection) {
 
                 //prepare hashText for validating signature
                 let hashText = request.account_id + request.amount + request.currency + request.customer_mobile_no + request.description
-                    + request.merchant_id + request.merchant_txn_ref_no + request.organization_id + request.reservation_id + request.workforce_id + secretKey;
+                    + request.merchant_id + request.merchant_txn_ref_no + request.organization_id + request.reservation_id + request.workforce_id +request.is_parent+request.sub_order_list+ secretKey;
                 logger.debug("hashText =" + hashText);
 
                 let signature = paymentUtil.hmacSha256(hashText, secretKey);
-                
+                logger.debug("server signature = " + signature);
                 //Step 3: validate signature
                 if(request.signature !== signature) {
                     logger.error(" merchant_id = " + request.merchant_id + ", merchant_txn_ref_no = " + request.merchant_txn_ref_no + " : Invalid parameter `signature`");
@@ -160,28 +166,38 @@ function MerchantPaymentService(objectCollection) {
                                         errormsg: "payment gateway not attached to organization = " + request.organization_id
                                     }];
                                 } else {
-                                    context.paymentTransactionData = {};
-                                    let [err, contextData] = await gatewayInstance.createOrder(request, context);
+                                    let paymentTransactionData = {};
+                                    let finalResponse = {};
+                                    //Step 7: add new payment transaction into system corresponding merchant_id and merchant_txn_ref_no
+                                    let [err, data] = await this.addPaymentTransaction(request, request.merchant_id, request.merchant_txn_ref_no, null, context);
                                     if (!err) {
-                                        context = contextData;
-                                        let order_id = contextData.paymentTransactionData.auth_no;
-                                        let options = contextData.options;
-                                        //Step 7: add new payment transaction into system corresponding merchant_id and merchant_txn_ref_no
-                                        let [err, data] = await this.addPaymentTransaction(request, request.merchant_id, request.merchant_txn_ref_no, order_id, context);
+                                        logger.info("transaction inserted for merchant_id = " + request.merchant_id
+                                            + " merchant_txn_ref_no = " + request.merchant_txn_ref_no);
+                                        let [err, paymentTransactionData] = await this.getPaymentTransaction(request, request.merchant_id, request.merchant_txn_ref_no);
                                         if (!err) {
-                                            logger.info("transaction inserted for merchant_id = " + request.merchant_id
-                                                + " merchant_txn_ref_no = " + request.merchant_txn_ref_no);
-
-                                            //Step 8: send response back to web.
-                                            logger.info("gatewayInstance : createOrder | response = " + JSON.stringify(options));
-                                            return [false, options];
-                                        } else {
-                                            logger.error("addPaymentTransaction| Error: ", JSON.stringify(data));
-                                            return [true, data];
+                                            if (paymentTransactionData.length !== 0) {
+                                                paymentTransactionData = paymentTransactionData[0];
+                                                finalResponse = {
+                                                    merchant_id: request.merchant_id,
+                                                    merchant_txn_ref_no: request.merchant_txn_ref_no,
+                                                    pg_ref_no: paymentTransactionData.auth_no,
+                                                    transaction_id: paymentTransactionData.transaction_id,
+                                                    response_code: "000",
+                                                    payment_response_code: "21",
+                                                    payment_response_desc: "PENDING",
+                                                    reservation_activity_id: paymentTransactionData.reservation_activity_id,
+                                                    organization_id: paymentTransactionData.organization_id,
+                                                    account_id: paymentTransactionData.account_id,
+                                                    workforce_id: paymentTransactionData.workforce_id
+                                                };
+                                            }
                                         }
+                                        //Step 8: send response back to web.
+                                        logger.info("gatewayInstance : createOrder | response = " + JSON.stringify(finalResponse));
+                                        return [false, finalResponse];
                                     } else {
-                                        logger.error("gatewayInstance : createOrder| Error: ", JSON.stringify(options));
-                                        return [true, options];
+                                        logger.error("addPaymentTransaction| Error: ", JSON.stringify(data));
+                                        return [true, data];
                                     }
                                 }
                             } else {
@@ -330,7 +346,31 @@ function MerchantPaymentService(objectCollection) {
             request.udf1 = request.addlParam1;
             request.txnid = request.merchantTxnNo;
             request.mihpayid = request.txnID;
-            return [error, responseData] = await this.handlePaymentGatewayResponse(request);
+            let [err, paymentTransactionData] = await this.getPaymentTransaction(request, request.udf1, request.txnid);
+            if (!err) {
+                if (paymentTransactionData.length !== 0) {
+                    paymentTransactionData = paymentTransactionData[0];
+                    let [error, responseData] = await this.handlePaymentGatewayResponse(request);
+                    if (paymentTransactionData.str_fld_6 == 1) {
+                        let subOrderList = JSON.parse(paymentTransactionData.str_fld_7);
+                        subOrderList = subOrderList.sub_order_list;
+                        for (let i = 0; i < subOrderList.length; i++) {
+                            request.merchant_txn_ref_no = subOrderList[i];
+                            logger.info("Handling sub_order payment gateway response flow = " + request.merchant_txn_ref_no);
+                            let [error, responseData] = await this.handlePaymentGatewayResponse(request);
+                        }
+                    }
+                    return[error,responseData]
+                }
+                else{
+                    return[true,{errormsg:"Invalid Merchant Refrence Number"}]
+                }
+            }
+            else{
+                return[true,{errormsg:"Invalid Merchant Refrence Number"}]
+            }
+            // return [error, responseData] = await this.handlePaymentGatewayResponse(request);
+            
         } else {
             logger.error('handlePayPhiPaymentResponse | Missing parameter `addlParam1`');
             return [true, {
@@ -479,6 +519,39 @@ function MerchantPaymentService(objectCollection) {
 
                                                                 let payment_datetime = moment(paymentresponse.paymentTransactionData.acq_resp_date_time).utc().format("YYYY-MM-DD HH:mm:ss");
 
+                                                                if (paymentresponse.paymentTransactionData.str_fld_6 == 1) {
+                                                                    let subOrderList = JSON.parse(paymentresponse.paymentTransactionData.str_fld_7);
+                                                                    request.sub_order_list = subOrderList.sub_order_list;
+                                                                    let [err2, listOrders] = await this.getPaymentTransactionV1(request);
+                                                                    if (err2) {
+                                                                        return listOrders;
+                                                                    } else {
+                                                                        for (let i = 0; i < listOrders.length; i++) {
+                                                                            let [err, paymentTransaction] = await this.updatePaymentTransaction(request, request.merchant_id, listOrders[i].merchant_txn_ref_no, paymentresponse.paymentTransactionData);
+                                                                            let [err1, paymentOrder] = await this.updatePaymentOrder(request, request.merchant_id, listOrders[i].merchant_txn_ref_no, paymentresponse.paymentTransactionData, transaction_id);
+                                                                            console.log(listOrders, '***************listOrders*******')
+                                                                            request.activity_parent_id = listOrders[i].reservation_activity_id;
+                                                                            request.activity_type_category_id = 37;
+                                                                            request.organization_id = paymentresponse.paymentTransactionData.organization_id;
+                                                                            request.amount = listOrders[i].amount;
+                                                                            console.log(request, '***************request from getPaymentTransactionV1*******', listOrders[i].amount)
+                                                                            activityCommonService.updateAmountInInlineData(request);
+                                                                            request.activity_id = listOrders[i].reservation_activity_id;
+                                                                            request.organization_id = paymentresponse.paymentTransactionData.organization_id;
+                                                                            request.account_id = paymentresponse.paymentTransactionData.account_id;
+                                                                            request.workforce_id = paymentresponse.paymentTransactionData.workforce_id;
+                                                                            request.activity_type_category_id = 37;
+                                                                            request.asset_id = 11031;
+                                                                            if ("SUC" === paymentresponse.paymentTransactionData.payment_status) {
+                                                                                request.activity_status_type_id = 99;  // paid                             
+                                                                            } else {
+                                                                                request.activity_status_type_id = 191; // payment failed
+                                                                            }
+                                                                            this.alterStatusMakeRequest(request);
+                                                                        }
+                                                                    }                                                                                                                                           
+                                                                }
+
                                                                 let finalResponse = {
                                                                     merchant_id: paymentresponse.paymentTransactionData.merchant_id,
                                                                     merchant_txn_ref_no: paymentresponse.paymentTransactionData.merchant_txn_ref_no,
@@ -501,56 +574,57 @@ function MerchantPaymentService(objectCollection) {
                                                                 logger.info(JSON.stringify(finalResponse));
 
                                                                 //-------------------------
-                                                                request.activity_id = paymentresponse.paymentTransactionData.reservation_activity_id;
-                                                                request.organization_id = paymentresponse.paymentTransactionData.organization_id;
-                                                                request.account_id = paymentresponse.paymentTransactionData.account_id;
-                                                                request.workforce_id = paymentresponse.paymentTransactionData.workforce_id;
-                                                                request.activity_type_category_id = 37;
-                                                                request.asset_id = 11031
-                                                                if ("SUC" === paymentresponse.paymentTransactionData.payment_status) {
-                                                                    request.activity_status_type_id = 99;  // paid  
-                                                                    let AssetDetails = await this.pamGetAssetDetails(request, request.organization_id, request.asset_id);
-                                                                    console.log(AssetDetails[0].asset_encryption_token_id, 'AssetDetailsAssetDetailsAssetDetails');
-                                                                    let orderlink = {
-                                                                        organizationId: request.organization_id,
-                                                                        activity_type_category_id: 38,
-                                                                        parent_activity_id: request.activity_id,
-                                                                        asset_id: request.asset_id,
-                                                                        asset_token_auth: AssetDetails[0].asset_encryption_token_id
-                                                                    }
-                                                                    orderlink = Buffer.from(JSON.stringify(orderlink)).toString('base64');
-                                                                    let link = global.config.ordertracklink + orderlink;                                                            
-                                                                    request.long_url = link;
-                                                                    tinyURL.shorten(request.long_url, async function (res, err) {
-                                                                        if (err) {
-                                                                            console.log("getShortFirebaseURL " + err)
-                                                                        } else {
-                                                                            console.log("getShortFirebaseURL " + res);
-                                                                            let PhoneNumber = paymentresponse.paymentTransactionData.customer_mob_no;
-                                                                            let restaurant_Name=context.merchantData.merchant_display_name;
-                                                                            let CountryCode = 91;
-                                                                            let recipientData = {
-                                                                                name: CountryCode.toString() + PhoneNumber,
-                                                                                phone: CountryCode.toString() + PhoneNumber,
-
-                                                                            };
-                                                                            let memberData = {
-                                                                                member_name: CountryCode.toString() + PhoneNumber,
-                                                                                restaurant_name:restaurant_Name,
-                                                                                link: res
-                                                                            };
-                                                                            let templateName = "orderstatus";
-                                                                            let [error, data] = await util.WhatsappNotification(request, memberData, recipientData, templateName);
-                                                                            return [true, {}]
+                                                                if (paymentresponse.paymentTransactionData.str_fld_6 == null) {
+                                                                    request.activity_id = paymentresponse.paymentTransactionData.reservation_activity_id;
+                                                                    request.organization_id = paymentresponse.paymentTransactionData.organization_id;
+                                                                    request.account_id = paymentresponse.paymentTransactionData.account_id;
+                                                                    request.workforce_id = paymentresponse.paymentTransactionData.workforce_id;
+                                                                    request.activity_type_category_id = 37;
+                                                                    request.asset_id = 11031
+                                                                    if ("SUC" === paymentresponse.paymentTransactionData.payment_status) {
+                                                                        request.activity_status_type_id = 99;  // paid  
+                                                                        let AssetDetails = await this.pamGetAssetDetails(request, request.organization_id, request.asset_id);
+                                                                        console.log(AssetDetails[0].asset_encryption_token_id, 'AssetDetailsAssetDetailsAssetDetails');
+                                                                        let orderlink = {
+                                                                            organizationId: request.organization_id,
+                                                                            activity_type_category_id: 38,
+                                                                            parent_activity_id: request.activity_id,
+                                                                            asset_id: request.asset_id,
+                                                                            asset_token_auth: AssetDetails[0].asset_encryption_token_id
                                                                         }
-                                                                    });
+                                                                        orderlink = Buffer.from(JSON.stringify(orderlink)).toString('base64');
+                                                                        let link = global.config.ordertracklink + orderlink;
+                                                                        request.long_url = link;
+                                                                        tinyURL.shorten(request.long_url, async function (res, err) {
+                                                                            if (err) {
+                                                                                console.log("getShortFirebaseURL " + err)
+                                                                            } else {
+                                                                                console.log("getShortFirebaseURL " + res);
+                                                                                let PhoneNumber = paymentresponse.paymentTransactionData.customer_mob_no;
+                                                                                let restaurant_Name = context.merchantData.merchant_display_name;
+                                                                                let CountryCode = 91;
+                                                                                let recipientData = {
+                                                                                    name: CountryCode.toString() + PhoneNumber,
+                                                                                    phone: CountryCode.toString() + PhoneNumber,
 
-                                                                } else {
-                                                                    request.activity_status_type_id = 191; // payment failed
+                                                                                };
+                                                                                let memberData = {
+                                                                                    member_name: CountryCode.toString() + PhoneNumber,
+                                                                                    restaurant_name: restaurant_Name,
+                                                                                    link: res
+                                                                                };
+                                                                                let templateName = "orderstatus";
+                                                                                let [error, data] = await util.WhatsappNotification(request, memberData, recipientData, templateName);
+                                                                                return [true, {}]
+                                                                            }
+                                                                        });
+
+                                                                    } else {
+                                                                        request.activity_status_type_id = 191; // payment failed
+                                                                    }
+                                                                    this.alterStatusMakeRequest(request);
+                                                                    //-------------------------
                                                                 }
-                                                                this.alterStatusMakeRequest(request);
-                                                                //-------------------------
-
                                                                 return [false, finalResponse];
                                                             } else {
                                                                 logger.error("handlePaymentGatewayResponse| updatePaymentOrder | Error: ", err);
@@ -1201,7 +1275,7 @@ function MerchantPaymentService(objectCollection) {
                                 if (payment_status === 'SUC' || payment_status === 'FAI') {
 
                                     //Step 2: send duplicate response
-                                    let finalResponse = {
+                                     let finalResponse = {
                                         merchant_id: paymentTransactionData.merchant_id,
                                         merchant_txn_ref_no: paymentTransactionData.merchant_txn_ref_no,
                                         amount: paymentTransactionData.amount,
@@ -1219,7 +1293,7 @@ function MerchantPaymentService(objectCollection) {
                                     logger.error('Duplicate response : Payment status = ' + payment_status);
                                     logger.info("sending back existing payment response = ");
                                     logger.info(JSON.stringify(finalResponse));
-                                    return [false, finalResponse];
+                                    return [false, finalResponse]; 
 
                                 } else {
 
@@ -1278,6 +1352,37 @@ function MerchantPaymentService(objectCollection) {
                                                                 if (!err) {
                                                                     let payment_datetime = moment(paymentresponse.paymentTransactionData.acq_resp_date_time).utc().format("YYYY-MM-DD HH:mm:ss");
 
+                                                                    if (paymentresponse.paymentTransactionData.str_fld_6 == 1) {
+                                                                        let subOrderList = JSON.parse(paymentresponse.paymentTransactionData.str_fld_7);
+                                                                        request.sub_order_list=subOrderList.sub_order_list;
+                                                                        let [err2, listOrders] = await this.getPaymentTransactionV1(request);
+                                                                        if (err2) {
+                                                                            return listOrders;
+                                                                        } else {
+                                                                            for (let i = 0; i < listOrders.length; i++) {
+                                                                                let [err, paymentTransaction] = await this.updatePaymentTransaction(request, request.merchant_id, listOrders[i].merchant_txn_ref_no, paymentresponse.paymentTransactionData);
+                                                                                let [err1, paymentOrder] = await this.updatePaymentOrder(request, request.merchant_id, listOrders[i].merchant_txn_ref_no, paymentresponse.paymentTransactionData, transaction_id);
+                                                                                request.activity_parent_id = listOrders[i].reservation_activity_id;
+                                                                                request.activity_type_category_id = 37;
+                                                                                request.organization_id = paymentresponse.paymentTransactionData.organization_id;
+                                                                                request.amount = listOrders[i].amount;
+                                                                                activityCommonService.updateAmountInInlineData(request);
+                                                                                request.activity_id = listOrders[i].reservation_activity_id;
+                                                                                request.organization_id = paymentresponse.paymentTransactionData.organization_id;
+                                                                                request.account_id = paymentresponse.paymentTransactionData.account_id;
+                                                                                request.workforce_id = paymentresponse.paymentTransactionData.workforce_id;
+                                                                                request.activity_type_category_id = 37;
+                                                                                request.asset_id = 11031;
+                                                                                if ("SUC" === paymentresponse.paymentTransactionData.payment_status) {
+                                                                                    request.activity_status_type_id = 99;  // paid                             
+                                                                                } else {
+                                                                                    request.activity_status_type_id = 191; // payment failed
+                                                                                }
+                                                                                this.alterStatusMakeRequest(request);
+                                                                            }
+                                                                        }                                                                       
+                                                                    }
+
                                                                     let finalResponse = {
                                                                         merchant_id: paymentresponse.paymentTransactionData.merchant_id,
                                                                         merchant_txn_ref_no: paymentresponse.paymentTransactionData.merchant_txn_ref_no,
@@ -1299,18 +1404,20 @@ function MerchantPaymentService(objectCollection) {
                                                                     logger.info(JSON.stringify(finalResponse));
 
                                                                     //-------------------------
-                                                                    request.activity_id = paymentresponse.paymentTransactionData.reservation_activity_id;
-                                                                    request.organization_id = paymentresponse.paymentTransactionData.organization_id;
-                                                                    request.account_id = paymentresponse.paymentTransactionData.account_id;
-                                                                    request.workforce_id = paymentresponse.paymentTransactionData.workforce_id;
-                                                                    request.activity_type_category_id = 37;
-                                                                    request.asset_id = 11031;
-                                                                    if ("SUC" === paymentresponse.paymentTransactionData.payment_status) {
-                                                                        request.activity_status_type_id = 99;  // paid                             
-                                                                    } else {
-                                                                        request.activity_status_type_id = 191; // payment failed
+                                                                    if (paymentresponse.paymentTransactionData.str_fld_6 == null) {
+                                                                        request.activity_id = paymentresponse.paymentTransactionData.reservation_activity_id;
+                                                                        request.organization_id = paymentresponse.paymentTransactionData.organization_id;
+                                                                        request.account_id = paymentresponse.paymentTransactionData.account_id;
+                                                                        request.workforce_id = paymentresponse.paymentTransactionData.workforce_id;
+                                                                        request.activity_type_category_id = 37;
+                                                                        request.asset_id = 11031;
+                                                                        if ("SUC" === paymentresponse.paymentTransactionData.payment_status) {
+                                                                            request.activity_status_type_id = 99;  // paid                             
+                                                                        } else {
+                                                                            request.activity_status_type_id = 191; // payment failed
+                                                                        }
+                                                                        this.alterStatusMakeRequest(request);
                                                                     }
-                                                                    this.alterStatusMakeRequest(request);
                                                                     //-------------------------
 
                                                                     return [false, finalResponse];
@@ -2118,9 +2225,21 @@ function MerchantPaymentService(objectCollection) {
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
-                   request.activity_parent_id= request.reservation_id;
-                   request.activity_type_category_id=37;
-                    activityCommonService.updateAmountInInlineData(request);
+                    if (request.hasOwnProperty('is_unpaid')) {
+                        request.activity_parent_id = request.reservation_id;
+                        request.activity_type_category_id = 37;
+                        request.amount = 0;
+                        console.log('is_unpaid...', request.amount)
+                        activityCommonService.updateAmountInInlineData(request);
+                    }
+                    else {
+                        request.activity_parent_id = request.reservation_id;
+                        request.activity_type_category_id = 37;
+                        typeof request.amount == 'string' ? request.amount :JSON.stringify(request.amount);
+                        // request.amount = orderAmount;
+                         console.log(typeof request.amount, '::::::::paid orders:::::::::::')
+                        activityCommonService.updateAmountInInlineData(request);
+                    }
                     error = false;
                     responseData = data;
                 })
@@ -2183,8 +2302,8 @@ function MerchantPaymentService(objectCollection) {
             payment.payment_inst_type,
             payment.payment_inst_sub_type,
             payment.transaction_id,
-            payment.merchant_id,
-            payment.merchant_txn_ref_no
+            merchant_id,
+            merchant_txn_ref_no
         );
 
         const queryString = util.getQueryString('ds_p1_payment_order_list_update', paramsArr);
@@ -2772,6 +2891,304 @@ function MerchantPaymentService(objectCollection) {
                 });
             }
         });
+    }
+
+    this.paymentGatewayRouting = async function (request) {
+        logger.info("MerchantPaymentService : paymentGatewayRouting: request : " + JSON.stringify(request));
+        let error = false;
+
+        //Step 1: validate Each parameters
+        let result = this.validatePaymentRequestV1(request);
+        if ("Ok" !== result) {
+            logger.error(result);
+            error = true;
+            return [true, {
+                errormsg: result
+            }];
+        }
+
+        let context = {};
+        //Step 2: Check if the merchant_id is valid
+        if (paymentUtil.isNotEmpty(request.merchant_id)) {
+
+            let [err, responseData] = await this.getPrePaymentDetails(request, context);
+            if (!err) {
+                context = responseData;
+                let merchantData = context.merchantData;
+
+                //get merchant secretKey
+                let secretKey = merchantData.merchant_secret_key;
+                secretKey = Buffer.from(secretKey, 'base64').toString();
+
+                //prepare hashText for validating signature
+                let hashText = request.account_id + request.amount + request.currency + request.customer_mobile_no + request.description
+                    + request.merchant_id + request.merchant_txn_ref_no + request.organization_id + request.reservation_id + request.workforce_id +request.is_parent+request.sub_order_list+secretKey;
+                logger.debug("hashText =" + hashText);
+
+                let signature = paymentUtil.hmacSha256(hashText, secretKey);
+                console.log("server signature = " + signature);
+                //Step 3: validate signature
+                if (request.signature !== signature) {
+                    logger.error(" merchant_id = " + request.merchant_id + ", merchant_txn_ref_no = " + request.merchant_txn_ref_no + " : Invalid parameter `signature`");
+                    return [true, {
+                        errormsg: "Invalid parameter `signature`"
+                    }];
+                } else {
+                    logger.info("merchant_id = " + request.merchant_id + ", merchant_txn_ref_no = " + request.merchant_txn_ref_no + " : valid parameter `signature`");
+
+                    //Step 4: check duplicate order
+                    let [err, paymentOrderData] = await this.getPaymentOrder(request, request.merchant_id, request.merchant_txn_ref_no);
+                    if (!err) {
+                        if (paymentOrderData.length == 0 && request.is_parent == 1) {
+                            logger.info("Handling multiple payment parent order transaction flow..........");
+                            //add new parent order
+                            //handling multiple orders
+                            request.current_date = util.getCurrentUTCTime();
+                            let [err, listOrders] = await this.getPaymentTransactionV1(request);
+                            if (err) {
+                                return listOrders;
+                            } else {
+                                let amount = 0;
+                                for (let j = 0; j < listOrders.length; j++) {
+                                    amount = amount + listOrders[j].amount;
+                                    logger.info("sub_order_list : merchant_txn_ref_no = " + listOrders[j].merchant_txn_ref_no + " : amount = " + listOrders[j].amount);
+                                }
+                                logger.info("sub_order_list : total amount = " + amount + " : requested amount = " + request.amount);
+                                if (request.amount != amount) {
+                                    logger.error(" merchant_id = " + request.merchant_id + ", merchant_txn_ref_no = " + request.merchant_txn_ref_no + " : Invalid parameter `amount`");
+                                    return [true, {
+                                        errormsg: "Invalid parameter `amount` : requested amount is not equal to sub_order_list total amount"
+                                    }];
+                                } else {
+                                    request.amount = amount;
+                                    //Step 5: Add a new record in payment order list table.
+                                    let [errr, order] = await this.addPaymentOrder(request, request.merchant_id, request.merchant_txn_ref_no, merchantData.merchant_secret_key);
+                                    if (!errr) {
+                                        logger.info("payment order inserted for merchant_id = " + request.merchant_id
+                                            + " merchant_txn_ref_no = " + request.merchant_txn_ref_no);
+
+                                        //Step 6: generate new order at PaymentGateway server.
+
+                                        let gatewayInstance = this.getPaymentGatewayInstance(context.gatewayData.protocol_type, objectCollection);
+                                        if (gatewayInstance == null) {
+                                            return [true, {
+                                                errormsg: "payment gateway not attached to organization = " + request.organization_id
+                                            }];
+                                        } else {
+                                            context.paymentTransactionData = {};
+                                            let [err, contextData] = await gatewayInstance.createOrder(request, context);
+                                            if (!err) {
+                                                context = contextData;
+                                                let order_id = contextData.paymentTransactionData.auth_no;
+                                                let options = contextData.options;
+
+                                                //Step 7: add new payment transaction into system corresponding merchant_id and merchant_txn_ref_no
+                                                let [err, data] = await this.addPaymentTransactionv1(request, request.merchant_id, request.merchant_txn_ref_no, order_id, context, listOrders);
+                                                if (!err) {
+                                                    logger.info("transaction inserted for merchant_id = " + request.merchant_id
+                                                        + " merchant_txn_ref_no = " + request.merchant_txn_ref_no);
+
+                                                    //Step 8: send response back to web.
+                                                    logger.info("gatewayInstance : createOrder | response = " + JSON.stringify(options));
+                                                    return [false, options];
+                                                } else {
+                                                    logger.error("addPaymentTransaction| Error: ", JSON.stringify(data));
+                                                    return [true, data];
+                                                }
+                                            } else {
+                                                logger.error("gatewayInstance : createOrder| Error: ", JSON.stringify(options));
+                                                return [true, options];
+                                            }
+                                        }
+                                    } else {
+                                        logger.error("addPaymentOrder| Error: ", JSON.stringify(order));
+                                        return [true, order];
+                                    }
+                                }
+                            }
+                        } else {
+                            let [err, paymentTransactionData] = await this.getPaymentTransaction(request, request.merchant_id, request.merchant_txn_ref_no);
+                            if (!err) {
+                                if (paymentTransactionData.length !== 0) {
+                                    paymentTransactionData = paymentTransactionData[0];
+                                    if (paymentTransactionData.str_fld_6 == 1) {
+                                        logger.info("multiple payment : Duplicate parent order transaction flow..........");
+                                        //Duplicate parent transaction
+                                        return [true, {
+                                            errormsg: "Duplicate Parent Order"
+                                        }];
+                                    } else if (paymentTransactionData.str_fld_6 == null && paymentTransactionData.payment_status === "REQ") {
+                                        logger.info("Handling single transaction payment transaction flow......");
+                                        let gatewayInstance = this.getPaymentGatewayInstance(context.gatewayData.protocol_type, objectCollection);
+                                        if (gatewayInstance == null) {
+                                            return [true, {
+                                                errormsg: "payment gateway not attached to organization = " + request.organization_id
+                                            }];
+                                        } else {
+                                            context.paymentTransactionData = {};
+                                            let [err, contextData] = await gatewayInstance.createOrder(request, context);
+                                            if (!err) {
+                                                context = contextData;
+                                                let order_id = contextData.paymentTransactionData.auth_no;
+                                                let options = contextData.options;
+                                                return [false, options];
+                                            } else {
+                                                logger.error("gatewayInstance : createOrder| Error: ", JSON.stringify(options));
+                                                return [true, options];
+                                            }
+                                        }
+                                    } else {
+                                        logger.error(" merchant_id = " + request.merchant_id + ", merchant_txn_ref_no = " + request.merchant_txn_ref_no + " : Invalid parameter `signature`");
+                                        return [true, {
+                                            errormsg: "Invalid parameter `merchant_txn_ref_no`"
+                                        }];
+                                    }
+                                } else {
+                                    logger.error(" merchant_id = " + request.merchant_id + ", merchant_txn_ref_no = " + request.merchant_txn_ref_no + " : Invalid parameter `signature`");
+                                    return [true, {
+                                        errormsg: "Invalid parameter `merchant_txn_ref_no`"
+                                    }];
+                                }
+                            }
+                        }
+                    } else {
+                        logger.error("getPaymentOrder| Error: ", JSON.stringify(paymentOrderData));
+                        return [true, paymentOrderData];
+                    }
+                }
+            } else {
+                logger.error("getMerchant| Error: ", JSON.stringify(responseData));
+                return [true, responseData];
+            }
+        } else {
+            logger.error('Missing parameter `merchant_id`');
+            return [true, {
+                errormsg: 'Missing parameter `merchant_id`'
+            }];
+        }
+    }
+
+    this.addPaymentTransactionv1 = async function (request, merchant_id, merchant_txn_ref_no, payment_order_id, context,orderList) {
+        logger.info("MerchantPaymentService : addPaymentTransactionv1 : merchant_id = " + request.merchant_id +
+            " merchant_txn_ref_no = " + request.merchant_txn_ref_no);
+        let responseData = {},
+            error = true;
+        let parentOrderAmount = request.amount;
+        console.log(parentOrderAmount,'parentOrderAmount')
+        const paramsArr = new Array(
+            paymentUtil.generateUniqueID(),
+            request.merchant_id,
+            request.merchant_txn_ref_no,
+            request.current_date,
+            'PAYMENT',
+            Number(parentOrderAmount).toFixed(2),
+            Number(parentOrderAmount).toFixed(2),
+            request.currency,
+            null,
+            null,
+            request.customer_mobile_no || null,
+            null,
+            null,
+            null,
+            payment_order_id,
+            context.gatewayData.gateway_acquirer_id,
+            context.gatewayData.gateway_id,
+            context.merchantParamData.acqmerchant_id,
+            Number("0.00").toFixed(2),
+            Number("0.00").toFixed(2),
+            request.reservation_id,
+            request.workforce_id || 2085,
+            request.account_id || 452,
+            request.organization_id || 351,
+            request.is_parent,
+            JSON.stringify({ sub_order_list: request.sub_order_list })
+            //"REQ"
+        );
+        console.log(paramsArr);
+        const queryString = util.getQueryString('ds_p1_1_payment_log_transaction_insert', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    error = false;
+                    responseData = data;
+                })
+                .catch((err) => {
+                    logger.error("MerchantPaymentService : addPaymentTransactionv1 : merchant_id = " + request.merchant_id +
+                        " merchant_txn_ref_no = " + request.merchant_txn_ref_no + " : Error:");
+                    logger.error("MerchantPaymentService : addPaymentTransactionv1 : ds_p1_payment_log_transaction_insert : Error : " + err);
+                    error = true;
+                    responseData = {
+                        errormsg: 'Internal Server Error'
+                    };
+                })
+        }
+        return [error, responseData];
+    }
+
+    this.validatePaymentRequestV1 = function(request) {
+        logger.info("validate payment request parameters=>");
+        let mandatoryParams = ["amount", "currency", "customer_mobile_no", "description", "merchant_id", "merchant_txn_ref_no", "signature",
+            "reservation_id", "workforce_id", "account_id", "organization_id","is_parent","sub_order_list"];
+        let result = paymentUtil.isParameterExists(mandatoryParams, request);  
+        if('Ok' !== result) {
+            logger.error(result);
+            return result;
+        }
+        if(request.is_parent==1 && request.sub_order_list==[]) {
+            return 'Invalid sub_order_list';
+        }
+        let isValidNum = paymentUtil.isNumber(request.amount);
+        if(!isValidNum) {
+            logger.error('Invalid parameter `amount`');
+            return 'Invalid parameter `amount`';
+        } 
+
+        logger.info("all parameters are valid");
+        return 'Ok';
+    }
+
+    this.getPaymentTransactionV1 = async function (request) {
+        logger.info("MerchantPaymentService : getPaymentTransactionV1 : merchant_id = " + request.merchant_id +
+            " merchant_txn_ref_no = " + request.merchant_txn_ref_no);
+        let responseData = [],
+            error = true;
+        let subOrders = request.sub_order_list;
+        for (let i = 0; i < subOrders.length; i++) {
+            const paramsArr = new Array(
+                request.merchant_id,
+                subOrders[i]
+            );
+            const queryString = util.getQueryString('ds_p1_payment_log_transaction_select', paramsArr);
+
+            if (queryString !== '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then((data) => {
+                        if (data.length === 0) {
+                            logger.error("MerchantPaymentService : getPaymentTransactionV1 : merchant_id = " + request.merchant_id +
+                                " merchant_txn_ref_no = " + request.merchant_txn_ref_no);
+                            error = true;
+                            responseData = {
+                                errormsg: 'Invalid merchant_txn_ref_no from sub_order_list = ' + request.merchant_txn_ref_no
+                            };
+                        } else {
+                            responseData.push(data[0]);
+                            error = false;
+                        }
+                    })
+                    .catch((err) => {
+                        logger.error("MerchantPaymentService : getPaymentTransactionV1 : merchant_id = " + request.merchant_id +
+                            " merchant_txn_ref_no = " + request.merchant_txn_ref_no + " : Error:");
+                        logger.error("MerchantPaymentService : getPaymentTransactionV1 : ds_p1_payment_log_transaction_select : Error : " + err);
+                        error = true;
+                        responseData = {
+                            errormsg: 'Internal Server Error'
+                        };
+                        return [error, responseData];
+                    })
+            }
+        }
+        return [error, responseData];
     }
 }
 

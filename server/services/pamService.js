@@ -7382,6 +7382,142 @@ this.getChildOfAParent = async (request) => {
         return [error, responseData];
     };
 
+    this.getTableBasedReservationOrders = async function (request) {
+        let responseData = [],
+            error = true;
+        try {
+            let paramsArr = new Array(
+                request.organization_id,
+                request.account_id,
+                request.table_asset_id,
+                request.start_date,
+                request.end_date,
+                request.name,
+                request.flag,
+                request.type,
+                request.activity_status_type_id,
+                request.start_from || 0,
+                request.limit_value
+            );
+            const queryString = util.getQueryString('pm_pam_order_list_get_select_details', paramsArr);
+            if (queryString !== '') {
+                await db.executeQueryPromise(1, queryString, request)
+                    .then(async (data) => {
+                        responseData = data;
+                        for (let i = 0; i < data.length; i++) {
+                            if (request.flag == 5) {
+                                let amountPaid = JSON.parse(data[i].activity_inline_data);
+                                data[i]['amount'] = amountPaid.paid_amount || 0;
+                                data[i]['is_paid'] = (amountPaid.paid_amount) > 0;
+                                let [errr, ResData] = await this.getOrdersV1(request, data[i].activity_id);
+                                data[i]['reservationOrder'] = ResData;
+                                request.reservation_activity_id=data[i].activity_id
+                                let [errr1, ResData1] = await this.reservationMerchantRefNo(request);
+                                data[i]['merchant_txn_ref_no'] = ResData1;
+
+                            }
+                            else if (request.flag == 6) {
+                                let amountPaid = JSON.parse(data[i].activity_inline_data);
+                                data[i]['amount'] = amountPaid.paid_amount || 0;
+                                data[i]['is_paid'] = (amountPaid.paid_amount) > 0;
+                                let [errr, ResData] = await this.getOrdersByStatus(request, data[i].activity_id);
+                                data[i]['reservationOrder'] = ResData;
+                                request.reservation_activity_id=data[i].activity_id
+                                let [errr1, ResData1] = await this.reservationMerchantRefNo(request);
+                                data[i]['merchant_txn_ref_no'] = ResData1;
+                            }
+                        }
+                        let unPadiList = [];
+                        if (request.hasOwnProperty("is_unpaid") && request.is_unpaid === true) {
+                            for (let i = 0; i < responseData.length; i++) {
+                                if (responseData[i].is_paid == false) {
+                                    unPadiList.push(responseData[i]);
+                                }
+                            }
+                            responseData = unPadiList;
+                        }
+                        error = false;
+                    })
+                    .catch((err) => {
+                        error = err;
+                    });
+            }
+            return [error, responseData];
+        } catch (error) {
+            return [err, -9999];
+        }
+    };  
+
+    this.getOrderIngredientMapingInventory = async (request) => {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.event_activity_id,
+            request.start_date,
+            request.end_date,
+        )
+        const queryString = util.getQueryString('pm_v1_pam_order_ingredient_mapping_select_inventory', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+    
+    this.getOrderIngredientMapingInventoryDetails = async (request) => {
+
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.ingredient_asset_id,
+            request.event_activity_id,
+            request.start_date,
+            request.end_date
+        )
+        const queryString = util.getQueryString('pm_v1_pam_order_ingredient_mapping_select_inventory_detail', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
+    this.reservationMerchantRefNo = async (request) => {
+        let responseData = [],
+            error = true;
+            let paramsArr = [request.reservation_activity_id]
+        const queryString = util.getQueryString('ds_p1_payment_log_transaction_select_merchant_txn', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data[0].merchant_txn_ref_no;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
 };
 
 module.exports = PamService;

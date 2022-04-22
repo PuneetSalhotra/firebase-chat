@@ -264,6 +264,16 @@ function ActivityConfigController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/activity_type/arp/set', async (req, res) => {
+        const [err, data] = await activityConfigService.workforceActivityTypeMappingUpdateFlag(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, data, 200, req.body));
+        } else {
+            console.log('Error - /activity/account-code/bot : ', err);
+            res.json(responseWrapper.getResponse(err, data, -9999, req.body));
+        }
+    });
+
 }
 
 

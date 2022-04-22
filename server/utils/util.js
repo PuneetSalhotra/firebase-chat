@@ -35,8 +35,8 @@ const sqs = new AWS.SQS();
 
 const AWS1 = require('aws-sdk');
 AWS1.config.update({
-    "accessKeyId": "AKIAWIPBVOFRSFSVJZMF",
-    "secretAccessKey": "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",
+    "accessKeyId": "AKIAWIPBVOFR4QJ3TS6E",
+    "secretAccessKey": "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",
     "region": "ap-south-1"
 });
 const sqs1 = new AWS1.SQS();
@@ -100,6 +100,8 @@ const CryptoJS = require("crypto-js");
 
 // initialize node-ews
 const ews = new EWS(ewsConfig);*/
+
+const pgformat = require('pg-format');
 
 function Util(objectCollection) {
     
@@ -3861,6 +3863,10 @@ function Util(objectCollection) {
         return [data['Contents'], bucketUrl];
 
     };
+
+    this.getPgQueryString = function (callName, paramsArr) {
+        return pgformat(`SELECT * FROM ${callName}(%L)`, paramsArr);
+    }
 
 }
 

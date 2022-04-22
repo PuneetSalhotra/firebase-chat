@@ -157,6 +157,7 @@ function TasiService(objectCollection) {
             request.asset_type_flag_sip_enabled,
             request.asset_type_flag_enable_send_sms,
             request.asset_type_flag_sip_admin_access,
+            request.asset_type_flag_email_login || 0,
             request.asset_type_flag_enable_dashboard || 0,
             request.asset_type_flag_enable_gamification || 0,
             request.asset_type_flag_enable_gantt_chart || 0,
@@ -165,7 +166,7 @@ function TasiService(objectCollection) {
             util.getCurrentUTCTime(),
             request.asset_id
         );
-        const queryString = util.getQueryString('ds_p1_1_workforce_asset_type_mapping_update', paramsArr);
+        const queryString = util.getQueryString('ds_p1_2_workforce_asset_type_mapping_update', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -1159,7 +1160,8 @@ function TasiService(objectCollection) {
             request.asset_tag_id_1,
             request.asset_tag_id_2,
             request.asset_tag_id_3,
-            request.organization_id, 
+            request.organization_id,
+            request.account_id || 0,
             request.log_asset_id,
             util.getCurrentUTCTime()
         );
@@ -2733,11 +2735,12 @@ function TasiService(objectCollection) {
             request.asset_tag_id_3,
             request.workforce_tag_id,
             request.cluster_tag_id,
+            request.log_asset_id,
             request.start_from,
             request.limit_value
         );
 
-        const queryString = util.getQueryString('ds_p1_2_input_list_select_filter', paramsArr);
+        const queryString = util.getQueryString('ds_p1_3_input_list_select_filter', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
@@ -2777,11 +2780,12 @@ function TasiService(objectCollection) {
             request.account_id,
             request.cluster_tag_id,
             request.widget_type_name,
-            request.start_form, 
+            request.log_asset_id,
+            request.start_from, 
             request.limit_value
         );
 
-        const queryString = util.getQueryString('ds_v1_1_report_list_select_simulation', paramsArr);
+        const queryString = util.getQueryString('ds_v1_2_report_list_select_simulation', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
@@ -3223,7 +3227,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_parameter_mapping_insert', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -3251,7 +3255,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_parameter_mapping_delete', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -3319,7 +3323,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_admin_access_mapping_insert', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -3346,7 +3350,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_admin_access_mapping_delete', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -3588,10 +3592,20 @@ function TasiService(objectCollection) {
             error = true;
 
         const paramsArr = new Array(
-          request.asset_id,
-          request.organization_id,
-          request.start_from,
-          request.limit_value
+            request.flag,
+            request.asset_id,
+            request.organization_id,
+            request.widget_type_id,
+            request.widget_type_category_id,
+            request.timeline_id,
+            request.period_start_datetime,
+            request.period_end_datetime,
+            request.financial_year,
+            request.asset_type_id,
+            request.workforce_tag_id,
+            request.product_id,
+            request.start_from,
+            request.limit_value
         );
 
         const queryString = util.getQueryString('ds_p1_widget_type_asset_type_mapping_select_asset', paramsArr);
@@ -3799,7 +3813,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_4_entity_target_mapping_update_target', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -3887,6 +3901,9 @@ function TasiService(objectCollection) {
 
         const paramsArr = new Array(
           request.organization_id,
+            request.flag_type || 0,
+            request.customer_account_code || '',
+            request.workforce_tag_id || 0,           
           request.asset_type_id,
           request.asset_id,
           request.widget_type_id,
@@ -3894,7 +3911,7 @@ function TasiService(objectCollection) {
           request.limit_value
         );
 
-        const queryString = util.getQueryString('ds_p1_1_entity_target_mapping_history_select', paramsArr);
+        const queryString = util.getQueryString('ds_p1_2_entity_target_mapping_history_select', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)

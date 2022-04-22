@@ -818,7 +818,7 @@ function ActivityListingController(objCollection) {
     // ....... sort_flag=0: sorted by activity_datetime_created
     // ....... sort_flag=1: sorted by activity_datetime_end_deferred
     app.post('/' + global.config.version + '/activity/workflow/child_orders/list', async function (req, res) {
-        const [err, childOrderData] = await activityListingService.activityListSelectChildOrdersBasedOnAssetAccess(req.body);
+        const [err, childOrderData] = await activityListingService.activityListChildOrders(req.body);
         if (!err) {
             res.json(responseWrapper.getResponse({}, childOrderData, 200, req.body));
         } else {
@@ -1115,7 +1115,7 @@ function ActivityListingController(objCollection) {
             return;
         }
         let activityTypeID = req.body.activity_type_id || 0;
-        if (activityTypeID === 190797 || activityTypeID === 191879 || activityTypeID === 197905) {
+        if (activityTypeID === 190797 || activityTypeID === 191879 || activityTypeID === 197905 || activityTypeID === 201885) {
             activityListingService.generateSummary(req.body);
             const isRateLimitSet = await cacheWrapper.setBulkFeasibilitySummaryReportRateLimitWithExpiry(req.body, 60);
             res.json(responseWrapper.getResponse(false, [{ message: "The summary is being generated and will be available on the timeline shortly!" }], 200, req.body));
@@ -1237,7 +1237,7 @@ function ActivityListingController(objCollection) {
             res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/activity/reference/add | Error: ", err);
-            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, responseData, -9998, req.body));
         }
     });
 
@@ -1257,7 +1257,17 @@ function ActivityListingController(objCollection) {
             res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
         } else {
             console.log("/activity/reference/update | Error: ", err);
-            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+            res.json(responseWrapper.getResponse(err, responseData, -9998, req.body));
+        }
+    });
+
+    app.post('/' + global.config.version + '/activity/list/select/category/v1', async (req, res) => {
+        const [err, responseData] = await activityListingService.activityListSelectCategoryV1(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse(false, responseData, 200, req.body));
+        } else {
+            console.log("/activity/list/select/category/v1 | Error: ", err);
+            res.json(responseWrapper.getResponse(err, responseData, -9998, req.body));
         }
     });
 

@@ -121,5 +121,19 @@ function MerchantPaymentController(objCollection) {
             res.send(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
+
+    app.post('/' + global.config.version + '/pam/payment/gatewayrouting', async (req, res) => {
+        logger.info("-");
+        logger.info("-------paymentGatewayRouting---------");
+        const [err, data] = await merchantPaymentService.paymentGatewayRouting(req.body);
+        if (!err) {
+            res.send(responseWrapper.getResponse({}, data, 200, req.body));
+            logger.info("------- paymentGatewayRouting --------- end");
+        } else {
+            logger.error("/pam/payment/gatewayrouting| Error: ", err);
+            res.send(responseWrapper.getResponse(err, data, -9999, req.body));
+            logger.info("------- gatewayrouting --------- end");
+        }
+    });
 }
 module.exports = MerchantPaymentController;

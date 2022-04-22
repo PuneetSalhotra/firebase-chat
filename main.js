@@ -197,6 +197,7 @@ async function handleImports() {
 
     const Util = require('./server/utils/util');
     const db = require("./server/utils/dbWrapper");
+    const pgdb = require("./server/utils/postgresDbWrapper");
     const ResponseWrapper = require('./server/utils/responseWrapper');
     const EncTokenInterceptor = require('./server/interceptors/encTokenInterceptor');
     const AccessTokenInterceptor = require('./server/interceptors/accessTokenInterceptor');
@@ -254,7 +255,7 @@ async function handleImports() {
                     gmt_time: (new Util()).getCurrentUTCTime(),
                     response: 'Empty/No message_unique_id request parameter found.'
                 });
-            return;
+                return;
             }
         }
 
@@ -367,7 +368,7 @@ async function handleImports() {
         //global.logger.write('conLog', 'Kafka Producer is ready', {}, {});
         console.log(`conLog Kafka Producer is ready`);
         //global.logger.write('conLog', 'BROKER_HOST : ' + global.config.BROKER_HOST, {}, {});
-        console.log(`conLog BROKER_HOST: %j`,{BROKER_HOST : global.config.BROKER_HOST});
+        console.log(`conLog BROKER_HOST: %j`, { BROKER_HOST: global.config.BROKER_HOST });
 
         let util = new Util({
             cacheWrapper
@@ -379,6 +380,7 @@ async function handleImports() {
             app: app,
             util: util,
             db: db,
+            pgdb: pgdb,
             responseWrapper: responseWrapper,
             cacheWrapper: cacheWrapper,
             queueWrapper: queueWrapper,

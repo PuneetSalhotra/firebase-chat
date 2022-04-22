@@ -1072,7 +1072,12 @@ function AssetService(objectCollection) {
             "workforce_tag_name": util.replaceDefaultString(rowArray[0]['workforce_tag_name']),
             "asset_type_flag_enable_gamification": util.replaceDefaultNumber(rowArray[0]['asset_type_flag_enable_gamification']),
             "organization_ai_bot_enabled": util.replaceDefaultNumber(rowArray[0]['organization_ai_bot_enabled']),
-            "asset_type_flag_enable_gantt_chart": util.replaceDefaultNumber(rowArray[0]['asset_type_flag_enable_gantt_chart'])
+            "asset_type_flag_enable_gantt_chart": util.replaceDefaultNumber(rowArray[0]['asset_type_flag_enable_gantt_chart']),
+            "manager_operating_asset_first_name": util.replaceDefaultString(rowArray[0]['manager_operating_asset_first_name']),
+            "manager_operating_asset_email_id": util.replaceDefaultString(rowArray[0]['manager_operating_asset_email_id']),
+            "operating_asset_customer_unique_id": util.replaceDefaultString(rowArray[0]['operating_asset_customer_unique_id']),
+            "operating_asset_email_id": util.replaceDefaultString(rowArray[0]['operating_asset_email_id']),
+            "asset_type_name": util.replaceDefaultString(rowArray[0]['asset_type_name']) 
        };
 
         callback(false, rowData);
@@ -6294,8 +6299,10 @@ this.getQrBarcodeFeeback = async(request) => {
                                 singleData.query_status = 0;
                                 singleData.tag_id = 0;
                                 singleData.tag_name = "All";
-
-                                data.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                if(![223,224].includes(Number(request.tag_type_id))){
+                                  data.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
+                                }
+                                
                                 responseData[0] = "";
                                 responseData[1] = data;
                                 resolve(responseData);
@@ -6533,7 +6540,11 @@ this.getQrBarcodeFeeback = async(request) => {
                                     resolve(responseData);
                                 }
                             } else {    
-                                
+                                singleData.query_status = 0;
+                                singleData.tag_type_id = 0;
+                                singleData.tag_type_name = "All";
+
+                                data.splice(0, 0, singleData);//splice(index, <deletion 0 or 1>, item)
                                 responseData[0] = "";
                                 responseData[1] = data;
                                 resolve(responseData);
@@ -8603,11 +8614,12 @@ this.getQrBarcodeFeeback = async(request) => {
             request.asset_tag_type_id_1,
             request.asset_tag_id_2,
             request.asset_tag_id_3,
+            request.target_asset_id || 0,
             request.flag,
             request.start_from,
             request.limit_value
         );
-        const queryString = util.getQueryString('ds_p1_3_asset_list_select_manager', paramsArr);
+        const queryString = util.getQueryString('ds_p1_4_asset_list_select_manager', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
@@ -8644,6 +8656,73 @@ this.getQrBarcodeFeeback = async(request) => {
             request.limit_value || 100
         );
         const queryString = util.getQueryString('ds_p1_2_activity_asset_mapping_select_asset_category_targets', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+    this.individualTargetListing = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id,
+            request.account_id,
+            request.workforce_type_id,
+            request.workforce_id,
+            request.workforce_tag_id,
+            request.cluster_tag_id,
+            request.vertical_tag_id,
+            request.subvertical_tag_id,
+            request.flag,
+            request.sort_flag,
+            request.start_from,
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p2_asset_list_select_flag', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                });
+        }
+
+        return [error, responseData];
+    };
+
+    this.assetListForAssetReference = async function (request) {
+        let responseData = [],
+            error = true;
+
+        let paramsArr = new Array(
+            request.organization_id, 
+            request.account_id, 
+            request.workforce_id, 
+            request.workforce_tag_id,
+            request.asset_id,
+            request.activity_id,
+            request.asset_type_id,
+            request.asset_type_category_id, 
+            request.flag_filter,
+            request.form_id,
+            request.search_string, 
+            request.start_from, 
+            request.limit_value
+        );
+        const queryString = util.getQueryString('ds_p1_4_asset_list_select_asset_reference', paramsArr);
         if (queryString !== '') {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {

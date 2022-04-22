@@ -33,8 +33,8 @@ const ics = require('ics')
 
 const AWS = require('aws-sdk');
 AWS.config.update({
-    "accessKeyId": "AKIAWIPBVOFRSFSVJZMF",
-    "secretAccessKey": "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",
+    "accessKeyId": "AKIAWIPBVOFR4QJ3TS6E",
+    "secretAccessKey": "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",
     "region": "ap-south-1"
 });
 const sqs = new AWS.SQS();
@@ -4051,7 +4051,7 @@ async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,cre
         util.logInfo(request,`LEAD ASSET DATA - %j` , assetData[0]);
         util.logInfo(request,`********************************`);
         request.debug_info.push('LEAD ASSET DATA - '+ assetData[0]);
-        leadAssetFirstName = assetData[0].asset_first_name;
+        leadAssetFirstName = assetData[0].operating_asset_first_name;
     } catch (error) {
         util.logError(request,`Error removeAsLeadAndAssignCreaterAsLead`, { type: 'bot_engine', error });
     }
@@ -10382,7 +10382,7 @@ else{
         } catch(err) {
             util.logError(request,`Error`, { type: 'bot_engine', err });
         }
-        
+        // return [false,[]]
         newReq.asset_id = 100;
         newReq.creator_asset_id = Number(request.asset_id);
         newReq.activity_id = Number(parentWorkflowActivityDetails[0].activity_id);
@@ -10445,7 +10445,12 @@ else{
     }
 
     this.ghantChartStartAndDueDateUpdate = async (request) => {
-console.log(request)
+        if(!request){
+            return [false,[]]
+        }
+console.log(request);
+// console.log('single req',request.single_req)
+// console.log(request.activity_id)
         //flow to update all its parents due date
         let startDate = moment(request.start_date);
         let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.workflow_activity_id);
@@ -10463,9 +10468,11 @@ console.log(request)
           await this.setDueDateV1(request, request.due_date, 1);
         }
         
-          
+          if(request.hasOwnProperty('single_req')){
+              return [false,[]]
+          }
         //flow to update all reffered activities start and end date
-        let [err,childActivitiesArray] = await activityListSelectChildOrders({...request,parent_activity_id:request.workflow_activity_id,flag:7});
+        let [err,childActivitiesArray] = await activityListSelectChildOrders({...request,parent_activity_id:request.workflow_activity_id,flag:8});
         // console.log(childActivitiesArray)
         for(let i=0 ; i < childActivitiesArray.length ; i++){
             if(Number(childActivitiesArray[i].activity_mapping_flag_is_prerequisite)==0){
@@ -10473,6 +10480,8 @@ console.log(request)
             }
             let eachChildRequest = childActivitiesArray[i];
             eachChildRequest.workflow_activity_id = eachChildRequest.activity_id;
+            eachChildRequest.refrence_activity_id = request.workflow_activity_id;
+            eachChildRequest.parent_activity_id = request.parent_activity_id;
             await this.childChangeStartAndEndDate(eachChildRequest,request.due_date,request.start_date);
         }
         return [false,[]]
@@ -10481,17 +10490,20 @@ console.log(request)
 
     this.childChangeStartAndEndDate = async function (request,due_date,start_date){
         request.workflow_activity_id = request.workflow_activity_id ? request.workflow_activity_id : request.activity_id;
-           this.setDueDateV1({...request,start_date:due_date},due_date,2);
+           await this.taskRelationTypesSet({...request,})
            await sleep(3000);
            let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
            
-           let [err,childActivitiesArray]  =await  activityListSelectChildOrders({...request,parent_activity_id:request.activity_id,flag:7});
+           let [err,childActivitiesArray]  =await  activityListSelectChildOrders({...request,parent_activity_id:request.activity_id,flag:8});
         for(let i=0 ; i < childActivitiesArray.length ; i++){
             if(Number(childActivitiesArray[i].activity_mapping_flag_is_prerequisite)==0){
                 continue;
             }
 
             let eachChildRequest = childActivitiesArray[i];
+
+            eachChildRequest.refrence_activity_id = request.activity_id;
+            eachChildRequest.parent_activity_id = request.parent_activity_id;
             await this.childChangeStartAndEndDate(eachChildRequest,workflowActivityDetails1[0].activity_datetime_end_deferred,start_date);
         }
     }
@@ -10519,6 +10531,166 @@ console.log(request)
         await this.setDueDateV2(request);
         return [false,[]]
     }
+
+    this.taskRelationTypesSet = async function (req){
+        // console.log('came in ',req)
+		switch (Number(req.activity_mapping_flag_is_prerequisite)) {
+			case 1:
+			  this.fsRelation(req);
+			  break;
+			case 2:
+			  this.sfRelation(req);
+			  break;
+			case 3:
+			  this.ffRelation(req);
+			  break;
+			case 4:
+			  this.ssRelation(req);
+		  }
+	}
+
+	this.fsRelation = async function (request){
+        console.log('here i am')
+		let parentActivity_id = request.parent_activity_id;
+		let activityReferenceId = request.refrence_activity_id;
+		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
+		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
+                let endDatePrev = moment(workflowActivityDetails1[0].activity_datetime_end_deferred);
+                let daystoAdd = endDatePrev.diff(startDatePrev,'days');
+                console.log('days',daystoAdd);
+                let endDate = util.addDays(workflowActivityDetails[0].activity_datetime_end_deferred, daystoAdd);
+				let workflowActivityDetails2 = await activityCommonService.getActivityDetailsPromise(request, parentActivity_id);
+				let dueDateParent = moment(workflowActivityDetails2[0].activity_datetime_end_deferred);
+				console.log(endDate,"end date")
+		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {...request,workflow_activity_id:request.activity_id,start_date:workflowActivityDetails[0].activity_datetime_end_deferred,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1,single_req:1};
+		console.log(endDate,"end date");
+		console.log('ddd',dueDateParent)
+		console.log(dueDateParent.diff(endDate));
+		
+		if (dueDateParent.diff(endDate) < 0) {
+      const makeRequestOptions1 = {
+          ...request,
+          workflow_activity_id: parentActivity_id,
+          start_date: "",
+          due_date: endDate,
+          set_flag: 2,
+          single_req:1
+      };
+      try {
+          console.log('came here too')
+        // global.config.mobileBaseUrl + global.config.version
+        await this.ghantChartStartAndDueDateUpdate(makeRequestOptions1);
+        // const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions1);
+      } catch (err2) {
+      }
+    }
+
+    try {
+      // global.config.mobileBaseUrl + global.config.version
+      this.ghantChartStartAndDueDateUpdate(makeRequestOptions);
+      // const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions);
+    } catch (err1) {}
+	}
+	this.sfRelation = async function (request){
+		let parentActivity_id = request.parent_activity_id;
+		let activityReferenceId = request.refrence_activity_id;
+		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
+		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
+                let endDatePrev = moment(workflowActivityDetails1[0].activity_datetime_end_deferred);
+                let daystoAdd = endDatePrev.diff(startDatePrev,'days');
+                console.log('days',daystoAdd);
+                // let endDate = util.addDays(workflowActivityDetails[0].activity_datetime_end_deferred, daystoAdd);
+				let endDate = workflowActivityDetails[0].activity_datetime_start_expected;
+				let startDate = util.subtractDays(workflowActivityDetails[0].activity_datetime_start_expected,daystoAdd);
+				let startDateM = moment(startDate);
+				let workflowActivityDetails2 = await activityCommonService.getActivityDetailsPromise(request, parentActivity_id);
+				let startDateParent = moment(workflowActivityDetails2[0].activity_datetime_start_expected);
+				console.log(endDate,"end date")
+		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form:{...request,workflow_activity_id:request.activity_id,start_date:startDate,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1,single_req:1}
+        };
+		// console.log(endDate,"end date");
+		// console.log('ddd',dueDateParent)
+		console.log(startDateParent.diff(startDate));
+		if(startDateM.diff(startDateParent)<0){
+			const makeRequestOptions1 = {
+				form:{...request,workflow_activity_id:parentActivity_id,start_date:startDate,due_date:workflowActivityDetails2[0].activity_datetime_end_deferred,set_flag:2,single_req:1}
+			};
+			try {
+                // global.config.mobileBaseUrl + global.config.version
+                this.ghantChartStartAndDueDateUpdate(makeRequestOptions1.form);
+                // const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions1);
+              } catch (err2) {}
+            }
+        
+            try {
+              // global.config.mobileBaseUrl + global.config.version
+              this.ghantChartStartAndDueDateUpdate(makeRequestOptions.form);
+              // const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions);
+            } catch (err1) {}
+		
+	}
+	this.ffRelation = async function (request){
+		let parentActivity_id = request.parent_activity_id;
+		let activityReferenceId = request.refrence_activity_id;
+		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
+		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
+        let endDatePrev = moment(workflowActivityDetails1[0].activity_datetime_end_deferred);
+        let daystoAdd = endDatePrev.diff(startDatePrev, "days");
+        console.log("days", daystoAdd);
+        let startDate = util.subtractDays(workflowActivityDetails[0].activity_datetime_end_deferred,daystoAdd);
+		// let startDate = workflowActivityDetails[0].activity_datetime_start_expected;
+		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form:{...request,workflow_activity_id:request.activity_id,start_date:startDate,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1,single_req:1}
+        };
+    
+        try {
+          // global.config.mobileBaseUrl + global.config.version
+          this.ghantChartStartAndDueDateUpdate(makeRequestOptions.form);
+          // const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions);
+        } catch (err1) {}
+	}
+	this.ssRelation = async function (request){
+		let parentActivity_id = request.parent_activity_id;
+		let activityReferenceId = request.refrence_activity_id;
+		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
+		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
+        let endDatePrev = moment(workflowActivityDetails1[0].activity_datetime_end_deferred);
+        let daystoAdd = endDatePrev.diff(startDatePrev, "days");
+        console.log("days", daystoAdd);
+        let endDate = util.addDays(workflowActivityDetails[0].activity_datetime_start_expected,daystoAdd);
+		let startDate = workflowActivityDetails[0].activity_datetime_start_expected;
+		let workflowActivityDetails2 = await activityCommonService.getActivityDetailsPromise(request, parentActivity_id);
+		let dueDateParent = moment(workflowActivityDetails2[0].activity_datetime_end_deferred);
+		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
+        const makeRequestOptions = {
+            form:{...request,workflow_activity_id:request.activity_id,start_date:startDate,due_date:endDate,set_flag:1,single_req:1}
+        };
+		if(dueDateParent.diff(endDate)<0){
+			const makeRequestOptions1 = {
+				form:{...request,workflow_activity_id:parentActivity_id,start_date:"",due_date:endDate,set_flag:2,single_req:1}
+			};
+			try {
+                // global.config.mobileBaseUrl + global.config.version
+                this.ghantChartStartAndDueDateUpdate(makeRequestOptions1.form);
+                // const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions1);
+              } catch (err2) {}
+            }
+        
+            try {
+              // global.config.mobileBaseUrl + global.config.version
+              this.ghantChartStartAndDueDateUpdate(makeRequestOptions.form);
+              // const response = await changeParentDueDate(global.config.mobileBaseUrl + global.config.version + '/bot/set/parent/child/due/date/v1', makeRequestOptions);
+            } catch (err1) {}
+
+	}
 
 
     this.setDueDateV2 = async function (request){
@@ -10654,7 +10826,7 @@ console.log(request)
         }
       }
       //field edit request
-      activity_inline_data = await fieldMappingGamification(request,activity_inline_data);
+      [activity_inline_data,totalFormScore] = await fieldMappingGamification(request,activity_inline_data);
       
       util.logInfo(request,`in is_from_field_alter : %j`,request.is_from_field_alter);
       util.logInfo(request,`in is_refill : %j`,request.is_refill);
@@ -10676,9 +10848,13 @@ console.log(request)
             let [err2,gamificationScoreOverall] = await getFormGamificationScore(request,3);
             let previousScoreOverall = Number(gamificationScoreOverall[0].field_gamification_score_value);
             let previousScoreMonthly = Number(gamificationScoreMonthly[0].field_gamification_score_value);
+            let previousFormScoreOverall = gamificationScoreOverall.length>0?Number(gamificationScoreOverall[0].form_gamification_score_value):0;
+            let previousFormScoreMonthly = gamificationScoreMonthly.length>0?Number(gamificationScoreMonthly[0].form_gamification_score_value):0;
+            let previousSubmissionsScoreOverall = gamificationScoreOverall.length>0?Number(gamificationScoreOverall[0].No_of_submissions):0;
+            let previousSubmissionsScoreMonthly = gamificationScoreMonthly.length>0?Number(gamificationScoreMonthly[0].No_of_submissions):0;
             await updateGamificationScore(request,3);
-            await assetSummaryTransactionInsert(request,previousScoreOverall+Math.abs(previousScore-finalScore));
-            await assetMonthlySummaryTransactionInsert(request,previousScoreMonthly+Math.abs(previousScore-finalScore))
+            await assetSummaryTransactionInsert(request,previousScoreOverall+Math.abs(previousScore-finalScore),previousFormScoreOverall,previousSubmissionsScoreOverall);
+            await assetMonthlySummaryTransactionInsert(request,previousScoreMonthly+Math.abs(previousScore-finalScore),previousFormScoreMonthly,previousSubmissionsScoreMonthly)
         }
         
       } //resubmit or refill case
@@ -10701,8 +10877,14 @@ console.log(request)
             console.log("montly overall prev",previousScoreMonthly);
             console.log("montly overall final",previousScoreMonthly + finalScore);
             await insertGamificationScore(request);
-            await assetSummaryTransactionInsert(request,previousScoreOverall+finalScore);
-            await assetMonthlySummaryTransactionInsert(request,previousScoreMonthly+finalScore);
+            let [err3,gamificationScoreMonthly1] = await getFormGamificationScore(request,2);
+            let [err4,gamificationScoreOverall1] = await getFormGamificationScore(request,3);
+            let previousFormScoreOverall = gamificationScoreOverall1.length>0?Number(gamificationScoreOverall1[0].form_gamification_score_value):0;
+            let previousFormScoreMonthly = gamificationScoreMonthly1.length>0?Number(gamificationScoreMonthly1[0].form_gamification_score_value):0;
+            let previousSubmissionsScoreOverall = gamificationScoreOverall1.length>0?Number(gamificationScoreOverall1[0].No_of_submissions):0;
+            let previousSubmissionsScoreMonthly = gamificationScoreMonthly1.length>0?Number(gamificationScoreMonthly1[0].No_of_submissions):0;
+            await assetSummaryTransactionInsert(request,previousScoreOverall+finalScore,previousFormScoreOverall,previousSubmissionsScoreOverall);
+            await assetMonthlySummaryTransactionInsert(request,previousScoreMonthly+finalScore,previousFormScoreMonthly,previousSubmissionsScoreMonthly);
       }
     };
 
@@ -10714,6 +10896,9 @@ console.log(request)
               if(data.length>1){
                   continue;
               }
+            }
+            if(!eachField.field_value || eachField.field_value==""){
+                continue;
             }
             
             gamification_score = gamification_score + Number(eachField.field_gamification_score_value || 0);
@@ -10753,7 +10938,7 @@ console.log(request)
         return [error, responseData];
     }
 
-    async function assetSummaryTransactionInsert(request,score) {
+    async function assetSummaryTransactionInsert(request,score,formScore,noOfSubmissions) {
         let responseData = [],
             error = true;
 
@@ -10767,7 +10952,9 @@ console.log(request)
         request.entity_date_1 || '', 
         request.entity_datetime_1 || '', 
         request.entity_tinyint_1 || '', 
-        score, 
+        score,
+        formScore,
+        noOfSubmissions,
         request.entity_double_1 || '', 
         request.entity_decimal_1 || '', 
         request.entity_decimal_2 || '', 
@@ -10794,7 +10981,7 @@ console.log(request)
         request.transaction_datetime || '', 
         util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_v1_asset_summary_transaction_insert', paramsArr);
+        const queryString = util.getQueryString('ds_v1_1_asset_summary_transaction_insert', paramsArr);
 
 
         if (queryString !== '') {
@@ -10810,7 +10997,7 @@ console.log(request)
         return [error, responseData];
     }
 
-    async function assetMonthlySummaryTransactionInsert(request,score) {
+    async function assetMonthlySummaryTransactionInsert(request,score,formScore,noOfSubmissions) {
         let responseData = [],
             error = true;
 
@@ -10824,6 +11011,8 @@ console.log(request)
           util.getStartDateTimeOfMonth(),
           request.entity_tinyint_1 || "",
           score,
+          formScore,
+          noOfSubmissions,
           request.entity_double_1 || "",
           request.entity_decimal_1 || "",
           request.entity_decimal_2 || "",
@@ -10850,7 +11039,7 @@ console.log(request)
           request.transaction_datetime || "",
           util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_v1_asset_monthly_summary_transaction_insert', paramsArr);
+        const queryString = util.getQueryString('ds_v1_1_asset_monthly_summary_transaction_insert', paramsArr);
 
 
         if (queryString !== '') {
@@ -18405,19 +18594,21 @@ if(workflowActivityData.length==0){
 
     async function fieldMappingGamification(request, inline_data) {
       let [err, data] = await formFieldGamificationData(request);
+      let totalScore = 0;
       for (let i = 0; i < data.length; i++) {
         try {
             console.log("index",i)
           let each = await data.find(
             (val) => val.field_id == inline_data[i].field_id
           );
+          totalScore = totalScore + Number(each.field_gamification_score_value)
           inline_data[i].field_gamification_score_value =
             each.field_gamification_score_value;
         } catch (err1) {
           continue;
         }
       }
-      return inline_data;
+      return [inline_data,totalScore];
     }
 
     async function updateAssetSequenceId(request){
