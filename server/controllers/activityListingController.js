@@ -1115,7 +1115,7 @@ function ActivityListingController(objCollection) {
             return;
         }
         let activityTypeID = req.body.activity_type_id || 0;
-        if (activityTypeID === 190797 || activityTypeID === 191879 || activityTypeID === 197905) {
+        if (activityTypeID === 190797 || activityTypeID === 191879 || activityTypeID === 197905 || activityTypeID === 201885) {
             activityListingService.generateSummary(req.body);
             const isRateLimitSet = await cacheWrapper.setBulkFeasibilitySummaryReportRateLimitWithExpiry(req.body, 60);
             res.json(responseWrapper.getResponse(false, [{ message: "The summary is being generated and will be available on the timeline shortly!" }], 200, req.body));

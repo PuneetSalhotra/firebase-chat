@@ -4284,6 +4284,12 @@ function ActivityListingService(objCollection) {
 			nsr1FieldId = 318631;
 		}
 
+		if(activityTypeId === 201886) {
+			meetingRequestFormId = 51594;
+			scheduledTimeFieldId = 319395;
+			nsr1FieldId = 0;
+		}
+
 		const formTimelineDataOfMeeting = await activityCommonService.getActivityTimelineTransactionByFormId713({
 			organization_id: request.organization_id,
 			account_id: request.account_id
@@ -4400,6 +4406,19 @@ function ActivityListingService(objCollection) {
 					"Comments": 318890
 				}
 			},
+			"201885": {
+				"form_id": 51597,
+				"fields": {
+					"Discussion_Point": 319400,
+					"Description": 319401,
+					"Responsible_Person_Email_ID": 319405,
+					"Responsibility_Holder": 319404,
+					"Assigned_To": 319403,
+					"Assigned_Date": 319407,
+					"Target_Closure_Date": 319406,
+					"Comments": 319410
+				}
+			},
 			"field_order": {
 				"190797": [
 					"SL_NO",
@@ -4445,6 +4464,20 @@ function ActivityListingService(objCollection) {
 					"Target_Closure_Date",
 					"Comments",
 					"Status"
+				],
+				"201885": [
+					"SL_NO",
+					"Meeting_ID",
+					"MOM_Point_ID",
+					"Discussion_Point",
+					"Description",
+					"Responsible_Person_Email_ID",
+					"Responsibility_Holder",
+					"Assigned_To",
+					"Assigned_Date",
+					"Target_Closure_Date",
+					"Comments",
+					"Status"
 				]
 			},
 			"date_fields": [
@@ -4453,7 +4486,9 @@ function ActivityListingService(objCollection) {
 				313563,
 				313562,
 				318888,
-				318889
+				318889,
+				319407,
+				319406
 			]
 		};
 
