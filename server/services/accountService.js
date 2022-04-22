@@ -872,7 +872,6 @@ function AccountService(objectCollection) {
     this.accountViewSummarySelect = async function (request) {
         let error = true;
         let responseData = []
-        console.log("in service");
         let paramsArr = new Array(
             request.asset_id,
             request.start_date,
@@ -885,7 +884,6 @@ function AccountService(objectCollection) {
 
         let queryString = util.getPgQueryString('ds_p1_account_view_summary_select', paramsArr);
         if (queryString != '') {
-            console.log("in query---"+ queryString);
             [error, responseData] = await pgdb.executeQueryPromise(1, queryString, request);
         }
         console.log("after execution service");

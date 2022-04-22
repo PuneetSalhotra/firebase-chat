@@ -527,9 +527,7 @@ function AccountController(objCollection) {
     });
 
     app.post('/' + global.config.version + '/account/view/summary', async function (req, res) {
-        console.log("api hit");
         const [err, result] = await accountService.accountViewSummarySelect(req.body);
-
         if (!err) {
             res.json(responseWrapper.getResponse(false, result, 200, req.body));
         } else {
