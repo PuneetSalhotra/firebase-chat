@@ -4051,7 +4051,7 @@ async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,cre
         util.logInfo(request,`LEAD ASSET DATA - %j` , assetData[0]);
         util.logInfo(request,`********************************`);
         request.debug_info.push('LEAD ASSET DATA - '+ assetData[0]);
-        leadAssetFirstName = assetData[0].asset_first_name;
+        leadAssetFirstName = assetData[0].operating_asset_first_name;
     } catch (error) {
         util.logError(request,`Error removeAsLeadAndAssignCreaterAsLead`, { type: 'bot_engine', error });
     }
