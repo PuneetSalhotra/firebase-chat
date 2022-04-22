@@ -4051,7 +4051,7 @@ async function removeAsLeadAndAssignCreaterAsLead(request,workflowActivityID,cre
         util.logInfo(request,`LEAD ASSET DATA - %j` , assetData[0]);
         util.logInfo(request,`********************************`);
         request.debug_info.push('LEAD ASSET DATA - '+ assetData[0]);
-        leadAssetFirstName = assetData[0].asset_first_name;
+        leadAssetFirstName = assetData[0].operating_asset_first_name;
     } catch (error) {
         util.logError(request,`Error removeAsLeadAndAssignCreaterAsLead`, { type: 'bot_engine', error });
     }
@@ -10872,17 +10872,19 @@ console.log(request);
             let [err2,gamificationScoreOverall] = await getFormGamificationScore(request,3);
             let previousScoreOverall = gamificationScoreOverall.length>0?Number(gamificationScoreOverall[0].field_gamification_score_value):0;
             let previousScoreMonthly = gamificationScoreMonthly.length>0?Number(gamificationScoreMonthly[0].field_gamification_score_value):0;
-            let previousFormScoreOverall = gamificationScoreOverall.length>0?Number(gamificationScoreOverall[0].form_gamification_score_value):0;
-            let previousFormScoreMonthly = gamificationScoreMonthly.length>0?Number(gamificationScoreMonthly[0].form_gamification_score_value):0;
-            let previousSubmissionsScoreOverall = gamificationScoreOverall.length>0?Number(gamificationScoreOverall[0].No_of_submissions):0;
-            let previousSubmissionsScoreMonthly = gamificationScoreMonthly.length>0?Number(gamificationScoreMonthly[0].No_of_submissions):0;
             console.log("final overall prev",previousScoreOverall)
             console.log("final overall",previousScoreOverall+finalScore);
             console.log("montly overall prev",previousScoreMonthly);
             console.log("montly overall final",previousScoreMonthly + finalScore);
             await insertGamificationScore(request);
-            await assetSummaryTransactionInsert(request,previousScoreOverall+finalScore,previousFormScoreOverall+totalFormScore,previousSubmissionsScoreOverall+1);
-            await assetMonthlySummaryTransactionInsert(request,previousScoreMonthly+finalScore,previousFormScoreMonthly+totalFormScore,previousSubmissionsScoreMonthly+1);
+            let [err3,gamificationScoreMonthly1] = await getFormGamificationScore(request,2);
+            let [err4,gamificationScoreOverall1] = await getFormGamificationScore(request,3);
+            let previousFormScoreOverall = gamificationScoreOverall1.length>0?Number(gamificationScoreOverall1[0].form_gamification_score_value):0;
+            let previousFormScoreMonthly = gamificationScoreMonthly1.length>0?Number(gamificationScoreMonthly1[0].form_gamification_score_value):0;
+            let previousSubmissionsScoreOverall = gamificationScoreOverall1.length>0?Number(gamificationScoreOverall1[0].No_of_submissions):0;
+            let previousSubmissionsScoreMonthly = gamificationScoreMonthly1.length>0?Number(gamificationScoreMonthly1[0].No_of_submissions):0;
+            await assetSummaryTransactionInsert(request,previousScoreOverall+finalScore,previousFormScoreOverall,previousSubmissionsScoreOverall);
+            await assetMonthlySummaryTransactionInsert(request,previousScoreMonthly+finalScore,previousFormScoreMonthly,previousSubmissionsScoreMonthly);
       }
     };
 
