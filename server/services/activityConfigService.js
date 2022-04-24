@@ -2438,7 +2438,7 @@ function ActivityConfigService(db,util,objCollection) {
             request.workforce_id,
             request.activity_type_id,
             request.activity_type_arp_lead_setting_enabled,
-            request.log_asset_id,
+            request.asset_id,
             util.getCurrentUTCTime()
         );
         const queryString = util.getQueryString('ds_p1_workforce_activity_type_mapping_update_arp_flag', paramsArr);

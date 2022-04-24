@@ -156,6 +156,15 @@ function AssetConfigController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/asset/arp/data/set', async (req, res) => {        
+
+        let [err,result] = await assetConfigService.assetUpdateARPData(req.body);
+        if(!err){
+            res.json(responseWrapper.getResponse(false, result, 200, req.body));
+        } else {
+            res.json(responseWrapper.getResponse(err, {}, -9998, req.body));
+        } 
+    });
 }
 
 

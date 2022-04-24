@@ -2379,6 +2379,9 @@ function AnalyticsService(objectCollection)
                         request.filter_asset_tag_type_2 || 0,
                         request.filter_asset_tag_type_3 || 0,
                         request.asset_id,
+                        request.filter_arp_workflow_type_id || 0,
+                        request.filter_industry_id || 0,
+                        request.filter_cusomter_asset_id || 0,
                         parseInt(request.page_start) || 0,
                         parseInt(request.page_limit) || 50
                     );
@@ -2390,7 +2393,7 @@ function AnalyticsService(objectCollection)
                    
                         for(let iteratorM = 0; iteratorM < counter; iteratorM++){
                              paramsArray.push(iteratorM);
-                            tempResult = await db.callDBProcedureR2(request, 'ds_v2_3_activity_search_list_select_widget_values', paramsArray, 1); 
+                            tempResult = await db.callDBProcedureR2(request, 'ds_v2_4_activity_search_list_select_widget_values', paramsArray, 1); 
                             paramsArray.pop();
                             responseArray.push(tempResult[0])
                         }
@@ -2410,15 +2413,15 @@ function AnalyticsService(objectCollection)
                     } else {
                         console.log(paramsArray);
                         paramsArray.push(0);
-                        tempResult = await db.callDBProcedureR2(request, 'ds_v2_3_activity_search_list_select_widget_values', paramsArray, 1); paramsArray.pop();
+                        tempResult = await db.callDBProcedureR2(request, 'ds_v2_4_activity_search_list_select_widget_values', paramsArray, 1); paramsArray.pop();
                         console.log(tempResult);
-                     //   let widgetTypes = [23,24,48,49,63,66,37,38,65,61,67,53,54, 39, 40, 41, 42];
-                     //   if(widgetTypes.includes(request.widget_type_id)){
-                        if(request.widget_type_id == 23 || request.widget_type_id == 24 || request.widget_type_id == 25 || request.widget_type_id == 37 || request.widget_type_id == 38
-                         || request.widget_type_id == 48 || request.widget_type_id == 49 || request.widget_type_id == 65 || request.widget_type_id == 61 || request.widget_type_id == 34  || request.widget_type_id == 35
-                         || request.widget_type_id == 63 || request.widget_type_id == 66 || request.widget_type_id == 67 || request.widget_type_id == 53 || request.widget_type_id == 54
-                         || request.widget_type_id == 39 || request.widget_type_id == 40 || request.widget_type_id == 41 || request.widget_type_id == 42 || request.widget_type_id == 202 || request.widget_type_id == 203
-                          
+                        const widgetTypes = [23,24,25,34,35,37,38,48,49,63,66,37,38,65,61,63,66,67,53,54, 39, 40, 41, 42,202,203];
+                        //const arpWidgetTypes = [350,351,352,353,354,355,356,357,358,359];
+                        // if(request.widget_type_id == 23 || request.widget_type_id == 24 || request.widget_type_id == 25 || request.widget_type_id == 37 || request.widget_type_id == 38
+                        //  || request.widget_type_id == 48 || request.widget_type_id == 49 || request.widget_type_id == 65 || request.widget_type_id == 61 || request.widget_type_id == 34  || request.widget_type_id == 35
+                        //  || request.widget_type_id == 63 || request.widget_type_id == 66 || request.widget_type_id == 67 || request.widget_type_id == 53 || request.widget_type_id == 54
+                        //  || request.widget_type_id == 39 || request.widget_type_id == 40 || request.widget_type_id == 41 || request.widget_type_id == 42 || request.widget_type_id == 202 || request.widget_type_id == 203
+                        if(widgetTypes.includes(request.widget_type_id) || widgetTypes.includes(parseInt(request.widget_type_id))
                           ){
                             results[iterator] =
                             (
@@ -2640,7 +2643,7 @@ function AnalyticsService(objectCollection)
                 responseJson.sequence_id = widgetFlags[iteratorM];
                 verticalResponseAdditonalMap.set(iteratorM, responseJson);
 
-                const queryString = util.getQueryString('ds_v2_3_activity_search_list_select_widget_values_oppty', paramsArray);
+                const queryString = util.getQueryString('ds_v2_4_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
                     await db.executeQueryPromise(1, queryString, request)
@@ -2783,7 +2786,7 @@ function AnalyticsService(objectCollection)
                 responseJson.sequence_id = widgetFlags[iteratorM];
                 verticalResponseAdditonalMap.set(iteratorM, responseJson);
 
-                const queryString = util.getQueryString('ds_v2_3_activity_search_list_select_widget_values_oppty', paramsArray);
+                const queryString = util.getQueryString('ds_v2_4_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
                     await db.executeQueryPromise(1, queryString, request)
@@ -2969,7 +2972,7 @@ function AnalyticsService(objectCollection)
 
                 verticalResponseAdditonalMap.set(iteratorM, responseJson);
 
-                const queryString = util.getQueryString('ds_v2_3_activity_search_list_select_widget_values_oppty', paramsArray);
+                const queryString = util.getQueryString('ds_v2_4_activity_search_list_select_widget_values_oppty', paramsArray);
                 if (queryString !== '') {
 
                     await db.executeQueryPromise(1, queryString, request)
@@ -3230,10 +3233,13 @@ function AnalyticsService(objectCollection)
                      request.filter_asset_tag_type_1 || 0,
                      request.filter_asset_tag_type_2 || 0,
                      request.filter_asset_tag_type_3 || 0,
-                     request.asset_id
+                     request.asset_id,
+                     request.filter_arp_workflow_type_id || 0,
+                     request.filter_industry_id || 0,
+                     request.filter_cusomter_asset_id || 0
                  );
             
-            let queryString = util.getQueryString('ds_v2_3_activity_search_list_select_widget_drilldown_search', paramsArray);
+            let queryString = util.getQueryString('ds_v2_4_activity_search_list_select_widget_drilldown', paramsArray);
                 if (queryString !== '') {
                     tempResult = await (db.executeQueryPromise(1, queryString, request));
                 }
@@ -3413,10 +3419,13 @@ function AnalyticsService(objectCollection)
                      request.filter_asset_tag_type_1 || 0,
                      request.filter_asset_tag_type_2 || 0,
                      request.filter_asset_tag_type_3 || 0,
-                     request.asset_id
+                     request.asset_id,
+                     request.filter_arp_workflow_type_id || 0,
+                     request.filter_industry_id || 0,
+                     request.filter_cusomter_asset_id || 0
                     );
             
-            let queryString = util.getQueryString('ds_v2_3_activity_search_list_select_widget_drilldown_oppty', paramsArray);
+            let queryString = util.getQueryString('ds_v2_4_activity_search_list_select_widget_drilldown_oppty', paramsArray);
                 if (queryString !== '') {
                     tempResult = await (db.executeQueryPromise(1, queryString, request));
                 }

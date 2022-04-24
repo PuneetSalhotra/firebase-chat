@@ -524,6 +524,34 @@ function AssetConfigService() {
        
     }
 
+    this.assetUpdateARPData = async (request) => {
+
+        let responseData = [],
+            error = true;
+
+        const paramsArr = [     
+            request.organization_id,
+            request.target_asset_id,
+            request.key,
+            request.arp_key_data,
+            request.asset_id,
+            util.getCurrentUTCTime()
+        ];
+
+        const queryString = util.getQueryString('ds_p1_1_asset_list_update_arp_scores', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+              .then((data) => {
+                  responseData = data;
+                  error = false;
+              })
+              .catch((err) => {
+                  error = err;
+              })
+        }
+
+        return [error, responseData];
+    } 
 }
 
 module.exports = AssetConfigService;
