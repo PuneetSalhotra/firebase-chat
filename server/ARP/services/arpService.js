@@ -168,6 +168,32 @@ function ArpService(objectCollection) {
         return [error, responseData];
     }
 
+    this.getARPDashboardFiltersData = async function (request) {
+        let responseData = [],
+            error = true;
+        const paramsArr = new Array(
+            request.organization_id,
+            request.filter_id,
+            request.target_asset_id,
+            request.is_search,
+            request.search_string,
+            request.asset_id
+        );
+        const queryString = util.getQueryString('ds_v1_arp_filters_select', paramsArr);
+
+        if (queryString !== '') {
+            await db.executeQueryPromise(0, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    }    
+
 }
 
 module.exports = ArpService;
