@@ -357,6 +357,32 @@ function ActivityParticipantService(objectCollection) {
 
             if (err === false && data === true) {
                 //callback(false, {}, 200);
+
+                try {
+                    await activityCommonService
+                        .getActivityDetailsPromise(request, request.activity_id)
+                        .then((workflowActivityData) => {
+                            if (workflowActivityData.length > 0) {
+                                let activityDataForStatus = workflowActivityData[0];
+                                if (activityDataForStatus.activity_status_type_id == 162 && request.organization_id == 868 && request.activity_type_category_id == 53) {
+                                    let triggerRequest = Object.assign({}, request);
+                                    triggerRequest.workflow_activity_id = request.activity_id;
+                                    triggerRequest.request_type = "CLMS_ACCOUNT_UPDATE_SERVICE";
+                                    triggerRequest.old_account_code = activityDataForStatus.activity_cuid_3;
+                                    triggerRequest.generic_url = '/trigger/update/account/integrations';
+                                    util.logInfo(request, "from add participant /trigger/update/account/integrations %j", { request: triggerRequest });
+                                    activityCommonService.makeGenericRequest(triggerRequest);
+                                }
+                            }
+                        })
+                        .catch((error) => {
+                            util.logError(request, `Error in triggering add participant | error: `, { type: 'assignCoworker', error: serializeError(error) });
+                        });
+
+                } catch (exeption) {
+                    util.logError(request, `Error in triggering add participant | error: `, { type: 'assignCoworker', error: serializeError(exeption) });
+                }
+
                 callback(false, true);
                 if (maxIndex === index) {
                     updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) {});
@@ -536,9 +562,35 @@ function ActivityParticipantService(objectCollection) {
         let activityParticipantCollection = JSON.parse(request.activity_participant_collection);
         let maxIndex = activityParticipantCollection.length - 1;
         //var maxIndex = request.activity_participant_collection.length - 1;        
-        iterateUnassignParticipant(activityParticipantCollection, index, maxIndex, function (err, data) {
+        iterateUnassignParticipant(activityParticipantCollection, index, maxIndex,async function (err, data) {
             if (err === false && data === true) {
                 //callback(false, {}, 200);
+
+                try {
+                    await activityCommonService
+                        .getActivityDetailsPromise(request, request.activity_id)
+                        .then((workflowActivityData) => {
+                            if (workflowActivityData.length > 0) {
+                                let activityDataForStatus = workflowActivityData[0];
+                                if (activityDataForStatus.activity_status_type_id == 162 && request.organization_id == 868 && activityDataForStatus.activity_type_category_id == 53) {
+                                    let triggerRequest = Object.assign({}, request);
+                                    triggerRequest.workflow_activity_id = request.activity_id;
+                                    triggerRequest.request_type = "CLMS_ACCOUNT_UPDATE_SERVICE";
+                                    triggerRequest.old_account_code = activityDataForStatus.activity_cuid_3;
+                                    triggerRequest.generic_url = '/trigger/update/account/integrations';
+                                    util.logInfo(request, "from add participant /trigger/update/account/integrations %j", { request: triggerRequest });
+                                    activityCommonService.makeGenericRequest(triggerRequest);
+                                }
+                            }
+                        })
+                        .catch((error) => {
+                            util.logError(request, `Error in triggering add participant | error: `, { type: 'assignCoworker', error: serializeError(error) });
+                        });
+
+                } catch (exeption) {
+                    util.logError(request, `Error in triggering add participant | error: `, { type: 'assignCoworker', error: serializeError(exeption) });
+                }
+
                 if (maxIndex === index) {
                     updateParticipantCount(request.activity_id, request.organization_id, request, function (err, data) {});
                     activityCommonService.updateAssetLastSeenDatetime(request, function (err, data) {});
