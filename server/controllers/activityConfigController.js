@@ -249,7 +249,7 @@ function ActivityConfigController(objCollection) {
         if (!err) {
             res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            console.log('Error - /activity/account-code/bot : ', err);
+            console.log('Error - /account-activity/account-name/check : ', err);
             res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
@@ -259,21 +259,20 @@ function ActivityConfigController(objCollection) {
         if (!err) {
             res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            console.log('Error - /activity/account-code/bot : ', err);
+            console.log('Error - /activity/previous/status/list : ', err);
             res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
 
-    app.post('/' + global.config.version + '/activity_type/arp/set', async (req, res) => {
+    app.post('/' + global.config.version + '/activity_type/arp/flag/set', async (req, res) => {
         const [err, data] = await activityConfigService.workforceActivityTypeMappingUpdateFlag(req.body);
         if (!err) {
             res.json(responseWrapper.getResponse({}, data, 200, req.body));
         } else {
-            console.log('Error - /activity/account-code/bot : ', err);
+            console.log('Error - /activity_type/arp/flag/set : ', err);
             res.json(responseWrapper.getResponse(err, data, -9999, req.body));
         }
     });
-
 }
 
 

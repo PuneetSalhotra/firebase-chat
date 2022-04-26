@@ -68,6 +68,16 @@ function ArpController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/arp/filters/data', async function (req, res) {
+        const [err, orgData] = await arpService.getARPDashboardFiltersData(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, orgData, 200, req.body));
+        } else {
+            console.log("/arp/filters/data | Error: ", err);
+            res.json(responseWrapper.getResponse(err, orgData, -9999, req.body));
+        }
+    });    
+
 }
 
 module.exports = ArpController;

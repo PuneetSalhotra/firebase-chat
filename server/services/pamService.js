@@ -7411,6 +7411,10 @@ this.getChildOfAParent = async (request) => {
                                 data[i]['is_paid'] = (amountPaid.paid_amount) > 0;
                                 let [errr, ResData] = await this.getOrdersV1(request, data[i].activity_id);
                                 data[i]['reservationOrder'] = ResData;
+                                request.reservation_activity_id=data[i].activity_id
+                                let [errr1, ResData1] = await this.reservationMerchantRefNo(request);
+                                data[i]['merchant_txn_ref_no'] = ResData1;
+
                             }
                             else if (request.flag == 6) {
                                 let amountPaid = JSON.parse(data[i].activity_inline_data);
@@ -7418,6 +7422,9 @@ this.getChildOfAParent = async (request) => {
                                 data[i]['is_paid'] = (amountPaid.paid_amount) > 0;
                                 let [errr, ResData] = await this.getOrdersByStatus(request, data[i].activity_id);
                                 data[i]['reservationOrder'] = ResData;
+                                request.reservation_activity_id=data[i].activity_id
+                                let [errr1, ResData1] = await this.reservationMerchantRefNo(request);
+                                data[i]['merchant_txn_ref_no'] = ResData1;
                             }
                         }
                         let unPadiList = [];
@@ -7485,6 +7492,24 @@ this.getChildOfAParent = async (request) => {
             await db.executeQueryPromise(1, queryString, request)
                 .then((data) => {
                     responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+    };
+
+    this.reservationMerchantRefNo = async (request) => {
+        let responseData = [],
+            error = true;
+            let paramsArr = [request.reservation_activity_id]
+        const queryString = util.getQueryString('ds_p1_payment_log_transaction_select_merchant_txn', paramsArr);
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data[0].merchant_txn_ref_no;
                     error = false;
                 })
                 .catch((err) => {

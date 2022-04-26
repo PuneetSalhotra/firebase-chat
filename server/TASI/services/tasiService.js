@@ -3227,7 +3227,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_parameter_mapping_insert', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -3255,7 +3255,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_parameter_mapping_delete', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -3323,7 +3323,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_admin_access_mapping_insert', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -3350,7 +3350,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_admin_access_mapping_delete', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
@@ -3813,7 +3813,7 @@ function TasiService(objectCollection) {
         const queryString = util.getQueryString('ds_p1_4_entity_target_mapping_update_target', paramsArr);
 
         if (queryString !== '') {
-            await db.executeQueryPromise(1, queryString, request)
+            await db.executeQueryPromise(0, queryString, request)
                 .then((data) => {
                     responseData = data;
                     error = false;
