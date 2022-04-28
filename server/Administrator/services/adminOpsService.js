@@ -132,10 +132,12 @@ function AdminOpsService(objectCollection) {
             request.flag_timeline_lead_mgmt || 0,
             request.flag_dashboard_onhold || 0,
             request.flag_enable_tag || 0,
+            request.organization_flag_enable_grid || 0,
+            request.organization_flag_timeline_filter || 0,
             request.asset_id,
             util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_6_organization_list_update_flags', paramsArr);
+        const queryString = util.getQueryString('ds_p1_7_organization_list_update_flags', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)
@@ -971,12 +973,14 @@ function AdminOpsService(objectCollection) {
           request.organization_flag_timeline_access_mgmt || 0,
           request.flag_lead_mgmt || 0,
           request.flag_dashboard_onhold || 0,
-            request.flag_enable_tag || 0,
+          request.flag_enable_tag || 0,
+          request.organization_flag_enable_grid || 0,
+          request.organization_flag_timeline_filter || 0,
           request.organization_type_id || 1,
           request.asset_id || 1,
           util.getCurrentUTCTime()
         );
-        const queryString = util.getQueryString('ds_p1_9_organization_list_insert', paramsArr);
+        const queryString = util.getQueryString('ds_p1_10_organization_list_insert', paramsArr);
 
         if (queryString !== '') {
             await db.executeQueryPromise(0, queryString, request)

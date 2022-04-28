@@ -1077,7 +1077,9 @@ function AssetService(objectCollection) {
             "manager_operating_asset_email_id": util.replaceDefaultString(rowArray[0]['manager_operating_asset_email_id']),
             "operating_asset_customer_unique_id": util.replaceDefaultString(rowArray[0]['operating_asset_customer_unique_id']),
             "operating_asset_email_id": util.replaceDefaultString(rowArray[0]['operating_asset_email_id']),
-            "asset_type_name": util.replaceDefaultString(rowArray[0]['asset_type_name']) 
+            "asset_type_name": util.replaceDefaultString(rowArray[0]['asset_type_name']),
+            "organization_flag_timeline_filter": util.replaceDefaultNumber(rowArray[0]['organization_flag_timeline_filter']),
+            "organization_flag_enable_grid": util.replaceDefaultNumber(rowArray[0]['organization_flag_enable_grid']),  
        };
 
         callback(false, rowData);

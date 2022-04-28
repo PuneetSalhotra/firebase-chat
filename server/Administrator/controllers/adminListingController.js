@@ -635,6 +635,16 @@ function AdminListingController(objCollection) {
         }
     });
 
+    app.post('/' + global.config.version + '/admin/roms/config/list', async (req, res) => {        
+        const [err, botsData] = await adminListingService.adminRomsConfigListSelect(req.body);
+        if (!err) {
+            res.json(responseWrapper.getResponse({}, botsData, 200, req.body));
+        } else {
+            console.log("/admin/roms/config/list| Error: ", err);
+            res.json(responseWrapper.getResponse(err, botsData, -9999, req.body));
+        }
+    });
+
 
 }
 
