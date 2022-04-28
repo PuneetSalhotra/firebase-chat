@@ -10529,6 +10529,18 @@ console.log(request);
             }
         }
         await this.setDueDateV2(request);
+        let [err,childActivitiesArray] = await activityListSelectChildOrders({...request,parent_activity_id:request.workflow_activity_id,flag:8});
+        // console.log(childActivitiesArray)
+        for(let i=0 ; i < childActivitiesArray.length ; i++){
+            if(Number(childActivitiesArray[i].activity_mapping_flag_is_prerequisite)==0){
+                continue;
+            }
+            let eachChildRequest = childActivitiesArray[i];
+            eachChildRequest.workflow_activity_id = eachChildRequest.activity_id;
+            eachChildRequest.refrence_activity_id = request.workflow_activity_id;
+            eachChildRequest.parent_activity_id = request.parent_activity_id;
+            await this.childChangeStartAndEndDate(eachChildRequest,request.due_date,request.start_date);
+        }
         return [false,[]]
     }
 
@@ -10555,16 +10567,22 @@ console.log(request);
 		let activityReferenceId = request.refrence_activity_id;
 		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
 		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+		
+		let [act_act_err,activity_activityList] = await activityCommonService.activityActivityMappingSelect({...request,parent_activity_id:request.refrence_activity_id,flag:1});
+		let ghantt_config = typeof activity_activityList[0].activity_inline_data == 'string'?JSON.parse(activity_activityList[0].activity_inline_data):activity_activityList[0].activity_inline_data;
+		let offsetDays = ghantt_config && ghantt_config.hasOwnProperty('offset_time')?Number(ghantt_config.offset_time):0;
 		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
                 let endDatePrev = moment(workflowActivityDetails1[0].activity_datetime_end_deferred);
                 let daystoAdd = endDatePrev.diff(startDatePrev,'days');
                 console.log('days',daystoAdd);
-                let endDate = util.addDays(workflowActivityDetails[0].activity_datetime_end_deferred, daystoAdd);
+                console.log("offsetDays ",offsetDays)
+                let endDate = util.addDays(workflowActivityDetails[0].activity_datetime_end_deferred, daystoAdd+offsetDays);
+				let startDate = util.addDays(workflowActivityDetails[0].activity_datetime_end_deferred, offsetDays)
 				let workflowActivityDetails2 = await activityCommonService.getActivityDetailsPromise(request, parentActivity_id);
 				let dueDateParent = moment(workflowActivityDetails2[0].activity_datetime_end_deferred);
 				console.log(endDate,"end date")
 		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
-        const makeRequestOptions = {...request,workflow_activity_id:request.activity_id,start_date:workflowActivityDetails[0].activity_datetime_end_deferred,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1,single_req:1};
+        const makeRequestOptions = {...request,workflow_activity_id:request.activity_id,start_date:startDate,due_date:endDate,set_flag:1,single_req:1};
 		console.log(endDate,"end date");
 		console.log('ddd',dueDateParent)
 		console.log(dueDateParent.diff(endDate));
@@ -10598,20 +10616,24 @@ console.log(request);
 		let activityReferenceId = request.refrence_activity_id;
 		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
 		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+        let [act_act_err,activity_activityList] = await activityCommonService.activityActivityMappingSelect({...request,parent_activity_id:request.refrence_activity_id,flag:1});
+		let ghantt_config = typeof activity_activityList[0].activity_inline_data == 'string'?JSON.parse(activity_activityList[0].activity_inline_data):activity_activityList[0].activity_inline_data;
+		let offsetDays = ghantt_config && ghantt_config.hasOwnProperty('offset_time')?Number(ghantt_config.offset_time):0;
 		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
                 let endDatePrev = moment(workflowActivityDetails1[0].activity_datetime_end_deferred);
                 let daystoAdd = endDatePrev.diff(startDatePrev,'days');
                 console.log('days',daystoAdd);
+                console.log("offsetDays ",offsetDays)
                 // let endDate = util.addDays(workflowActivityDetails[0].activity_datetime_end_deferred, daystoAdd);
-				let endDate = workflowActivityDetails[0].activity_datetime_start_expected;
-				let startDate = util.subtractDays(workflowActivityDetails[0].activity_datetime_start_expected,daystoAdd);
+				let endDate = util.subtractDays(workflowActivityDetails[0].activity_datetime_start_expected,offsetDays);
+				let startDate = util.subtractDays(workflowActivityDetails[0].activity_datetime_start_expected,daystoAdd+offsetDays);
 				let startDateM = moment(startDate);
 				let workflowActivityDetails2 = await activityCommonService.getActivityDetailsPromise(request, parentActivity_id);
 				let startDateParent = moment(workflowActivityDetails2[0].activity_datetime_start_expected);
 				console.log(endDate,"end date")
 		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
         const makeRequestOptions = {
-            form:{...request,workflow_activity_id:request.activity_id,start_date:startDate,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1,single_req:1}
+            form:{...request,workflow_activity_id:request.activity_id,start_date:startDate,due_date:endDate,set_flag:1,single_req:1}
         };
 		// console.log(endDate,"end date");
 		// console.log('ddd',dueDateParent)
@@ -10639,15 +10661,20 @@ console.log(request);
 		let activityReferenceId = request.refrence_activity_id;
 		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
 		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+        let [act_act_err,activity_activityList] = await activityCommonService.activityActivityMappingSelect({...request,parent_activity_id:request.refrence_activity_id,flag:1});
+		let ghantt_config = typeof activity_activityList[0].activity_inline_data == 'string'?JSON.parse(activity_activityList[0].activity_inline_data):activity_activityList[0].activity_inline_data;
+		let offsetDays = ghantt_config && ghantt_config.hasOwnProperty('offset_time')?Number(ghantt_config.offset_time):0;
 		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
         let endDatePrev = moment(workflowActivityDetails1[0].activity_datetime_end_deferred);
         let daystoAdd = endDatePrev.diff(startDatePrev, "days");
         console.log("days", daystoAdd);
-        let startDate = util.subtractDays(workflowActivityDetails[0].activity_datetime_end_deferred,daystoAdd);
+        console.log("offsetDays ",offsetDays)
+        let endDate = util.subtractDays(workflowActivityDetails[0].activity_datetime_end_deferred,daystoAdd+offsetDays);
+        let startDate = util.subtractDays(workflowActivityDetails[0].activity_datetime_end_deferred,daystoAdd+offsetDays);
 		// let startDate = workflowActivityDetails[0].activity_datetime_start_expected;
 		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);
         const makeRequestOptions = {
-            form:{...request,workflow_activity_id:request.activity_id,start_date:startDate,due_date:workflowActivityDetails[0].activity_datetime_end_deferred,set_flag:1,single_req:1}
+            form:{...request,workflow_activity_id:request.activity_id,start_date:startDate,due_date:endDate,set_flag:1,single_req:1}
         };
     
         try {
@@ -10661,12 +10688,16 @@ console.log(request);
 		let activityReferenceId = request.refrence_activity_id;
 		let workflowActivityDetails = await activityCommonService.getActivityDetailsPromise(request, activityReferenceId);
 		let workflowActivityDetails1 = await activityCommonService.getActivityDetailsPromise(request, request.activity_id);
+        let [act_act_err,activity_activityList] = await activityCommonService.activityActivityMappingSelect({...request,parent_activity_id:request.refrence_activity_id,flag:1});
+		let ghantt_config = typeof activity_activityList[0].activity_inline_data == 'string'?JSON.parse(activity_activityList[0].activity_inline_data):activity_activityList[0].activity_inline_data;
+		let offsetDays = ghantt_config && ghantt_config.hasOwnProperty('offset_time')?Number(ghantt_config.offset_time):0;
 		let startDatePrev = moment(workflowActivityDetails1[0].activity_datetime_start_expected);
         let endDatePrev = moment(workflowActivityDetails1[0].activity_datetime_end_deferred);
         let daystoAdd = endDatePrev.diff(startDatePrev, "days");
         console.log("days", daystoAdd);
-        let endDate = util.addDays(workflowActivityDetails[0].activity_datetime_start_expected,daystoAdd);
-		let startDate = workflowActivityDetails[0].activity_datetime_start_expected;
+        console.log("offsetDays ",offsetDays)
+        let endDate = util.addDays(workflowActivityDetails[0].activity_datetime_start_expected,daystoAdd+offsetDays);
+		let startDate = util.addDays(workflowActivityDetails[0].activity_datetime_start_expected,offsetDays);
 		let workflowActivityDetails2 = await activityCommonService.getActivityDetailsPromise(request, parentActivity_id);
 		let dueDateParent = moment(workflowActivityDetails2[0].activity_datetime_end_deferred);
 		const changeParentDueDate = nodeUtil.promisify(makeRequest.post);

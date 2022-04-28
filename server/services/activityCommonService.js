@@ -5870,13 +5870,14 @@ async function updateActivityLogLastUpdatedDatetimeAssetAsync(request, assetColl
         const paramsArr = new Array(
                         request.activity_id,                  
                         referredActivityID,
+                        request.activity_inline_data || '{}',
                         request.organization_id,
                         request.activity_flag_is_prerequisite || 0,
                         request.message_unique_id || '',
                         request.asset_id,
                         util.getCurrentUTCTime()
                     );
-        const queryString = util.getQueryString('ds_p1_1_activity_activity_mapping_insert', paramsArr);           
+        const queryString = util.getQueryString('ds_p1_2_activity_activity_mapping_insert', paramsArr);           
         if (queryString != '') {
                 await db.executeQueryPromise(0, queryString, request)
                     .then((data) => {

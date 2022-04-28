@@ -2276,6 +2276,26 @@ function AdminListingService(objectCollection) {
         }
         return [error, responseData];
      }
+
+     this.adminRomsConfigListSelect = async (request) =>{
+        let responseData = [],
+            error = true;
+ 
+        const paramsArr = [request.activity_type_id];
+        const queryString = util.getQueryString('ds_p1_roms_config_list_select', paramsArr);
+ 
+        if (queryString !== '') {
+            await db.executeQueryPromise(1, queryString, request)
+                .then((data) => {
+                    responseData = data;
+                    error = false;
+                })
+                .catch((err) => {
+                    error = err;
+                })
+        }
+        return [error, responseData];
+     }
 }
 
 module.exports = AdminListingService;
