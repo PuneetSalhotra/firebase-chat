@@ -419,7 +419,8 @@ function FormConfigService(objCollection) {
                 //2 - Crores
                 "field_value_number_representation": util.replaceDefaultNumber(rowData['field_value_number_representation']),
                 "is_integrations_dependent": util.replaceDefaultNumber(rowData['field_integrations_dependent_enabled']),
-                "field_gamification_score_value": util.replaceDefaultNumber(rowData['field_gamification_score_value'])
+                "field_gamification_score_value": util.replaceDefaultNumber(rowData['field_gamification_score_value']),
+                "next_field_smart_flow_disable": util.replaceDefaultNumber(rowData['next_field_smart_flow_disable'])
             };
 
             /*if (Number(device_os_id) === 5 && Number(index) === 0 && Number(rowData['field_sequence_id']) === 0)
