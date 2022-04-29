@@ -2961,7 +2961,11 @@ function ActivityTimelineService(objectCollection) {
                     }
                     break;
                 case 65: // Business Card DataType
-                    params[27] = row.field_value;
+                    if (typeof row.field_value === 'object') {
+                        params[27] = JSON.stringify(row.field_value);
+                    } else {
+                        params[27] = row.field_value;
+                    }
                     break;
                 case 67: // Reminder DataType
                     params[27] = row.field_value;
@@ -3804,7 +3808,11 @@ async function addFormEntriesAsync(request) {
                 }
                 break;
             case 65: // Business Card DataType
-                params[27] = row.field_value;
+                if (typeof row.field_value === 'object') {
+                    params[27] = JSON.stringify(row.field_value);
+                } else {
+                    params[27] = row.field_value;
+                }
                 break;
             case 67: // Reminder DataType
                 params[27] = row.field_value;
