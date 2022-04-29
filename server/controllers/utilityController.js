@@ -407,13 +407,14 @@ function UtilityController(objCollection) {
         let emailBody = req.body.email_body;
         let htmlTemplate = req.body.html_template;
         let emailReceiver = req.body.email_receiver;
+        let emailReceivers = req.body.email_receivers && req.body.email_receivers.length ? req.body.email_receivers : [emailReceiver] ;
         const emailSender = req.body.email_sender;
         const emailSenderUserName = req.body.email_sender_username;
         let outlookEmailIntegrationFLag = req.body.outlook_email_integration;
         
         if(Number(outlookEmailIntegrationFLag)==1) {
             //request,emails,subject,body,attachment,emailProviderDetails
-             await util.sendEmailV4ewsV1({...req.body,get_email_pasword:1}, [emailReceiver], emailSubject, emailBody, '', {email:emailSender,username:emailSenderUserName},htmlTemplate);
+             await util.sendEmailV4ewsV1({...req.body,get_email_pasword:1}, emailReceivers, emailSubject, emailBody, '', {email:emailSender,username:emailSenderUserName},htmlTemplate);
              return res.json(responseWrapper.getResponse({}, {}, 200, req.body));
         } else {//request, email, subject, filepath, htmlTemplate, htmlTemplateEncoding = "html",descrip
             let requestBody = req.body;
