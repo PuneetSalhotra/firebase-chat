@@ -17,6 +17,25 @@ function UrlOpsService(objectCollection) {
     }
 
     this.urlParametersShorten = async function (request) {
+
+        if(request.url_mail_receivers && request.url_mail_receivers.length) {
+
+            let errOne, urlData;
+            for(let row of request.url_mail_receivers) {
+                [errOne, urlData] = await urlLookupTransactionInsert({
+                    ...request,
+                    url_mail_receiver : row,
+                    url_uuid: uuidv4()
+                });
+            }
+
+            if (errOne) {
+                return [errOne, {message: "Error shortening the URL parameters"}] 
+            }
+    
+            return [false, urlData];
+        }
+
         const [errOne, urlData] = await urlLookupTransactionInsert({
             ...request,
             url_uuid: uuidv4()
